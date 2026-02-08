@@ -1,0 +1,137 @@
+:root {
+    --glass-bg: rgba(20, 20, 20, 0.4); /* Um pouco mais escuro para contraste */
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: 12px;
+    --text-primary: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-primary);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    
+    /* CONFIGURAÇÃO DO BACKGROUND */
+    background-color: #2b2b2b; /* Cor de fundo caso a imagem falhe */
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    
+    /* Flexbox para alinhar tudo */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+    /* Transição suave ao trocar de imagem */
+    transition: background-image 0.5s ease-in-out;
+}
+
+/* Overlay escuro para garantir que o texto branco seja legível */
+.overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4); /* Escurece a imagem em 40% */
+    z-index: 0; /* Fica atrás do conteúdo */
+    pointer-events: none; /* Deixa clicar através dele */
+}
+
+/* O conteúdo deve ficar acima do overlay */
+header, main, footer {
+    z-index: 1; 
+    position: relative;
+}
+
+/* --- ESTILO DOS PAINÉIS (GLASSMORPHISM) --- */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+    background: rgba(60, 60, 60, 0.5);
+    transform: translateY(-2px);
+}
+
+/* --- HEADER --- */
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.links-container { display: flex; gap: 10px; }
+
+.action-btn {
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* --- MAIN --- */
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.clock {
+    font-family: 'Cinzel', serif;
+    font-size: 8rem;
+    font-weight: 700;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.greeting {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.focus-section input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255,255,255,0.5);
+    font-size: 2rem;
+    color: white;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    outline: none;
+    width: 100%;
+    max-width: 500px;
+}
+
+/* --- FOOTER --- */
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px;
+}
+
+.quote-container {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 60%;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.quote-text { font-style: italic; font-size: 1.1rem; margin-bottom: 5px; }
+.quote-author { font-size: 0.8rem; text-transform: uppercase; opacity: 0.8; }
