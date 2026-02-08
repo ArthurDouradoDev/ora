@@ -19,48 +19,51 @@
                 <i class="ph ph-book-open-text"></i> Liturgia
             </a>
             
-            <div style="position: relative;">
-                <div class="glass-panel action-btn" id="btn-music"><i class="ph ph-music-notes"></i> Música</div>
-                
-                <!-- Music Player -->
-                <!-- Music Library Modal -->
-                <div id="music-library" class="glass-panel" style="display: none;">
-                    <div class="modal-header">
-                        <h3>Biblioteca</h3>
-                        <button id="close-library-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-                    </div>
-                    
-                    <div class="add-playlist-section">
-                        <input type="text" id="playlist-input" placeholder="Link YouTube/Spotify...">
-                        <button id="add-playlist-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
-                    </div>
-
-                    <div id="playlist-grid" class="playlist-grid"></div>
-                </div>
-
-                <!-- Mini Player -->
-                <div id="mini-player" class="glass-panel" style="display: none;">
-                    <div class="player-header">
-                        <span id="now-playing-text">Tocando...</span>
-                        <div class="mini-controls">
-                            <!-- Custom YouTube Controls -->
-                            <button id="yt-play-pause-btn" class="icon-btn-sm" style="display: none;"><i class="ph ph-pause"></i></button>
-                            <button id="close-player-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>
-                        </div>
-                    </div>
-                    <div class="iframe-container" id="iframe-container">
-                        <iframe id="youtube-iframe" width="100%" height="80" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="display: none; border-radius: 8px;"></iframe>
-                        <iframe id="spotify-iframe" style="border-radius:12px; display: none;" src="" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                    </div>
-                </div>
-            </div>
+            <div class="glass-panel action-btn" id="btn-music"><i class="ph ph-music-notes"></i> Música</div>
         </div>
         <div class="glass-panel action-btn"><i class="ph ph-sun"></i> 24°C</div>
     </header>
 
+    <!-- Music Library Modal -->
+    <div id="music-library" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <h3>Biblioteca</h3>
+            <button id="close-library-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        
+        <div class="add-playlist-section">
+            <input type="text" id="playlist-input" placeholder="Link YouTube/Spotify...">
+            <button id="add-playlist-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
+        </div>
+
+        <div id="playlist-grid" class="playlist-grid"></div>
+    </div>
+
+    <!-- Mini Player - Fixed Position Left Side -->
+    <div id="mini-player" class="glass-panel" style="display: none;">
+        <div class="player-header">
+            <span id="now-playing-text">Tocando...</span>
+            <div class="player-actions">
+                <button id="open-external-btn" class="icon-btn-sm" title="Abrir no app">
+                    <i class="ph ph-arrow-square-out"></i>
+                </button>
+                <button id="close-player-btn" class="icon-btn-sm">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="iframe-container" id="iframe-container">
+            <!-- YouTube Embed -->
+            <iframe id="youtube-iframe" width="100%" height="352" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="display: none; border-radius: 12px;"></iframe>
+            
+            <!-- Spotify Embed -->
+            <iframe id="spotify-iframe" style="border-radius:12px; display: none;" src="" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+    </div>
+
     <main>
         <div class="clock" id="clock">00:00</div>
-        <div class="greeting">Laudetur Iesus Christus</div>
+        <div class="greeting">Fiat Voluntas Tua</div>
         <div class="focus-section">
             <input type="text" placeholder="Qual sua intenção hoje?">
         </div>

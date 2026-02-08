@@ -48,6 +48,7 @@ header, footer {
 main {
     z-index: 1;
     position: relative;
+    flex: 1;
 }
 
 /* --- ESTILO DOS PAINÉIS (GLASSMORPHISM) --- */
@@ -111,7 +112,7 @@ main {
 .focus-section input {
     background: transparent;
     border: none;
-    border-bottom: 2px solid rgba(255,255,255,0.5);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
     font-size: 2rem;
     color: white;
     text-align: center;
@@ -119,6 +120,12 @@ main {
     outline: none;
     width: 100%;
     max-width: 500px;
+}
+
+.focus-section input::placeholder {
+    color: rgba(255, 255, 255, 0.61); /* Ajuste a transparência aqui */
+    font-family: 'Montserrat', sans-serif; /* Pode usar uma fonte diferente do texto digitado */
+    font-weight: 300;
 }
 
 /* --- FOOTER --- */
@@ -283,106 +290,133 @@ footer {
 /* Music Modal Wrapper */
 /* REMOVED OLD MODAL STYLE */
 
-/* Playlist Grid */
+/* --- PLAYLIST GRID (Estilo Galeria) --- */
 .playlist-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 0;
+    display: grid;
+    /* Reduzi de 140px para 110px para caber 5 itens */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+    gap: 15px; /* Reduzi o espaçamento para caber mais */
+    margin-top: 20px;
+    padding-bottom: 20px;
 }
+
 
 .playlist-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid transparent;
-    border-radius: 12px;
-    padding: 10px;
+    background: transparent; /* Remove fundo do card inteiro */
+    border: none;
+    padding: 0;
     display: flex;
-    align-items: center;
-    gap: 15px;
+    flex-direction: column; /* Vertical */
+    align-items: flex-start;
+    gap: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    group: transition; /* Para animação */
+    position: relative;
 }
 
-.playlist-card:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateX(2px);
+.playlist-card:hover .playlist-cover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.3);
 }
 
-.playlist-icon {
-    width: 40px;
-    height: 40px;
+/* A "Capa do Álbum" */
+.playlist-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Garante que seja quadrado */
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 8px;
-    color: #eee;
+    font-size: 3rem; /* Ícone grande */
+    color: rgba(255,255,255,0.8);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.playlist-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Garante que a imagem preencha tudo sem esticar */
+    display: block;
 }
 
 .playlist-info {
-    flex: 1;
+    width: 100%;
     overflow: hidden;
 }
-
+/* Ajuste opcional para o título não ficar muito grande */
 .playlist-title {
+    font-size: 0.85rem; /* Um pouco menor */
     font-weight: 600;
-    font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    color: white;
 }
 
 .playlist-source {
     font-size: 0.75rem;
-    opacity: 0.7;
+    opacity: 0.6;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
+/* Botão de deletar (aparece em cima da capa) */
 .delete-btn {
-    background: transparent;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
     border: none;
     color: #ff6b6b;
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 8px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; /* Invisível por padrão */
     transition: all 0.2s;
+    z-index: 5;
+}
+
+.playlist-card:hover .delete-btn {
+    opacity: 1; /* Visível no hover */
 }
 
 .delete-btn:hover {
-    background: rgba(255, 107, 107, 0.1);
-    opacity: 1;
+    background: #ff6b6b;
+    color: white;
 }
 
 /* --- MUSIC LIBRARY (Modal) --- */
 #music-library {
-    position: fixed; /* Fixed to center of screen */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px; 
-    max-height: 70vh;
-    padding: 25px;
+    width: 750px; /* Mais largo */
+    max-width: 90vw;
+    height: 70vh; /* Altura fixa */
+    padding: 30px;
     
-    background: rgba(20, 20, 20, 0.4); /* Restore Glassmorphism */
+    background: rgba(20, 20, 20, 0.85); /* Fundo um pouco mais opaco para leitura */
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    border-radius: 20px;
     
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    z-index: 200; /* Highest Z-index */
-    
-    /* Scrollbar styling */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.3) transparent;
+    z-index: 200;
 }
 
 #music-library::-webkit-scrollbar {
@@ -396,20 +430,23 @@ footer {
     border-radius: 20px;
 }
 
-/* --- MINI PLAYER (Docked) --- */
+/* --- MINI PLAYER (Fixed Position - Left Side) --- */
 #mini-player {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 15px;
+    position: fixed;
+    top: 90px; /* Below the header */
+    left: 20px; /* Aligned with left margin */
     padding: 15px;
-    width: 300px;
+    width: 350px; /* Increased width */
     
     display: flex;
     flex-direction: column;
     gap: 10px;
     z-index: 100;
+    
+    /* Remove hover transform to keep it stable */
+    &:hover {
+        transform: none;
+    }
 }
 
 .player-header {
@@ -419,6 +456,11 @@ footer {
     font-size: 0.9rem;
     font-weight: 600;
     color: rgba(255,255,255,0.9);
+}
+
+.player-actions {
+    display: flex;
+    gap: 5px;
 }
 
 .icon-btn-sm {
@@ -440,8 +482,109 @@ footer {
 .iframe-container {
     width: 100%;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 12px;
     background: rgba(0,0,0,0.3);
+}
+
+/* Playback Controls */
+.playback-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.control-btn-mini {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    font-size: 1.3rem;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.control-btn-mini:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: scale(1.05);
+}
+
+.control-btn-play {
+    background: rgba(255, 255, 255, 0.15);
+    font-size: 1.5rem;
+    width: 42px;
+    height: 42px;
+}
+
+.control-btn-play:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    max-width: 120px;
+    margin-left: 10px;
+}
+
+.volume-control i {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.volume-slider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 @keyframes fadeIn {
