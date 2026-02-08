@@ -39,8 +39,14 @@ body {
 }
 
 /* O conteúdo deve ficar acima do overlay */
-header, main, footer {
-    z-index: 1; 
+/* O conteúdo deve ficar acima do overlay */
+header, footer {
+    z-index: 10; 
+    position: relative;
+}
+
+main {
+    z-index: 1;
     position: relative;
 }
 
@@ -135,3 +141,316 @@ footer {
 
 .quote-text { font-style: italic; font-size: 1.1rem; margin-bottom: 5px; }
 .quote-author { font-size: 0.8rem; text-transform: uppercase; opacity: 0.8; }
+
+/* --- MUSIC PLAYER --- */
+#music-player {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    padding: 15px;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+}
+
+.player-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+#track-name {
+    font-weight: 600;
+}
+
+#track-artist {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.control-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+/* --- MUSICA MODAL & PLAYLISTS --- */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 10px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 5px;
+    border-radius: 50%;
+}
+
+.icon-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.1);
+}
+
+.add-playlist-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#playlist-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    transition: all 0.2s;
+}
+
+#playlist-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+#playlist-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.glass-panel-sm {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+}
+
+.glass-panel-sm:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Music Modal Wrapper */
+/* REMOVED OLD MODAL STYLE */
+
+/* Playlist Grid */
+.playlist-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.playlist-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.playlist-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(2px);
+}
+
+.playlist-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #eee;
+}
+
+.playlist-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.playlist-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.playlist-source {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 8px;
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 107, 107, 0.1);
+    opacity: 1;
+}
+
+/* --- MUSIC LIBRARY (Modal) --- */
+#music-library {
+    position: fixed; /* Fixed to center of screen */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px; 
+    max-height: 70vh;
+    padding: 25px;
+    
+    background: rgba(20, 20, 20, 0.4); /* Restore Glassmorphism */
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 200; /* Highest Z-index */
+    
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+#music-library::-webkit-scrollbar {
+    width: 6px;
+}
+#music-library::-webkit-scrollbar-track {
+    background: transparent;
+}
+#music-library::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 20px;
+}
+
+/* --- MINI PLAYER (Docked) --- */
+#mini-player {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 15px;
+    padding: 15px;
+    width: 300px;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+}
+
+.icon-btn-sm {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.icon-btn-sm:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.iframe-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mini-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
