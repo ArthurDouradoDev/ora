@@ -1,56 +1,92 @@
 // 1. Relógio
 function updateClock() {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    document.getElementById('clock').textContent = `${hours}:${minutes}`;
+    try {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const clock = document.getElementById('clock');
+        if (clock) clock.textContent = `${hours}:${minutes}`;
+    } catch (e) { console.error(e); }
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// 2. Imagem de Fundo Dinâmica (Simplificada e Robusta)
+// Helper for safe storage access (works on file:// where localStorage might be blocked)
+const SafeStorage = {
+    getItem: (key) => {
+        try { return localStorage.getItem(key); }
+        catch (e) { return null; }
+    },
+    setItem: (key, value) => {
+        try { localStorage.setItem(key, value); }
+        catch (e) { /* silently fail */ }
+    }
+};
+
+// 2. Imagem de Fundo Dinâmica
 const images = [
-    "https://images.unsplash.com/photo-1698822079732-501a7e06860f?q=80&w=1920&auto=format&fit=crop", // Natureza
-    "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=1920&auto=format&fit=crop", // Igreja Névoa
+    "https://images.unsplash.com/photo-1698822079732-501a7e06860f?q=80&w=1920&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=1920&auto=format&fit=crop",
 ];
 
 function setBackground() {
-    const today = new Date().toDateString();
-    const savedDate = localStorage.getItem('catholic_dash_date');
-    
-    let imageUrl;
+    try {
+        const today = new Date().toDateString();
+        const savedDate = SafeStorage.getItem('catholic_dash_date');
+        let imageUrl;
 
-    // Lógica: Se já tem imagem salva HOJE, usa ela. Se não, sorteia nova.
-    if (savedDate === today && localStorage.getItem('catholic_dash_image')) {
-        imageUrl = localStorage.getItem('catholic_dash_image');
-        console.log("Usando imagem salva do cache.");
-    } else {
-        const randomIndex = Math.floor(Math.random() * images.length);
-        imageUrl = images[randomIndex];
-        
-        // Salva para a próxima vez
-        localStorage.setItem('catholic_dash_date', today);
-        localStorage.setItem('catholic_dash_image', imageUrl);
-        console.log("Nova imagem sorteada e salva.");
+        if (savedDate === today && SafeStorage.getItem('catholic_dash_image')) {
+            imageUrl = SafeStorage.getItem('catholic_dash_image');
+        } else {
+            const randomIndex = Math.floor(Math.random() * images.length);
+            imageUrl = images[randomIndex];
+            SafeStorage.setItem('catholic_dash_date', today);
+            SafeStorage.setItem('catholic_dash_image', imageUrl);
+        }
+
+        document.body.style.backgroundImage = `url('${imageUrl}')`;
+    } catch (e) {
+        console.error('Error in setBackground:', e);
     }
-
-    // Aplica a imagem
-    document.body.style.backgroundImage = `url('${imageUrl}')`;
 }
-
-// Executa a função
 setBackground();
 
+// ============================================================
 // 3. Music Library & Player Logic
+// ============================================================
 
-// State
+// --- TOAST SYSTEM ---
+const toastContainer = document.getElementById('toast-container');
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    let iconName = 'ph-check-circle';
+    if (type === 'error') iconName = 'ph-warning-circle';
+    if (type === 'info') iconName = 'ph-info';
+
+    toast.innerHTML = `
+        <i class="ph ${iconName}" style="font-size: 1.5rem;"></i>
+        <span>${message}</span>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('hide');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3000);
+}
+
+// --- State ---
 const defaultPlaylists = [
     {
         id: 'def-gregorian',
         title: 'Canto Gregoriano',
         source: 'youtube',
-        idType: 'video', // or playlist
-        externalId: 'c79SszUBZUE', // Famous 3 hour gregorian chant
+        idType: 'video',
+        externalId: 'c79SszUBZUE',
         icon: 'ph-church'
     },
     {
@@ -58,7 +94,7 @@ const defaultPlaylists = [
         title: 'Música Sacra',
         source: 'spotify',
         idType: 'playlist',
-        externalId: '1HE6bfpFj8GtTrpmNuuxGp', // Spotify Peaceful Choral
+        externalId: '1HE6bfpFj8GtTrpmNuuxGp',
         icon: 'ph-music-notes'
     },
     {
@@ -71,11 +107,21 @@ const defaultPlaylists = [
     }
 ];
 
-let userPlaylists = JSON.parse(localStorage.getItem('ora_user_playlists')) || [];
-let activePlayer = null; // 'youtube' or 'spotify'
-let isPlayerMinimized = false; // NEW: Track minimized state
+let userPlaylists = [];
+try {
+    const stored = SafeStorage.getItem('ora_user_playlists');
+    userPlaylists = stored ? JSON.parse(stored) : [];
+} catch (e) {
+    userPlaylists = [];
+}
 
-// DOM Elements
+let activePlayer = null;
+let isPlayerMinimized = false;
+let currentPlaylistUrl = '';
+let currentPlaylistIndex = -1;
+let allPlaylists = [];
+
+// --- DOM Elements ---
 const btnMusic = document.getElementById('btn-music');
 const musicLibrary = document.getElementById('music-library');
 const closeLibraryBtn = document.getElementById('close-library-btn');
@@ -83,35 +129,20 @@ const playlistGrid = document.getElementById('playlist-grid');
 const playlistInput = document.getElementById('playlist-input');
 const addPlaylistBtn = document.getElementById('add-playlist-btn');
 
-// Mini Player Elements
 const miniPlayer = document.getElementById('mini-player');
 const closePlayerBtn = document.getElementById('close-player-btn');
-const minimizePlayerBtn = document.getElementById('minimize-player-btn'); // NEW
+const minimizePlayerBtn = document.getElementById('minimize-player-btn');
 const openExternalBtn = document.getElementById('open-external-btn');
 const nowPlayingText = document.getElementById('now-playing-text');
 const ytIframe = document.getElementById('youtube-iframe');
 const spIframe = document.getElementById('spotify-iframe');
-const iframeContainer = document.getElementById('iframe-container'); // NEW
+const iframeContainer = document.getElementById('iframe-container');
 
-// Playback Controls
-const prevBtn = document.getElementById('prev-btn');
-const playPauseBtn = document.getElementById('play-pause-btn');
-const nextBtn = document.getElementById('next-btn');
-const volumeSlider = document.getElementById('volume-slider');
-
-let currentPlaylistUrl = ''; // Store current external URL
-let currentPlaylistIndex = -1; // Track which playlist is playing
-let allPlaylists = []; // Combined playlists
-let ytPlayer = null; // YouTube player API reference
-
-// Toggle Library
+// --- Toggle Library ---
 btnMusic.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent immediate close
+    e.stopPropagation();
     const isHidden = musicLibrary.style.display === 'none';
     musicLibrary.style.display = isHidden ? 'flex' : 'none';
-    
-    // If opening library, we might want to hide mini player temporarily? 
-    // Or keep it visible. Let's keep it visible if playing.
     if (isHidden) renderPlaylists();
 });
 
@@ -121,32 +152,30 @@ closeLibraryBtn.addEventListener('click', () => {
 
 // Close Library on Click Outside
 document.addEventListener('click', (e) => {
-    if (musicLibrary.style.display === 'flex' && 
-        !musicLibrary.contains(e.target) && 
-        e.target !== btnMusic) {
+    if (musicLibrary.style.display === 'flex' &&
+        !musicLibrary.contains(e.target) &&
+        e.target !== btnMusic &&
+        !btnMusic.contains(e.target)) {
         musicLibrary.style.display = 'none';
     }
 });
 
-// Close Mini Player
+// --- Mini Player Controls ---
 closePlayerBtn.addEventListener('click', () => {
     miniPlayer.style.display = 'none';
     stopPlayback();
     isPlayerMinimized = false;
 });
 
-// NEW: Minimize/Maximize Mini Player
 minimizePlayerBtn.addEventListener('click', () => {
     isPlayerMinimized = !isPlayerMinimized;
-    
+
     if (isPlayerMinimized) {
-        // Minimize - hide iframe
         iframeContainer.style.display = 'none';
         miniPlayer.classList.add('minimized');
         minimizePlayerBtn.querySelector('i').classList.remove('ph-caret-down');
         minimizePlayerBtn.querySelector('i').classList.add('ph-caret-up');
     } else {
-        // Maximize - show iframe
         iframeContainer.style.display = 'block';
         miniPlayer.classList.remove('minimized');
         minimizePlayerBtn.querySelector('i').classList.remove('ph-caret-up');
@@ -154,48 +183,13 @@ minimizePlayerBtn.addEventListener('click', () => {
     }
 });
 
-// Open in External App
 openExternalBtn.addEventListener('click', () => {
     if (currentPlaylistUrl) {
         window.open(currentPlaylistUrl, '_blank');
     }
 });
 
-// Playback Controls
-prevBtn.addEventListener('click', () => {
-    if (currentPlaylistIndex > 0) {
-        currentPlaylistIndex--;
-        playPlaylist(allPlaylists[currentPlaylistIndex]);
-    }
-});
-
-nextBtn.addEventListener('click', () => {
-    if (currentPlaylistIndex < allPlaylists.length - 1) {
-        currentPlaylistIndex++;
-        playPlaylist(allPlaylists[currentPlaylistIndex]);
-    }
-});
-
-playPauseBtn.addEventListener('click', () => {
-    // Note: Direct playback control of embedded iframes is very limited
-    // This is more of a visual element - users control playback in the embed itself
-    const icon = playPauseBtn.querySelector('i');
-    if (icon.classList.contains('ph-play')) {
-        icon.classList.remove('ph-play');
-        icon.classList.add('ph-pause');
-    } else {
-        icon.classList.remove('ph-pause');
-        icon.classList.add('ph-play');
-    }
-});
-
-volumeSlider.addEventListener('input', (e) => {
-    // Volume control for embedded players is limited
-    // This provides visual feedback but actual control depends on the embed
-    const volume = e.target.value;
-    console.log('Volume set to:', volume);
-});
-
+// --- Playback ---
 function stopPlayback() {
     ytIframe.src = '';
     ytIframe.style.display = 'none';
@@ -206,17 +200,13 @@ function stopPlayback() {
     currentPlaylistIndex = -1;
 }
 
-// Função auxiliar para buscar metadados reais (Capa e Título)
+// --- Metadata Fetching ---
 async function fetchMetadata(playlist, cardElement) {
     try {
         let url = '';
-        
-        // Constrói a URL pública baseada no ID
         if (playlist.source === 'spotify') {
-            // Ex: https://open.spotify.com/playlist/ID
             url = `https://open.spotify.com/${playlist.idType}/${playlist.externalId}`;
         } else if (playlist.source === 'youtube') {
-            // Ex: https://www.youtube.com/watch?v=ID
             if (playlist.idType === 'playlist') {
                 url = `https://www.youtube.com/playlist?list=${playlist.externalId}`;
             } else {
@@ -224,29 +214,26 @@ async function fetchMetadata(playlist, cardElement) {
             }
         }
 
-        // Usa o NoEmbed (API pública e gratuita) para pegar os dados
+        const coverEl = cardElement.querySelector('.playlist-cover');
+        if (coverEl) coverEl.classList.add('loading');
+
         const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
         const data = await response.json();
 
+        if (coverEl) coverEl.classList.remove('loading');
+
         if (data.title) {
-            // 1. Atualiza o Título Real
             const titleEl = cardElement.querySelector('.playlist-title');
             if (titleEl) {
                 titleEl.textContent = data.title;
-                titleEl.title = data.title; // Tooltip
+                titleEl.title = data.title;
             }
 
-            // 2. Atualiza a Capa (Principalmente para Spotify)
-            // Se for Spotify, usamos a thumb que a API devolveu
             if (playlist.source === 'spotify' && data.thumbnail_url) {
-                const coverEl = cardElement.querySelector('.playlist-cover');
-                // Substitui o ícone pela imagem
                 coverEl.innerHTML = `
                     <img src="${data.thumbnail_url}" loading="lazy" alt="${data.title}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
                     ${!playlist.id.startsWith('def-') ? '<button class="delete-btn" title="Remover"><i class="ph ph-trash"></i></button>' : ''}
                 `;
-                
-                // Reatribui o evento de deletar (pois recriamos o HTML interno)
                 const newDelBtn = coverEl.querySelector('.delete-btn');
                 if (newDelBtn) {
                     newDelBtn.onclick = (e) => {
@@ -258,28 +245,25 @@ async function fetchMetadata(playlist, cardElement) {
         }
     } catch (error) {
         console.warn(`Não foi possível carregar dados para ${playlist.title}:`, error);
+        const coverEl = cardElement.querySelector('.playlist-cover');
+        if (coverEl) coverEl.classList.remove('loading');
     }
 }
 
-// Render Playlists
+// --- Render Playlists ---
 function renderPlaylists() {
     playlistGrid.innerHTML = '';
-    
     allPlaylists = [...defaultPlaylists, ...userPlaylists];
 
-    allPlaylists.forEach(playlist => {
+    allPlaylists.forEach((playlist) => {
         const card = document.createElement('div');
         card.className = 'playlist-card';
-        
-        // HTML Inicial (Placeholder enquanto carrega)
+
         let coverHtml;
-        
-        // Para YouTube Vídeo, já usamos a capa padrão direto (é mais rápido que a API)
         if (playlist.source === 'youtube' && playlist.idType !== 'playlist') {
             const thumbUrl = `https://img.youtube.com/vi/${playlist.externalId}/mqdefault.jpg`;
             coverHtml = `<img src="${thumbUrl}" loading="lazy" alt="${playlist.title}">`;
         } else {
-            // Placeholder com ícone para Spotify e Playlists
             let iconClass = playlist.icon || (playlist.source === 'spotify' ? 'ph-spotify-logo' : 'ph-youtube-logo');
             coverHtml = `<i class="ph ${iconClass}"></i>`;
         }
@@ -303,7 +287,6 @@ function renderPlaylists() {
             </div>
         `;
 
-        // Lógica de Clique
         card.onclick = (e) => {
             if (e.target.closest('.delete-btn')) return;
             playPlaylist(playlist);
@@ -319,35 +302,30 @@ function renderPlaylists() {
         }
 
         playlistGrid.appendChild(card);
-        
-        // CHAMA A API PARA ATUALIZAR ESSE CARD ESPECÍFICO
-        // (Só chamamos se não for YouTube Vídeo simples, pois esse já tem capa)
+
         if (playlist.source === 'spotify' || playlist.idType === 'playlist') {
             fetchMetadata(playlist, card);
         }
     });
 }
 
-// Add Playlist Function - FIXED with better URL parsing
+// --- ADD PLAYLIST (+ button) ---
 addPlaylistBtn.addEventListener('click', () => {
     const input = playlistInput.value.trim();
+
+    // Empty input
     if (!input) {
-        alert('Por favor, cole um link do YouTube ou Spotify.');
+        showToast('Por favor, preencha com a URL.', 'info');
         return;
     }
-    
-    console.log('Tentando adicionar:', input);
-    
-    // Simple URL parser for YouTube/Spotify
+
     let newPlaylist = null;
-    
-    // YouTube detection - IMPROVED REGEX
-    if (input.includes('youtube.com') || input.includes('youtu.be')) {
-        // Tenta primeiro playlist
+
+    // YouTube detection
+    if (input.includes('youtube.com') || input.includes('youtu.be') || input.includes('music.youtube.com')) {
         const playlistMatch = input.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-        // Depois vídeo
         const videoMatch = input.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-        
+
         if (playlistMatch) {
             newPlaylist = {
                 id: 'user-' + Date.now(),
@@ -357,7 +335,6 @@ addPlaylistBtn.addEventListener('click', () => {
                 externalId: playlistMatch[1],
                 icon: 'ph-youtube-logo'
             };
-            console.log('YouTube Playlist detectada:', playlistMatch[1]);
         } else if (videoMatch) {
             newPlaylist = {
                 id: 'user-' + Date.now(),
@@ -367,55 +344,63 @@ addPlaylistBtn.addEventListener('click', () => {
                 externalId: videoMatch[1],
                 icon: 'ph-youtube-logo'
             };
-            console.log('YouTube Video detectado:', videoMatch[1]);
         }
     }
-    // Spotify detection - IMPROVED REGEX
+    // Spotify detection
     else if (input.includes('spotify.com') || input.includes('spotify:')) {
-        // Suporta URLs normais e URIs (spotify:playlist:xxx)
         const urlMatch = input.match(/spotify\.com\/(playlist|album|track)\/([a-zA-Z0-9]+)/);
         const uriMatch = input.match(/spotify:(playlist|album|track):([a-zA-Z0-9]+)/);
-        
         const match = urlMatch || uriMatch;
-        
+
         if (match) {
             newPlaylist = {
                 id: 'user-' + Date.now(),
-                title: `Spotify ${match[1].charAt(0).toUpperCase() + match[1].slice(1)}`,
+                title: match[1] === 'playlist' ? 'Spotify Playlist' : (match[1] === 'album' ? 'Spotify Album' : 'Spotify Track'),
                 source: 'spotify',
                 idType: match[1],
                 externalId: match[2],
                 icon: 'ph-spotify-logo'
             };
-            console.log('Spotify detectado:', match[1], match[2]);
         }
     }
-    
+
     if (newPlaylist) {
         userPlaylists.push(newPlaylist);
-        localStorage.setItem('ora_user_playlists', JSON.stringify(userPlaylists));
+        SafeStorage.setItem('ora_user_playlists', JSON.stringify(userPlaylists));
         playlistInput.value = '';
         renderPlaylists();
-        console.log('✓ Playlist adicionada com sucesso!');
+
+        // Toast with specific message
+        if (newPlaylist.idType === 'playlist') {
+            showToast('Playlist adicionada!', 'success');
+        } else {
+            showToast('Música adicionada!', 'success');
+        }
     } else {
-        console.error('❌ URL não reconhecida:', input);
-        alert('URL não reconhecido.\n\nExemplos válidos:\n• YouTube: https://youtube.com/watch?v=...\n• Spotify: https://open.spotify.com/playlist/...');
+        showToast('Não foi possível encontrar o vídeo/playlist.', 'error');
     }
 });
 
-// Remove Playlist
+// Also allow Enter key in input
+playlistInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        addPlaylistBtn.click();
+    }
+});
+
+// --- Remove Playlist ---
 function removePlaylist(id) {
-    userPlaylists = userPlaylists.filter(p => p.id !== id);
-    localStorage.setItem('ora_user_playlists', JSON.stringify(userPlaylists));
+    userPlaylists = userPlaylists.filter((p) => p.id !== id);
+    SafeStorage.setItem('ora_user_playlists', JSON.stringify(userPlaylists));
     renderPlaylists();
+    showToast('Removido com sucesso.', 'info');
 }
 
-// Play Logic - FIXED with proper YouTube embedding
+// --- Play Logic ---
 function playPlaylist(playlist) {
     miniPlayer.style.display = 'flex';
-    nowPlayingText.textContent = `${playlist.title}`;
-    
-    // Reset minimized state when playing new content
+    nowPlayingText.textContent = playlist.title;
+
     if (isPlayerMinimized) {
         isPlayerMinimized = false;
         iframeContainer.style.display = 'block';
@@ -426,15 +411,9 @@ function playPlaylist(playlist) {
 
     if (playlist.source === 'youtube') {
         spIframe.style.display = 'none';
-        spIframe.src = ''; // Stop Spotify
+        spIframe.src = '';
         ytIframe.style.display = 'block';
-        
-        // YouTube embed URL - using youtube-nocookie.com for better compatibility
-        // Key parameters:
-        // - autoplay=1: starts playing automatically
-        // - controls=1: show player controls
-        // - modestbranding=1: minimal YouTube branding
-        // - rel=0: don't show related videos from other channels
+
         let src;
         if (playlist.idType === 'playlist') {
             src = `https://www.youtube-nocookie.com/embed/videoseries?list=${playlist.externalId}&autoplay=1&controls=1&modestbranding=1&rel=0`;
@@ -443,27 +422,17 @@ function playPlaylist(playlist) {
             src = `https://www.youtube-nocookie.com/embed/${playlist.externalId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
             currentPlaylistUrl = `https://www.youtube.com/watch?v=${playlist.externalId}`;
         }
-        
+
         ytIframe.src = src;
         activePlayer = 'youtube';
-        
+
     } else if (playlist.source === 'spotify') {
         ytIframe.style.display = 'none';
-        ytIframe.src = ''; // Stop YouTube
+        ytIframe.src = '';
         spIframe.style.display = 'block';
-        
-        // Spotify Embed URL format - using full player for better visualization
-        let embedSrc = `https://open.spotify.com/embed/${playlist.idType}/${playlist.externalId}?utm_source=generator&theme=0`;
-        spIframe.src = embedSrc;
-        
-        // Set external URL
+
+        spIframe.src = `https://open.spotify.com/embed/${playlist.idType}/${playlist.externalId}?utm_source=generator&theme=0`;
         currentPlaylistUrl = `https://open.spotify.com/${playlist.idType}/${playlist.externalId}`;
-        
         activePlayer = 'spotify';
     }
-    
-    // Update play/pause button to pause state when new media starts
-    const icon = playPauseBtn.querySelector('i');
-    icon.classList.remove('ph-play');
-    icon.classList.add('ph-pause');
 }
