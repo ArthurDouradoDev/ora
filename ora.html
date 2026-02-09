@@ -15,7 +15,7 @@
 
     <header>
         <div class="links-container">
-            <a href="https://padrepauloricardo.org/liturgia/08-02-2026" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;">
+            <a href="https://padrepauloricardo.org/liturgia/" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;">
                 <i class="ph ph-book-open-text"></i> Liturgia
             </a>
             
@@ -80,8 +80,31 @@
             <div class="quote-author">Santo Agostinho</div>
         </div>
 
-        <div class="glass-panel action-btn">Orações <i class="ph ph-caret-up"></i></div>
+        <div class="glass-panel action-btn" id="btn-prayers">Orações <i class="ph ph-caret-up"></i></div>
     </footer>
+
+    <!-- Prayer List Modal -->
+    <div id="prayer-list" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <h3>Orações</h3>
+            <button id="close-prayer-list-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="prayer-grid" class="prayer-grid"></div>
+    </div>
+
+    <!-- Prayer Reader Modal -->
+    <div id="prayer-reader" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <button id="back-to-list-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 id="prayer-reader-title">Oração</h3>
+            <button id="close-prayer-reader-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="lang-toggle">
+            <button class="lang-btn active" data-lang="pt">Português</button>
+            <button class="lang-btn" data-lang="la">Latim</button>
+        </div>
+        <div id="prayer-text" class="prayer-text"></div>
+    </div>
 
     <!-- Toast Container -->
     <div id="toast-container"></div>

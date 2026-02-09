@@ -436,3 +436,378 @@ function playPlaylist(playlist) {
         activePlayer = 'spotify';
     }
 }
+
+// ============================================================
+// 4. PRAYER SYSTEM
+// ============================================================
+
+const prayers = [
+    {
+        id: 'pai-nosso',
+        title: 'Pai Nosso',
+        icon: 'ph-hands-praying',
+        text: {
+            pt: `Pai nosso, que estais nos céus,
+santificado seja o Vosso nome;
+venha a nós o Vosso reino,
+seja feita a Vossa vontade,
+assim na terra como no céu.
+
+O pão nosso de cada dia nos dai hoje;
+perdoai-nos as nossas ofensas,
+assim como nós perdoamos
+a quem nos tem ofendido;
+e não nos deixeis cair em tentação,
+mas livrai-nos do mal. Amém.`,
+            la: `Pater noster, qui es in caelis,
+sanctificetur nomen tuum.
+Adveniat regnum tuum.
+Fiat voluntas tua,
+sicut in caelo et in terra.
+
+Panem nostrum quotidianum da nobis hodie,
+et dimitte nobis debita nostra,
+sicut et nos dimittimus debitoribus nostris.
+Et ne nos inducas in tentationem,
+sed libera nos a malo. Amen.`
+        }
+    },
+    {
+        id: 'ave-maria',
+        title: 'Ave Maria',
+        icon: 'ph-heart',
+        text: {
+            pt: `Ave Maria, cheia de graça,
+o Senhor é convosco,
+bendita sois vós entre as mulheres
+e bendito é o fruto do vosso ventre, Jesus.
+
+Santa Maria, Mãe de Deus,
+rogai por nós, pecadores,
+agora e na hora da nossa morte. Amém.`,
+            la: `Ave Maria, gratia plena,
+Dominus tecum.
+Benedicta tu in mulieribus,
+et benedictus fructus ventris tui, Iesus.
+
+Sancta Maria, Mater Dei,
+ora pro nobis peccatoribus,
+nunc, et in hora mortis nostrae. Amen.`
+        }
+    },
+    {
+        id: 'gloria',
+        title: 'Glória ao Pai',
+        icon: 'ph-star',
+        text: {
+            pt: `Glória ao Pai, e ao Filho e ao Espírito Santo.
+Como era no princípio, agora e sempre. Amém.`,
+            la: `Gloria Patri, et Filio, et Spiritui Sancto.
+Sicut erat in principio, et nunc, et semper,
+et in saecula saeculorum. Amen.`
+        }
+    },
+    {
+        id: 'salve-rainha',
+        title: 'Salve Rainha',
+        icon: 'ph-crown',
+        text: {
+            pt: `Salve, Rainha, Mãe de misericórdia,
+vida, doçura e esperança nossa, salve!
+A vós bradamos, os degredados filhos de Eva;
+a vós suspiramos, gemendo e chorando
+neste vale de lágrimas.
+
+Eia, pois, advogada nossa,
+esses vossos olhos misericordiosos a nós volvei;
+e depois deste desterro nos mostrai Jesus,
+bendito fruto do vosso ventre,
+ó clemente, ó piedosa,
+ó doce sempre Virgem Maria.
+
+V. Rogai por nós, santa Mãe de Deus.
+R. Para que sejamos dignos das promessas de Cristo.`,
+            la: `Salve, Regina, Mater misericordiae,
+vita, dulcedo, et spes nostra, salve.
+Ad te clamamus, exsules filii Hevae,
+ad te suspiramus, gementes et flentes
+in hac lacrimarum valle.
+
+Eia, ergo, advocata nostra,
+illos tuos misericordes oculos ad nos converte;
+et Iesum, benedictum fructum ventris tui,
+nobis post hoc exsilium ostende.
+O clemens, O pia,
+O dulcis Virgo Maria.
+
+V. Ora pro nobis, sancta Dei Genetrix.
+R. Ut digni efficiamur promissionibus Christi.`
+        }
+    },
+    {
+        id: 'credo',
+        title: 'Credo',
+        icon: 'ph-shield-check',
+        text: {
+            pt: `Creio em Deus Pai Todo-Poderoso,
+Criador do céu e da terra;
+e em Jesus Cristo, seu único Filho, nosso Senhor;
+que foi concebido pelo poder do Espírito Santo;
+nasceu da Virgem Maria,
+padeceu sob Pôncio Pilatos,
+foi crucificado, morto e sepultado;
+desceu à mansão dos mortos;
+ressuscitou ao terceiro dia;
+subiu aos céus,
+está sentado à direita de Deus Pai Todo-Poderoso,
+donde há de vir a julgar os vivos e os mortos.
+
+Creio no Espírito Santo,
+na Santa Igreja Católica,
+na comunhão dos Santos,
+na remissão dos pecados,
+na ressurreição da carne,
+na vida eterna. Amém.`,
+            la: `Credo in Deum Patrem omnipotentem,
+Creatorem caeli et terrae.
+Et in Iesum Christum, Filium eius unicum, Dominum nostrum,
+qui conceptus est de Spiritu Sancto,
+natus ex Maria Virgine,
+passus sub Pontio Pilato,
+crucifixus, mortuus, et sepultus,
+descendit ad inferos,
+tertia die resurrexit a mortuis,
+ascendit ad caelos,
+sedet ad dexteram Dei Patris omnipotentis,
+inde venturus est iudicare vivos et mortuos.
+
+Credo in Spiritum Sanctum,
+sanctam Ecclesiam catholicam,
+sanctorum communionem,
+remissionem peccatorum,
+carnis resurrectionem,
+vitam aeternam. Amen.`
+        }
+    },
+    {
+        id: 'ato-contricao',
+        title: 'Ato de Contrição',
+        icon: 'ph-heart-break',
+        text: {
+            pt: `Meu Deus, eu me arrependo de todo o coração de vos ter ofendido,
+porque sois tão bom e amável.
+Prometo, com a vossa graça,
+esforçar-me para não mais pecar.
+Meu Jesus, misericórdia!`,
+            la: `Deus meus, ex toto corde paenitet me omnium meorum peccatorum,
+eaque detestor, quia peccando,
+non solum poenas a Te iuste statutas promeritus sum,
+sed praesertim quia Te summum bonum,
+ac Te dignum qui super omnia ametur, offendi.
+Ideo firmiter propono,
+adiuvante gratia Tua,
+de cetero me non peccaturum peccandique occasiones proximas fugiturum. Amen.`
+        }
+    },
+    {
+        id: 'sao-miguel',
+        title: 'São Miguel Arcanjo',
+        icon: 'ph-sword',
+        text: {
+            pt: `São Miguel Arcanjo, defendei-nos no combate,
+sede o nosso refúgio contra as maldades e ciladas do demônio.
+Ordene-lhe Deus, instantemente o pedimos,
+e vós, príncipe da milícia celeste,
+pela virtude divina,
+precipitai no inferno a satanás e a todos os espíritos malignos,
+que andam pelo mundo para perder as almas. Amém.`,
+            la: `Sancte Michael Archangele, defende nos in proelio,
+contra nequitiam et insidias diaboli esto praesidium.
+Imperet illi Deus, supplices deprecamur:
+tuque, Princeps militiae caelestis,
+Satanam aliosque spiritus malignos,
+qui ad perditionem animarum pervagantur in mundo,
+divina virtute, in infernum detrude. Amen.`
+        }
+    },
+    {
+        id: 'angelus',
+        title: 'Angelus',
+        icon: 'ph-bell',
+        text: {
+            pt: `V. O Anjo do Senhor anunciou a Maria.
+R. E ela concebeu do Espírito Santo.
+Ave Maria...
+
+V. Eis a escrava do Senhor.
+R. Faça-se em mim segundo a vossa palavra.
+Ave Maria...
+
+V. E o Verbo se fez carne.
+R. E habitou entre nós.
+Ave Maria...
+
+V. Rogai por nós, santa Mãe de Deus.
+R. Para que sejamos dignos das promessas de Cristo.
+
+Oremos: Infundi, Senhor, nós Vos pedimos,
+a Vossa graça em nossas almas,
+para que nós, que pela anunciação do Anjo
+conhecemos a Encarnação de Jesus Cristo, Vosso Filho,
+pela Sua paixão e cruz,
+sejamos conduzidos à glória da ressurreição.
+Pelo mesmo Cristo, Senhor nosso. Amém.`,
+            la: `V. Angelus Domini nuntiavit Mariae.
+R. Et concepit de Spiritu Sancto.
+Ave Maria...
+
+V. Ecce Ancilla Domini.
+R. Fiat mihi secundum Verbum tuum.
+Ave Maria...
+
+V. Et Verbum caro factum est.
+R. Et habitavit in nobis.
+Ave Maria...
+
+V. Ora pro nobis, Sancta Dei Genetrix.
+R. Ut digni efficiamur promissionibus Christi.
+
+Oremus: Gratiam tuam, quaesumus, Domine,
+mentibus nostris infunde;
+ut qui, Angelo nuntiante,
+Christi Filii tui incarnationem cognovimus,
+per passionem eius et crucem,
+ad resurrectionis gloriam perducamur.
+Per eundem Christum Dominum nostrum. Amen.`
+        }
+    }
+];
+
+// DOM Elements - Prayer System
+const btnPrayers = document.getElementById('btn-prayers');
+const prayerList = document.getElementById('prayer-list');
+const closePrayerListBtn = document.getElementById('close-prayer-list-btn');
+const prayerGrid = document.getElementById('prayer-grid');
+
+const prayerReader = document.getElementById('prayer-reader');
+const closePrayerReaderBtn = document.getElementById('close-prayer-reader-btn');
+const backToListBtn = document.getElementById('back-to-list-btn');
+const prayerReaderTitle = document.getElementById('prayer-reader-title');
+const prayerTextContent = document.getElementById('prayer-text');
+const langBtns = document.querySelectorAll('.lang-btn');
+
+let currentPrayer = null;
+let currentLang = 'pt';
+
+// --- Functions ---
+
+function openPrayerList() {
+    renderPrayerGrid();
+    prayerList.style.display = 'flex';
+}
+
+function closePrayerList() {
+    prayerList.style.display = 'none';
+}
+
+function openPrayerReader(prayer) {
+    currentPrayer = prayer;
+    currentLang = 'pt'; // Default to PT
+    updatePrayerReader();
+    
+    prayerList.style.display = 'none'; // Close list
+    prayerReader.style.display = 'flex'; // Open reader
+}
+
+function closePrayerReader() {
+    prayerReader.style.display = 'none';
+    currentPrayer = null;
+}
+
+function updatePrayerReader() {
+    if (!currentPrayer) return;
+    
+    prayerReaderTitle.textContent = currentPrayer.title;
+    prayerTextContent.textContent = currentPrayer.text[currentLang];
+    
+    // Update Toggle UI
+    langBtns.forEach(btn => {
+        if (btn.dataset.lang === currentLang) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+function renderPrayerGrid() {
+    prayerGrid.innerHTML = '';
+    prayers.forEach(prayer => {
+        const card = document.createElement('div');
+        card.className = 'prayer-card';
+        card.innerHTML = `
+            <div class="prayer-card-icon">
+                <i class="ph ${prayer.icon}"></i>
+            </div>
+            <div class="prayer-card-title">${prayer.title}</div>
+            <i class="ph ph-caret-right prayer-card-arrow"></i>
+        `;
+        
+        card.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('Prayer clicked:', prayer.title);
+            openPrayerReader(prayer);
+        });
+        prayerGrid.appendChild(card);
+    });
+}
+
+// --- Event Listeners ---
+
+if (btnPrayers) {
+    btnPrayers.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = prayerList.style.display === 'none';
+        if (isHidden) {
+            openPrayerList();
+        } else {
+            closePrayerList();
+        }
+    });
+
+    // Close modals on click outside
+    document.addEventListener('click', (e) => {
+        // Close Prayer List
+        if (prayerList.style.display === 'flex' && 
+            !prayerList.contains(e.target) && 
+            !btnPrayers.contains(e.target)) {
+            closePrayerList();
+        }
+
+        // Close Prayer Reader
+        if (prayerReader.style.display === 'flex' && 
+            !prayerReader.contains(e.target)) {
+            closePrayerReader();
+        }
+    });
+}
+
+if (closePrayerListBtn) closePrayerListBtn.addEventListener('click', closePrayerList);
+
+if (closePrayerReaderBtn) closePrayerReaderBtn.addEventListener('click', closePrayerReader);
+
+if (backToListBtn) {
+    backToListBtn.addEventListener('click', () => {
+        closePrayerReader();
+        openPrayerList();
+    });
+}
+
+// Language Toggle
+langBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
+        currentLang = lang;
+        updatePrayerReader();
+    });
+});
