@@ -811,3 +811,84 @@ langBtns.forEach(btn => {
         updatePrayerReader();
     });
 });
+
+// ============================================================
+// 5. ANGELUS REMINDER
+// ============================================================
+
+const angelusReminder = document.getElementById('angelus-reminder');
+const openAngelusBtn = document.getElementById('open-angelus-btn');
+const checkAngelusBtn = document.getElementById('check-angelus-btn');
+const angelusPrayerId = 'angelus'; 
+
+function checkAngelusTime() {
+    const now = new Date();
+    const hours = now.getHours();
+    
+    // Angelus time: 12:00 - 13:00
+    // Also check if already done today
+    const todayStr = new Date().toDateString();
+    const doneToday = SafeStorage.getItem('angelus_done_' + todayStr);
+
+    if (hours === 12 && !doneToday) {
+        showAngelusReminder();
+        
+        // Try to send notification if improved permission
+        if (Notification.permission === 'granted') {
+            // Check if we already sent notification today to avoid spam loop
+            const notifSent = SafeStorage.getItem('angelus_notif_' + todayStr);
+            if (!notifSent) {
+                new Notification('Hora do Angelus', {
+                    body: 'O Anjo do Senhor anunciou a Maria...',
+                    icon: 'icon.png' // Optional
+                });
+                SafeStorage.setItem('angelus_notif_' + todayStr, 'true');
+            }
+        }
+    } else {
+        hideAngelusReminder();
+    }
+}
+
+function showAngelusReminder() {
+    if (angelusReminder) angelusReminder.style.display = 'flex';
+}
+
+function hideAngelusReminder() {
+    if (angelusReminder) angelusReminder.style.display = 'none';
+}
+
+// Actions
+if (openAngelusBtn) {
+    openAngelusBtn.addEventListener('click', () => {
+        // Find Angelus prayer object
+        const angelusPrayer = prayers.find(p => p.id === angelusPrayerId);
+        if (angelusPrayer) {
+            openPrayerReader(angelusPrayer);
+        }
+    });
+}
+
+if (checkAngelusBtn) {
+    checkAngelusBtn.addEventListener('click', () => {
+        // Mark as done
+        const todayStr = new Date().toDateString();
+        SafeStorage.setItem('angelus_done_' + todayStr, 'true');
+        
+        hideAngelusReminder();
+        showToast('Angelus rezado!', 'success');
+    });
+}
+
+// Request Notification Permission on load
+if ('Notification' in window) {
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+}
+
+// Check every minute
+setInterval(checkAngelusTime, 60000);
+
+// Check immediately on load
+checkAngelusTime();
