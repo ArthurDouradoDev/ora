@@ -73,6 +73,7 @@ const defaultPlaylists = [
 
 let userPlaylists = JSON.parse(localStorage.getItem('ora_user_playlists')) || [];
 let activePlayer = null; // 'youtube' or 'spotify'
+let isPlayerMinimized = false; // NEW: Track minimized state
 
 // DOM Elements
 const btnMusic = document.getElementById('btn-music');
@@ -85,10 +86,12 @@ const addPlaylistBtn = document.getElementById('add-playlist-btn');
 // Mini Player Elements
 const miniPlayer = document.getElementById('mini-player');
 const closePlayerBtn = document.getElementById('close-player-btn');
+const minimizePlayerBtn = document.getElementById('minimize-player-btn'); // NEW
 const openExternalBtn = document.getElementById('open-external-btn');
 const nowPlayingText = document.getElementById('now-playing-text');
 const ytIframe = document.getElementById('youtube-iframe');
 const spIframe = document.getElementById('spotify-iframe');
+const iframeContainer = document.getElementById('iframe-container'); // NEW
 
 // Playback Controls
 const prevBtn = document.getElementById('prev-btn');
@@ -129,6 +132,26 @@ document.addEventListener('click', (e) => {
 closePlayerBtn.addEventListener('click', () => {
     miniPlayer.style.display = 'none';
     stopPlayback();
+    isPlayerMinimized = false;
+});
+
+// NEW: Minimize/Maximize Mini Player
+minimizePlayerBtn.addEventListener('click', () => {
+    isPlayerMinimized = !isPlayerMinimized;
+    
+    if (isPlayerMinimized) {
+        // Minimize - hide iframe
+        iframeContainer.style.display = 'none';
+        miniPlayer.classList.add('minimized');
+        minimizePlayerBtn.querySelector('i').classList.remove('ph-caret-down');
+        minimizePlayerBtn.querySelector('i').classList.add('ph-caret-up');
+    } else {
+        // Maximize - show iframe
+        iframeContainer.style.display = 'block';
+        miniPlayer.classList.remove('minimized');
+        minimizePlayerBtn.querySelector('i').classList.remove('ph-caret-up');
+        minimizePlayerBtn.querySelector('i').classList.add('ph-caret-down');
+    }
 });
 
 // Open in External App
@@ -242,7 +265,7 @@ async function fetchMetadata(playlist, cardElement) {
 function renderPlaylists() {
     playlistGrid.innerHTML = '';
     
-    const allPlaylists = [...defaultPlaylists, ...userPlaylists];
+    allPlaylists = [...defaultPlaylists, ...userPlaylists];
 
     allPlaylists.forEach(playlist => {
         const card = document.createElement('div');
@@ -305,18 +328,25 @@ function renderPlaylists() {
     });
 }
 
-// Add Playlist Function (placeholder - you can expand this)
+// Add Playlist Function - FIXED with better URL parsing
 addPlaylistBtn.addEventListener('click', () => {
     const input = playlistInput.value.trim();
-    if (!input) return;
+    if (!input) {
+        alert('Por favor, cole um link do YouTube ou Spotify.');
+        return;
+    }
+    
+    console.log('Tentando adicionar:', input);
     
     // Simple URL parser for YouTube/Spotify
     let newPlaylist = null;
     
-    // YouTube detection
+    // YouTube detection - IMPROVED REGEX
     if (input.includes('youtube.com') || input.includes('youtu.be')) {
-        const videoMatch = input.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        // Tenta primeiro playlist
         const playlistMatch = input.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+        // Depois vídeo
+        const videoMatch = input.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
         
         if (playlistMatch) {
             newPlaylist = {
@@ -327,6 +357,7 @@ addPlaylistBtn.addEventListener('click', () => {
                 externalId: playlistMatch[1],
                 icon: 'ph-youtube-logo'
             };
+            console.log('YouTube Playlist detectada:', playlistMatch[1]);
         } else if (videoMatch) {
             newPlaylist = {
                 id: 'user-' + Date.now(),
@@ -336,11 +367,17 @@ addPlaylistBtn.addEventListener('click', () => {
                 externalId: videoMatch[1],
                 icon: 'ph-youtube-logo'
             };
+            console.log('YouTube Video detectado:', videoMatch[1]);
         }
     }
-    // Spotify detection
-    else if (input.includes('spotify.com')) {
-        const match = input.match(/spotify\.com\/(playlist|album|track)\/([a-zA-Z0-9]+)/);
+    // Spotify detection - IMPROVED REGEX
+    else if (input.includes('spotify.com') || input.includes('spotify:')) {
+        // Suporta URLs normais e URIs (spotify:playlist:xxx)
+        const urlMatch = input.match(/spotify\.com\/(playlist|album|track)\/([a-zA-Z0-9]+)/);
+        const uriMatch = input.match(/spotify:(playlist|album|track):([a-zA-Z0-9]+)/);
+        
+        const match = urlMatch || uriMatch;
+        
         if (match) {
             newPlaylist = {
                 id: 'user-' + Date.now(),
@@ -350,6 +387,7 @@ addPlaylistBtn.addEventListener('click', () => {
                 externalId: match[2],
                 icon: 'ph-spotify-logo'
             };
+            console.log('Spotify detectado:', match[1], match[2]);
         }
     }
     
@@ -358,8 +396,10 @@ addPlaylistBtn.addEventListener('click', () => {
         localStorage.setItem('ora_user_playlists', JSON.stringify(userPlaylists));
         playlistInput.value = '';
         renderPlaylists();
+        console.log('✓ Playlist adicionada com sucesso!');
     } else {
-        alert('URL não reconhecido. Use links do YouTube ou Spotify.');
+        console.error('❌ URL não reconhecida:', input);
+        alert('URL não reconhecido.\n\nExemplos válidos:\n• YouTube: https://youtube.com/watch?v=...\n• Spotify: https://open.spotify.com/playlist/...');
     }
 });
 
@@ -374,6 +414,15 @@ function removePlaylist(id) {
 function playPlaylist(playlist) {
     miniPlayer.style.display = 'flex';
     nowPlayingText.textContent = `${playlist.title}`;
+    
+    // Reset minimized state when playing new content
+    if (isPlayerMinimized) {
+        isPlayerMinimized = false;
+        iframeContainer.style.display = 'block';
+        miniPlayer.classList.remove('minimized');
+        minimizePlayerBtn.querySelector('i').classList.remove('ph-caret-up');
+        minimizePlayerBtn.querySelector('i').classList.add('ph-caret-down');
+    }
 
     if (playlist.source === 'youtube') {
         spIframe.style.display = 'none';

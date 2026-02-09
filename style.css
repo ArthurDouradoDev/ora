@@ -310,7 +310,6 @@ footer {
     align-items: flex-start;
     gap: 12px;
     cursor: pointer;
-    group: transition; /* Para animação */
     position: relative;
 }
 
@@ -443,10 +442,22 @@ footer {
     gap: 10px;
     z-index: 100;
     
+    /* Smooth transitions for minimize/maximize */
+    transition: all 0.3s ease;
+    
     /* Remove hover transform to keep it stable */
     &:hover {
         transform: none;
     }
+}
+
+/* Minimized state - compact view */
+#mini-player.minimized {
+    width: 280px; /* Slightly narrower when minimized */
+}
+
+#mini-player.minimized .player-header {
+    padding-bottom: 0;
 }
 
 .player-header {
@@ -456,6 +467,8 @@ footer {
     font-size: 0.9rem;
     font-weight: 600;
     color: rgba(255,255,255,0.9);
+    padding-bottom: 10px;
+    transition: padding 0.3s ease;
 }
 
 .player-actions {
@@ -477,6 +490,7 @@ footer {
 .icon-btn-sm:hover {
     background: rgba(255,255,255,0.1);
     color: white;
+    transform: scale(1.1);
 }
 
 .iframe-container {
@@ -484,6 +498,16 @@ footer {
     overflow: hidden;
     border-radius: 12px;
     background: rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    max-height: 352px;
+}
+
+/* Hide iframe container when minimized */
+#mini-player.minimized .iframe-container {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
 }
 
 /* Playback Controls */
