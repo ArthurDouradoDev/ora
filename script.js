@@ -2150,6 +2150,16 @@ async function initApp() {
         closeRosaryBtn.addEventListener('click', closeRosary);
     }
 
+    const resetRosaryBtn = document.getElementById('reset-rosary-btn');
+    if (resetRosaryBtn) {
+        resetRosaryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            rosaryCurrentBead = 0;
+            updateRosaryDisplay();
+            showToast('Terço reiniciado!', 'success');
+        });
+    }
+
     // Arrow buttons
     rosaryPrevBtn.addEventListener('click', rosaryPrev);
     rosaryNextBtn.addEventListener('click', rosaryNext);
