@@ -946,6 +946,12 @@ async function initApp() {
             pomodoroCount++;
             if (pomodoroCount % 4 === 0) {
                 focusPhase = 'longPause';
+                // Trigger pomodoro emotional check-in (Option 2)
+                setTimeout(() => {
+                    if (typeof showPomodoroCheckin === 'function') {
+                        showPomodoroCheckin();
+                    }
+                }, 500);
             } else {
                 focusPhase = 'pause';
             }
@@ -1104,6 +1110,665 @@ async function initApp() {
     console.log('[Ora] Focus Timer initialized');
 
     // ============================================================
+    // 9. EXAME DE CONSCIÊNCIA
+    // ============================================================
+    console.log('[Ora] Starting Exam initialization...');
+
+    const examDataFallback = {
+        types: {
+            morning: { label: "Preparar o Dia", icon: "☀️", hours: [6,11], questions: [
+                { text: "Pela graça de qual dia você agradece?", type: "text" },
+                { text: "Que virtude quer praticar hoje?", type: "text" },
+                { text: "Onde pode encontrar Deus hoje?", type: "text" }
+            ]},
+            midday: { label: "Revisar a Manhã", icon: "🌤️", hours: [11,14], questions: [
+                { text: "Como foi sua manhã?", type: "thumbs" },
+                { text: "Onde você viu/sentiu Deus na manhã?", type: "text" },
+                { text: "Como pode melhorar a tarde?", type: "text" }
+            ]},
+            quick: { label: "Pausa Rápida", icon: "⚡", hours: [14,18], questions: [
+                { text: "Como está seu coração agora?", type: "emoji", options: ["😌 Em paz","😐 Neutro","😟 Pesado"] }
+            ]},
+            night: { label: "Revisar o Dia", icon: "🌙", hours: [18,24], questions: [
+                { text: "Agradeça: pelo que você é grato hoje?", type: "text" },
+                { text: "Reveja: onde sentiu a presença de Deus?", type: "text" },
+                { text: "Examine: que sentimentos marcaram o dia?", type: "text" },
+                { text: "Arrependa-se: onde você tropeçou?", type: "text" },
+                { text: "Resolva: como será amanhã?", type: "text" }
+            ]}
+        },
+        defaultVirtues: [
+            { id: "paciencia", name: "Paciência", icon: "ph-hourglass" },
+            { id: "caridade", name: "Caridade", icon: "ph-heart" },
+            { id: "temperanca", name: "Temperança", icon: "ph-scales" },
+            { id: "foco", name: "Foco", icon: "ph-crosshair" },
+            { id: "humildade", name: "Humildade", icon: "ph-hand-heart" }
+        ],
+        pomodoroCheckin: {
+            message: "Pause para refletir: Como está seu coração agora?",
+            options: [
+                { id: "peace", emoji: "😌", label: "Em paz" },
+                { id: "neutral", emoji: "😐", label: "Neutro" },
+                { id: "heavy", emoji: "😟", label: "Pesado" }
+            ],
+            microPrayers: [
+                { id: "breath", label: "Respiração", icon: "ph-wind", text: "Inspire... Senhor, tenha piedade.\nExpire... Cristo, tenha piedade.\nInspire... Senhor, tenha piedade." },
+                { id: "pai-nosso", label: "Pai Nosso", icon: "ph-hands-praying", text: "prayer:pai-nosso" },
+                { id: "silence", label: "Só silêncio", icon: "ph-ear", text: "Fique em silêncio por um momento.\nDeixe Deus falar ao seu coração.\n\n\"Aquietai-vos e sabei que eu sou Deus.\" — Sl 46,10" }
+            ]
+        }
+    };
+    const examData = (data && data.exam) ? data.exam : examDataFallback;
+    const examTypes = examData.types;
+
+    // --- DOM Elements ---
+    const btnExam = document.getElementById('btn-exam');
+    const examTypeModal = document.getElementById('exam-type-modal');
+    const closeExamTypeBtn = document.getElementById('close-exam-type-btn');
+    const examTypeGrid = document.getElementById('exam-type-grid');
+    const examSuggestion = examTypeModal.querySelector('.exam-suggestion');
+    const examStreakText = document.getElementById('exam-streak-text');
+    const openVirtuesBtn = document.getElementById('open-virtues-btn');
+
+    const examFlowModal = document.getElementById('exam-flow-modal');
+    const examFlowTitle = document.getElementById('exam-flow-title');
+    const closeExamFlowBtn = document.getElementById('close-exam-flow-btn');
+    const examFlowBackBtn = document.getElementById('exam-flow-back-btn');
+    const examProgressFill = examFlowModal.querySelector('.exam-progress-fill');
+    const examQuestionText = examFlowModal.querySelector('.exam-question-text');
+    const examInputArea = examFlowModal.querySelector('.exam-input-area');
+    const examPrevBtn = document.getElementById('exam-prev-btn');
+    const examNextBtn = document.getElementById('exam-next-btn');
+    const examStepCounter = examFlowModal.querySelector('.exam-step-counter');
+
+    const pomodoroCheckin = document.getElementById('pomodoro-checkin');
+    const closeCheckinBtn = document.getElementById('close-checkin-btn');
+    const checkinOptions = pomodoroCheckin.querySelector('.checkin-options');
+
+    const microPrayerModal = document.getElementById('micro-prayer-modal');
+    const closeMicroPrayerBtn = document.getElementById('close-micro-prayer-btn');
+    const microPrayerBackBtn = document.getElementById('micro-prayer-back-btn');
+    const microPrayerOptionsEl = document.getElementById('micro-prayer-options');
+    const microPrayerTextEl = document.getElementById('micro-prayer-text');
+
+    const middayReminder = document.getElementById('midday-reminder');
+    const startMiddayBtn = document.getElementById('start-midday-btn');
+    const checkMiddayBtn = document.getElementById('check-midday-btn');
+
+    const virtuesModal = document.getElementById('virtues-modal');
+    const closeVirtuesBtn = document.getElementById('close-virtues-btn');
+    const virtuesBackBtn = document.getElementById('virtues-back-btn');
+    const virtuesList = document.getElementById('virtues-list');
+    const virtuesSummaryText = document.getElementById('virtues-summary-text');
+    const editVirtuesBtn = document.getElementById('edit-virtues-btn');
+
+    const virtuesEditor = document.getElementById('virtues-editor');
+    const closeVirtuesEditorBtn = document.getElementById('close-virtues-editor-btn');
+    const virtuesEditorBackBtn = document.getElementById('virtues-editor-back-btn');
+    const virtuesEditorList = document.getElementById('virtues-editor-list');
+    const newVirtueInput = document.getElementById('new-virtue-input');
+    const addVirtueBtn = document.getElementById('add-virtue-btn');
+
+    // --- State ---
+    let currentExamType = null;
+    let currentExamStep = 0;
+    let examAnswers = [];
+
+    // ---- OPTION 1: Exam Flow ----
+
+    function getExamType() {
+        const h = new Date().getHours();
+        if (h >= 6 && h < 11) return 'morning';
+        if (h >= 11 && h < 14) return 'midday';
+        if (h >= 14 && h < 18) return 'quick';
+        return 'night';
+    }
+
+    function updateExamButtonTheme() {
+        if (!btnExam) return;
+        const type = getExamType();
+        btnExam.classList.remove('exam-morning', 'exam-midday', 'exam-evening');
+        if (type === 'morning') btnExam.classList.add('exam-morning');
+        else if (type === 'midday') btnExam.classList.add('exam-midday');
+        else btnExam.classList.add('exam-evening');
+    }
+
+    function getWeeklyExamCount() {
+        let count = 0;
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        for (let i = 0; i <= dayOfWeek; i++) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const key = 'ora_exam_done_' + d.toDateString();
+            if (SafeStorage.getItem(key)) count++;
+        }
+        return count;
+    }
+
+    function openExamTypeModal() {
+        examTypeGrid.innerHTML = '';
+        const suggested = getExamType();
+
+        examSuggestion.textContent = `Sugestão: ${examTypes[suggested].icon} ${examTypes[suggested].label}`;
+
+        Object.keys(examTypes).forEach(key => {
+            const type = examTypes[key];
+            const card = document.createElement('div');
+            card.className = 'exam-type-card' + (key === suggested ? ' suggested' : '');
+            card.innerHTML = `
+                <span class="exam-type-icon">${type.icon}</span>
+                <span class="exam-type-label">${type.label}</span>
+                <span class="exam-type-count">${type.questions.length} ${type.questions.length === 1 ? 'pergunta' : 'perguntas'}</span>
+            `;
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                startExam(key);
+            });
+            examTypeGrid.appendChild(card);
+        });
+
+        const weekCount = getWeeklyExamCount();
+        examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
+
+        examTypeModal.style.display = 'flex';
+    }
+
+    function closeExamTypeModal() {
+        examTypeModal.style.display = 'none';
+    }
+
+    function startExam(type) {
+        currentExamType = type;
+        currentExamStep = 0;
+        examAnswers = new Array(examTypes[type].questions.length).fill('');
+        closeExamTypeModal();
+
+        examFlowTitle.textContent = `${examTypes[type].icon} ${examTypes[type].label}`;
+        examFlowModal.style.display = 'flex';
+        renderExamStep();
+    }
+
+    function renderExamStep() {
+        const questions = examTypes[currentExamType].questions;
+        const q = questions[currentExamStep];
+        const total = questions.length;
+
+        // Progress bar
+        examProgressFill.style.width = `${((currentExamStep + 1) / total) * 100}%`;
+
+        // Counter
+        examStepCounter.textContent = `${currentExamStep + 1} / ${total}`;
+
+        // Question
+        examQuestionText.textContent = q.text;
+
+        // Input area
+        examInputArea.innerHTML = '';
+
+        if (q.type === 'text') {
+            const textarea = document.createElement('textarea');
+            textarea.className = 'exam-textarea';
+            textarea.placeholder = 'Escreva aqui...';
+            textarea.value = examAnswers[currentExamStep] || '';
+            textarea.addEventListener('input', (e) => {
+                examAnswers[currentExamStep] = e.target.value;
+            });
+            examInputArea.appendChild(textarea);
+            setTimeout(() => textarea.focus(), 100);
+        } else if (q.type === 'thumbs') {
+            const container = document.createElement('div');
+            container.className = 'exam-thumbs';
+            ['👍', '👎'].forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'exam-emoji-btn' + (examAnswers[currentExamStep] === emoji ? ' active' : '');
+                btn.textContent = emoji;
+                btn.addEventListener('click', () => {
+                    examAnswers[currentExamStep] = emoji;
+                    renderExamStep();
+                });
+                container.appendChild(btn);
+            });
+            examInputArea.appendChild(container);
+        } else if (q.type === 'emoji') {
+            const container = document.createElement('div');
+            container.className = 'exam-emoji-row';
+            (q.options || []).forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'exam-emoji-btn' + (examAnswers[currentExamStep] === opt ? ' active' : '');
+                btn.textContent = opt;
+                btn.addEventListener('click', () => {
+                    examAnswers[currentExamStep] = opt;
+                    renderExamStep();
+                });
+                container.appendChild(btn);
+            });
+            examInputArea.appendChild(container);
+        }
+
+        // Nav button states
+        examPrevBtn.style.visibility = currentExamStep > 0 ? 'visible' : 'hidden';
+        // Last step: show check icon instead of arrow
+        if (currentExamStep === total - 1) {
+            examNextBtn.innerHTML = '<i class="ph ph-check"></i>';
+            examNextBtn.title = 'Concluir';
+        } else {
+            examNextBtn.innerHTML = '<i class="ph ph-caret-right"></i>';
+            examNextBtn.title = 'Próximo';
+        }
+    }
+
+    function nextExamStep() {
+        const questions = examTypes[currentExamType].questions;
+        if (currentExamStep < questions.length - 1) {
+            currentExamStep++;
+            renderExamStep();
+        } else {
+            finishExam();
+        }
+    }
+
+    function prevExamStep() {
+        if (currentExamStep > 0) {
+            currentExamStep--;
+            renderExamStep();
+        }
+    }
+
+    function finishExam() {
+        // Save as done today
+        const todayStr = new Date().toDateString();
+        SafeStorage.setItem('ora_exam_done_' + todayStr, 'true');
+
+        // Also mark the corresponding reminder as done
+        if (currentExamType === 'night') {
+            SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
+            const evRem = document.getElementById('evening-reminder');
+            if (evRem) evRem.style.display = 'none';
+        } else if (currentExamType === 'midday') {
+            SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
+            if (middayReminder) middayReminder.style.display = 'none';
+        }
+
+        // Save exam log
+        const log = {
+            type: currentExamType,
+            date: new Date().toISOString(),
+            answers: examAnswers
+        };
+        try {
+            let logs = JSON.parse(SafeStorage.getItem('ora_exam_logs') || '[]');
+            logs.push(log);
+            // Keep last 30 entries
+            if (logs.length > 30) logs = logs.slice(-30);
+            SafeStorage.setItem('ora_exam_logs', JSON.stringify(logs));
+        } catch (e) { /* ignore */ }
+
+        examFlowModal.style.display = 'none';
+        showToast('Exame concluído! Deus te abençoe. 🙏', 'success');
+        currentExamType = null;
+    }
+
+    function closeExamFlow() {
+        examFlowModal.style.display = 'none';
+        currentExamType = null;
+    }
+
+    // Event Listeners - Exam
+    console.log('[Ora] Exam: btnExam=', btnExam, 'examTypeModal=', examTypeModal);
+    if (btnExam) {
+        btnExam.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('[Ora] Exam button clicked! Modal display:', examTypeModal.style.display);
+            if (examTypeModal.style.display === 'none' || examTypeModal.style.display === '') {
+                openExamTypeModal();
+            } else {
+                closeExamTypeModal();
+            }
+        });
+    } else {
+        console.error('[Ora] ERROR: btn-exam not found in DOM!');
+    }
+
+    if (closeExamTypeBtn) closeExamTypeBtn.addEventListener('click', closeExamTypeModal);
+    if (closeExamFlowBtn) closeExamFlowBtn.addEventListener('click', closeExamFlow);
+    if (examFlowBackBtn) {
+        examFlowBackBtn.addEventListener('click', () => {
+            closeExamFlow();
+            openExamTypeModal();
+        });
+    }
+    examNextBtn.addEventListener('click', nextExamStep);
+    examPrevBtn.addEventListener('click', prevExamStep);
+
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+        if (examTypeModal.style.display === 'flex' &&
+            !examTypeModal.contains(e.target) &&
+            !btnExam.contains(e.target)) {
+            closeExamTypeModal();
+        }
+        if (examFlowModal.style.display === 'flex' &&
+            !examFlowModal.contains(e.target)) {
+            // Don't auto close exam flow (user might lose progress)
+        }
+    });
+
+    // ---- OPTION 2: Pomodoro Check-in ----
+
+    function showPomodoroCheckin() {
+        checkinOptions.innerHTML = '';
+        const options = examData.pomodoroCheckin.options;
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'checkin-emoji-btn';
+            btn.innerHTML = `<span class="checkin-emoji">${opt.emoji}</span><span class="checkin-label">${opt.label}</span>`;
+            btn.addEventListener('click', () => {
+                pomodoroCheckin.style.display = 'none';
+                if (opt.id === 'heavy') {
+                    showMicroPrayerOptions();
+                } else {
+                    showToast(`${opt.emoji} ${opt.label} — que bom!`, 'success');
+                }
+            });
+            checkinOptions.appendChild(btn);
+        });
+
+        pomodoroCheckin.style.display = 'flex';
+    }
+
+    function showMicroPrayerOptions() {
+        microPrayerOptionsEl.innerHTML = '';
+        microPrayerTextEl.style.display = 'none';
+        microPrayerOptionsEl.style.display = 'grid';
+
+        examData.pomodoroCheckin.microPrayers.forEach(mp => {
+            const card = document.createElement('div');
+            card.className = 'micro-prayer-card';
+            card.innerHTML = `
+                <i class="ph ${mp.icon}"></i>
+                <span>${mp.label}</span>
+            `;
+            card.addEventListener('click', () => {
+                let text = mp.text;
+                // Resolve prayer reference
+                if (text.startsWith('prayer:')) {
+                    const prayerId = text.split(':')[1];
+                    const prayer = prayers.find(p => p.id === prayerId);
+                    text = prayer ? prayer.text.pt : '';
+                }
+                microPrayerOptionsEl.style.display = 'none';
+                microPrayerTextEl.textContent = text;
+                microPrayerTextEl.style.display = 'block';
+            });
+            microPrayerOptionsEl.appendChild(card);
+        });
+
+        microPrayerModal.style.display = 'flex';
+    }
+
+    if (closeCheckinBtn) closeCheckinBtn.addEventListener('click', () => {
+        pomodoroCheckin.style.display = 'none';
+    });
+    if (closeMicroPrayerBtn) closeMicroPrayerBtn.addEventListener('click', () => {
+        microPrayerModal.style.display = 'none';
+    });
+    if (microPrayerBackBtn) microPrayerBackBtn.addEventListener('click', () => {
+        microPrayerTextEl.style.display = 'none';
+        microPrayerOptionsEl.style.display = 'grid';
+    });
+
+    // Hook into Pomodoro: after every 4th pomodoro, show check-in
+    // We patch advancePhase to add this behavior
+    const _originalAdvancePhase = advancePhase;
+    // (advancePhase is already called, we add behavior via event)
+    // Instead let's watch pomodoroCount changes via a setter approach
+    // Simpler approach: check in the timer's interval if we just hit a multiple of 4
+    let lastCheckinPomodoro = 0;
+
+    // ---- OPTION 3: Midday Reminder ----
+
+    function checkMiddayExam() {
+        const now = new Date();
+        const hours = now.getHours();
+        const todayStr = now.toDateString();
+        const doneToday = SafeStorage.getItem('ora_midday_done_' + todayStr);
+
+        if (hours >= 11 && hours < 14 && !doneToday) {
+            if (middayReminder) middayReminder.style.display = 'flex';
+        } else {
+            if (middayReminder) middayReminder.style.display = 'none';
+        }
+    }
+
+    if (startMiddayBtn) {
+        startMiddayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (middayReminder) middayReminder.style.display = 'none';
+            startExam('midday');
+        });
+    }
+
+    if (checkMiddayBtn) {
+        checkMiddayBtn.addEventListener('click', () => {
+            const todayStr = new Date().toDateString();
+            SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
+            if (middayReminder) middayReminder.style.display = 'none';
+            showToast('Exame meridiano registrado!', 'success');
+        });
+    }
+
+    setInterval(checkMiddayExam, 60000);
+    checkMiddayExam();
+
+    // ---- Evening Exam Reminder (18h+) ----
+
+    const eveningReminder = document.getElementById('evening-reminder');
+    const startEveningBtn = document.getElementById('start-evening-btn');
+    const checkEveningBtn = document.getElementById('check-evening-btn');
+
+    function checkEveningExam() {
+        const now = new Date();
+        const hours = now.getHours();
+        const todayStr = now.toDateString();
+        const doneToday = SafeStorage.getItem('ora_evening_done_' + todayStr);
+
+        if (hours >= 18 && !doneToday) {
+            if (eveningReminder) eveningReminder.style.display = 'flex';
+        } else {
+            if (eveningReminder) eveningReminder.style.display = 'none';
+        }
+    }
+
+    if (startEveningBtn) {
+        startEveningBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (eveningReminder) eveningReminder.style.display = 'none';
+            startExam('night');
+        });
+    }
+
+    if (checkEveningBtn) {
+        checkEveningBtn.addEventListener('click', () => {
+            const todayStr = new Date().toDateString();
+            SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
+            if (eveningReminder) eveningReminder.style.display = 'none';
+            showToast('Exame noturno registrado!', 'success');
+        });
+    }
+
+    setInterval(checkEveningExam, 60000);
+    checkEveningExam();
+
+    // ---- OPTION 5: Virtues Checklist ----
+
+    function loadVirtues() {
+        try {
+            const saved = SafeStorage.getItem('ora_virtues_list');
+            if (saved) return JSON.parse(saved);
+        } catch (e) { /* use defaults */ }
+        return examData.defaultVirtues.map(v => ({ ...v }));
+    }
+
+    function saveVirtues(virtues) {
+        SafeStorage.setItem('ora_virtues_list', JSON.stringify(virtues));
+    }
+
+    function getVirtueLog() {
+        const todayStr = new Date().toDateString();
+        try {
+            const saved = SafeStorage.getItem('ora_virtues_log_' + todayStr);
+            if (saved) return JSON.parse(saved);
+        } catch (e) { /* ignore */ }
+        return {};
+    }
+
+    function saveVirtueLog(log) {
+        const todayStr = new Date().toDateString();
+        SafeStorage.setItem('ora_virtues_log_' + todayStr, JSON.stringify(log));
+    }
+
+    function openVirtuesModal() {
+        closeExamTypeModal();
+        renderVirtuesList();
+        virtuesModal.style.display = 'flex';
+    }
+
+    function closeVirtuesModal() {
+        virtuesModal.style.display = 'none';
+    }
+
+    function renderVirtuesList() {
+        const virtues = loadVirtues();
+        const log = getVirtueLog();
+        virtuesList.innerHTML = '';
+
+        let practiced = 0;
+        let total = virtues.length;
+
+        virtues.forEach(v => {
+            const status = log[v.id]; // 'success', 'fail', or undefined
+            const card = document.createElement('div');
+            card.className = 'virtue-card' + (status ? ` virtue-${status}` : '');
+            card.innerHTML = `
+                <div class="virtue-info">
+                    <i class="ph ${v.icon}"></i>
+                    <span>${v.name}</span>
+                </div>
+                <div class="virtue-actions">
+                    <button class="virtue-btn virtue-success-btn ${status === 'success' ? 'active' : ''}" title="Pratiquei"><i class="ph ph-check"></i></button>
+                    <button class="virtue-btn virtue-fail-btn ${status === 'fail' ? 'active' : ''}" title="Falhei"><i class="ph ph-x"></i></button>
+                </div>
+            `;
+
+            const successBtn = card.querySelector('.virtue-success-btn');
+            const failBtn = card.querySelector('.virtue-fail-btn');
+
+            successBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const currentLog = getVirtueLog();
+                currentLog[v.id] = currentLog[v.id] === 'success' ? undefined : 'success';
+                if (currentLog[v.id] === undefined) delete currentLog[v.id];
+                saveVirtueLog(currentLog);
+                renderVirtuesList();
+            });
+
+            failBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const currentLog = getVirtueLog();
+                currentLog[v.id] = currentLog[v.id] === 'fail' ? undefined : 'fail';
+                if (currentLog[v.id] === undefined) delete currentLog[v.id];
+                saveVirtueLog(currentLog);
+                renderVirtuesList();
+            });
+
+            if (status === 'success') practiced++;
+            virtuesList.appendChild(card);
+        });
+
+        virtuesSummaryText.textContent = `${practiced}/${total} virtudes praticadas hoje`;
+    }
+
+    // Virtues Editor
+    function openVirtuesEditor() {
+        virtuesModal.style.display = 'none';
+        renderVirtuesEditor();
+        virtuesEditor.style.display = 'flex';
+    }
+
+    function closeVirtuesEditor() {
+        virtuesEditor.style.display = 'none';
+    }
+
+    function renderVirtuesEditor() {
+        const virtues = loadVirtues();
+        virtuesEditorList.innerHTML = '';
+
+        virtues.forEach(v => {
+            const item = document.createElement('div');
+            item.className = 'virtues-editor-item';
+            item.innerHTML = `
+                <i class="ph ${v.icon}"></i>
+                <span>${v.name}</span>
+                <button class="icon-btn-sm virtue-remove-btn" title="Remover"><i class="ph ph-trash"></i></button>
+            `;
+            item.querySelector('.virtue-remove-btn').addEventListener('click', () => {
+                const updated = loadVirtues().filter(vv => vv.id !== v.id);
+                saveVirtues(updated);
+                renderVirtuesEditor();
+            });
+            virtuesEditorList.appendChild(item);
+        });
+    }
+
+    function addNewVirtue() {
+        const name = newVirtueInput.value.trim();
+        if (!name) return;
+
+        const virtues = loadVirtues();
+        virtues.push({
+            id: 'custom-' + Date.now(),
+            name: name,
+            icon: 'ph-star'
+        });
+        saveVirtues(virtues);
+        newVirtueInput.value = '';
+        renderVirtuesEditor();
+        showToast(`"${name}" adicionada!`, 'success');
+    }
+
+    // Virtues Event Listeners
+    if (openVirtuesBtn) openVirtuesBtn.addEventListener('click', openVirtuesModal);
+    if (closeVirtuesBtn) closeVirtuesBtn.addEventListener('click', closeVirtuesModal);
+    if (virtuesBackBtn) {
+        virtuesBackBtn.addEventListener('click', () => {
+            closeVirtuesModal();
+            openExamTypeModal();
+        });
+    }
+    if (editVirtuesBtn) editVirtuesBtn.addEventListener('click', openVirtuesEditor);
+    if (closeVirtuesEditorBtn) closeVirtuesEditorBtn.addEventListener('click', closeVirtuesEditor);
+    if (virtuesEditorBackBtn) {
+        virtuesEditorBackBtn.addEventListener('click', () => {
+            closeVirtuesEditor();
+            openVirtuesModal();
+        });
+    }
+    if (addVirtueBtn) addVirtueBtn.addEventListener('click', addNewVirtue);
+    if (newVirtueInput) {
+        newVirtueInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addNewVirtue();
+        });
+    }
+
+    // --- Exam Button Theme & Init ---
+    updateExamButtonTheme();
+    setInterval(updateExamButtonTheme, 60000);
+
+    console.log('[Ora] Exam of Conscience initialized');
+
+    // ============================================================
     // 8. ROSARY (TERÇO)
     // ============================================================
 
@@ -1188,7 +1853,7 @@ async function initApp() {
         // Decade beads
         if (bead.decade >= 1 && bead.decade <= 5) {
             if (bead.type === 'pai-nosso') {
-                return { title: 'Pai Eterno', text: rosaryExtraPrayers['pai-eterno'][rosaryLang] };
+                return { title: 'Eterno Pai', text: rosaryExtraPrayers['pai-eterno'][rosaryLang] };
             }
             if (bead.type === 'ave-maria') {
                 const title = rosaryLang === 'pt' ? bead.label.replace('Ave Maria', 'Pela Sua Dolorosa Paixão') : 'Pro dolorosa Eius Passione';

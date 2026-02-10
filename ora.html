@@ -101,6 +101,7 @@
                 <i class="ph ph-book-bookmark"></i> Bíblia
             </a>
             <div class="glass-panel action-btn" id="btn-focus"><i class="ph ph-timer"></i> Pomodoro</div>
+            <div class="glass-panel action-btn" id="btn-exam"><i class="ph ph-heart"></i> Examinar</div>
         </div>
         
         <div class="quote-container">
@@ -234,6 +235,120 @@
             <button id="rosary-prev" class="icon-btn"><i class="ph ph-caret-left"></i></button>
             <span class="rosary-counter">1 / 72</span>
             <button id="rosary-next" class="icon-btn"><i class="ph ph-caret-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Exam Type Selector Modal -->
+    <div id="exam-type-modal" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <h3>Examinar</h3>
+            <button id="close-exam-type-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="exam-suggestion"></div>
+        <div id="exam-type-grid" class="exam-type-grid"></div>
+        <div class="exam-virtues-link">
+            <button id="open-virtues-btn" class="glass-panel-sm exam-virtues-btn"><i class="ph ph-list-checks"></i> Checklist de Virtudes</button>
+        </div>
+        <div class="exam-streak">
+            <i class="ph ph-fire"></i>
+            <span id="exam-streak-text">0 exames esta semana</span>
+        </div>
+    </div>
+
+    <!-- Exam Flow Modal -->
+    <div id="exam-flow-modal" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <button id="exam-flow-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 id="exam-flow-title">Exame</h3>
+            <button id="close-exam-flow-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="exam-progress-bar"><div class="exam-progress-fill"></div></div>
+        <div class="exam-question-container">
+            <div class="exam-question-text"></div>
+            <div class="exam-input-area"></div>
+        </div>
+        <div class="exam-flow-nav">
+            <button id="exam-prev-btn" class="icon-btn" title="Anterior"><i class="ph ph-caret-left"></i></button>
+            <span class="exam-step-counter">1 / 3</span>
+            <button id="exam-next-btn" class="icon-btn" title="Próximo"><i class="ph ph-caret-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Pomodoro Emotional Check-in -->
+    <div id="pomodoro-checkin" class="glass-panel" style="display: none;">
+        <div class="checkin-header">
+            <span class="checkin-title">Como está seu coração?</span>
+            <button id="close-checkin-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="checkin-options"></div>
+    </div>
+
+    <!-- Micro-Prayer Suggestion -->
+    <div id="micro-prayer-modal" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <button id="micro-prayer-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3>Oração Rápida</h3>
+            <button id="close-micro-prayer-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="micro-prayer-options" class="micro-prayer-grid"></div>
+        <div id="micro-prayer-text" class="prayer-text" style="display: none;"></div>
+    </div>
+
+    <!-- Midday Exam Reminder -->
+    <div id="midday-reminder" class="glass-panel" style="display: none;">
+        <div class="angelus-content">
+            <i class="ph ph-sun-horizon"></i>
+            <span>Hora do Exame Meridiano</span>
+        </div>
+        <div class="angelus-actions">
+            <button id="start-midday-btn" class="pray-btn" title="Iniciar"><i class="ph ph-play"></i></button>
+            <button id="check-midday-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+                <i class="ph ph-check"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Evening Exam Reminder -->
+    <div id="evening-reminder" class="glass-panel" style="display: none;">
+        <div class="angelus-content">
+            <i class="ph ph-moon-stars"></i>
+            <span>Hora do Exame Noturno</span>
+        </div>
+        <div class="angelus-actions">
+            <button id="start-evening-btn" class="pray-btn" title="Iniciar"><i class="ph ph-play"></i></button>
+            <button id="check-evening-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+                <i class="ph ph-check"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Virtues Checklist Modal -->
+    <div id="virtues-modal" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <button id="virtues-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3>Virtudes do Dia</h3>
+            <button id="close-virtues-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="virtues-list" class="virtues-list"></div>
+        <div class="virtues-summary">
+            <span id="virtues-summary-text"></span>
+        </div>
+        <div class="virtues-edit-section">
+            <button id="edit-virtues-btn" class="glass-panel-sm exam-virtues-btn"><i class="ph ph-pencil"></i> Editar Virtudes</button>
+        </div>
+    </div>
+
+    <!-- Virtues Editor Modal -->
+    <div id="virtues-editor" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <button id="virtues-editor-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3>Editar Virtudes</h3>
+            <button id="close-virtues-editor-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="virtues-editor-list" class="virtues-editor-list"></div>
+        <div class="add-virtue-section">
+            <input type="text" id="new-virtue-input" placeholder="Nova virtude...">
+            <button id="add-virtue-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
         </div>
     </div>
 

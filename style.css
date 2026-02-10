@@ -1618,3 +1618,696 @@ footer {
     min-width: 60px;
     text-align: center;
 }
+
+/* ============================================================
+   EXAM OF CONSCIENCE
+   ============================================================ */
+
+/* --- Exam Button Time Themes --- */
+#btn-exam {
+    transition: all 0.5s ease;
+}
+
+
+/* --- Exam Type Modal --- */
+#exam-type-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 440px;
+    max-width: 92vw;
+    max-height: 85vh;
+    padding: 25px;
+
+    background: rgba(15, 15, 15, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 200;
+    animation: fadeIn 0.25s ease;
+    overflow-y: auto;
+}
+
+#exam-type-modal:hover {
+    transform: translate(-50%, -50%);
+}
+
+.exam-suggestion {
+    text-align: center;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+.exam-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.exam-type-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.exam-type-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.exam-type-card.suggested {
+    background: rgba(238, 187, 85, 0.08);
+    border-color: rgba(238, 187, 85, 0.25);
+}
+
+.exam-type-card.suggested:hover {
+    background: rgba(238, 187, 85, 0.15);
+    border-color: rgba(238, 187, 85, 0.4);
+}
+
+.exam-type-icon {
+    font-size: 1.8rem;
+}
+
+.exam-type-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.exam-type-count {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.exam-virtues-link {
+    display: flex;
+    justify-content: center;
+}
+
+.exam-virtues-btn {
+    font-size: 0.82rem;
+    font-family: 'Montserrat', sans-serif;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+}
+
+.exam-streak {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.exam-streak i {
+    color: #eebb55;
+}
+
+/* --- Exam Flow Modal --- */
+#exam-flow-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    max-width: 92vw;
+    max-height: 85vh;
+    padding: 25px 30px;
+
+    background: rgba(15, 15, 15, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 300;
+
+    animation: fadeIn 0.3s ease;
+}
+
+#exam-flow-modal:hover {
+    transform: translate(-50%, -50%);
+}
+
+.exam-progress-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.exam-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #eebb55, #f0d78c);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px rgba(238, 187, 85, 0.3);
+}
+
+.exam-question-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 180px;
+}
+
+.exam-question-text {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    text-align: center;
+    line-height: 1.6;
+    padding: 10px 0;
+}
+
+.exam-textarea {
+    width: 100%;
+    min-height: 120px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.exam-textarea:focus {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(238, 187, 85, 0.3);
+    box-shadow: 0 0 16px rgba(238, 187, 85, 0.08);
+}
+
+.exam-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.exam-thumbs, .exam-emoji-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.exam-emoji-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 14px 22px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    color: white;
+}
+
+.exam-emoji-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.08);
+}
+
+.exam-emoji-btn.active {
+    background: rgba(238, 187, 85, 0.15);
+    border-color: rgba(238, 187, 85, 0.5);
+    box-shadow: 0 0 16px rgba(238, 187, 85, 0.15);
+    transform: scale(1.05);
+}
+
+.exam-flow-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding-top: 4px;
+}
+
+.exam-flow-nav .icon-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
+}
+
+.exam-flow-nav .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.exam-step-counter {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* --- Pomodoro Check-in --- */
+#pomodoro-checkin {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    padding: 18px;
+    width: 320px;
+    z-index: 150;
+
+    background: rgba(15, 15, 15, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    border-radius: 18px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: fadeUp 0.3s ease;
+}
+
+#pomodoro-checkin:hover {
+    transform: none;
+}
+
+.checkin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkin-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.checkin-options {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.checkin-emoji-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    flex: 1;
+    color: white;
+}
+
+.checkin-emoji-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.checkin-emoji {
+    font-size: 1.6rem;
+}
+
+.checkin-label {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* --- Micro Prayer Modal --- */
+#micro-prayer-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-width: 92vw;
+    max-height: 80vh;
+    padding: 25px;
+
+    background: rgba(15, 15, 15, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    z-index: 300;
+    animation: fadeIn 0.3s ease;
+}
+
+#micro-prayer-modal:hover {
+    transform: translate(-50%, -50%);
+}
+
+.micro-prayer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.micro-prayer-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 20px 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.82rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.micro-prayer-card i {
+    font-size: 1.5rem;
+    color: rgba(238, 187, 85, 0.8);
+}
+
+.micro-prayer-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* --- Midday Reminder --- */
+#midday-reminder {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 20px;
+    border-radius: 50px;
+
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    animation: slideDown 0.5s ease;
+    z-index: 100;
+}
+
+#midday-reminder .angelus-content i {
+    color: #fadc64;
+    animation: none;
+}
+
+/* --- Evening Reminder --- */
+#evening-reminder {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 20px;
+    border-radius: 50px;
+
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    animation: slideDown 0.5s ease;
+    z-index: 100;
+}
+
+#evening-reminder:hover {
+    transform: translateX(-50%);
+}
+
+#evening-reminder .angelus-content i {
+    color: #a78bfa;
+    animation: none;
+}
+
+/* --- Virtues Modal --- */
+#virtues-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 440px;
+    max-width: 92vw;
+    max-height: 85vh;
+    padding: 25px;
+
+    background: rgba(15, 15, 15, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 300;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+#virtues-modal:hover {
+    transform: translate(-50%, -50%);
+}
+
+.virtues-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.virtue-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+}
+
+.virtue-card.virtue-success {
+    background: rgba(74, 222, 128, 0.08);
+    border-color: rgba(74, 222, 128, 0.2);
+}
+
+.virtue-card.virtue-fail {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.2);
+}
+
+.virtue-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.virtue-info i {
+    font-size: 1.1rem;
+    color: rgba(238, 187, 85, 0.7);
+}
+
+.virtue-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.virtue-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.virtue-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.virtue-success-btn.active {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #4ade80;
+}
+
+.virtue-fail-btn.active {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: rgba(248, 113, 113, 0.4);
+    color: #f87171;
+}
+
+.virtues-summary {
+    text-align: center;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.virtues-edit-section {
+    display: flex;
+    justify-content: center;
+}
+
+/* --- Virtues Editor --- */
+#virtues-editor {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-width: 92vw;
+    max-height: 80vh;
+    padding: 25px;
+
+    background: rgba(15, 15, 15, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 350;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+#virtues-editor:hover {
+    transform: translate(-50%, -50%);
+}
+
+.virtues-editor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.virtues-editor-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.88rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.virtues-editor-item i {
+    font-size: 1rem;
+    color: rgba(238, 187, 85, 0.7);
+}
+
+.virtues-editor-item span {
+    flex: 1;
+}
+
+.virtue-remove-btn {
+    color: rgba(248, 113, 113, 0.6) !important;
+}
+
+.virtue-remove-btn:hover {
+    color: #f87171 !important;
+    background: rgba(248, 113, 113, 0.1) !important;
+}
+
+.add-virtue-section {
+    display: flex;
+    gap: 10px;
+}
+
+.add-virtue-section input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.add-virtue-section input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.add-virtue-section input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
