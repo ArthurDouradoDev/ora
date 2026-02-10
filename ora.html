@@ -24,8 +24,8 @@
         <div class="glass-panel action-btn"><i class="ph ph-sun"></i> 24°C</div>
     </header>
 
-    <!-- Angelus Reminder (12h-13h) -->
-    <div id="angelus-reminder" class="glass-panel" style="display: none;">
+    <!-- Angelus Reminder (6h-8h, 12h-13h, 18h-20h) -->
+    <div id="angelus-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-bell-ringing"></i>
             <span>Hora do Angelus</span>
@@ -39,7 +39,7 @@
     </div>
 
     <!-- Music Library Modal -->
-    <div id="music-library" class="glass-panel" style="display: none;">
+    <div id="music-library" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <h3>Biblioteca</h3>
             <button id="close-library-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -54,7 +54,7 @@
     </div>
 
     <!-- Mini Player - Fixed Position Left Side -->
-    <div id="mini-player" class="glass-panel" style="display: none;">
+    <div id="mini-player" class="glass-panel modal-fade" style="display: none;">
         <div class="player-header">
             <span id="now-playing-text">Tocando...</span>
             <div class="player-actions">
@@ -116,7 +116,7 @@
     </footer>
 
     <!-- Focus Timer - Compact Mini Modal -->
-    <div id="focus-mini" class="glass-panel" style="display: none;">
+    <div id="focus-mini" class="glass-panel modal-fade" style="display: none;">
         <div class="focus-mini-header">
             <span class="focus-mini-phase">Foco</span>
             <div class="focus-mini-actions">
@@ -140,7 +140,7 @@
     </div>
 
     <!-- Focus Timer - Fullscreen Overlay -->
-    <div id="focus-fullscreen" style="display: none;">
+    <div id="focus-fullscreen" class="modal-fs" style="display: none;">
         <div class="focus-fs-header">
             <button id="focus-fs-settings-btn" class="icon-btn" title="Configurações"><i class="ph ph-gear"></i></button>
             <button id="focus-fs-collapse" class="icon-btn" title="Modo compacto"><i class="ph ph-arrows-in"></i></button>
@@ -183,7 +183,7 @@
     </div>
 
     <!-- Prayer List Modal -->
-    <div id="prayer-list" class="glass-panel" style="display: none;">
+    <div id="prayer-list" class="glass-panel modal-fade" style="display: none;">
         <div class="modal-header">
             <h3>Orações</h3>
             <button id="close-prayer-list-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -192,7 +192,7 @@
     </div>
 
     <!-- Prayer Reader Modal -->
-    <div id="prayer-reader" class="glass-panel" style="display: none;">
+    <div id="prayer-reader" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="back-to-list-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3 id="prayer-reader-title">Oração</h3>
@@ -206,7 +206,7 @@
     </div>
 
     <!-- Rosary (Terço) Modal -->
-    <div id="rosary-modal" class="glass-panel" style="display: none;">
+    <div id="rosary-modal" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <h3 id="rosary-modal-title">Santo Terço</h3>
             <div class="lang-toggle-rosary" style="display: flex; gap: 8px; margin-right: 16px;">
@@ -239,7 +239,7 @@
     </div>
 
     <!-- Exam Type Selector Modal -->
-    <div id="exam-type-modal" class="glass-panel" style="display: none;">
+    <div id="exam-type-modal" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <h3>Examinar</h3>
             <button id="close-exam-type-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -256,7 +256,7 @@
     </div>
 
     <!-- Exam Flow Modal -->
-    <div id="exam-flow-modal" class="glass-panel" style="display: none;">
+    <div id="exam-flow-modal" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="exam-flow-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3 id="exam-flow-title">Exame</h3>
@@ -275,7 +275,7 @@
     </div>
 
     <!-- Pomodoro Emotional Check-in -->
-    <div id="pomodoro-checkin" class="glass-panel" style="display: none;">
+    <div id="pomodoro-checkin" class="glass-panel modal-fade" style="display: none;">
         <div class="checkin-header">
             <span class="checkin-title">Como está seu coração?</span>
             <button id="close-checkin-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>
@@ -284,7 +284,7 @@
     </div>
 
     <!-- Micro-Prayer Suggestion -->
-    <div id="micro-prayer-modal" class="glass-panel" style="display: none;">
+    <div id="micro-prayer-modal" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="micro-prayer-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3>Oração Rápida</h3>
@@ -295,7 +295,7 @@
     </div>
 
     <!-- Midday Exam Reminder -->
-    <div id="midday-reminder" class="glass-panel" style="display: none;">
+    <div id="midday-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-sun-horizon"></i>
             <span>Hora do Exame Meridiano</span>
@@ -309,7 +309,7 @@
     </div>
 
     <!-- Evening Exam Reminder -->
-    <div id="evening-reminder" class="glass-panel" style="display: none;">
+    <div id="evening-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-moon-stars"></i>
             <span>Hora do Exame Noturno</span>
@@ -323,7 +323,7 @@
     </div>
 
     <!-- Virtues Checklist Modal -->
-    <div id="virtues-modal" class="glass-panel" style="display: none;">
+    <div id="virtues-modal" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="virtues-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3>Virtudes do Dia</h3>
@@ -339,7 +339,7 @@
     </div>
 
     <!-- Virtues Editor Modal -->
-    <div id="virtues-editor" class="glass-panel" style="display: none;">
+    <div id="virtues-editor" class="glass-panel modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="virtues-editor-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3>Editar Virtudes</h3>

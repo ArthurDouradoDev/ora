@@ -688,8 +688,6 @@ footer {
     display: flex;
     flex-direction: column;
     z-index: 200;
-
-    animation: fadeUp 0.25s ease;
 }
 
 #prayer-list:hover {
@@ -789,8 +787,6 @@ footer {
     display: flex;
     flex-direction: column;
     z-index: 300;
-
-    animation: fadeIn 0.3s ease;
 }
 
 #prayer-reader:hover {
@@ -887,8 +883,6 @@ footer {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    
-    animation: slideDown 0.5s ease;
     z-index: 100;
 }
 
@@ -997,8 +991,6 @@ footer {
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     border-radius: 18px;
-
-    animation: fadeUp 0.25s ease;
     transition: all 0.3s ease;
 }
 
@@ -1357,8 +1349,6 @@ footer {
     gap: 16px;
     z-index: 300;
     overflow-y: auto;
-
-    animation: fadeIn 0.3s ease;
 }
 
 #rosary-modal:hover {
@@ -1651,7 +1641,6 @@ footer {
     flex-direction: column;
     gap: 16px;
     z-index: 200;
-    animation: fadeIn 0.25s ease;
     overflow-y: auto;
 }
 
@@ -1768,8 +1757,6 @@ footer {
     flex-direction: column;
     gap: 20px;
     z-index: 300;
-
-    animation: fadeIn 0.3s ease;
 }
 
 #exam-flow-modal:hover {
@@ -1921,7 +1908,6 @@ footer {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    animation: fadeUp 0.3s ease;
 }
 
 #pomodoro-checkin:hover {
@@ -2000,7 +1986,6 @@ footer {
     flex-direction: column;
     gap: 18px;
     z-index: 300;
-    animation: fadeIn 0.3s ease;
 }
 
 #micro-prayer-modal:hover {
@@ -2058,7 +2043,6 @@ footer {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
-    animation: slideDown 0.5s ease;
     z-index: 100;
 }
 
@@ -2084,7 +2068,6 @@ footer {
     border: 1px solid rgba(139, 92, 246, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
-    animation: slideDown 0.5s ease;
     z-index: 100;
 }
 
@@ -2120,7 +2103,6 @@ footer {
     gap: 16px;
     z-index: 300;
     overflow-y: auto;
-    animation: fadeIn 0.3s ease;
 }
 
 #virtues-modal:hover {
@@ -2241,7 +2223,6 @@ footer {
     gap: 14px;
     z-index: 350;
     overflow-y: auto;
-    animation: fadeIn 0.3s ease;
 }
 
 #virtues-editor:hover {
@@ -2311,3 +2292,65 @@ footer {
 .add-virtue-section input::placeholder {
     color: rgba(255, 255, 255, 0.4);
 }
+
+/* ============================================================
+   MODAL ANIMATIONS
+   ============================================================ */
+
+/* --- Scale (center modals) --- */
+@keyframes scaleIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.93); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes scaleOut {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0; transform: translate(-50%, -50%) scale(0.93); }
+}
+
+/* --- Fade Up / Down (corner popups) --- */
+@keyframes modalFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes modalFadeDown {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(12px); }
+}
+
+/* --- Slide Down / Up (angelus reminder) --- */
+@keyframes modalSlideDown {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes modalSlideUp {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to   { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+/* --- Fullscreen fade --- */
+@keyframes fsFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes fsFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+/* --- Opening / Closing classes --- */
+
+/* Center modals (prayer-reader, music-library, rosary, exam, virtues) */
+.modal-scale.modal-opening  { animation: scaleIn 0.25s ease forwards; }
+.modal-scale.modal-closing  { animation: scaleOut 0.2s ease forwards; }
+
+/* Corner popups (prayer-list, focus-mini) */
+.modal-fade.modal-opening   { animation: modalFadeUp 0.25s ease forwards; }
+.modal-fade.modal-closing   { animation: modalFadeDown 0.2s ease forwards; }
+
+/* Angelus reminder */
+.modal-slide.modal-opening  { animation: modalSlideDown 0.4s ease forwards; }
+.modal-slide.modal-closing  { animation: modalSlideUp 0.3s ease forwards; }
+
+/* Fullscreen */
+.modal-fs.modal-opening     { animation: fsFadeIn 0.3s ease forwards; }
+.modal-fs.modal-closing     { animation: fsFadeOut 0.25s ease forwards; }

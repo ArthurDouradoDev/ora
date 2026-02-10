@@ -141,21 +141,52 @@ async function initApp() {
     // --- TOAST SYSTEM ---
     const toastContainer = document.getElementById('toast-container');
 
+    // --- Modal Animation Helper ---
+    function animateModal(el, show) {
+        if (!el) return;
+        if (show) {
+            el.classList.remove('modal-closing');
+            el.style.display = 'flex';
+            // Force reflow so the browser picks up the new animation
+            void el.offsetWidth;
+            el.classList.add('modal-opening');
+        } else {
+            if (el.style.display === 'none' || el.style.display === '') return;
+            el.classList.remove('modal-opening');
+            el.classList.add('modal-closing');
+            const handler = () => {
+                el.style.display = 'none';
+                el.classList.remove('modal-closing');
+                el.removeEventListener('animationend', handler);
+            };
+            el.addEventListener('animationend', handler, { once: true });
+            // Fallback in case animationend doesn't fire
+            setTimeout(() => {
+                if (el.classList.contains('modal-closing')) {
+                    el.style.display = 'none';
+                    el.classList.remove('modal-closing');
+                }
+            }, 500);
+        }
+    }
+
+    function isModalVisible(el) {
+        return el && el.style.display !== 'none' && el.style.display !== '';
+    }
+
     function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-
-        let iconName = 'ph-check-circle';
-        if (type === 'error') iconName = 'ph-warning-circle';
-        if (type === 'info') iconName = 'ph-info';
-
-        toast.innerHTML = `
-            <i class="ph ${iconName}" style="font-size: 1.5rem;"></i>
-            <span>${message}</span>
-        `;
-
-        toastContainer.appendChild(toast);
-
+    
+        let icon;
+        if (type === 'success') icon = 'ph-check-circle';
+        else if (type === 'error') icon = 'ph-warning-circle';
+        else icon = 'ph-info';
+    
+        toast.innerHTML = `<i class="ph ${icon}"></i><span>${message}</span>`;
+        container.appendChild(toast);
+    
         setTimeout(() => {
             toast.classList.add('hide');
             toast.addEventListener('animationend', () => toast.remove());
@@ -199,28 +230,31 @@ async function initApp() {
     // --- Toggle Library ---
     btnMusic.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isHidden = musicLibrary.style.display === 'none';
-        musicLibrary.style.display = isHidden ? 'flex' : 'none';
-        if (isHidden) renderPlaylists();
+        if (!isModalVisible(musicLibrary)) {
+            animateModal(musicLibrary, true);
+            renderPlaylists();
+        } else {
+            animateModal(musicLibrary, false);
+        }
     });
 
     closeLibraryBtn.addEventListener('click', () => {
-        musicLibrary.style.display = 'none';
+        animateModal(musicLibrary, false);
     });
 
     // Close Library on Click Outside
     document.addEventListener('click', (e) => {
-        if (musicLibrary.style.display === 'flex' &&
+        if (isModalVisible(musicLibrary) &&
             !musicLibrary.contains(e.target) &&
             e.target !== btnMusic &&
             !btnMusic.contains(e.target)) {
-            musicLibrary.style.display = 'none';
+            animateModal(musicLibrary, false);
         }
     });
 
     // --- Mini Player Controls ---
     closePlayerBtn.addEventListener('click', () => {
-        miniPlayer.style.display = 'none';
+        animateModal(miniPlayer, false);
         stopPlayback();
         isPlayerMinimized = false;
     });
@@ -348,7 +382,7 @@ async function initApp() {
             card.onclick = (e) => {
                 if (e.target.closest('.delete-btn')) return;
                 playPlaylist(playlist);
-                musicLibrary.style.display = 'none';
+                animateModal(musicLibrary, false);
             };
 
             const delBtnEl = card.querySelector('.delete-btn');
@@ -457,7 +491,7 @@ async function initApp() {
     const RELAY_URL = 'https://arthurdouradodev.github.io/ora-player-relay/';
 
     function playPlaylist(playlist) {
-        miniPlayer.style.display = 'flex';
+        animateModal(miniPlayer, true);
         nowPlayingText.textContent = playlist.title;
 
         if (isPlayerMinimized) {
@@ -523,11 +557,11 @@ async function initApp() {
 
     function openPrayerList() {
         renderPrayerGrid();
-        prayerList.style.display = 'flex';
+        animateModal(prayerList, true);
     }
 
     function closePrayerList() {
-        prayerList.style.display = 'none';
+        animateModal(prayerList, false);
     }
 
     function openPrayerReader(prayer) {
@@ -535,12 +569,12 @@ async function initApp() {
         currentLang = 'pt';
         updatePrayerReader();
         
-        prayerList.style.display = 'none';
-        prayerReader.style.display = 'flex';
+        animateModal(prayerList, false);
+        animateModal(prayerReader, true);
     }
 
     function closePrayerReader() {
-        prayerReader.style.display = 'none';
+        animateModal(prayerReader, false);
         currentPrayer = null;
     }
 
@@ -585,8 +619,7 @@ async function initApp() {
     if (btnPrayers) {
         btnPrayers.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isHidden = prayerList.style.display === 'none';
-            if (isHidden) {
+            if (!isModalVisible(prayerList)) {
                 openPrayerList();
             } else {
                 closePrayerList();
@@ -595,13 +628,13 @@ async function initApp() {
 
         // Close modals on click outside
         document.addEventListener('click', (e) => {
-            if (prayerList.style.display === 'flex' && 
+            if (isModalVisible(prayerList) && 
                 !prayerList.contains(e.target) && 
                 !btnPrayers.contains(e.target)) {
                 closePrayerList();
             }
 
-            if (prayerReader.style.display === 'flex' && 
+            if (isModalVisible(prayerReader) && 
                 !prayerReader.contains(e.target)) {
                 closePrayerReader();
             }
@@ -637,29 +670,43 @@ async function initApp() {
     const checkAngelusBtn = document.getElementById('check-angelus-btn');
     const angelusPrayerId = 'angelus'; 
 
+    function getAngelusWindow(hours) {
+        if (hours >= 6 && hours < 8) return 'morning';
+        if (hours >= 12 && hours < 13) return 'midday';
+        if (hours >= 18 && hours < 21) return 'evening';
+        return null;
+    }
+
     function checkAngelusTime() {
         const now = new Date();
         const hours = now.getHours();
-        
-        const todayStr = new Date().toDateString();
-        const doneToday = SafeStorage.getItem('angelus_done_' + todayStr);
+        const todayStr = now.toDateString();
+        const angelusWindow = getAngelusWindow(hours);
 
-        if (hours === 12 && !doneToday) {
-            showAngelusReminder();
-            
-            try {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    const notifSent = SafeStorage.getItem('angelus_notif_' + todayStr);
-                    if (!notifSent) {
-                        new Notification('Hora do Angelus', {
-                            body: 'O Anjo do Senhor anunciou a Maria...',
-                            icon: 'icon.png'
-                        });
-                        SafeStorage.setItem('angelus_notif_' + todayStr, 'true');
+        if (angelusWindow) {
+            const doneKey = 'angelus_done_' + angelusWindow + '_' + todayStr;
+            const doneThisWindow = SafeStorage.getItem(doneKey);
+
+            if (!doneThisWindow) {
+                showAngelusReminder();
+
+                try {
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        const notifKey = 'angelus_notif_' + angelusWindow + '_' + todayStr;
+                        const notifSent = SafeStorage.getItem(notifKey);
+                        if (!notifSent) {
+                            new Notification('Hora do Angelus', {
+                                body: 'O Anjo do Senhor anunciou a Maria...',
+                                icon: 'icon.png'
+                            });
+                            SafeStorage.setItem(notifKey, 'true');
+                        }
                     }
+                } catch (e) {
+                    console.warn('[Ora] Notification error:', e);
                 }
-            } catch (e) {
-                console.warn('[Ora] Notification error:', e);
+            } else {
+                hideAngelusReminder();
             }
         } else {
             hideAngelusReminder();
@@ -667,11 +714,11 @@ async function initApp() {
     }
 
     function showAngelusReminder() {
-        if (angelusReminder) angelusReminder.style.display = 'flex';
+        if (angelusReminder && !isModalVisible(angelusReminder)) animateModal(angelusReminder, true);
     }
 
     function hideAngelusReminder() {
-        if (angelusReminder) angelusReminder.style.display = 'none';
+        if (angelusReminder) animateModal(angelusReminder, false);
     }
 
     // Actions
@@ -687,9 +734,12 @@ async function initApp() {
 
     if (checkAngelusBtn) {
         checkAngelusBtn.addEventListener('click', () => {
-            const todayStr = new Date().toDateString();
-            SafeStorage.setItem('angelus_done_' + todayStr, 'true');
-            
+            const now = new Date();
+            const todayStr = now.toDateString();
+            const angelusWindow = getAngelusWindow(now.getHours());
+            if (angelusWindow) {
+                SafeStorage.setItem('angelus_done_' + angelusWindow + '_' + todayStr, 'true');
+            }
             hideAngelusReminder();
             showToast('Angelus rezado!', 'success');
         });
@@ -988,23 +1038,23 @@ async function initApp() {
 
     function showCompact() {
         focusMode = 'compact';
-        focusMini.style.display = 'flex';
-        focusFullscreen.style.display = 'none';
+        animateModal(focusMini, true);
+        animateModal(focusFullscreen, false);
         focusSettingsPanel.style.display = 'none';
         updateFocusDisplay();
     }
 
     function showFullscreen() {
         focusMode = 'fullscreen';
-        focusMini.style.display = 'none';
-        focusFullscreen.style.display = 'flex';
+        animateModal(focusMini, false);
+        animateModal(focusFullscreen, true);
         updateFocusDisplay();
     }
 
     function closeFocusTimer() {
         pauseTimer();
-        focusMini.style.display = 'none';
-        focusFullscreen.style.display = 'none';
+        animateModal(focusMini, false);
+        animateModal(focusFullscreen, false);
         focusSettingsPanel.style.display = 'none';
         isFocusMiniMinimized = false;
         focusMini.classList.remove('minimized');
@@ -1045,12 +1095,12 @@ async function initApp() {
     if (btnFocus) {
         btnFocus.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (focusMini.style.display === 'none' && focusFullscreen.style.display === 'none') {
+            if (!isModalVisible(focusMini) && !isModalVisible(focusFullscreen)) {
                 showCompact();
-            } else if (focusMini.style.display !== 'none') {
-                focusMini.style.display = 'none';
+            } else if (isModalVisible(focusMini)) {
+                animateModal(focusMini, false);
             } else {
-                focusFullscreen.style.display = 'none';
+                animateModal(focusFullscreen, false);
                 focusSettingsPanel.style.display = 'none';
             }
         });
@@ -1271,11 +1321,11 @@ async function initApp() {
         const weekCount = getWeeklyExamCount();
         examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
 
-        examTypeModal.style.display = 'flex';
+        animateModal(examTypeModal, true);
     }
 
     function closeExamTypeModal() {
-        examTypeModal.style.display = 'none';
+        animateModal(examTypeModal, false);
     }
 
     function startExam(type) {
@@ -1285,7 +1335,7 @@ async function initApp() {
         closeExamTypeModal();
 
         examFlowTitle.textContent = `${examTypes[type].icon} ${examTypes[type].label}`;
-        examFlowModal.style.display = 'flex';
+        animateModal(examFlowModal, true);
         renderExamStep();
     }
 
@@ -1384,10 +1434,10 @@ async function initApp() {
         if (currentExamType === 'night') {
             SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
             const evRem = document.getElementById('evening-reminder');
-            if (evRem) evRem.style.display = 'none';
+            animateModal(evRem, false);
         } else if (currentExamType === 'midday') {
             SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
-            if (middayReminder) middayReminder.style.display = 'none';
+            animateModal(middayReminder, false);
         }
 
         // Save exam log
@@ -1404,13 +1454,13 @@ async function initApp() {
             SafeStorage.setItem('ora_exam_logs', JSON.stringify(logs));
         } catch (e) { /* ignore */ }
 
-        examFlowModal.style.display = 'none';
+        animateModal(examFlowModal, false);
         showToast('Exame concluído! Deus te abençoe. 🙏', 'success');
         currentExamType = null;
     }
 
     function closeExamFlow() {
-        examFlowModal.style.display = 'none';
+        animateModal(examFlowModal, false);
         currentExamType = null;
     }
 
@@ -1420,7 +1470,7 @@ async function initApp() {
         btnExam.addEventListener('click', (e) => {
             e.stopPropagation();
             console.log('[Ora] Exam button clicked! Modal display:', examTypeModal.style.display);
-            if (examTypeModal.style.display === 'none' || examTypeModal.style.display === '') {
+            if (!isModalVisible(examTypeModal)) {
                 openExamTypeModal();
             } else {
                 closeExamTypeModal();
@@ -1443,12 +1493,12 @@ async function initApp() {
 
     // Close on click outside
     document.addEventListener('click', (e) => {
-        if (examTypeModal.style.display === 'flex' &&
+        if (isModalVisible(examTypeModal) &&
             !examTypeModal.contains(e.target) &&
             !btnExam.contains(e.target)) {
             closeExamTypeModal();
         }
-        if (examFlowModal.style.display === 'flex' &&
+        if (isModalVisible(examFlowModal) &&
             !examFlowModal.contains(e.target)) {
             // Don't auto close exam flow (user might lose progress)
         }
@@ -1465,7 +1515,7 @@ async function initApp() {
             btn.className = 'checkin-emoji-btn';
             btn.innerHTML = `<span class="checkin-emoji">${opt.emoji}</span><span class="checkin-label">${opt.label}</span>`;
             btn.addEventListener('click', () => {
-                pomodoroCheckin.style.display = 'none';
+                animateModal(pomodoroCheckin, false);
                 if (opt.id === 'heavy') {
                     showMicroPrayerOptions();
                 } else {
@@ -1475,7 +1525,7 @@ async function initApp() {
             checkinOptions.appendChild(btn);
         });
 
-        pomodoroCheckin.style.display = 'flex';
+        animateModal(pomodoroCheckin, true);
     }
 
     function showMicroPrayerOptions() {
@@ -1505,14 +1555,14 @@ async function initApp() {
             microPrayerOptionsEl.appendChild(card);
         });
 
-        microPrayerModal.style.display = 'flex';
+        animateModal(microPrayerModal, true);
     }
 
     if (closeCheckinBtn) closeCheckinBtn.addEventListener('click', () => {
-        pomodoroCheckin.style.display = 'none';
+        animateModal(pomodoroCheckin, false);
     });
     if (closeMicroPrayerBtn) closeMicroPrayerBtn.addEventListener('click', () => {
-        microPrayerModal.style.display = 'none';
+        animateModal(microPrayerModal, false);
     });
     if (microPrayerBackBtn) microPrayerBackBtn.addEventListener('click', () => {
         microPrayerTextEl.style.display = 'none';
@@ -1536,16 +1586,16 @@ async function initApp() {
         const doneToday = SafeStorage.getItem('ora_midday_done_' + todayStr);
 
         if (hours >= 11 && hours < 14 && !doneToday) {
-            if (middayReminder) middayReminder.style.display = 'flex';
+            if (middayReminder && !isModalVisible(middayReminder)) animateModal(middayReminder, true);
         } else {
-            if (middayReminder) middayReminder.style.display = 'none';
+            if (middayReminder) animateModal(middayReminder, false);
         }
     }
 
     if (startMiddayBtn) {
         startMiddayBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (middayReminder) middayReminder.style.display = 'none';
+            animateModal(middayReminder, false);
             startExam('midday');
         });
     }
@@ -1554,7 +1604,7 @@ async function initApp() {
         checkMiddayBtn.addEventListener('click', () => {
             const todayStr = new Date().toDateString();
             SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
-            if (middayReminder) middayReminder.style.display = 'none';
+            animateModal(middayReminder, false);
             showToast('Exame meridiano registrado!', 'success');
         });
     }
@@ -1575,16 +1625,16 @@ async function initApp() {
         const doneToday = SafeStorage.getItem('ora_evening_done_' + todayStr);
 
         if (hours >= 18 && !doneToday) {
-            if (eveningReminder) eveningReminder.style.display = 'flex';
+            if (eveningReminder && !isModalVisible(eveningReminder)) animateModal(eveningReminder, true);
         } else {
-            if (eveningReminder) eveningReminder.style.display = 'none';
+            if (eveningReminder) animateModal(eveningReminder, false);
         }
     }
 
     if (startEveningBtn) {
         startEveningBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (eveningReminder) eveningReminder.style.display = 'none';
+            animateModal(eveningReminder, false);
             startExam('night');
         });
     }
@@ -1593,7 +1643,7 @@ async function initApp() {
         checkEveningBtn.addEventListener('click', () => {
             const todayStr = new Date().toDateString();
             SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
-            if (eveningReminder) eveningReminder.style.display = 'none';
+            animateModal(eveningReminder, false);
             showToast('Exame noturno registrado!', 'success');
         });
     }
@@ -1632,11 +1682,11 @@ async function initApp() {
     function openVirtuesModal() {
         closeExamTypeModal();
         renderVirtuesList();
-        virtuesModal.style.display = 'flex';
+        animateModal(virtuesModal, true);
     }
 
     function closeVirtuesModal() {
-        virtuesModal.style.display = 'none';
+        animateModal(virtuesModal, false);
     }
 
     function renderVirtuesList() {
@@ -1692,13 +1742,13 @@ async function initApp() {
 
     // Virtues Editor
     function openVirtuesEditor() {
-        virtuesModal.style.display = 'none';
+        animateModal(virtuesModal, false);
         renderVirtuesEditor();
-        virtuesEditor.style.display = 'flex';
+        animateModal(virtuesEditor, true);
     }
 
     function closeVirtuesEditor() {
-        virtuesEditor.style.display = 'none';
+        animateModal(virtuesEditor, false);
     }
 
     function renderVirtuesEditor() {
@@ -2074,12 +2124,12 @@ async function initApp() {
 
     // --- Open/Close ---
     function openRosary() {
-        rosaryModal.style.display = 'flex';
+        animateModal(rosaryModal, true);
         updateRosaryDisplay();
     }
 
     function closeRosary() {
-        rosaryModal.style.display = 'none';
+        animateModal(rosaryModal, false);
     }
 
     // --- Event Listeners ---
@@ -2087,7 +2137,7 @@ async function initApp() {
     if (btnRosary) {
         btnRosary.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isHidden = rosaryModal.style.display === 'none';
+            const isHidden = !isModalVisible(rosaryModal);
             if (isHidden) {
                 openRosary();
             } else {
@@ -2132,7 +2182,7 @@ async function initApp() {
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
-        if (rosaryModal.style.display !== 'flex') return;
+        if (!isModalVisible(rosaryModal)) return;
 
         if (e.key === 'ArrowRight') {
             e.preventDefault();
@@ -2145,7 +2195,7 @@ async function initApp() {
 
     // Close on click outside
     document.addEventListener('click', (e) => {
-        if (rosaryModal.style.display === 'flex' &&
+        if (isModalVisible(rosaryModal) &&
             !rosaryModal.contains(e.target) &&
             !btnRosary.contains(e.target)) {
             closeRosary();
