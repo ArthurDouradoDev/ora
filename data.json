@@ -1,0 +1,123 @@
+{
+  "backgroundImages": [
+    "https://images.unsplash.com/photo-1698822079732-501a7e06860f?q=80&w=1920&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=1920&auto=format&fit=crop"
+  ],
+  "defaultPlaylists": [
+    {
+      "id": "def-gregorian",
+      "title": "Canto Gregoriano",
+      "source": "youtube",
+      "idType": "video",
+      "externalId": "c79SszUBZUE",
+      "icon": "ph-church"
+    },
+    {
+      "id": "def-polyphony",
+      "title": "Música Sacra",
+      "source": "spotify",
+      "idType": "playlist",
+      "externalId": "1HE6bfpFj8GtTrpmNuuxGp",
+      "icon": "ph-music-notes"
+    },
+    {
+      "id": "def-rosary",
+      "title": "Santo Rosário (Latim)",
+      "source": "youtube",
+      "idType": "video",
+      "externalId": "b2C8tJf8g7g",
+      "icon": "ph-cross"
+    }
+  ],
+  "prayers": [
+    {
+      "id": "pai-nosso",
+      "title": "Pai Nosso",
+      "icon": "ph-hands-praying",
+      "text": {
+        "pt": "Pai nosso, que estais nos céus,\nsantificado seja o Vosso nome;\nvenha a nós o Vosso reino,\nseja feita a Vossa vontade,\nassim na terra como no céu.\n\nO pão nosso de cada dia nos dai hoje;\nperdoai-nos as nossas ofensas,\nassim como nós perdoamos\na quem nos tem ofendido;\ne não nos deixeis cair em tentação,\nmas livrai-nos do mal. Amém.",
+        "la": "Pater noster, qui es in caelis,\nsanctificetur nomen tuum.\nAdveniat regnum tuum.\nFiat voluntas tua,\nsicut in caelo et in terra.\n\nPanem nostrum quotidianum da nobis hodie,\net dimitte nobis debita nostra,\nsicut et nos dimittimus debitoribus nostris.\nEt ne nos inducas in tentationem,\nsed libera nos a malo. Amen."
+      }
+    },
+    {
+      "id": "ave-maria",
+      "title": "Ave Maria",
+      "icon": "ph-heart",
+      "text": {
+        "pt": "Ave Maria, cheia de graça,\no Senhor é convosco,\nbendita sois vós entre as mulheres\ne bendito é o fruto do vosso ventre, Jesus.\n\nSanta Maria, Mãe de Deus,\nrogai por nós, pecadores,\nagora e na hora da nossa morte. Amém.",
+        "la": "Ave Maria, gratia plena,\nDominus tecum.\nBenedicta tu in mulieribus,\net benedictus fructus ventris tui, Iesus.\n\nSancta Maria, Mater Dei,\nora pro nobis peccatoribus,\nnunc, et in hora mortis nostrae. Amen."
+      }
+    },
+    {
+      "id": "gloria",
+      "title": "Glória ao Pai",
+      "icon": "ph-star",
+      "text": {
+        "pt": "Glória ao Pai, e ao Filho e ao Espírito Santo.\nComo era no princípio, agora e sempre. Amém.",
+        "la": "Gloria Patri, et Filio, et Spiritui Sancto.\nSicut erat in principio, et nunc, et semper,\net in saecula saeculorum. Amen."
+      }
+    },
+    {
+      "id": "salve-rainha",
+      "title": "Salve Rainha",
+      "icon": "ph-crown",
+      "text": {
+        "pt": "Salve, Rainha, Mãe de misericórdia,\nvida, doçura e esperança nossa, salve!\nA vós bradamos, os degredados filhos de Eva;\na vós suspiramos, gemendo e chorando\nneste vale de lágrimas.\n\nEia, pois, advogada nossa,\nesses vossos olhos misericordiosos a nós volvei;\ne depois deste desterro nos mostrai Jesus,\nbendito fruto do vosso ventre,\nó clemente, ó piedosa,\nó doce sempre Virgem Maria.\n\nV. Rogai por nós, santa Mãe de Deus.\nR. Para que sejamos dignos das promessas de Cristo.",
+        "la": "Salve, Regina, Mater misericordiae,\nvita, dulcedo, et spes nostra, salve.\nAd te clamamus, exsules filii Hevae,\nad te suspiramus, gementes et flentes\nin hac lacrimarum valle.\n\nEia, ergo, advocata nostra,\nillos tuos misericordes oculos ad nos converte;\net Iesum, benedictum fructum ventris tui,\nnobis post hoc exsilium ostende.\nO clemens, O pia,\nO dulcis Virgo Maria.\n\nV. Ora pro nobis, sancta Dei Genetrix.\nR. Ut digni efficiamur promissionibus Christi."
+      }
+    },
+    {
+      "id": "credo",
+      "title": "Credo",
+      "icon": "ph-shield-check",
+      "text": {
+        "pt": "Creio em Deus Pai Todo-Poderoso,\nCriador do céu e da terra;\ne em Jesus Cristo, seu único Filho, nosso Senhor;\nque foi concebido pelo poder do Espírito Santo;\nnasceu da Virgem Maria,\npadeceu sob Pôncio Pilatos,\nfoi crucificado, morto e sepultado;\ndesceu à mansão dos mortos;\nressuscitou ao terceiro dia;\nsubiu aos céus,\nestá sentado à direita de Deus Pai Todo-Poderoso,\ndonde há de vir a julgar os vivos e os mortos.\n\nCreio no Espírito Santo,\nna Santa Igreja Católica,\nna comunhão dos Santos,\nna remissão dos pecados,\nna ressurreição da carne,\nna vida eterna. Amém.",
+        "la": "Credo in Deum Patrem omnipotentem,\nCreatorem caeli et terrae.\nEt in Iesum Christum, Filium eius unicum, Dominum nostrum,\nqui conceptus est de Spiritu Sancto,\nnatus ex Maria Virgine,\npassus sub Pontio Pilato,\ncrucifixus, mortuus, et sepultus,\ndescendit ad inferos,\ntertia die resurrexit a mortuis,\nascendit ad caelos,\nsedet ad dexteram Dei Patris omnipotentis,\ninde venturus est iudicare vivos et mortuos.\n\nCredo in Spiritum Sanctum,\nsanctam Ecclesiam catholicam,\nsanctorum communionem,\nremissionem peccatorum,\ncarnis resurrectionem,\nvitam aeternam. Amen."
+      }
+    },
+    {
+      "id": "ato-contricao",
+      "title": "Ato de Contrição",
+      "icon": "ph-heart-break",
+      "text": {
+        "pt": "Meu Deus, eu me arrependo de todo o coração de vos ter ofendido,\nporque sois tão bom e amável.\nPrometo, com a vossa graça,\nesforçar-me para não mais pecar.\nMeu Jesus, misericórdia!",
+        "la": "Deus meus, ex toto corde paenitet me omnium meorum peccatorum,\neaque detestor, quia peccando,\nnon solum poenas a Te iuste statutas promeritus sum,\nsed praesertim quia Te summum bonum,\nac Te dignum qui super omnia ametur, offendi.\nIdeo firmiter propono,\nadiuvante gratia Tua,\nde cetero me non peccaturum peccandique occasiones proximas fugiturum. Amen."
+      }
+    },
+    {
+      "id": "sao-miguel",
+      "title": "São Miguel Arcanjo",
+      "icon": "ph-sword",
+      "text": {
+        "pt": "São Miguel Arcanjo, defendei-nos no combate,\nsede o nosso refúgio contra as maldades e ciladas do demônio.\nOrdene-lhe Deus, instantemente o pedimos,\ne vós, príncipe da milícia celeste,\npela virtude divina,\nprecipitai no inferno a satanás e a todos os espíritos malignos,\nque andam pelo mundo para perder as almas. Amém.",
+        "la": "Sancte Michael Archangele, defende nos in proelio,\ncontra nequitiam et insidias diaboli esto praesidium.\nImperet illi Deus, supplices deprecamur:\ntuque, Princeps militiae caelestis,\nSatanam aliosque spiritus malignos,\nqui ad perditionem animarum pervagantur in mundo,\ndivina virtute, in infernum detrude. Amen."
+      }
+    },
+    {
+      "id": "angelus",
+      "title": "Angelus",
+      "icon": "ph-bell",
+      "text": {
+        "pt": "V. O Anjo do Senhor anunciou a Maria.\nR. E ela concebeu do Espírito Santo.\nAve Maria...\n\nV. Eis a escrava do Senhor.\nR. Faça-se em mim segundo a vossa palavra.\nAve Maria...\n\nV. E o Verbo se fez carne.\nR. E habitou entre nós.\nAve Maria...\n\nV. Rogai por nós, santa Mãe de Deus.\nR. Para que sejamos dignos das promessas de Cristo.\n\nOremos: Infundi, Senhor, nós Vos pedimos,\na Vossa graça em nossas almas,\npara que nós, que pela anunciação do Anjo\nconhecemos a Encarnação de Jesus Cristo, Vosso Filho,\npela Sua paixão e cruz,\nsejamos conduzidos à glória da ressurreição.\nPelo mesmo Cristo, Senhor nosso. Amém.",
+        "la": "V. Angelus Domini nuntiavit Mariae.\nR. Et concepit de Spiritu Sancto.\nAve Maria...\n\nV. Ecce Ancilla Domini.\nR. Fiat mihi secundum Verbum tuum.\nAve Maria...\n\nV. Et Verbum caro factum est.\nR. Et habitavit in nobis.\nAve Maria...\n\nV. Ora pro nobis, Sancta Dei Genetrix.\nR. Ut digni efficiamur promissionibus Christi.\n\nOremus: Gratiam tuam, quaesumus, Domine,\nmentibus nostris infunde;\nut qui, Angelo nuntiante,\nChristi Filii tui incarnationem cognovimus,\nper passionem eius et crucem,\nad resurrectionis gloriam perducamur.\nPer eundem Christum Dominum nostrum. Amen."
+      }
+    }
+  ],
+  "quotes": [
+    { "text": "Tarde te amei, ó beleza tão antiga e tão nova!", "author": "Santo Agostinho" },
+    { "text": "Quem não ora, não tem necessidade do demônio para levá-lo ao inferno.", "author": "Santa Teresa d'Ávila" },
+    { "text": "A oração é a respiração da alma.", "author": "São Padre Pio" },
+    { "text": "Tudo posso naquele que me fortalece.", "author": "Filipenses 4,13" },
+    { "text": "Nada te perturbe, nada te espante. Tudo passa. Deus não muda.", "author": "Santa Teresa d'Ávila" },
+    { "text": "Não tenhais medo! Abri as portas a Cristo!", "author": "São João Paulo II" },
+    { "text": "Onde não há amor, ponha amor e encontrará amor.", "author": "São João da Cruz" },
+    { "text": "Sê fiel nas pequenas coisas, porque nelas reside a tua força.", "author": "Madre Teresa de Calcutá" }
+  ],
+  "greetings": [
+    "Fiat Voluntas Tua",
+    "Deus te abençoe",
+    "A Paz de Cristo",
+    "Ad Maiorem Dei Gloriam",
+    "Deo Gratias"
+  ]
+}

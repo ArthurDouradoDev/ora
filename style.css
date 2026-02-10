@@ -39,7 +39,6 @@ body {
 }
 
 /* O conteúdo deve ficar acima do overlay */
-/* O conteúdo deve ficar acima do overlay */
 header, footer {
     z-index: 10; 
     position: relative;
@@ -149,21 +148,7 @@ footer {
 .quote-text { font-style: italic; font-size: 1.1rem; margin-bottom: 5px; }
 .quote-author { font-size: 0.8rem; text-transform: uppercase; opacity: 0.8; }
 
-/* --- MUSIC PLAYER --- */
-#music-player {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 10px;
-    padding: 15px;
-    width: 250px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    z-index: 100;
-}
+
 
 .player-controls {
     display: flex;
