@@ -119,5 +119,140 @@
     "A Paz de Cristo",
     "Ad Maiorem Dei Gloriam",
     "Deo Gratias"
-  ]
+  ],
+  "rosary": {
+    "mysteries": {
+      "gozosos": [
+        "A Anunciação do Anjo a Nossa Senhora",
+        "A Visitação de Nossa Senhora a Santa Isabel",
+        "O Nascimento de Jesus",
+        "A Apresentação de Jesus no Templo",
+        "A Perda e o Encontro de Jesus no Templo"
+      ],
+      "dolorosos": [
+        "A Agonia de Jesus no Horto",
+        "A Flagelação de Jesus",
+        "A Coroação de Espinhos",
+        "Jesus carrega a Cruz",
+        "A Crucificação e Morte de Jesus"
+      ],
+      "gloriosos": [
+        "A Ressurreição de Jesus",
+        "A Ascensão de Jesus ao Céu",
+        "A Vinda do Espírito Santo",
+        "A Assunção de Nossa Senhora",
+        "A Coroação de Nossa Senhora"
+      ],
+      "luminosos": [
+        "O Batismo de Jesus no Jordão",
+        "A Auto-revelação de Jesus nas Bodas de Caná",
+        "O Anúncio do Reino de Deus",
+        "A Transfiguração de Jesus",
+        "A Instituição da Eucaristia"
+      ]
+    },
+    "structure": [
+      { "type": "sinal-cruz", "label": "Sinal da Cruz", "decade": 0 },
+      { "type": "credo", "label": "Credo", "decade": 0 },
+      { "type": "pai-nosso", "label": "Pai Nosso", "decade": 0 },
+      { "type": "ave-maria", "label": "Ave Maria (1/3)", "decade": 0 },
+      { "type": "ave-maria", "label": "Ave Maria (2/3)", "decade": 0 },
+      { "type": "ave-maria", "label": "Ave Maria (3/3)", "decade": 0 },
+      { "type": "gloria", "label": "Glória ao Pai", "decade": 0 },
+
+      { "type": "pai-nosso", "label": "Pai Nosso", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (1/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (2/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (3/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (4/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (5/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (6/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (7/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (8/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (9/10)", "decade": 1 },
+      { "type": "ave-maria", "label": "Ave Maria (10/10)", "decade": 1 },
+      { "type": "gloria", "label": "Glória ao Pai", "decade": 1 },
+      { "type": "fatima", "label": "Jaculatória de Fátima", "decade": 1 },
+
+      { "type": "pai-nosso", "label": "Pai Nosso", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (1/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (2/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (3/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (4/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (5/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (6/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (7/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (8/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (9/10)", "decade": 2 },
+      { "type": "ave-maria", "label": "Ave Maria (10/10)", "decade": 2 },
+      { "type": "gloria", "label": "Glória ao Pai", "decade": 2 },
+      { "type": "fatima", "label": "Jaculatória de Fátima", "decade": 2 },
+
+      { "type": "pai-nosso", "label": "Pai Nosso", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (1/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (2/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (3/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (4/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (5/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (6/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (7/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (8/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (9/10)", "decade": 3 },
+      { "type": "ave-maria", "label": "Ave Maria (10/10)", "decade": 3 },
+      { "type": "gloria", "label": "Glória ao Pai", "decade": 3 },
+      { "type": "fatima", "label": "Jaculatória de Fátima", "decade": 3 },
+
+      { "type": "pai-nosso", "label": "Pai Nosso", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (1/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (2/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (3/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (4/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (5/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (6/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (7/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (8/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (9/10)", "decade": 4 },
+      { "type": "ave-maria", "label": "Ave Maria (10/10)", "decade": 4 },
+      { "type": "gloria", "label": "Glória ao Pai", "decade": 4 },
+      { "type": "fatima", "label": "Jaculatória de Fátima", "decade": 4 },
+
+      { "type": "pai-nosso", "label": "Pai Nosso", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (1/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (2/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (3/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (4/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (5/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (6/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (7/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (8/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (9/10)", "decade": 5 },
+      { "type": "ave-maria", "label": "Ave Maria (10/10)", "decade": 5 },
+      { "type": "gloria", "label": "Glória ao Pai", "decade": 5 },
+      { "type": "fatima", "label": "Jaculatória de Fátima", "decade": 5 },
+
+      { "type": "salve-rainha", "label": "Salve Rainha", "decade": 0 }
+    ],
+    "extraPrayers": {
+      "sinal-cruz": {
+        "pt": "Em nome do Pai, e do Filho, e do Espírito Santo. Amém.",
+        "la": "In nomine Patris, et Filii, et Spiritus Sancti. Amen."
+      },
+      "fatima": {
+        "pt": "Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o Céu, e socorrei principalmente as que mais precisarem.",
+        "la": "O mi Iesu, dimitte nobis debita nostra, salva nos ab igne inferiori, perduc in caelum omnes animas, praesertim eas, quae misericordiae tuae maxime indigent."
+      },
+      "pai-eterno": {
+        "pt": "Eterno Pai, eu Vos ofereço o Corpo e Sangue, Alma e Divindade de Vosso diletíssimo Filho, Nosso Senhor Jesus Cristo, em expiação dos nossos pecados e dos do mundo inteiro.",
+        "la": "Pater Aeterne, offero tibi Corpus et Sanguinem, Animam et Divinitatem dilectissimi Filii Tui, Domini nostri Iesu Christi, in expiationem peccatorum nostrorum et totius mundi."
+      },
+      "dolorosa-paixao": {
+        "pt": "Pela Sua dolorosa Paixão, tende misericórdia de nós e do mundo inteiro.",
+        "la": "Pro dolorosa Eius Passione, miserere nobis et totius mundi."
+      },
+      "santo-deus": {
+        "pt": "Deus Santo, Deus Forte, Deus Imortal, tende piedade de nós e do mundo inteiro.",
+        "la": "Sancte Deus, Sancte Fortis, Sancte Immortalis, miserere nobis et totius mundi."
+      }
+    }
+  }
 }

@@ -106,7 +106,10 @@
             <div class="quote-author"></div>
         </div>
 
-        <div class="glass-panel action-btn" id="btn-prayers">Orações <i class="ph ph-caret-up"></i></div>
+        <div class="footer-right">
+            <div class="glass-panel action-btn" id="btn-rosary"><i class="ph ph-cross"></i> Terço</div>
+            <div class="glass-panel action-btn" id="btn-prayers">Orações <i class="ph ph-caret-up"></i></div>
+        </div>
     </footer>
 
     <!-- Focus Timer - Compact Mini Modal -->
@@ -197,6 +200,35 @@
             <button class="lang-btn" data-lang="la">Latim</button>
         </div>
         <div id="prayer-text" class="prayer-text"></div>
+    </div>
+
+    <!-- Rosary (Terço) Modal -->
+    <div id="rosary-modal" class="glass-panel" style="display: none;">
+        <div class="modal-header">
+            <h3 id="rosary-modal-title">Santo Terço</h3>
+            <button id="close-rosary-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="rosary-chaplet-selector">
+            <button class="rosary-chaplet-btn active" data-chaplet="terco"><i class="ph ph-cross"></i> Santo Terço</button>
+            <button class="rosary-chaplet-btn" data-chaplet="misericordia"><i class="ph ph-heart"></i> Misericórdia</button>
+        </div>
+        <div class="rosary-mystery-selector">
+            <button class="rosary-mystery-btn active" data-mystery="gozosos">Gozosos</button>
+            <button class="rosary-mystery-btn" data-mystery="dolorosos">Dolorosos</button>
+            <button class="rosary-mystery-btn" data-mystery="gloriosos">Gloriosos</button>
+            <button class="rosary-mystery-btn" data-mystery="luminosos">Luminosos</button>
+        </div>
+        <div class="rosary-mystery-name"></div>
+        <div class="rosary-beads-container"></div>
+        <div class="rosary-prayer-display">
+            <div class="rosary-prayer-title"></div>
+            <div class="rosary-prayer-text"></div>
+        </div>
+        <div class="rosary-nav">
+            <button id="rosary-prev" class="icon-btn"><i class="ph ph-caret-left"></i></button>
+            <span class="rosary-counter">1 / 72</span>
+            <button id="rosary-next" class="icon-btn"><i class="ph ph-caret-right"></i></button>
+        </div>
     </div>
 
     <!-- Toast Container -->
