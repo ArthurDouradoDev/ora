@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ora - Nova Aba</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="phosphor.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="icon.png">
 </head>
@@ -23,6 +23,20 @@
         </div>
         <div class="glass-panel action-btn"><i class="ph ph-sun"></i> 24°C</div>
     </header>
+
+    <!-- Angelus Reminder (12h-13h) -->
+    <div id="angelus-reminder" class="glass-panel" style="display: none;">
+        <div class="angelus-content">
+            <i class="ph ph-bell-ringing"></i>
+            <span>Hora do Angelus</span>
+        </div>
+        <div class="angelus-actions">
+            <button id="open-angelus-btn" class="pray-btn" title="Rezar"><i class="ph ph-hands-praying"></i></button>
+            <button id="check-angelus-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+                <i class="ph ph-check"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- Music Library Modal -->
     <div id="music-library" class="glass-panel" style="display: none;">
@@ -56,33 +70,28 @@
             </div>
         </div>
         <div class="iframe-container" id="iframe-container">
-            <!-- YouTube Embed -->
-            <iframe id="youtube-iframe" width="100%" height="352" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="display: none; border-radius: 12px;"></iframe>
+            <iframe 
+                id="youtube-iframe" 
+                width="100%" 
+                height="352" 
+                src="" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen 
+                style="display: none; border-radius: 12px;">
+            </iframe>
             
-            <!-- Spotify Embed -->
             <iframe id="spotify-iframe" style="border-radius:12px; display: none;" src="" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
         </div>
     </div>
 
     <main>
-        <!-- Angelus Reminder (12h-13h) -->
-        <div id="angelus-reminder" class="glass-panel" style="display: none;">
-            <div class="angelus-content">
-                <i class="ph ph-bell-ringing"></i>
-                <span>Hora do Angelus</span>
-            </div>
-            <div class="angelus-actions">
-                <button id="open-angelus-btn" class="glass-panel-sm" title="Rezar">Rezar</button>
-                <button id="check-angelus-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
-                    <i class="ph ph-check"></i>
-                </button>
-            </div>
-        </div>
+
 
         <div class="clock" id="clock">00:00</div>
         <div class="greeting">Fiat Voluntas Tua</div>
         <div class="focus-section">
-            <input type="text" placeholder="Qual sua intenção hoje?">
+            <input type="text" id="intention-input" placeholder="Qual sua intenção hoje?">
         </div>
     </main>
 

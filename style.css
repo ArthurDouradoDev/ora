@@ -957,3 +957,28 @@ footer {
     border-color: #4caf50;
     transform: scale(1.1);
 }
+
+.pray-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.pray-btn:hover {
+    background: #eebb55; /* Gold color */
+    color: white;
+    border-color: #eebb55;
+    transform: scale(1.1);
+}
+
+.pray-btn i {
+    pointer-events: none;
+}

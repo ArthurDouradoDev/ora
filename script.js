@@ -260,10 +260,11 @@ function renderPlaylists() {
         card.className = 'playlist-card';
 
         let coverHtml;
-        if (playlist.source === 'youtube' && playlist.idType !== 'playlist') {
+        if (playlist.source === 'youtube' && playlist.idType !== 'playlist' && playlist.externalId) {
             const thumbUrl = `https://img.youtube.com/vi/${playlist.externalId}/mqdefault.jpg`;
-            coverHtml = `<img src="${thumbUrl}" loading="lazy" alt="${playlist.title}">`;
+            coverHtml = `<img src="${thumbUrl}" loading="lazy" alt="${playlist.title}" onerror="this.onerror=null; this.parentNode.innerHTML='<i class=\'ph ph-youtube-logo\'></i>'">`;
         } else {
+            // Fallback padrão (Ícone)
             let iconClass = playlist.icon || (playlist.source === 'spotify' ? 'ph-spotify-logo' : 'ph-youtube-logo');
             coverHtml = `<i class="ph ${iconClass}"></i>`;
         }
@@ -397,6 +398,10 @@ function removePlaylist(id) {
 }
 
 // --- Play Logic ---
+// RELAY PAGE URL — Hospedar no GitHub Pages para resolver Erro 153/152
+// IMPORTANTE: Substitua pela URL real depois de publicar no GitHub Pages
+const RELAY_URL = 'https://arthurdouradodev.github.io/ora-player-relay/';
+
 function playPlaylist(playlist) {
     miniPlayer.style.display = 'flex';
     nowPlayingText.textContent = playlist.title;
@@ -414,12 +419,12 @@ function playPlaylist(playlist) {
         spIframe.src = '';
         ytIframe.style.display = 'block';
 
-        let src;
+        // Rota pelo relay page para evitar Erro 153/152
+        const src = `${RELAY_URL}?source=youtube&type=${playlist.idType}&id=${playlist.externalId}`;
+
         if (playlist.idType === 'playlist') {
-            src = `https://www.youtube-nocookie.com/embed/videoseries?list=${playlist.externalId}&autoplay=1&controls=1&modestbranding=1&rel=0`;
             currentPlaylistUrl = `https://www.youtube.com/playlist?list=${playlist.externalId}`;
         } else {
-            src = `https://www.youtube-nocookie.com/embed/${playlist.externalId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
             currentPlaylistUrl = `https://www.youtube.com/watch?v=${playlist.externalId}`;
         }
 
@@ -431,7 +436,9 @@ function playPlaylist(playlist) {
         ytIframe.src = '';
         spIframe.style.display = 'block';
 
-        spIframe.src = `https://open.spotify.com/embed/${playlist.idType}/${playlist.externalId}?utm_source=generator&theme=0`;
+        // Spotify também via relay para consistência
+        const src = `${RELAY_URL}?source=spotify&type=${playlist.idType}&id=${playlist.externalId}`;
+        spIframe.src = src;
         currentPlaylistUrl = `https://open.spotify.com/${playlist.idType}/${playlist.externalId}`;
         activePlayer = 'spotify';
     }
@@ -860,7 +867,8 @@ function hideAngelusReminder() {
 
 // Actions
 if (openAngelusBtn) {
-    openAngelusBtn.addEventListener('click', () => {
+    openAngelusBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         // Find Angelus prayer object
         const angelusPrayer = prayers.find(p => p.id === angelusPrayerId);
         if (angelusPrayer) {
@@ -892,3 +900,30 @@ setInterval(checkAngelusTime, 60000);
 
 // Check immediately on load
 checkAngelusTime();
+
+// ============================================================
+// 6. INTENTION INPUT PERSISTENCE
+// ============================================================
+
+const intentionInput = document.getElementById('intention-input');
+
+if (intentionInput) {
+    // Load saved intention
+    const savedIntention = SafeStorage.getItem('ora_intention');
+    if (savedIntention) {
+        intentionInput.value = savedIntention;
+    }
+
+    // Save on input
+    intentionInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        SafeStorage.setItem('ora_intention', value);
+    });
+
+    // Sync across tabs
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'ora_intention') {
+            intentionInput.value = e.newValue || '';
+        }
+    });
+}
