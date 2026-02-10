@@ -96,7 +96,10 @@
     </main>
 
     <footer>
-        <div class="glass-panel action-btn"><i class="ph ph-gear"></i></div>
+        <div class="footer-left">
+            <div class="glass-panel action-btn" id="btn-focus"><i class="ph ph-timer"></i></div>
+            <div class="glass-panel action-btn"><i class="ph ph-gear"></i></div>
+        </div>
         
         <div class="quote-container">
             <div class="quote-text"></div>
@@ -105,6 +108,73 @@
 
         <div class="glass-panel action-btn" id="btn-prayers">Orações <i class="ph ph-caret-up"></i></div>
     </footer>
+
+    <!-- Focus Timer - Compact Mini Modal -->
+    <div id="focus-mini" class="glass-panel" style="display: none;">
+        <div class="focus-mini-header">
+            <span class="focus-mini-phase">Foco</span>
+            <div class="focus-mini-actions">
+                <button id="focus-mini-expand" class="icon-btn-sm" title="Tela cheia"><i class="ph ph-arrows-out"></i></button>
+                <button id="focus-mini-minimize" class="icon-btn-sm" title="Minimizar"><i class="ph ph-caret-down"></i></button>
+                <button id="focus-mini-close" class="icon-btn-sm" title="Fechar"><i class="ph ph-x"></i></button>
+            </div>
+        </div>
+        <div class="focus-mini-body">
+            <div class="focus-mini-timer">25:00</div>
+            <div class="focus-mini-controls">
+                <button id="focus-mini-play" class="icon-btn-sm" title="Iniciar"><i class="ph ph-play"></i></button>
+                <button id="focus-mini-skip" class="icon-btn-sm" title="Pular"><i class="ph ph-skip-forward"></i></button>
+                <button id="focus-mini-reset" class="icon-btn-sm" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
+            </div>
+        </div>
+        <div class="focus-mini-footer">
+            <span class="focus-mini-total"><i class="ph ph-fire"></i> Total: 0m</span>
+            <div class="focus-mini-dots"></div>
+        </div>
+    </div>
+
+    <!-- Focus Timer - Fullscreen Overlay -->
+    <div id="focus-fullscreen" style="display: none;">
+        <div class="focus-fs-header">
+            <button id="focus-fs-settings-btn" class="icon-btn" title="Configurações"><i class="ph ph-gear"></i></button>
+            <button id="focus-fs-collapse" class="icon-btn" title="Modo compacto"><i class="ph ph-arrows-in"></i></button>
+        </div>
+
+        <div class="focus-fs-content">
+            <div class="focus-fs-phase">Foco</div>
+            <div class="focus-fs-ring-container">
+                <svg class="focus-ring" viewBox="0 0 200 200">
+                    <circle class="focus-ring-bg" cx="100" cy="100" r="90" />
+                    <circle class="focus-ring-progress" cx="100" cy="100" r="90" />
+                </svg>
+                <div class="focus-fs-timer">25:00</div>
+            </div>
+            <div class="focus-fs-dots"></div>
+            <div class="focus-fs-controls">
+                <button id="focus-fs-reset" class="control-btn" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
+                <button id="focus-fs-play" class="control-btn control-btn-play" title="Iniciar"><i class="ph ph-play"></i></button>
+                <button id="focus-fs-skip" class="control-btn" title="Pular"><i class="ph ph-skip-forward"></i></button>
+            </div>
+            <div class="focus-fs-total"><i class="ph ph-fire"></i> Total hoje: 0m</div>
+        </div>
+
+        <!-- Settings Panel (hidden by default) -->
+        <div id="focus-settings" class="focus-settings-panel" style="display: none;">
+            <h4>Configurações</h4>
+            <div class="focus-setting-row">
+                <label>Foco (min)</label>
+                <input type="number" id="setting-focus" min="1" max="120" value="25">
+            </div>
+            <div class="focus-setting-row">
+                <label>Pausa (min)</label>
+                <input type="number" id="setting-pause" min="1" max="30" value="5">
+            </div>
+            <div class="focus-setting-row">
+                <label>Pausa Longa (min)</label>
+                <input type="number" id="setting-long-pause" min="1" max="60" value="15">
+            </div>
+        </div>
+    </div>
 
     <!-- Prayer List Modal -->
     <div id="prayer-list" class="glass-panel" style="display: none;">

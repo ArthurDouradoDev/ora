@@ -730,6 +730,378 @@ async function initApp() {
             }
         });
     }
+
+    // ============================================================
+    // 7. FOCUS TIMER (POMODORO)
+    // ============================================================
+
+    // --- Settings ---
+    let focusSettings = { focus: 25, pause: 5, longPause: 15 };
+    try {
+        const savedSettings = SafeStorage.getItem('ora_focus_settings');
+        if (savedSettings) focusSettings = JSON.parse(savedSettings);
+    } catch (e) { /* use defaults */ }
+
+    // --- State ---
+    let focusPhase = 'focus'; // 'focus', 'pause', 'longPause'
+    let pomodoroCount = 0;
+    let timeRemaining = focusSettings.focus * 60;
+    let totalDuration = focusSettings.focus * 60;
+    let timerInterval = null;
+    let isTimerRunning = false;
+    let isFocusMiniMinimized = false;
+    let focusMode = 'compact'; // 'compact' or 'fullscreen'
+
+    // Total focus today
+    const todayKey = 'ora_focus_total_' + new Date().toDateString();
+    let totalFocusSeconds = parseInt(SafeStorage.getItem(todayKey)) || 0;
+
+    // --- DOM Elements ---
+    const btnFocus = document.getElementById('btn-focus');
+    const focusMini = document.getElementById('focus-mini');
+    const focusMiniPhase = focusMini.querySelector('.focus-mini-phase');
+    const focusMiniTimer = focusMini.querySelector('.focus-mini-timer');
+    const focusMiniTotal = focusMini.querySelector('.focus-mini-total');
+    const focusMiniDots = focusMini.querySelector('.focus-mini-dots');
+    const focusMiniPlayBtn = document.getElementById('focus-mini-play');
+    const focusMiniSkipBtn = document.getElementById('focus-mini-skip');
+    const focusMiniResetBtn = document.getElementById('focus-mini-reset');
+    const focusMiniExpandBtn = document.getElementById('focus-mini-expand');
+    const focusMiniMinimizeBtn = document.getElementById('focus-mini-minimize');
+    const focusMiniCloseBtn = document.getElementById('focus-mini-close');
+
+    const focusFullscreen = document.getElementById('focus-fullscreen');
+    const focusFsPhase = focusFullscreen.querySelector('.focus-fs-phase');
+    const focusFsTimer = focusFullscreen.querySelector('.focus-fs-timer');
+    const focusFsTotal = focusFullscreen.querySelector('.focus-fs-total');
+    const focusFsDots = focusFullscreen.querySelector('.focus-fs-dots');
+    const focusRingProgress = focusFullscreen.querySelector('.focus-ring-progress');
+    const focusFsPlayBtn = document.getElementById('focus-fs-play');
+    const focusFsSkipBtn = document.getElementById('focus-fs-skip');
+    const focusFsResetBtn = document.getElementById('focus-fs-reset');
+    const focusFsCollapseBtn = document.getElementById('focus-fs-collapse');
+    const focusFsSettingsBtn = document.getElementById('focus-fs-settings-btn');
+    const focusSettingsPanel = document.getElementById('focus-settings');
+
+    const settingFocusInput = document.getElementById('setting-focus');
+    const settingPauseInput = document.getElementById('setting-pause');
+    const settingLongPauseInput = document.getElementById('setting-long-pause');
+
+    // SVG ring circumference
+    const RING_CIRCUMFERENCE = 2 * Math.PI * 90; // ~565.48
+
+    // --- Helper Functions ---
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function formatTotalFocus(seconds) {
+        if (seconds < 60) return `${seconds}s`;
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+    }
+
+    function getPhaseLabel(phase) {
+        if (phase === 'focus') return 'Foco';
+        if (phase === 'pause') return 'Pausa';
+        if (phase === 'longPause') return 'Pausa Longa';
+        return 'Foco';
+    }
+
+    function getPhaseDuration(phase) {
+        if (phase === 'focus') return focusSettings.focus * 60;
+        if (phase === 'pause') return focusSettings.pause * 60;
+        if (phase === 'longPause') return focusSettings.longPause * 60;
+        return focusSettings.focus * 60;
+    }
+
+    function playTone() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 528;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 1.5);
+        } catch (e) { /* audio not available */ }
+    }
+
+    // --- Update Display ---
+
+    function updateFocusDisplay() {
+        const timeStr = formatTime(timeRemaining);
+        const label = getPhaseLabel(focusPhase);
+        const totalStr = formatTotalFocus(totalFocusSeconds);
+        const playIcon = isTimerRunning ? 'ph-pause' : 'ph-play';
+
+        // Update compact modal
+        focusMiniTimer.textContent = timeStr;
+        focusMiniPhase.textContent = label;
+        focusMiniTotal.innerHTML = `<i class="ph ph-fire"></i> Total: ${totalStr}`;
+        focusMiniPlayBtn.innerHTML = `<i class="ph ${playIcon}"></i>`;
+
+        // Update fullscreen
+        focusFsTimer.textContent = timeStr;
+        focusFsPhase.textContent = label;
+        focusFsTotal.innerHTML = `<i class="ph ph-fire"></i> Total hoje: ${totalStr}`;
+        focusFsPlayBtn.innerHTML = `<i class="ph ${playIcon}"></i>`;
+
+        // Update SVG ring
+        const progress = totalDuration > 0 ? timeRemaining / totalDuration : 1;
+        const offset = RING_CIRCUMFERENCE * (1 - progress);
+        focusRingProgress.style.strokeDashoffset = offset;
+
+        // Phase color classes
+        focusMini.classList.remove('focus-phase-pause', 'focus-phase-longPause');
+        focusFullscreen.classList.remove('focus-phase-pause', 'focus-phase-longPause');
+        if (focusPhase === 'pause') {
+            focusMini.classList.add('focus-phase-pause');
+            focusFullscreen.classList.add('focus-phase-pause');
+        } else if (focusPhase === 'longPause') {
+            focusMini.classList.add('focus-phase-longPause');
+            focusFullscreen.classList.add('focus-phase-longPause');
+        }
+
+        // Dots
+        renderDots(focusMiniDots);
+        renderDots(focusFsDots);
+    }
+
+    function renderDots(container) {
+        container.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'focus-dot';
+            if (i < pomodoroCount % 4) {
+                dot.classList.add('completed');
+            } else if (i === pomodoroCount % 4 && focusPhase === 'focus') {
+                dot.classList.add('active');
+            }
+            container.appendChild(dot);
+        }
+    }
+
+    // --- Timer Logic ---
+
+    function startTimer() {
+        if (timerInterval) return;
+        isTimerRunning = true;
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+
+            if (focusPhase === 'focus') {
+                totalFocusSeconds++;
+                SafeStorage.setItem(todayKey, totalFocusSeconds.toString());
+            }
+
+            updateFocusDisplay();
+
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isTimerRunning = false;
+                playTone();
+                advancePhase();
+            }
+        }, 1000);
+        updateFocusDisplay();
+    }
+
+    function pauseTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        isTimerRunning = false;
+        updateFocusDisplay();
+    }
+
+    function toggleTimer() {
+        if (isTimerRunning) {
+            pauseTimer();
+        } else {
+            startTimer();
+        }
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        timeRemaining = getPhaseDuration(focusPhase);
+        totalDuration = timeRemaining;
+        updateFocusDisplay();
+    }
+
+    function advancePhase() {
+        if (focusPhase === 'focus') {
+            pomodoroCount++;
+            if (pomodoroCount % 4 === 0) {
+                focusPhase = 'longPause';
+            } else {
+                focusPhase = 'pause';
+            }
+        } else {
+            focusPhase = 'focus';
+        }
+
+        timeRemaining = getPhaseDuration(focusPhase);
+        totalDuration = timeRemaining;
+        updateFocusDisplay();
+
+        // Auto-start next phase
+        startTimer();
+    }
+
+    function skipPhase() {
+        pauseTimer();
+        if (focusPhase === 'focus') {
+            pomodoroCount++;
+            if (pomodoroCount % 4 === 0) {
+                focusPhase = 'longPause';
+            } else {
+                focusPhase = 'pause';
+            }
+        } else {
+            focusPhase = 'focus';
+        }
+        timeRemaining = getPhaseDuration(focusPhase);
+        totalDuration = timeRemaining;
+        updateFocusDisplay();
+    }
+
+    // --- Mode Switching ---
+
+    function showCompact() {
+        focusMode = 'compact';
+        focusMini.style.display = 'flex';
+        focusFullscreen.style.display = 'none';
+        focusSettingsPanel.style.display = 'none';
+        updateFocusDisplay();
+    }
+
+    function showFullscreen() {
+        focusMode = 'fullscreen';
+        focusMini.style.display = 'none';
+        focusFullscreen.style.display = 'flex';
+        updateFocusDisplay();
+    }
+
+    function closeFocusTimer() {
+        pauseTimer();
+        focusMini.style.display = 'none';
+        focusFullscreen.style.display = 'none';
+        focusSettingsPanel.style.display = 'none';
+        isFocusMiniMinimized = false;
+        focusMini.classList.remove('minimized');
+    }
+
+    // --- Settings ---
+
+    function loadSettingsUI() {
+        settingFocusInput.value = focusSettings.focus;
+        settingPauseInput.value = focusSettings.pause;
+        settingLongPauseInput.value = focusSettings.longPause;
+    }
+
+    function saveSettings() {
+        const f = parseInt(settingFocusInput.value) || 25;
+        const p = parseInt(settingPauseInput.value) || 5;
+        const lp = parseInt(settingLongPauseInput.value) || 15;
+
+        focusSettings = {
+            focus: Math.max(1, Math.min(120, f)),
+            pause: Math.max(1, Math.min(30, p)),
+            longPause: Math.max(1, Math.min(60, lp))
+        };
+
+        SafeStorage.setItem('ora_focus_settings', JSON.stringify(focusSettings));
+
+        // If timer is not running, update the current phase duration
+        if (!isTimerRunning) {
+            timeRemaining = getPhaseDuration(focusPhase);
+            totalDuration = timeRemaining;
+            updateFocusDisplay();
+        }
+    }
+
+    // --- Event Listeners ---
+
+    // Open timer
+    if (btnFocus) {
+        btnFocus.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (focusMini.style.display === 'none' && focusFullscreen.style.display === 'none') {
+                showCompact();
+            } else if (focusMini.style.display !== 'none') {
+                focusMini.style.display = 'none';
+            } else {
+                focusFullscreen.style.display = 'none';
+                focusSettingsPanel.style.display = 'none';
+            }
+        });
+    }
+
+    // Compact controls
+    focusMiniPlayBtn.addEventListener('click', toggleTimer);
+    focusMiniSkipBtn.addEventListener('click', skipPhase);
+    focusMiniResetBtn.addEventListener('click', resetTimer);
+
+    focusMiniExpandBtn.addEventListener('click', showFullscreen);
+    focusMiniCloseBtn.addEventListener('click', closeFocusTimer);
+
+    focusMiniMinimizeBtn.addEventListener('click', () => {
+        isFocusMiniMinimized = !isFocusMiniMinimized;
+        if (isFocusMiniMinimized) {
+            focusMini.classList.add('minimized');
+            focusMiniMinimizeBtn.querySelector('i').classList.remove('ph-caret-down');
+            focusMiniMinimizeBtn.querySelector('i').classList.add('ph-caret-up');
+        } else {
+            focusMini.classList.remove('minimized');
+            focusMiniMinimizeBtn.querySelector('i').classList.remove('ph-caret-up');
+            focusMiniMinimizeBtn.querySelector('i').classList.add('ph-caret-down');
+        }
+    });
+
+    // Fullscreen controls
+    focusFsPlayBtn.addEventListener('click', toggleTimer);
+    focusFsSkipBtn.addEventListener('click', skipPhase);
+    focusFsResetBtn.addEventListener('click', resetTimer);
+    focusFsCollapseBtn.addEventListener('click', showCompact);
+
+    // Settings toggle
+    focusFsSettingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = focusSettingsPanel.style.display === 'none';
+        focusSettingsPanel.style.display = isHidden ? 'flex' : 'none';
+    });
+
+    // Settings input change
+    [settingFocusInput, settingPauseInput, settingLongPauseInput].forEach(input => {
+        input.addEventListener('change', saveSettings);
+    });
+
+    // Close settings on click outside
+    focusFullscreen.addEventListener('click', (e) => {
+        if (focusSettingsPanel.style.display !== 'none' &&
+            !focusSettingsPanel.contains(e.target) &&
+            !focusFsSettingsBtn.contains(e.target)) {
+            focusSettingsPanel.style.display = 'none';
+        }
+    });
+
+    // Initialize
+    loadSettingsUI();
+    updateFocusDisplay();
+    console.log('[Ora] Focus Timer initialized');
 }
 
 // Start the app
