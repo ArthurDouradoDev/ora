@@ -97,8 +97,10 @@
 
     <footer>
         <div class="footer-left">
-            <div class="glass-panel action-btn" id="btn-focus"><i class="ph ph-timer"></i></div>
-            <div class="glass-panel action-btn"><i class="ph ph-gear"></i></div>
+            <a href="https://padrepauloricardo.org/biblia/gn?cap=1&edition=matos-soares" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;">
+                <i class="ph ph-book-bookmark"></i> Bíblia
+            </a>
+            <div class="glass-panel action-btn" id="btn-focus"><i class="ph ph-timer"></i> Pomodoro</div>
         </div>
         
         <div class="quote-container">
@@ -206,6 +208,10 @@
     <div id="rosary-modal" class="glass-panel" style="display: none;">
         <div class="modal-header">
             <h3 id="rosary-modal-title">Santo Terço</h3>
+            <div class="lang-toggle-rosary" style="display: flex; gap: 8px; margin-right: 16px;">
+                <button class="lang-btn active" data-lang="pt">PT</button>
+                <button class="lang-btn" data-lang="la">LA</button>
+            </div>
             <button id="close-rosary-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div class="rosary-chaplet-selector">

@@ -1127,10 +1127,13 @@ async function initApp() {
     const rosaryMysteryBtns = rosaryModal.querySelectorAll('.rosary-mystery-btn');
     const rosaryChapletBtns = rosaryModal.querySelectorAll('.rosary-chaplet-btn');
 
+    const rosaryLangBtns = rosaryModal.querySelectorAll('.lang-toggle-rosary .lang-btn');
+
     // --- State ---
     let rosaryCurrentBead = 0;
     let rosaryMystery = 'gozosos';
     let chapletType = 'terco'; // 'terco' or 'misericordia'
+    let rosaryLang = 'pt';
 
     // Load saved progress
     try {
@@ -1140,6 +1143,7 @@ async function initApp() {
             rosaryCurrentBead = parsed.bead || 0;
             rosaryMystery = parsed.mystery || 'gozosos';
             chapletType = parsed.chapletType || 'terco';
+            rosaryLang = parsed.lang || 'pt'; // Load saved language
         }
     } catch (e) { /* use defaults */ }
 
@@ -1178,21 +1182,22 @@ async function initApp() {
             }
             // Last bead (Salve Rainha position → Santo Deus)
             if (bead.type === 'salve-rainha') {
-                return { title: 'Santo Deus (×3)', text: rosaryExtraPrayers['santo-deus'].pt };
+                return { title: 'Santo Deus (×3)', text: rosaryExtraPrayers['santo-deus'][rosaryLang] };
             }
         }
         // Decade beads
         if (bead.decade >= 1 && bead.decade <= 5) {
             if (bead.type === 'pai-nosso') {
-                return { title: 'Pai Eterno', text: rosaryExtraPrayers['pai-eterno'].pt };
+                return { title: 'Pai Eterno', text: rosaryExtraPrayers['pai-eterno'][rosaryLang] };
             }
             if (bead.type === 'ave-maria') {
-                return { title: bead.label.replace('Ave Maria', 'Pela Sua Dolorosa Paixão'), text: rosaryExtraPrayers['dolorosa-paixao'].pt };
+                const title = rosaryLang === 'pt' ? bead.label.replace('Ave Maria', 'Pela Sua Dolorosa Paixão') : 'Pro dolorosa Eius Passione';
+                return { title: title, text: rosaryExtraPrayers['dolorosa-paixao'][rosaryLang] };
             }
         }
         // End bead
         if (bead.type === 'salve-rainha') {
-            return { title: 'Santo Deus (×3)', text: rosaryExtraPrayers['santo-deus'].pt };
+            return { title: 'Santo Deus (×3)', text: rosaryExtraPrayers['santo-deus'][rosaryLang] };
         }
         return { title: bead.label, text: '' };
     }
@@ -1208,7 +1213,7 @@ async function initApp() {
         if (rosaryExtraPrayers[bead.type] && (bead.type === 'sinal-cruz' || bead.type === 'fatima')) {
             return {
                 title: bead.label,
-                text: rosaryExtraPrayers[bead.type].pt
+                text: rosaryExtraPrayers[bead.type][rosaryLang]
             };
         }
 
@@ -1227,7 +1232,7 @@ async function initApp() {
             if (prayer) {
                 return {
                     title: bead.label,
-                    text: prayer.text.pt
+                    text: prayer.text[rosaryLang]
                 };
             }
         }
@@ -1340,6 +1345,15 @@ async function initApp() {
             }
         });
 
+        // Update language buttons
+        rosaryLangBtns.forEach(btn => {
+            if (btn.dataset.lang === rosaryLang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
         // Toggle mystery selector visibility
         if (chapletType === 'misericordia') {
             rosaryModal.classList.add('mode-misericordia');
@@ -1388,7 +1402,8 @@ async function initApp() {
         SafeStorage.setItem('ora_rosary_progress', JSON.stringify({
             bead: rosaryCurrentBead,
             mystery: rosaryMystery,
-            chapletType: chapletType
+            chapletType: chapletType,
+            lang: rosaryLang
         }));
     }
 
@@ -1438,6 +1453,14 @@ async function initApp() {
             chapletType = btn.dataset.chaplet;
             // If switching modes, reset to first active bead
             rosaryCurrentBead = 0;
+            updateRosaryDisplay();
+        });
+    });
+
+    // Language selector
+    rosaryLangBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            rosaryLang = btn.dataset.lang;
             updateRosaryDisplay();
         });
     });
