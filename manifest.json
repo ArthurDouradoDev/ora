@@ -9,7 +9,8 @@
   "icons": {
     "128": "icon.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "declarativeNetRequest"],
+  "host_permissions": ["<all_urls>"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://* http://*; connect-src https://* http://*; img-src 'self' https://* http://* data:;"
   }

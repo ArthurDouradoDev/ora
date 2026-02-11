@@ -545,100 +545,36 @@ async function initApp() {
     }
 
     // ============================================================
-    // 5. ANGELUS REMINDER
+    // 5. REMINDERS (Angelus, Exam, Rosary)
     // ============================================================
 
-    const angelusReminder = document.getElementById('angelus-reminder');
-    const openAngelusBtn = document.getElementById('open-angelus-btn');
-    const checkAngelusBtn = document.getElementById('check-angelus-btn');
-    const angelusPrayerId = 'angelus'; 
-
-    function getAngelusWindow(hours) {
-        if (hours >= 6 && hours < 8) return 'morning';
-        if (hours >= 12 && hours < 14) return 'midday';
-        if (hours >= 18 && hours < 21) return 'evening';
-        return null;
-    }
-
-    function checkAngelusTime() {
-        const now = new Date();
-        const hours = now.getHours();
-        const todayStr = now.toDateString();
-        const angelusWindow = getAngelusWindow(hours);
-
-        if (angelusWindow) {
-            const doneKey = 'angelus_done_' + angelusWindow + '_' + todayStr;
-            const doneThisWindow = SafeStorage.getItem(doneKey);
-
-            if (!doneThisWindow) {
-                showAngelusReminder();
-
-                try {
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                        const notifKey = 'angelus_notif_' + angelusWindow + '_' + todayStr;
-                        const notifSent = SafeStorage.getItem(notifKey);
-                        if (!notifSent) {
-                            new Notification('Hora do Angelus', {
-                                body: 'O Anjo do Senhor anunciou a Maria...',
-                                icon: 'icon.png'
-                            });
-                            SafeStorage.setItem(notifKey, 'true');
-                        }
-                    }
-                } catch (e) {
-                    console.warn('[Ora] Notification error:', e);
-                }
-            } else {
-                hideAngelusReminder();
-            }
-        } else {
-            hideAngelusReminder();
-        }
-    }
-
-    function showAngelusReminder() {
-        if (angelusReminder && !isModalVisible(angelusReminder)) animateModal(angelusReminder, true);
-    }
-
-    function hideAngelusReminder() {
-        if (angelusReminder) animateModal(angelusReminder, false);
-    }
-
-    // Actions
-    if (openAngelusBtn) {
-        openAngelusBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const angelusPrayer = prayers.find(p => p.id === angelusPrayerId);
-            if (angelusPrayer) {
-                if (window.PrayerSystem) window.PrayerSystem.openReader(angelusPrayer);
-            }
+    if (window.ReminderSystem) {
+        window.ReminderSystem.init({
+            prayers: data.prayers,
+            exam: data.exam
+        }, {
+            storage: SafeStorage,
+            animateModal: animateModal,
+            isModalVisible: isModalVisible,
+            prayerSystem: window.PrayerSystem
         });
     }
 
-    if (checkAngelusBtn) {
-        checkAngelusBtn.addEventListener('click', () => {
-            const now = new Date();
-            const todayStr = now.toDateString();
-            const angelusWindow = getAngelusWindow(now.getHours());
-            if (angelusWindow) {
-                SafeStorage.setItem('angelus_done_' + angelusWindow + '_' + todayStr, 'true');
-            }
-            hideAngelusReminder();
-            showToast('Angelus rezado!', 'success');
-        });
-    }
-
-    // Request Notification Permission on load
-    if ('Notification' in window) {
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-            Notification.requestPermission();
+    // Listen for events from ReminderSystem
+    window.addEventListener('ora:start-exam', (e) => {
+        if (typeof startExam === 'function') {
+            startExam(e.detail.type);
         }
-    }
+    });
 
-    // Check every minute
-    setInterval(checkAngelusTime, 60000);
-    checkAngelusTime();
-    console.log('[Ora] App fully initialized');
+    window.addEventListener('ora:minimize-focus', () => {
+        if (typeof showCompact === 'function' && typeof isModalVisible === 'function') {
+             if (isModalVisible(document.getElementById('focus-fullscreen'))) {
+                 showCompact();
+             }
+        }
+    });
+
 
     // ============================================================
     // 6. INTENTION INPUT PERSISTENCE
@@ -879,7 +815,7 @@ async function initApp() {
             pomodoroCount++;
             if (pomodoroCount % 4 === 0) {
                 focusPhase = 'longPause';
-                showRosarySuggestion(); // Trigger Rosary suggestion
+                if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion(); // Trigger Rosary suggestion
                 // Trigger pomodoro emotional check-in (Option 2)
                 setTimeout(() => {
                     if (typeof showPomodoroCheckin === 'function') {
@@ -888,7 +824,7 @@ async function initApp() {
                 }, 500);
             } else {
                 focusPhase = 'pause';
-                showRosarySuggestion(); // Trigger Rosary suggestion
+                if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion(); // Trigger Rosary suggestion
             }
         } else {
             focusPhase = 'focus';
@@ -1318,11 +1254,10 @@ async function initApp() {
         // Also mark the corresponding reminder as done
         if (currentExamType === 'night') {
             SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
-            const evRem = document.getElementById('evening-reminder');
-            animateModal(evRem, false);
+            if (window.ReminderSystem) window.ReminderSystem.hideModal(document.getElementById('evening-reminder'));
         } else if (currentExamType === 'midday') {
             SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
-            animateModal(middayReminder, false);
+            if (window.ReminderSystem) window.ReminderSystem.hideModal(document.getElementById('midday-reminder'));
         }
 
         // Save exam log
@@ -1462,132 +1397,7 @@ async function initApp() {
     // Simpler approach: check in the timer's interval if we just hit a multiple of 4
     let lastCheckinPomodoro = 0;
 
-    // ---- OPTION 3: Midday Reminder ----
 
-    function checkMiddayExam() {
-        const now = new Date();
-        const hours = now.getHours();
-        const todayStr = now.toDateString();
-        const doneToday = SafeStorage.getItem('ora_midday_done_' + todayStr);
-
-        if (hours >= 11 && hours < 14 && !doneToday) {
-            if (middayReminder && !isModalVisible(middayReminder)) animateModal(middayReminder, true);
-        } else {
-            if (middayReminder) animateModal(middayReminder, false);
-        }
-    }
-
-    if (startMiddayBtn) {
-        startMiddayBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            animateModal(middayReminder, false);
-            startExam('midday');
-        });
-    }
-
-    if (checkMiddayBtn) {
-        checkMiddayBtn.addEventListener('click', () => {
-            const now = new Date();
-            const todayStr = now.toDateString();
-            SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
-            if (middayReminder) animateModal(middayReminder, false);
-            showToast('Exame meridiano marcado como feito!', 'success');
-        });
-    }
-
-    // Check every minute
-    function checkMiddayTimeLoop() {
-        checkMiddayExam();
-    }
-    setInterval(checkMiddayTimeLoop, 60000);
-    // Initial check
-    checkMiddayExam();
-
-    // ---- OPTION 4: Rosary Suggestion (After Pomodoro) ----
-    const rosaryReminder = document.getElementById('rosary-reminder');
-    const startRosaryBtn = document.getElementById('start-rosary-btn');
-    const dismissRosaryBtn = document.getElementById('dismiss-rosary-btn');
-
-    function showRosarySuggestion() {
-        if (rosaryReminder && !isModalVisible(rosaryReminder)) {
-            // Only show if not already praying or doing exam
-            if (!isModalVisible(document.getElementById('rosary-modal')) && 
-                !isModalVisible(document.getElementById('exam-flow-modal'))) {
-                animateModal(rosaryReminder, true);
-                playTone(); // Optional notification sound
-            }
-        }
-    }
-
-    if (startRosaryBtn) {
-        startRosaryBtn.addEventListener('click', (e) => {
-             e.stopPropagation();
-
-             // Refined behavior: Minimize fullscreen if active
-             if (isModalVisible(focusFullscreen)) {
-                 showCompact();
-             }
-
-             // 1. Open Rosary modal FIRST
-             const btnRosary = document.getElementById('btn-rosary');
-             if (btnRosary) {
-                 btnRosary.click();
-             } else {
-                 console.error('Rosary button not found');
-             }
-
-             // 2. Close suggestion AFTER a small delay to ensure click registered
-             // (or immediately if we trust the event loop)
-             setTimeout(() => {
-                animateModal(rosaryReminder, false);
-             }, 100);
-        });
-    }
-
-    if (dismissRosaryBtn) {
-        dismissRosaryBtn.addEventListener('click', () => {
-            animateModal(rosaryReminder, false);
-        });
-    }
-
-    // ---- Evening Exam Reminder (18h+) ----
-
-    const eveningReminder = document.getElementById('evening-reminder');
-    const startEveningBtn = document.getElementById('start-evening-btn');
-    const checkEveningBtn = document.getElementById('check-evening-btn');
-
-    function checkEveningExam() {
-        const now = new Date();
-        const hours = now.getHours();
-        const todayStr = now.toDateString();
-        const doneToday = SafeStorage.getItem('ora_evening_done_' + todayStr);
-
-        if (hours >= 18 && !doneToday) {
-            if (eveningReminder && !isModalVisible(eveningReminder)) animateModal(eveningReminder, true);
-        } else {
-            if (eveningReminder) animateModal(eveningReminder, false);
-        }
-    }
-
-    if (startEveningBtn) {
-        startEveningBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            animateModal(eveningReminder, false);
-            startExam('night');
-        });
-    }
-
-    if (checkEveningBtn) {
-        checkEveningBtn.addEventListener('click', () => {
-            const todayStr = new Date().toDateString();
-            SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
-            animateModal(eveningReminder, false);
-            showToast('Exame noturno registrado!', 'success');
-        });
-    }
-
-    setInterval(checkEveningExam, 60000);
-    checkEveningExam();
 
     // ---- OPTION 5: Virtues Checklist ----
 
