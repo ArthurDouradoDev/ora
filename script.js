@@ -997,6 +997,7 @@ async function initApp() {
             pomodoroCount++;
             if (pomodoroCount % 4 === 0) {
                 focusPhase = 'longPause';
+                showRosarySuggestion(); // Trigger Rosary suggestion
                 // Trigger pomodoro emotional check-in (Option 2)
                 setTimeout(() => {
                     if (typeof showPomodoroCheckin === 'function') {
@@ -1005,6 +1006,7 @@ async function initApp() {
                 }, 500);
             } else {
                 focusPhase = 'pause';
+                showRosarySuggestion(); // Trigger Rosary suggestion
             }
         } else {
             focusPhase = 'focus';
@@ -1603,15 +1605,68 @@ async function initApp() {
 
     if (checkMiddayBtn) {
         checkMiddayBtn.addEventListener('click', () => {
-            const todayStr = new Date().toDateString();
+            const now = new Date();
+            const todayStr = now.toDateString();
             SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
-            animateModal(middayReminder, false);
-            showToast('Exame meridiano registrado!', 'success');
+            if (middayReminder) animateModal(middayReminder, false);
+            showToast('Exame meridiano marcado como feito!', 'success');
         });
     }
 
-    setInterval(checkMiddayExam, 60000);
+    // Check every minute
+    function checkMiddayTimeLoop() {
+        checkMiddayExam();
+    }
+    setInterval(checkMiddayTimeLoop, 60000);
+    // Initial check
     checkMiddayExam();
+
+    // ---- OPTION 4: Rosary Suggestion (After Pomodoro) ----
+    const rosaryReminder = document.getElementById('rosary-reminder');
+    const startRosaryBtn = document.getElementById('start-rosary-btn');
+    const dismissRosaryBtn = document.getElementById('dismiss-rosary-btn');
+
+    function showRosarySuggestion() {
+        if (rosaryReminder && !isModalVisible(rosaryReminder)) {
+            // Only show if not already praying or doing exam
+            if (!isModalVisible(document.getElementById('rosary-modal')) && 
+                !isModalVisible(document.getElementById('exam-flow-modal'))) {
+                animateModal(rosaryReminder, true);
+                playTone(); // Optional notification sound
+            }
+        }
+    }
+
+    if (startRosaryBtn) {
+        startRosaryBtn.addEventListener('click', (e) => {
+             e.stopPropagation();
+
+             // Refined behavior: Minimize fullscreen if active
+             if (isModalVisible(focusFullscreen)) {
+                 showCompact();
+             }
+
+             // 1. Open Rosary modal FIRST
+             const btnRosary = document.getElementById('btn-rosary');
+             if (btnRosary) {
+                 btnRosary.click();
+             } else {
+                 console.error('Rosary button not found');
+             }
+
+             // 2. Close suggestion AFTER a small delay to ensure click registered
+             // (or immediately if we trust the event loop)
+             setTimeout(() => {
+                animateModal(rosaryReminder, false);
+             }, 100);
+        });
+    }
+
+    if (dismissRosaryBtn) {
+        dismissRosaryBtn.addEventListener('click', () => {
+            animateModal(rosaryReminder, false);
+        });
+    }
 
     // ---- Evening Exam Reminder (18h+) ----
 

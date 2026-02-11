@@ -2079,6 +2079,35 @@ footer {
     animation: none;
 }
 
+/* --- Rosary Suggestion --- */
+#rosary-reminder {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 20px;
+    border-radius: 50px;
+
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(244, 114, 182, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    z-index: 500;
+}
+
+#rosary-reminder:hover {
+    transform: translateX(-50%);
+}
+
+#rosary-reminder .angelus-content i {
+    color: #f472b6; /* Pink/Rose */
+    animation: none;
+}
+
 /* --- Virtues Modal --- */
 #virtues-modal {
     position: fixed;
