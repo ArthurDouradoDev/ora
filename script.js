@@ -154,10 +154,11 @@ async function initApp() {
             if (el.style.display === 'none' || el.style.display === '') return;
             el.classList.remove('modal-opening');
             el.classList.add('modal-closing');
-            const handler = () => {
+            const handler = (e) => {
+                if (e.target !== el) return;
+                if (!el.classList.contains('modal-closing')) return;
                 el.style.display = 'none';
                 el.classList.remove('modal-closing');
-                el.removeEventListener('animationend', handler);
             };
             el.addEventListener('animationend', handler, { once: true });
             // Fallback in case animationend doesn't fire
@@ -171,7 +172,7 @@ async function initApp() {
     }
 
     function isModalVisible(el) {
-        return el && el.style.display !== 'none' && el.style.display !== '';
+        return el && el.style.display !== 'none' && el.style.display !== '' && !el.classList.contains('modal-closing');
     }
 
     function showToast(message, type = 'success') {
@@ -672,7 +673,7 @@ async function initApp() {
 
     function getAngelusWindow(hours) {
         if (hours >= 6 && hours < 8) return 'morning';
-        if (hours >= 12 && hours < 13) return 'midday';
+        if (hours >= 12 && hours < 14) return 'midday';
         if (hours >= 18 && hours < 21) return 'evening';
         return null;
     }
@@ -1180,18 +1181,18 @@ async function initApp() {
                 { text: "Como está seu coração agora?", type: "emoji", options: ["😌 Em paz","😐 Neutro","😟 Pesado"] }
             ]},
             night: { label: "Revisar o Dia", icon: "🌙", hours: [18,24], questions: [
-                { text: "Agradeça: pelo que você é grato hoje?", type: "text" },
-                { text: "Reveja: onde sentiu a presença de Deus?", type: "text" },
-                { text: "Examine: que sentimentos marcaram o dia?", type: "text" },
-                { text: "Arrependa-se: onde você tropeçou?", type: "text" },
-                { text: "Resolva: como será amanhã?", type: "text" }
+                { text: "Agradecimento: pelo que você é grato hoje?", type: "text" },
+                { text: "Revisão: onde sentiu a presença de Deus?", type: "text" },
+                { text: "Exame: que sentimentos marcaram o dia?", type: "text" },
+                { text: "Arrependimento: onde você tropeçou?", type: "text" },
+                { text: "Solução: como será amanhã?", type: "text" }
             ]}
         },
         defaultVirtues: [
             { id: "paciencia", name: "Paciência", icon: "ph-hourglass" },
             { id: "caridade", name: "Caridade", icon: "ph-heart" },
             { id: "temperanca", name: "Temperança", icon: "ph-scales" },
-            { id: "foco", name: "Foco", icon: "ph-crosshair" },
+            { id: "prudencia", name: "Prudência", icon: "ph-crosshair" },
             { id: "humildade", name: "Humildade", icon: "ph-hand-heart" }
         ],
         pomodoroCheckin: {
@@ -1897,7 +1898,7 @@ async function initApp() {
             }
             // Last bead (Salve Rainha position → Santo Deus)
             if (bead.type === 'salve-rainha') {
-                return { title: 'Santo Deus (×3)', text: rosaryExtraPrayers['santo-deus'][rosaryLang] };
+                return { title: 'Deus Santo (×3)', text: rosaryExtraPrayers['santo-deus'][rosaryLang] };
             }
         }
         // Decade beads
