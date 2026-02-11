@@ -96,6 +96,11 @@
         <div class="focus-section">
             <input type="text" id="intention-input" placeholder="Qual sua intenção hoje?">
         </div>
+
+        <!-- Quick Links Section -->
+        <div id="quick-links-container" class="links-grid">
+            <!-- Links will be injected here by links.js -->
+        </div>
     </main>
 
     <footer>
@@ -406,6 +411,28 @@
     <!-- Toast Container -->
     <div id="toast-container"></div>
 
+    <!-- Manage Links Modal -->
+    <div id="links-modal" class="glass-panel modal-scale" style="display: none;">
+        <div class="modal-header">
+            <h3>Gerenciar Links</h3>
+            <button id="close-links-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        
+        <div class="add-link-section">
+            <input type="text" id="link-name-input" placeholder="Nome (max 20 chars)" maxlength="20">
+            <input type="text" id="link-url-input" placeholder="URL (https://...)">
+            <button id="add-link-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
+        </div>
+
+        <div id="manage-links-list" class="manage-links-list">
+            <!-- Items injected here -->
+        </div>
+        <div class="links-note">
+            <small>Máximo de 6 links.</small>
+        </div>
+    </div>
+
+    <script src="links.js"></script>
     <script src="prayers.js"></script>
     <script src="blocker.js"></script>
     <script src="script.js"></script>
