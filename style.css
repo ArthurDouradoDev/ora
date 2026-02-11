@@ -93,6 +93,7 @@ main {
     align-items: center;
     justify-content: center;
     text-align: center;
+    padding-top: 60px; /* Push content down to center it better */
 }
 
 .clock {
@@ -870,7 +871,7 @@ footer {
 /* --- ANGELUS REMINDER --- */
 #angelus-reminder {
     position: absolute;
-    top: 20%; /* Position above clock */
+    top: 15%; /* Position above clock */
     left: 50%;
     transform: translateX(-50%);
     
@@ -2028,7 +2029,7 @@ footer {
 /* --- Midday Reminder --- */
 #midday-reminder {
     position: absolute;
-    top: 15%;
+    top: 10%;
     left: 50%;
     transform: translateX(-50%);
 
@@ -2053,7 +2054,7 @@ footer {
 /* --- Evening Reminder --- */
 #evening-reminder {
     position: absolute;
-    top: 20%;
+    top: 15%;
     left: 50%;
     transform: translateX(-50%);
 
@@ -2082,7 +2083,7 @@ footer {
 /* --- Rosary Suggestion --- */
 #rosary-reminder {
     position: absolute;
-    top: 25%;
+    top: 20%;
     left: 50%;
     transform: translateX(-50%);
 
@@ -2601,7 +2602,7 @@ input:checked + .slider:before {
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
-    margin-top: 15px; /* Reduced from 25px */
+    margin-top: 40px; /* Increased from 15px */
     max-width: 800px;
     width: 100%;
     position: relative;
