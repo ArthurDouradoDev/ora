@@ -27,6 +27,62 @@ const SafeStorage = {
 // LOAD DATA FROM JSON & INITIALIZE
 // ============================================================
 
+// --- TOAST SYSTEM ---
+const toastContainer = document.getElementById('toast-container');
+
+// --- Modal Animation Helper ---
+function animateModal(el, show) {
+    if (!el) return;
+    if (show) {
+        el.classList.remove('modal-closing');
+        el.style.display = 'flex';
+        // Force reflow so the browser picks up the new animation
+        void el.offsetWidth;
+        el.classList.add('modal-opening');
+    } else {
+        if (el.style.display === 'none' || el.style.display === '') return;
+        el.classList.remove('modal-opening');
+        el.classList.add('modal-closing');
+        const handler = (e) => {
+            if (e.target !== el) return;
+            if (!el.classList.contains('modal-closing')) return;
+            el.style.display = 'none';
+            el.classList.remove('modal-closing');
+        };
+        el.addEventListener('animationend', handler, { once: true });
+        // Fallback in case animationend doesn't fire
+        setTimeout(() => {
+            if (el.classList.contains('modal-closing')) {
+                el.style.display = 'none';
+                el.classList.remove('modal-closing');
+            }
+        }, 500);
+    }
+}
+
+function isModalVisible(el) {
+    return el && el.style.display !== 'none' && el.style.display !== '' && !el.classList.contains('modal-closing');
+}
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    let icon;
+    if (type === 'success') icon = 'ph-check-circle';
+    else if (type === 'error') icon = 'ph-warning-circle';
+    else icon = 'ph-info';
+
+    toast.innerHTML = `<i class="ph ${icon}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('hide');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3000);
+}
+
 async function loadAppData() {
     try {
         const response = await fetch('data.json');
@@ -138,61 +194,7 @@ async function initApp() {
     // 3. Music Library & Player Logic
     // ============================================================
 
-    // --- TOAST SYSTEM ---
-    const toastContainer = document.getElementById('toast-container');
-
-    // --- Modal Animation Helper ---
-    function animateModal(el, show) {
-        if (!el) return;
-        if (show) {
-            el.classList.remove('modal-closing');
-            el.style.display = 'flex';
-            // Force reflow so the browser picks up the new animation
-            void el.offsetWidth;
-            el.classList.add('modal-opening');
-        } else {
-            if (el.style.display === 'none' || el.style.display === '') return;
-            el.classList.remove('modal-opening');
-            el.classList.add('modal-closing');
-            const handler = (e) => {
-                if (e.target !== el) return;
-                if (!el.classList.contains('modal-closing')) return;
-                el.style.display = 'none';
-                el.classList.remove('modal-closing');
-            };
-            el.addEventListener('animationend', handler, { once: true });
-            // Fallback in case animationend doesn't fire
-            setTimeout(() => {
-                if (el.classList.contains('modal-closing')) {
-                    el.style.display = 'none';
-                    el.classList.remove('modal-closing');
-                }
-            }, 500);
-        }
-    }
-
-    function isModalVisible(el) {
-        return el && el.style.display !== 'none' && el.style.display !== '' && !el.classList.contains('modal-closing');
-    }
-
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-    
-        let icon;
-        if (type === 'success') icon = 'ph-check-circle';
-        else if (type === 'error') icon = 'ph-warning-circle';
-        else icon = 'ph-info';
-    
-        toast.innerHTML = `<i class="ph ${icon}"></i><span>${message}</span>`;
-        container.appendChild(toast);
-    
-        setTimeout(() => {
-            toast.classList.add('hide');
-            toast.addEventListener('animationend', () => toast.remove());
-        }, 3000);
-    }
+    // Helpers moved to global scope
 
     // --- State ---
     const defaultPlaylists = data.defaultPlaylists;
@@ -532,135 +534,15 @@ async function initApp() {
     }
 
     // ============================================================
+    // ============================================================
     // 4. PRAYER SYSTEM
     // ============================================================
 
-    const prayers = data.prayers;
-    console.log('[Ora] Prayers loaded:', prayers.length);
-
-    // DOM Elements - Prayer System
-    const btnPrayers = document.getElementById('btn-prayers');
-    const prayerList = document.getElementById('prayer-list');
-    const closePrayerListBtn = document.getElementById('close-prayer-list-btn');
-    const prayerGrid = document.getElementById('prayer-grid');
-
-    const prayerReader = document.getElementById('prayer-reader');
-    const closePrayerReaderBtn = document.getElementById('close-prayer-reader-btn');
-    const backToListBtn = document.getElementById('back-to-list-btn');
-    const prayerReaderTitle = document.getElementById('prayer-reader-title');
-    const prayerTextContent = document.getElementById('prayer-text');
-    const langBtns = document.querySelectorAll('.lang-btn');
-
-    let currentPrayer = null;
-    let currentLang = 'pt';
-
-    // --- Functions ---
-
-    function openPrayerList() {
-        renderPrayerGrid();
-        animateModal(prayerList, true);
+    // Initialize Prayer System
+    if (window.PrayerSystem) {
+        window.PrayerSystem.init(data.prayers, { animateModal, isModalVisible });
+        console.log('[Ora] Prayer System initialized');
     }
-
-    function closePrayerList() {
-        animateModal(prayerList, false);
-    }
-
-    function openPrayerReader(prayer) {
-        currentPrayer = prayer;
-        currentLang = 'pt';
-        updatePrayerReader();
-        
-        animateModal(prayerList, false);
-        animateModal(prayerReader, true);
-    }
-
-    function closePrayerReader() {
-        animateModal(prayerReader, false);
-        currentPrayer = null;
-    }
-
-    function updatePrayerReader() {
-        if (!currentPrayer) return;
-        
-        prayerReaderTitle.textContent = currentPrayer.title;
-        prayerTextContent.textContent = currentPrayer.text[currentLang];
-        
-        langBtns.forEach(btn => {
-            if (btn.dataset.lang === currentLang) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-    }
-
-    function renderPrayerGrid() {
-        prayerGrid.innerHTML = '';
-        prayers.forEach(prayer => {
-            const card = document.createElement('div');
-            card.className = 'prayer-card';
-            card.innerHTML = `
-                <div class="prayer-card-icon">
-                    <i class="ph ${prayer.icon}"></i>
-                </div>
-                <div class="prayer-card-title">${prayer.title}</div>
-                <i class="ph ph-caret-right prayer-card-arrow"></i>
-            `;
-            
-            card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openPrayerReader(prayer);
-            });
-            prayerGrid.appendChild(card);
-        });
-    }
-
-    // --- Event Listeners ---
-
-    if (btnPrayers) {
-        btnPrayers.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!isModalVisible(prayerList)) {
-                openPrayerList();
-            } else {
-                closePrayerList();
-            }
-        });
-
-        // Close modals on click outside
-        document.addEventListener('click', (e) => {
-            if (isModalVisible(prayerList) && 
-                !prayerList.contains(e.target) && 
-                !btnPrayers.contains(e.target)) {
-                closePrayerList();
-            }
-
-            if (isModalVisible(prayerReader) && 
-                !prayerReader.contains(e.target)) {
-                closePrayerReader();
-            }
-        });
-    }
-
-    if (closePrayerListBtn) closePrayerListBtn.addEventListener('click', closePrayerList);
-
-    if (closePrayerReaderBtn) closePrayerReaderBtn.addEventListener('click', closePrayerReader);
-
-    if (backToListBtn) {
-        backToListBtn.addEventListener('click', () => {
-            closePrayerReader();
-            openPrayerList();
-        });
-    }
-
-    // Language Toggle
-    langBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const lang = btn.dataset.lang;
-            currentLang = lang;
-            updatePrayerReader();
-        });
-    });
 
     // ============================================================
     // 5. ANGELUS REMINDER
@@ -728,7 +610,7 @@ async function initApp() {
             e.stopPropagation();
             const angelusPrayer = prayers.find(p => p.id === angelusPrayerId);
             if (angelusPrayer) {
-                openPrayerReader(angelusPrayer);
+                if (window.PrayerSystem) window.PrayerSystem.openReader(angelusPrayer);
             }
         });
     }
@@ -2269,6 +2151,44 @@ async function initApp() {
     });
 
     console.log('[Ora] Rosary (Terço) initialized');
+    // ============================================================
+    // 8. SITE BLOCKER INTEGRATION
+    // ============================================================
+    if (window.Blocker) {
+        window.Blocker.init();
+        
+        const btnBlocker = document.getElementById('btn-blocker');
+        const blockerModal = document.getElementById('blocker-modal');
+        const closeBlockerBtn = document.getElementById('close-blocker-btn');
+
+        if (btnBlocker) {
+            btnBlocker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!isModalVisible(blockerModal)) {
+                    animateModal(blockerModal, true);
+                } else {
+                    animateModal(blockerModal, false);
+                }
+            });
+        }
+
+        if (closeBlockerBtn) {
+            closeBlockerBtn.addEventListener('click', () => {
+                animateModal(blockerModal, false);
+            });
+        }
+        
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+             if (isModalVisible(blockerModal) && 
+                !blockerModal.contains(e.target) && 
+                !btnBlocker.contains(e.target)) {
+                animateModal(blockerModal, false);
+            }
+        });
+    }
+
+    console.log('[Ora] App fully initialized');
 }
 
 // Start the app

@@ -21,7 +21,10 @@
             
             <div class="glass-panel action-btn" id="btn-music"><i class="ph ph-music-notes"></i> Música</div>
         </div>
-        <div class="glass-panel action-btn"><i class="ph ph-sun"></i> 24°C</div>
+        <div class="links-container">
+            <div class="glass-panel action-btn"><i class="ph ph-sun"></i> 24°C</div>
+            <div class="glass-panel action-btn" id="btn-blocker"><i class="ph ph-shield-slash"></i> Bloqueador</div>
+        </div>
     </header>
 
     <!-- Angelus Reminder (6h-8h, 12h-13h, 18h-20h) -->
@@ -184,9 +187,15 @@
 
     <!-- Prayer List Modal -->
     <div id="prayer-list" class="glass-panel modal-fade" style="display: none;">
-        <div class="modal-header">
-            <h3>Orações</h3>
-            <button id="close-prayer-list-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Orações</h3>
+                <button id="close-prayer-list-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="prayer-search-container">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" id="prayer-search-input" placeholder="Buscar oração...">
+            </div>
         </div>
         <div id="prayer-grid" class="prayer-grid"></div>
     </div>
@@ -367,9 +376,38 @@
         </div>
     </div>
 
+    <!-- Site Blocker Modal -->
+    <div id="blocker-modal" class="glass-panel modal-scale" style="display: none;">
+        <div class="modal-header">
+            <h3>Bloqueador de Sites</h3>
+            <button id="close-blocker-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        
+        <div class="blocker-controls">
+            <div class="blocker-status">
+                <span id="blocker-status-text">Inativo</span>
+                <label class="switch">
+                    <input type="checkbox" id="blocker-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="add-site-section">
+            <input type="text" id="blocked-site-input" placeholder="ex: facebook.com">
+            <button id="add-blocked-site-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
+        </div>
+
+        <div id="blocked-sites-list" class="blocked-sites-list">
+            <!-- Items injected by JS -->
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div id="toast-container"></div>
 
+    <script src="prayers.js"></script>
+    <script src="blocker.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
