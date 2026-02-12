@@ -85,17 +85,36 @@ function showToast(message, type = 'success') {
 
 async function loadAppData() {
     try {
-        const response = await fetch('data.json');
-        return await response.json();
+        const [backgrounds, playlists, prayers, quotes, greetings, rosary, exam] = await Promise.all([
+            fetch('data/backgrounds.json').then(r => r.json()),
+            fetch('data/playlists.json').then(r => r.json()),
+            fetch('data/prayers.json').then(r => r.json()),
+            fetch('data/quotes.json').then(r => r.json()),
+            fetch('data/greetings.json').then(r => r.json()),
+            fetch('data/rosary.json').then(r => r.json()),
+            fetch('data/exam.json').then(r => r.json())
+        ]);
+
+        return {
+            backgroundImages: backgrounds,
+            defaultPlaylists: playlists,
+            prayers: prayers,
+            quotes: quotes,
+            greetings: greetings,
+            rosary: rosary,
+            exam: exam
+        };
     } catch (e) {
-        console.error('Failed to load data.json:', e);
+        console.error('Failed to load data modules:', e);
         // Return minimal fallback so the app doesn't crash
         return {
             backgroundImages: [],
             defaultPlaylists: [],
             prayers: [],
             quotes: [{ text: "Fiat Voluntas Tua", author: "" }],
-            greetings: ["Fiat Voluntas Tua"]
+            greetings: ["Fiat Voluntas Tua"],
+            rosary: { structure: [], mysteries: {}, extraPrayers: {} },
+            exam: { types: {}, defaultVirtues: [], pomodoroCheckin: {} }
         };
     }
 }

@@ -9,7 +9,7 @@ const RosarySystem = {
     structure: [],
     mysteries: {},
     extraPrayers: {},
-    basePrayers: [], // from data.json (prayers array)
+    basePrayers: [], // from injected data (prayers)
 
     // Dependencies
     animateModal: null,

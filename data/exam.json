@@ -1,0 +1,64 @@
+{
+  "types": {
+    "morning": {
+      "label": "Preparar o Dia",
+      "icon": "☀️",
+      "hours": [6, 11],
+      "questions": [
+        { "text": "Pela graça de qual dia você agradece?", "type": "text" },
+        { "text": "Que virtude quer praticar hoje?", "type": "text" },
+        { "text": "Onde pode encontrar Deus hoje?", "type": "text" }
+      ]
+    },
+    "midday": {
+      "label": "Revisar a Manhã",
+      "icon": "🌤️",
+      "hours": [11, 14],
+      "questions": [
+        { "text": "Como foi sua manhã?", "type": "thumbs" },
+        { "text": "Onde você viu/sentiu Deus na manhã?", "type": "text" },
+        { "text": "Como pode melhorar a tarde?", "type": "text" }
+      ]
+    },
+    "quick": {
+      "label": "Pausa Rápida",
+      "icon": "⚡",
+      "hours": [14, 18],
+      "questions": [
+        { "text": "Como está seu coração agora?", "type": "emoji", "options": ["😌 Em paz", "😐 Neutro", "😟 Pesado"] }
+      ]
+    },
+    "night": {
+      "label": "Revisar o Dia",
+      "icon": "🌙",
+      "hours": [18, 24],
+      "questions": [
+        { "text": "Agradeça: pelo que você é grato hoje?", "type": "text" },
+        { "text": "Reveja: onde sentiu a presença de Deus?", "type": "text" },
+        { "text": "Examine: que sentimentos marcaram o dia?", "type": "text" },
+        { "text": "Arrependa-se: onde você tropeçou?", "type": "text" },
+        { "text": "Resolva: como será amanhã?", "type": "text" }
+      ]
+    }
+  },
+  "defaultVirtues": [
+    { "id": "paciencia", "name": "Paciência", "icon": "ph-hourglass" },
+    { "id": "caridade", "name": "Caridade", "icon": "ph-heart" },
+    { "id": "temperanca", "name": "Temperança", "icon": "ph-scales" },
+    { "id": "foco", "name": "Foco", "icon": "ph-crosshair" },
+    { "id": "humildade", "name": "Humildade", "icon": "ph-hand-heart" }
+  ],
+  "pomodoroCheckin": {
+    "message": "Pause para refletir: Como está seu coração agora?",
+    "options": [
+      { "id": "peace", "emoji": "😌", "label": "Em paz" },
+      { "id": "neutral", "emoji": "😐", "label": "Neutro" },
+      { "id": "heavy", "emoji": "😟", "label": "Pesado" }
+    ],
+    "microPrayers": [
+      { "id": "breath", "label": "Respiração", "icon": "ph-wind", "text": "Inspire... Senhor, tenha piedade.\nExpire... Cristo, tenha piedade.\nInspire... Senhor, tenha piedade." },
+      { "id": "pai-nosso", "label": "Pai Nosso", "icon": "ph-hands-praying", "text": "prayer:pai-nosso" },
+      { "id": "silence", "label": "Só silêncio", "icon": "ph-ear", "text": "Fique em silêncio por um momento.\nDeixe Deus falar ao seu coração.\n\n\"Aquietai-vos e sabei que eu sou Deus.\" — Sl 46,10" }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "def-gregorian",
+    "title": "Canto Gregoriano",
+    "source": "youtube",
+    "idType": "video",
+    "externalId": "c79SszUBZUE",
+    "icon": "ph-church"
+  },
+  {
+    "id": "def-polyphony",
+    "title": "Música Sacra",
+    "source": "spotify",
+    "idType": "playlist",
+    "externalId": "1HE6bfpFj8GtTrpmNuuxGp",
+    "icon": "ph-music-notes"
+  },
+  {
+    "id": "def-rosary",
+    "title": "Santo Rosário (Latim)",
+    "source": "youtube",
+    "idType": "video",
+    "externalId": "b2C8tJf8g7g",
+    "icon": "ph-cross"
+  }
+]

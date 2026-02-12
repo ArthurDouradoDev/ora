@@ -84,7 +84,7 @@ Como esta é uma extensão local (não publicada na loja), siga os passos para i
 *   `blocker.js`: Lógica de bloqueio de sites (Declarative Net Request).
 *   `links.js`: Gerenciamento dos links rápidos.
 *   `prayers.js`: Sistema de orações e busca.
-*   `data.json`: Base de dados de imagens, orações, citações e playlists padrão.
+*   `data/`: Pasta contendo arquivos JSON com base de dados (imagens, orações, citações, etc).
 
 ---
 *Desenvolvido com o propósito de santificar o tempo de trabalho.* 🙏
