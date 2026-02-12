@@ -2,7 +2,7 @@
 
 **Ora** é uma extensão para Google Chrome que transforma sua "Nova Aba" em um ambiente de foco, oração e produtividade, com uma estética *glassmorphism* moderna e serena. O objetivo é ajudar o usuário a manter a presença de Deus ao longo do dia de trabalho ou estudo, integrando ferramentas de produtividade (como Pomodoro e Bloqueador de Sites) com práticas espirituais (Angelus, Terço, Exame de Consciência).
 
-![Ora Screenshot](icon.png)
+![Ora Screenshot](assets/icon.png)
 
 ## ✨ Funcionalidades Principais
 

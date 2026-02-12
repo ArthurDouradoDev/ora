@@ -321,7 +321,7 @@ const ReminderSystem = {
         if (this.storage.getItem(key)) return; // Already sent
 
         try {
-            new Notification(title, { body: body, icon: 'icon.png' });
+            new Notification(title, { body: body, icon: 'assets/icon.png' });
             this.storage.setItem(key, 'true');
         } catch (e) {
             console.warn('[Ora] Notification failed:', e);

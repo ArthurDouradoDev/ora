@@ -7,7 +7,7 @@
     "newtab": "ora.html"
   },
   "icons": {
-    "128": "icon.png"
+    "128": "assets/icon.png"
   },
   "permissions": ["storage", "declarativeNetRequest"],
   "host_permissions": ["<all_urls>"],
