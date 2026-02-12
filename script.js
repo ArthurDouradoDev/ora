@@ -127,30 +127,12 @@ async function initApp() {
     // 2. Imagem de Fundo Dinâmica
     // ============================================================
 
-    function setBackground() {
-        try {
-            if (data.backgroundImages.length === 0) return;
-
-            const today = new Date().toDateString();
-            const savedDate = SafeStorage.getItem('catholic_dash_date');
-            let imageUrl;
-
-            if (savedDate === today && SafeStorage.getItem('catholic_dash_image')) {
-                imageUrl = SafeStorage.getItem('catholic_dash_image');
-            } else {
-                const randomIndex = Math.floor(Math.random() * data.backgroundImages.length);
-                imageUrl = data.backgroundImages[randomIndex];
-                SafeStorage.setItem('catholic_dash_date', today);
-                SafeStorage.setItem('catholic_dash_image', imageUrl);
-            }
-
-            document.body.style.backgroundImage = `url('${imageUrl}')`;
-        } catch (e) {
-            console.error('Error in setBackground:', e);
-        }
+    // Initialize Background System (now handled in background.js)
+    if (typeof BackgroundSystem !== 'undefined') {
+        BackgroundSystem.init(data.backgroundImages);
+    } else {
+        console.error('BackgroundSystem not found!');
     }
-    setBackground();
-    console.log('[Ora] Background set');
 
     // ============================================================
     // 2b. Frase e Saudação Dinâmicas
