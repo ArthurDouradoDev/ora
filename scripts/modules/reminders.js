@@ -1,9 +1,6 @@
 const ReminderSystem = {
     // Dependencies
-    storage: null,
-    animateModal: null,
-    isModalVisible: null,
-    prayerSystem: null,
+    // Global: SafeStorage, animateModal, isModalVisible, window.PrayerSystem
     
     // Data
     prayers: [],
@@ -38,15 +35,10 @@ const ReminderSystem = {
         }
     },
 
-    init: function(data, deps) {
+    init: function(data) {
         this.prayers = data.prayers || [];
         this.examData = data.exam || {};
         
-        this.storage = deps.storage;
-        this.animateModal = deps.animateModal;
-        this.isModalVisible = deps.isModalVisible;
-        this.prayerSystem = deps.prayerSystem;
-
         this.cacheDOM();
         this.bindEvents();
         
@@ -94,8 +86,8 @@ const ReminderSystem = {
                 
                 // Open prayer
                 const angelusPrayer = this.prayers.find(p => p.id === 'angelus');
-                if (angelusPrayer && this.prayerSystem) {
-                    this.prayerSystem.openReader(angelusPrayer);
+                if (angelusPrayer && window.PrayerSystem) {
+                    window.PrayerSystem.openReader(angelusPrayer);
                 } else {
                     console.error('[Ora] Angelus prayer not found or PrayerSystem missing');
                 }
@@ -217,27 +209,27 @@ const ReminderSystem = {
     // --- Helpers ---
 
     showModal: function(el) {
-        if (el && this.animateModal && !this.isModalVisible(el)) {
-            this.animateModal(el, true);
+        if (el && !isModalVisible(el)) {
+            animateModal(el, true);
         }
     },
 
     hideModal: function(el) {
-        if (el && this.animateModal) {
-            this.animateModal(el, false);
+        if (el) {
+            animateModal(el, false);
         }
     },
 
     markDone: function(prefix) {
         const todayStr = new Date().toDateString();
         const key = prefix + '_' + todayStr;
-        this.storage.setItem(key, 'true');
+        SafeStorage.setItem(key, 'true');
     },
 
     isDone: function(prefix) {
         const todayStr = new Date().toDateString();
         const key = prefix + '_' + todayStr;
-        return !!this.storage.getItem(key);
+        return !!SafeStorage.getItem(key);
     },
 
     // --- Logic ---
@@ -269,7 +261,7 @@ const ReminderSystem = {
 
     checkMercyTime: function() {
         // If Rosary modal is already open, do not show reminder
-        if (this.isModalVisible(document.getElementById('rosary-modal'))) {
+        if (isModalVisible(document.getElementById('rosary-modal'))) {
             this.hideModal(this.elements.mercy.modal);
             return;
         }
@@ -316,8 +308,8 @@ const ReminderSystem = {
         const rosaryModal = document.getElementById('rosary-modal');
         const examModal = document.getElementById('exam-flow-modal');
         
-        const isRosaryOpen = this.isModalVisible(rosaryModal);
-        const isExamOpen = this.isModalVisible(examModal);
+        const isRosaryOpen = isModalVisible(rosaryModal);
+        const isExamOpen = isModalVisible(examModal);
 
         if (!isRosaryOpen && !isExamOpen) {
             this.showModal(this.elements.rosary.modal);
@@ -330,11 +322,11 @@ const ReminderSystem = {
         
         const todayStr = new Date().toDateString();
         const key = 'angelus_notif_' + windowName + '_' + todayStr;
-        if (this.storage.getItem(key)) return; // Already sent
+        if (SafeStorage.getItem(key)) return; // Already sent
 
         try {
             new Notification(title, { body: body, icon: 'assets/icon.png' });
-            this.storage.setItem(key, 'true');
+            SafeStorage.setItem(key, 'true');
         } catch (e) {
             console.warn('[Ora] Notification failed:', e);
         }

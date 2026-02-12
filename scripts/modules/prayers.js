@@ -3,9 +3,8 @@ const PrayerSystem = {
     currentPrayer: null,
     currentLang: 'pt',
     
-    // Dependencies (injected or global)
-    animateModal: null,
-    isModalVisible: null,
+    // Dependencies (Global)
+    // animateModal, isModalVisible
     
     // DOM Elements
     elements: {
@@ -18,10 +17,8 @@ const PrayerSystem = {
         searchInput: null
     },
 
-    init: function(prayersData, deps) {
+    init: function(prayersData) {
         this.prayers = prayersData;
-        this.animateModal = deps.animateModal;
-        this.isModalVisible = deps.isModalVisible;
         
         this.cacheDOM();
         this.bindEvents();
@@ -43,7 +40,7 @@ const PrayerSystem = {
         if (this.elements.btnPrayers) {
             this.elements.btnPrayers.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (this.isModalVisible && this.isModalVisible(this.elements.listModal)) {
+                if (isModalVisible && isModalVisible(this.elements.listModal)) {
                     this.closeList();
                 } else {
                     this.openList();
@@ -84,14 +81,15 @@ const PrayerSystem = {
         // Modal Outside Click (Managed globally in script.js usually, but we can add specific checks here if needed)
         // script.js handles the global click listener for these modals. I'll rely on script.js for that 
         // OR move that logic here. Moving it here makes this module more self-contained.
+        // Modal Outside Click
         document.addEventListener('click', (e) => {
-            if (this.isModalVisible && this.isModalVisible(this.elements.listModal) && 
+            if (isModalVisible && isModalVisible(this.elements.listModal) && 
                 !this.elements.listModal.contains(e.target) && 
                 !document.getElementById('btn-prayers').contains(e.target)) {
                 this.closeList();
             }
 
-            if (this.isModalVisible && this.isModalVisible(this.elements.readerModal) && 
+            if (isModalVisible && isModalVisible(this.elements.readerModal) && 
                 !this.elements.readerModal.contains(e.target)) {
                 this.closeReader();
             }
@@ -102,7 +100,7 @@ const PrayerSystem = {
         this.renderGrid(this.prayers); // Render all or filtered? Reset filter on open?
         // Let's reset filter on open
         if (this.elements.searchInput) this.elements.searchInput.value = '';
-        this.animateModal(this.elements.listModal, true);
+        animateModal(this.elements.listModal, true);
         // Focus search
         setTimeout(() => {
              if (this.elements.searchInput) this.elements.searchInput.focus();
@@ -110,7 +108,7 @@ const PrayerSystem = {
     },
 
     closeList: function() {
-        this.animateModal(this.elements.listModal, false);
+        animateModal(this.elements.listModal, false);
     },
 
     openReader: function(prayer) {
@@ -119,12 +117,12 @@ const PrayerSystem = {
         this.currentLang = 'pt'; // Default to PT
         this.updateReader();
         
-        this.animateModal(this.elements.listModal, false);
-        this.animateModal(this.elements.readerModal, true);
+        animateModal(this.elements.listModal, false);
+        animateModal(this.elements.readerModal, true);
     },
 
     closeReader: function() {
-        this.animateModal(this.elements.readerModal, false);
+        animateModal(this.elements.readerModal, false);
         this.currentPrayer = null;
     },
 

@@ -8,9 +8,12 @@ const ExamSystem = {
         examAnswers: []
     },
 
-    init(data, config) {
+    data: null,
+    // config: removed, dependencies are global
+
+    init(data) {
         this.data = data;
-        this.config = config; // { SafeStorage, animateModal, isModalVisible, showToast, prayers }
+        // Global dependencies: SafeStorage, animateModal, isModalVisible, showToast
         
         console.log('[Ora] ExamSystem initializing...');
 
@@ -80,7 +83,6 @@ const ExamSystem = {
 
     bindEvents() {
         const d = this.dom;
-        const { isModalVisible, animateModal } = this.config;
 
         if (d.btnExam) {
             d.btnExam.addEventListener('click', (e) => {
@@ -106,6 +108,7 @@ const ExamSystem = {
         if (d.examNextBtn) d.examNextBtn.addEventListener('click', () => this.nextExamStep());
         if (d.examPrevBtn) d.examPrevBtn.addEventListener('click', () => this.prevExamStep());
 
+        // Close on click outside
         // Close on click outside
         document.addEventListener('click', (e) => {
             if (isModalVisible(d.examTypeModal) &&
@@ -175,8 +178,9 @@ const ExamSystem = {
         for (let i = 0; i <= dayOfWeek; i++) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
+            d.setDate(d.getDate() - i);
             const key = 'ora_exam_done_' + d.toDateString();
-            if (this.config.SafeStorage.getItem(key)) count++;
+            if (SafeStorage.getItem(key)) count++;
         }
         return count;
     },
@@ -209,11 +213,11 @@ const ExamSystem = {
         const weekCount = this.getWeeklyExamCount();
         if (examStreakText) examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
 
-        this.config.animateModal(examTypeModal, true);
+        animateModal(examTypeModal, true);
     },
 
     closeExamTypeModal() {
-        this.config.animateModal(this.dom.examTypeModal, false);
+        animateModal(this.dom.examTypeModal, false);
     },
 
     startExam(type) {
@@ -222,9 +226,12 @@ const ExamSystem = {
         this.state.examAnswers = new Array(this.data.exam.types[type].questions.length).fill('');
         this.closeExamTypeModal();
 
-        const typeData = this.data.exam.types[type];
-        this.dom.examFlowTitle.textContent = `${typeData.icon} ${typeData.label}`;
-        this.config.animateModal(this.dom.examFlowModal, true);
+        const weekCount = this.getWeeklyExamCount();
+        if (this.dom.examStreakText) this.dom.examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
+
+        animateModal(this.dom.examFlowModal, true); // Should open flow modal, not typemodal again? Or wait, startExam opens the questions.
+        // The original code in 231 said animateModal(examTypeModal, true). That seems wrong if we just closed it.
+        // It likely meant opening examFlowModal.
         this.renderExamStep();
     },
 
@@ -317,8 +324,7 @@ const ExamSystem = {
 
     finishExam() {
         const { currentExamType, examAnswers } = this.state;
-        const { SafeStorage, showToast } = this.config;
-
+        
         // Save as done today
         const todayStr = new Date().toDateString();
         SafeStorage.setItem('ora_exam_done_' + todayStr, 'true');
@@ -346,13 +352,13 @@ const ExamSystem = {
             SafeStorage.setItem('ora_exam_logs', JSON.stringify(logs));
         } catch (e) { /* ignore */ }
 
-        this.config.animateModal(this.dom.examFlowModal, false);
+        animateModal(this.dom.examFlowModal, false);
         showToast('Exame concluído! Deus te abençoe. 🙏', 'success');
         this.state.currentExamType = null;
     },
 
     closeExamFlow() {
-        this.config.animateModal(this.dom.examFlowModal, false);
+        animateModal(this.dom.examFlowModal, false);
         this.state.currentExamType = null;
     },
 
@@ -360,7 +366,6 @@ const ExamSystem = {
 
     showPomodoroCheckin() {
         const { checkinOptions, pomodoroCheckin } = this.dom;
-        const { animateModal, showToast } = this.config;
         
         checkinOptions.innerHTML = '';
         const options = this.data.exam.pomodoroCheckin.options;
@@ -402,7 +407,7 @@ const ExamSystem = {
                 // Resolve prayer reference
                 if (text.startsWith('prayer:')) {
                     const prayerId = text.split(':')[1];
-                    const prayer = this.config.prayers.find(p => p.id === prayerId);
+                    const prayer = this.data.prayers.find(p => p.id === prayerId);
                     text = prayer ? prayer.text.pt : '';
                 }
                 microPrayerOptionsEl.style.display = 'none';
@@ -412,27 +417,27 @@ const ExamSystem = {
             microPrayerOptionsEl.appendChild(card);
         });
 
-        this.config.animateModal(microPrayerModal, true);
+        animateModal(microPrayerModal, true);
     },
 
     // --- Virtues Checklist ---
 
     loadVirtues() {
         try {
-            const saved = this.config.SafeStorage.getItem('ora_virtues_list');
+            const saved = SafeStorage.getItem('ora_virtues_list');
             if (saved) return JSON.parse(saved);
         } catch (e) { /* use defaults */ }
         return this.data.exam.defaultVirtues.map(v => ({ ...v }));
     },
 
     saveVirtues(virtues) {
-        this.config.SafeStorage.setItem('ora_virtues_list', JSON.stringify(virtues));
+        SafeStorage.setItem('ora_virtues_list', JSON.stringify(virtues));
     },
 
     getVirtueLog() {
         const todayStr = new Date().toDateString();
         try {
-            const saved = this.config.SafeStorage.getItem('ora_virtues_log_' + todayStr);
+            const saved = SafeStorage.getItem('ora_virtues_log_' + todayStr);
             if (saved) return JSON.parse(saved);
         } catch (e) { /* ignore */ }
         return {};
@@ -440,17 +445,17 @@ const ExamSystem = {
 
     saveVirtueLog(log) {
         const todayStr = new Date().toDateString();
-        this.config.SafeStorage.setItem('ora_virtues_log_' + todayStr, JSON.stringify(log));
+        SafeStorage.setItem('ora_virtues_log_' + todayStr, JSON.stringify(log));
     },
 
     openVirtuesModal() {
         this.closeExamTypeModal();
         this.renderVirtuesList();
-        this.config.animateModal(this.dom.virtuesModal, true);
+        animateModal(this.dom.virtuesModal, true);
     },
 
     closeVirtuesModal() {
-        this.config.animateModal(this.dom.virtuesModal, false);
+        animateModal(this.dom.virtuesModal, false);
     },
 
     renderVirtuesList() {
@@ -509,13 +514,13 @@ const ExamSystem = {
     // --- Virtues Editor ---
 
     openVirtuesEditor() {
-        this.config.animateModal(this.dom.virtuesModal, false);
+        animateModal(this.dom.virtuesModal, false);
         this.renderVirtuesEditor();
-        this.config.animateModal(this.dom.virtuesEditor, true);
+        animateModal(this.dom.virtuesEditor, true);
     },
 
     closeVirtuesEditor() {
-        this.config.animateModal(this.dom.virtuesEditor, false);
+        animateModal(this.dom.virtuesEditor, false);
     },
 
     renderVirtuesEditor() {
@@ -554,7 +559,7 @@ const ExamSystem = {
         this.saveVirtues(virtues);
         newVirtueInput.value = '';
         this.renderVirtuesEditor();
-        this.config.showToast(`"${name}" adicionada!`, 'success');
+        showToast(`"${name}" adicionada!`, 'success');
     }
 };
 

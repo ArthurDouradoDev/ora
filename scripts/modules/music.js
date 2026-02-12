@@ -9,11 +9,11 @@ const MusicSystem = {
         allPlaylists: []
     },
 
-    deps: {},
+    deps: {}, // Deprecated, kept for structure but unused
 
-    init: function(defaultPlaylists, dependencies) {
+    init: function(defaultPlaylists) {
         this.state.defaultPlaylists = defaultPlaylists || [];
-        this.deps = dependencies;
+        // Dependencies are now global (SafeStorage, animateModal, etc.)
         
         this.loadUserPlaylists();
         this.cacheDOM();
@@ -25,7 +25,7 @@ const MusicSystem = {
 
     loadUserPlaylists: function() {
         try {
-            const stored = this.deps.storage.getItem('ora_user_playlists');
+            const stored = SafeStorage.getItem('ora_user_playlists');
             this.state.userPlaylists = stored ? JSON.parse(stored) : [];
         } catch (e) {
             this.state.userPlaylists = [];
@@ -33,7 +33,7 @@ const MusicSystem = {
     },
 
     saveUserPlaylists: function() {
-        this.deps.storage.setItem('ora_user_playlists', JSON.stringify(this.state.userPlaylists));
+        SafeStorage.setItem('ora_user_playlists', JSON.stringify(this.state.userPlaylists));
     },
 
     cacheDOM: function() {
@@ -59,31 +59,31 @@ const MusicSystem = {
         // Toggle Library
         this.dom.btnMusic.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (!this.deps.isModalVisible(this.dom.musicLibrary)) {
-                this.deps.animateModal(this.dom.musicLibrary, true);
+            if (!isModalVisible(this.dom.musicLibrary)) {
+                animateModal(this.dom.musicLibrary, true);
                 this.renderPlaylists();
             } else {
-                this.deps.animateModal(this.dom.musicLibrary, false);
+                animateModal(this.dom.musicLibrary, false);
             }
         });
 
         this.dom.closeLibraryBtn.addEventListener('click', () => {
-            this.deps.animateModal(this.dom.musicLibrary, false);
+            animateModal(this.dom.musicLibrary, false);
         });
 
         // Close Library on Click Outside
         document.addEventListener('click', (e) => {
-            if (this.deps.isModalVisible(this.dom.musicLibrary) &&
+            if (isModalVisible(this.dom.musicLibrary) &&
                 !this.dom.musicLibrary.contains(e.target) &&
                 e.target !== this.dom.btnMusic &&
                 !this.dom.btnMusic.contains(e.target)) {
-                this.deps.animateModal(this.dom.musicLibrary, false);
+                animateModal(this.dom.musicLibrary, false);
             }
         });
 
         // Mini Player Controls
         this.dom.closePlayerBtn.addEventListener('click', () => {
-            this.deps.animateModal(this.dom.miniPlayer, false);
+            animateModal(this.dom.miniPlayer, false);
             this.stopPlayback();
             this.state.isPlayerMinimized = false;
         });
@@ -219,7 +219,7 @@ const MusicSystem = {
             card.onclick = (e) => {
                 if (e.target.closest('.delete-btn')) return;
                 this.playPlaylist(playlist);
-                this.deps.animateModal(this.dom.musicLibrary, false);
+                animateModal(this.dom.musicLibrary, false);
             };
 
             const delBtnEl = card.querySelector('.delete-btn');
@@ -242,7 +242,7 @@ const MusicSystem = {
         const input = this.dom.playlistInput.value.trim();
 
         if (!input) {
-            this.deps.showToast('Por favor, preencha com a URL.', 'info');
+            showToast('Por favor, preencha com a URL.', 'info');
             return;
         }
 
@@ -298,12 +298,12 @@ const MusicSystem = {
             this.renderPlaylists();
 
             if (newPlaylist.idType === 'playlist') {
-                this.deps.showToast('Playlist adicionada!', 'success');
+                showToast('Playlist adicionada!', 'success');
             } else {
-                this.deps.showToast('Música adicionada!', 'success');
+                showToast('Música adicionada!', 'success');
             }
         } else {
-            this.deps.showToast('Não foi possível encontrar o vídeo/playlist.', 'error');
+            showToast('Não foi possível encontrar o vídeo/playlist.', 'error');
         }
     },
 
@@ -311,11 +311,11 @@ const MusicSystem = {
         this.state.userPlaylists = this.state.userPlaylists.filter((p) => p.id !== id);
         this.saveUserPlaylists();
         this.renderPlaylists();
-        this.deps.showToast('Removido com sucesso.', 'info');
+        showToast('Removido com sucesso.', 'info');
     },
 
     playPlaylist: function(playlist) {
-        this.deps.animateModal(this.dom.miniPlayer, true);
+        animateModal(this.dom.miniPlayer, true);
         this.dom.nowPlayingText.textContent = playlist.title;
 
         if (this.state.isPlayerMinimized) {

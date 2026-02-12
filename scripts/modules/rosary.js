@@ -11,11 +11,8 @@ const RosarySystem = {
     extraPrayers: {},
     basePrayers: [], // from injected data (prayers)
 
-    // Dependencies
-    animateModal: null,
-    isModalVisible: null,
-    SafeStorage: null,
-    showToast: null,
+    // Dependencies (Global)
+    // animateModal, isModalVisible, SafeStorage, showToast
 
     // DOM Elements
     elements: {
@@ -37,18 +34,12 @@ const RosarySystem = {
         rosarySuggestion: null // The reminder/suggestion modal
     },
 
-    init: function(data, deps) {
+    init: function(data) {
         // Unpack data
         this.structure = data.rosary.structure;
         this.mysteries = data.rosary.mysteries;
         this.extraPrayers = data.rosary.extraPrayers;
         this.basePrayers = data.prayers;
-
-        // Unpack dependencies
-        this.animateModal = deps.animateModal;
-        this.isModalVisible = deps.isModalVisible;
-        this.SafeStorage = deps.SafeStorage;
-        this.showToast = deps.showToast;
 
         this.cacheDOM();
         this.loadProgress();
@@ -80,7 +71,7 @@ const RosarySystem = {
 
     loadProgress: function() {
         try {
-            const saved = this.SafeStorage.getItem('ora_rosary_progress');
+            const saved = SafeStorage.getItem('ora_rosary_progress');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 this.currentBead = parsed.bead || 0;
@@ -92,7 +83,7 @@ const RosarySystem = {
     },
 
     saveProgress: function() {
-        this.SafeStorage.setItem('ora_rosary_progress', JSON.stringify({
+        SafeStorage.setItem('ora_rosary_progress', JSON.stringify({
             bead: this.currentBead,
             mystery: this.mystery,
             chapletType: this.chapletType,
@@ -350,7 +341,7 @@ const RosarySystem = {
             this.renderBeads();
         }
         
-        this.animateModal(this.elements.modal, true);
+        animateModal(this.elements.modal, true);
         
         // Ensure UI is synced (beads classes, text, scroll)
         // We call renderBeads above if empty, but we might need to just update classes if already rendered.
@@ -360,13 +351,13 @@ const RosarySystem = {
         this.refreshDisplay();
 
         // Also check prompt
-        if (this.isModalVisible(this.elements.rosarySuggestion)) {
-            this.animateModal(this.elements.rosarySuggestion, false);
+        if (isModalVisible(this.elements.rosarySuggestion)) {
+            animateModal(this.elements.rosarySuggestion, false);
         }
     },
 
     close: function() {
-        this.animateModal(this.elements.modal, false);
+        animateModal(this.elements.modal, false);
     },
 
     bindEvents: function() {
@@ -374,7 +365,7 @@ const RosarySystem = {
         if (this.elements.btnRosary) {
             this.elements.btnRosary.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (!this.isModalVisible(this.elements.modal)) this.open();
+                if (!isModalVisible(this.elements.modal)) this.open();
                 else this.close();
             });
         }
@@ -388,7 +379,7 @@ const RosarySystem = {
                 e.stopPropagation();
                 this.currentBead = 0;
                 this.refreshDisplay();
-                this.showToast('Terço reiniciado!', 'success');
+                showToast('Terço reiniciado!', 'success');
             });
         }
 
@@ -398,7 +389,7 @@ const RosarySystem = {
 
         // Keyboard
         document.addEventListener('keydown', (e) => {
-            if (!this.isModalVisible(this.elements.modal)) return;
+            if (!isModalVisible(this.elements.modal)) return;
             
             if (e.key === 'ArrowRight') {
                 e.preventDefault();
@@ -437,7 +428,7 @@ const RosarySystem = {
 
         // Click Outside
         document.addEventListener('click', (e) => {
-            if (this.isModalVisible(this.elements.modal) &&
+            if (isModalVisible(this.elements.modal) &&
                 !this.elements.modal.contains(e.target) &&
                 !this.elements.btnRosary.contains(e.target)) {
                 this.close();

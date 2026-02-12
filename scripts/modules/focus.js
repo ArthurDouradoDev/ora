@@ -1,75 +1,25 @@
 const FocusSystem = {
-    // Dependencies
-    storage: null,
-    animateModal: null,
-    isModalVisible: null,
-    callbacks: {},
-
-    // Settings
-    settings: { focus: 25, pause: 5, longPause: 15 },
+    // Dependencies: Global (SafeStorage, animateModal, isModalVisible)
     
-    // State
-    phase: 'focus', // 'focus', 'pause', 'longPause'
-    pomodoroCount: 0,
-    timeRemaining: 25 * 60,
-    totalDuration: 25 * 60,
-    timerInterval: null,
-    isTimerRunning: false,
-    isMiniMinimized: false,
-    mode: 'compact', // 'compact' or 'fullscreen'
-    totalFocusSeconds: 0,
-    todayKey: '',
-
-    // DOM Elements
-    elements: {
-        mini: {
-            container: null,
-            phase: null,
-            timer: null,
-            total: null,
-            dots: null,
-            playBtn: null,
-            skipBtn: null,
-            resetBtn: null,
-            expandBtn: null,
-            minimizeBtn: null,
-            closeBtn: null
-        },
-        fs: {
-            container: null,
-            phase: null,
-            timer: null,
-            total: null,
-            dots: null,
-            ringProgress: null,
-            playBtn: null,
-            skipBtn: null,
-            resetBtn: null,
-            collapseBtn: null,
-            settingsBtn: null,
-            settingsPanel: null
-        },
-        settings: {
-            focusInput: null,
-            pauseInput: null,
-            longPauseInput: null
-        },
-        triggers: {
-            btnFocus: null
-        }
-    },
-
     // Constants
     RING_CIRCUMFERENCE: 2 * Math.PI * 90, // ~565.48
 
-    init: function(deps) {
-        this.storage = deps.storage;
-        this.animateModal = deps.animateModal;
-        this.isModalVisible = deps.isModalVisible;
-        this.callbacks = deps.callbacks || {};
+    elements: {
+        mini: {},
+        fs: {},
+        settings: {},
+        triggers: {}
+    },
 
+
+    init: function() {
         this.todayKey = 'ora_focus_total_' + new Date().toDateString();
-        this.totalFocusSeconds = parseInt(this.storage.getItem(this.todayKey)) || 0;
+        this.totalFocusSeconds = parseInt(SafeStorage.getItem(this.todayKey)) || 0;
+        
+        // Initialize state
+        this.pomodoroCount = 0;
+        this.phase = 'focus';
+        this.settings = { focus: 25, pause: 5, longPause: 15 };
 
         this.loadSettings();
         this.cacheDOM();
@@ -124,12 +74,12 @@ const FocusSystem = {
         if (this.elements.triggers.btnFocus) {
             this.elements.triggers.btnFocus.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (!this.isModalVisible(this.elements.mini.container) && !this.isModalVisible(this.elements.fs.container)) {
+                if (!isModalVisible(this.elements.mini.container) && !isModalVisible(this.elements.fs.container)) {
                     this.showCompact();
-                } else if (this.isModalVisible(this.elements.mini.container)) {
-                    this.animateModal(this.elements.mini.container, false);
+                } else if (isModalVisible(this.elements.mini.container)) {
+                    animateModal(this.elements.mini.container, false);
                 } else {
-                    this.animateModal(this.elements.fs.container, false);
+                    animateModal(this.elements.fs.container, false);
                     this.elements.fs.settingsPanel.style.display = 'none';
                 }
             });
@@ -182,7 +132,7 @@ const FocusSystem = {
 
         // Listen for minimize event
         window.addEventListener('ora:minimize-focus', () => {
-             if (this.isModalVisible(this.elements.fs.container)) {
+             if (isModalVisible(this.elements.fs.container)) {
                  this.showCompact();
              }
         });
@@ -190,7 +140,7 @@ const FocusSystem = {
 
     loadSettings: function() {
         try {
-            const savedSettings = this.storage.getItem('ora_focus_settings');
+            const savedSettings = SafeStorage.getItem('ora_focus_settings');
             if (savedSettings) this.settings = JSON.parse(savedSettings);
         } catch (e) { /* use defaults */ }
         
@@ -216,7 +166,7 @@ const FocusSystem = {
             longPause: Math.max(1, Math.min(60, lp))
         };
 
-        this.storage.setItem('ora_focus_settings', JSON.stringify(this.settings));
+        SafeStorage.setItem('ora_focus_settings', JSON.stringify(this.settings));
 
         // If timer is not running, update the current phase duration
         if (!this.isTimerRunning) {
@@ -316,7 +266,7 @@ const FocusSystem = {
 
             if (this.phase === 'focus') {
                 this.totalFocusSeconds++;
-                this.storage.setItem(this.todayKey, this.totalFocusSeconds.toString());
+                SafeStorage.setItem(this.todayKey, this.totalFocusSeconds.toString());
             }
 
             this.updateDisplay();
@@ -360,7 +310,7 @@ const FocusSystem = {
                 this.phase = 'longPause';
                 if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion();
                 setTimeout(() => {
-                    if (this.callbacks.showPomodoroCheckin) this.callbacks.showPomodoroCheckin();
+                    if (window.ExamSystem) window.ExamSystem.showPomodoroCheckin();
                 }, 500);
             } else {
                 this.phase = 'pause';
@@ -412,23 +362,23 @@ const FocusSystem = {
     // Modes
     showCompact: function() {
         this.mode = 'compact';
-        this.animateModal(this.elements.mini.container, true);
-        this.animateModal(this.elements.fs.container, false);
+        animateModal(this.elements.mini.container, true);
+        animateModal(this.elements.fs.container, false);
         this.elements.fs.settingsPanel.style.display = 'none';
         this.updateDisplay();
     },
 
     showFullscreen: function() {
         this.mode = 'fullscreen';
-        this.animateModal(this.elements.mini.container, false);
-        this.animateModal(this.elements.fs.container, true);
+        animateModal(this.elements.mini.container, false);
+        animateModal(this.elements.fs.container, true);
         this.updateDisplay();
     },
 
     closeFocusTimer: function() {
         this.pauseTimer();
-        this.animateModal(this.elements.mini.container, false);
-        this.animateModal(this.elements.fs.container, false);
+        animateModal(this.elements.mini.container, false);
+        animateModal(this.elements.fs.container, false);
         this.elements.fs.settingsPanel.style.display = 'none';
         this.isMiniMinimized = false;
         this.elements.mini.container.classList.remove('minimized');

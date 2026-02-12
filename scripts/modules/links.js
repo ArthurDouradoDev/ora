@@ -192,14 +192,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deleteLink(index) {
         links.splice(index, 1);
-        saveLinks();
+        saveLinks(links);
         renderManageList();
         renderLinks();
         showToast('Link removido.', 'info');
     }
 
-    function saveLinks() {
-        localStorage.setItem('oraLinks', JSON.stringify(links));
+    // Load links
+    function loadLinks() {
+        try {
+            const saved = SafeStorage.getItem('ora_quick_links');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    // Save links
+    function saveLinks(links) {
+        SafeStorage.setItem('ora_quick_links', JSON.stringify(links));
     }
 
     // Reuse existing helper if available, or define local
@@ -216,18 +227,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!modal) return;
         modal.style.display = 'none';
         modal.classList.remove('active');
-    }
-    
-    // Toast Helper (reusing from script.js if possible, but for safety defined here or assumes global showToast)
-    // If showToast is not global, we might need to duplicate or expose it.
-    // Seeing script.js has showToast, let's assume it's global or we'll attach it to window in script.js to be safe.
-    // For now, I'll add a safe check.
-    function showToast(msg, type) {
-        if (window.showToast) {
-            window.showToast(msg, type);
-        } else {
-            console.log(`[${type}] ${msg}`);
-            // Fallback simple alert if needed, or just log
-        }
     }
 });

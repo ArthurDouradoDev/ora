@@ -11,17 +11,8 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Helper for safe storage access (works on file:// where localStorage might be blocked)
-const SafeStorage = {
-    getItem: (key) => {
-        try { return localStorage.getItem(key); }
-        catch (e) { return null; }
-    },
-    setItem: (key, value) => {
-        try { localStorage.setItem(key, value); }
-        catch (e) { /* silently fail */ }
-    }
-};
+// Helper for safe storage access is now in utils.js
+
 
 // ============================================================
 // LOAD DATA FROM JSON & INITIALIZE
@@ -30,58 +21,8 @@ const SafeStorage = {
 // --- TOAST SYSTEM ---
 const toastContainer = document.getElementById('toast-container');
 
-// --- Modal Animation Helper ---
-function animateModal(el, show) {
-    if (!el) return;
-    if (show) {
-        el.classList.remove('modal-closing');
-        el.style.display = 'flex';
-        // Force reflow so the browser picks up the new animation
-        void el.offsetWidth;
-        el.classList.add('modal-opening');
-    } else {
-        if (el.style.display === 'none' || el.style.display === '') return;
-        el.classList.remove('modal-opening');
-        el.classList.add('modal-closing');
-        const handler = (e) => {
-            if (e.target !== el) return;
-            if (!el.classList.contains('modal-closing')) return;
-            el.style.display = 'none';
-            el.classList.remove('modal-closing');
-        };
-        el.addEventListener('animationend', handler, { once: true });
-        // Fallback in case animationend doesn't fire
-        setTimeout(() => {
-            if (el.classList.contains('modal-closing')) {
-                el.style.display = 'none';
-                el.classList.remove('modal-closing');
-            }
-        }, 500);
-    }
-}
+// --- Modal Animation Helper & Toast System are now in utils.js ---
 
-function isModalVisible(el) {
-    return el && el.style.display !== 'none' && el.style.display !== '' && !el.classList.contains('modal-closing');
-}
-
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    let icon;
-    if (type === 'success') icon = 'ph-check-circle';
-    else if (type === 'error') icon = 'ph-warning-circle';
-    else icon = 'ph-info';
-
-    toast.innerHTML = `<i class="ph ${icon}"></i><span>${message}</span>`;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('hide');
-        toast.addEventListener('animationend', () => toast.remove());
-    }, 3000);
-}
 
 async function loadAppData() {
     try {
@@ -197,12 +138,9 @@ async function initApp() {
 
     // Initialize Music System
     if (window.MusicSystem) {
-        window.MusicSystem.init(data.defaultPlaylists, {
-            storage: SafeStorage,
-            animateModal: animateModal,
-            isModalVisible: isModalVisible,
-            showToast: showToast
-        });
+        window.MusicSystem.init(data.defaultPlaylists);
+        // Dependencies are now global
+
     } else {
         console.error('MusicSystem not found!');
     }
@@ -214,7 +152,7 @@ async function initApp() {
 
     // Initialize Prayer System
     if (window.PrayerSystem) {
-        window.PrayerSystem.init(data.prayers, { animateModal, isModalVisible });
+        window.PrayerSystem.init(data.prayers);
         console.log('[Ora] Prayer System initialized');
     }
 
@@ -224,12 +162,8 @@ async function initApp() {
 
     // Initialize New Rosary System
     if (window.RosarySystem) {
-        window.RosarySystem.init(data, {
-            animateModal: animateModal,
-            isModalVisible: isModalVisible,
-            SafeStorage: SafeStorage,
-            showToast: showToast
-        });
+        window.RosarySystem.init(data);
+
         console.log('[Ora] Rosary (Terço) initialized');
     } else {
         console.error('[Ora] RosarySystem not loaded!');
@@ -239,11 +173,6 @@ async function initApp() {
         window.ReminderSystem.init({
             prayers: data.prayers,
             exam: data.exam
-        }, {
-            storage: SafeStorage,
-            animateModal: animateModal,
-            isModalVisible: isModalVisible,
-            prayerSystem: window.PrayerSystem
         });
     }
 
@@ -287,14 +216,7 @@ async function initApp() {
 
     // Initialize Focus System
     if (window.FocusSystem) {
-        window.FocusSystem.init({
-            storage: SafeStorage,
-            animateModal: animateModal,
-            isModalVisible: isModalVisible,
-            callbacks: {
-                showPomodoroCheckin: (window.ExamSystem) ? window.ExamSystem.showPomodoroCheckin.bind(window.ExamSystem) : null
-            }
-        });
+        window.FocusSystem.init();
     } else {
         console.error('FocusSystem not found!');
     }
@@ -303,13 +225,7 @@ async function initApp() {
     // 8. EXAME DE CONSCIÊNCIA & VIRTUDES
     // ============================================================
     if (window.ExamSystem) {
-        window.ExamSystem.init(data, {
-            SafeStorage: SafeStorage,
-            animateModal: animateModal,
-            isModalVisible: isModalVisible,
-            showToast: showToast,
-            prayers: data.prayers
-        });
+        window.ExamSystem.init(data);
     } else {
         console.error('[Ora] ExamSystem not found!');
     }
