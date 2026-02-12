@@ -183,11 +183,17 @@ const ReminderSystem = {
                 // Dispatch event to minimize focus timer if active
                 window.dispatchEvent(new CustomEvent('ora:minimize-focus'));
 
-                // Open Rosary
-                const btnRosary = document.getElementById('btn-rosary');
-                if (btnRosary) btnRosary.click();
+                this.hideModal(this.elements.rosary.modal); // Close reminder immediately
 
-                this.hideModal(this.elements.rosary.modal); // Close immediately
+                // Open Rosary with small delay to prevent animation conflicts
+                setTimeout(() => {
+                    if (window.RosarySystem && typeof window.RosarySystem.open === 'function') {
+                        window.RosarySystem.open();
+                    } else {
+                        const btnRosary = document.getElementById('btn-rosary');
+                        if (btnRosary) btnRosary.click();
+                    }
+                }, 50);
             });
         }
 
@@ -262,6 +268,12 @@ const ReminderSystem = {
     },
 
     checkMercyTime: function() {
+        // If Rosary modal is already open, do not show reminder
+        if (this.isModalVisible(document.getElementById('rosary-modal'))) {
+            this.hideModal(this.elements.mercy.modal);
+            return;
+        }
+
         const hours = new Date().getHours();
         // 15h - 16h
         if (hours === 15) {

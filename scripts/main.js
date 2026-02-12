@@ -222,6 +222,24 @@ async function initApp() {
     // 5. REMINDERS (Angelus, Exam, Rosary)
     // ============================================================
 
+    // Initialize New Rosary System (Wait, Rosary should be initialized BEFORE reminders if reminders depend on it?)
+    // Actually, Reminders depend on RosarySystem existing globally, which it does.
+    // But init() sets up the DOM cache.
+    // Let's safe-guard by initializing Rosary first.
+
+    // Initialize New Rosary System
+    if (window.RosarySystem) {
+        window.RosarySystem.init(data, {
+            animateModal: animateModal,
+            isModalVisible: isModalVisible,
+            SafeStorage: SafeStorage,
+            showToast: showToast
+        });
+        console.log('[Ora] Rosary (Terço) initialized');
+    } else {
+        console.error('[Ora] RosarySystem not loaded!');
+    }
+
     if (window.ReminderSystem) {
         window.ReminderSystem.init({
             prayers: data.prayers,
@@ -879,16 +897,7 @@ async function initApp() {
     // ============================================================
 
     // Initialize New Rosary System
-    if (window.RosarySystem) {
-        window.RosarySystem.init(data, {
-            animateModal: animateModal,
-            isModalVisible: isModalVisible,
-            SafeStorage: SafeStorage,
-            showToast: showToast
-        });
-    } else {
-        console.error('[Ora] RosarySystem not loaded!');
-    }
+    // Rosary System initialized earlier (see step 5)
 
     console.log('[Ora] Rosary (Terço) initialized');
     // ============================================================
