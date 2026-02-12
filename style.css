@@ -2804,20 +2804,6 @@ input:checked + .slider:before {
     margin-left: auto;
 }
 
-.pray-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-}
-
 .pray-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
