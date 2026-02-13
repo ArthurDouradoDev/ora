@@ -126,15 +126,22 @@ const Blocker = {
         this.state.blockedSites.forEach(site => {
             const item = document.createElement('div');
             item.className = 'blocked-site-item glass-panel-sm';
-            item.innerHTML = `
-                <span>${site.url}</span>
-                <button class="icon-btn-sm text-danger" onclick="Blocker.removeSite(${site.id})">
-                    <i class="ph ph-trash"></i>
-                </button>
-            `;
-            // Bind click manually to avoid global scope issues if needed, strictly speaking onclick works if Blocker is global
-            const btn = item.querySelector('button');
-            btn.onclick = () => this.removeSite(site.id);
+            
+            // Create span for URL (safe against XSS)
+            const span = document.createElement('span');
+            span.textContent = site.url;
+            
+            // Create delete button
+            const btn = document.createElement('button');
+            btn.className = 'icon-btn-sm text-danger';
+            btn.innerHTML = '<i class="ph ph-trash"></i>';
+            btn.title = 'Remover site';
+            
+            // Add event listener safely
+            btn.addEventListener('click', () => this.removeSite(site.id));
+            
+            item.appendChild(span);
+            item.appendChild(btn);
             
             list.appendChild(item);
         });

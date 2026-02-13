@@ -72,7 +72,14 @@ const MusicSystem = {
         });
 
         // Close Library on Click Outside
+        // Close Library on Click Outside
         document.addEventListener('click', (e) => {
+            // If user is typing in an input inside the modal, don't close it
+            if (this.dom.musicLibrary.contains(document.activeElement) && 
+                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                return;
+            }
+
             if (isModalVisible(this.dom.musicLibrary) &&
                 !this.dom.musicLibrary.contains(e.target) &&
                 e.target !== this.dom.btnMusic &&

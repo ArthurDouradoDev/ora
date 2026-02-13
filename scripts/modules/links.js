@@ -55,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Close on click outside
         window.addEventListener('click', (e) => {
+            // If user is typing in an input inside the modal, don't close it
+            if (linksModal.contains(document.activeElement) && 
+                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                return;
+            }
+
             if (e.target === linksModal) {
                 closeModal(linksModal);
             }
@@ -75,6 +81,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isValidURL(urlString) {
+        try {
+            const url = new URL(urlString);
+            return ['http:', 'https:'].includes(url.protocol);
+        } catch (e) {
+            return false;
+        }
+    }
+
     function renderLinks() {
         if (!linksContainer) return;
         
@@ -89,10 +104,18 @@ document.addEventListener('DOMContentLoaded', () => {
             linkEl.href = link.url;
             linkEl.target = '_blank';
             linkEl.className = 'quick-link glass-panel-sm';
-            linkEl.innerHTML = `
-                <img src="${getFavicon(link.url)}" alt="${link.name}" class="link-icon">
-                <span>${link.name}</span>
-            `;
+            
+            const img = document.createElement('img');
+            img.src = getFavicon(link.url);
+            img.alt = link.name;
+            img.className = 'link-icon';
+            
+            const span = document.createElement('span');
+            span.textContent = link.name;
+            
+            linkEl.appendChild(img);
+            linkEl.appendChild(span);
+            
             linksContainer.appendChild(linkEl);
         });
 
@@ -124,15 +147,28 @@ document.addEventListener('DOMContentLoaded', () => {
         links.forEach((link, index) => {
             const item = document.createElement('div');
             item.className = 'manage-link-item glass-panel-sm';
-            item.innerHTML = `
-                <div class="link-info">
-                    <img src="${getFavicon(link.url)}" class="link-icon-sm">
-                    <span>${link.name}</span>
-                </div>
-                <button class="icon-btn-sm delete-link-btn" data-index="${index}">
-                    <i class="ph ph-trash"></i>
-                </button>
-            `;
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'link-info';
+            
+            const img = document.createElement('img');
+            img.src = getFavicon(link.url);
+            img.className = 'link-icon-sm';
+            
+            const span = document.createElement('span');
+            span.textContent = link.name;
+            
+            infoDiv.appendChild(img);
+            infoDiv.appendChild(span);
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'icon-btn-sm delete-link-btn';
+            deleteBtn.dataset.index = index;
+            deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
+            
+            item.appendChild(infoDiv);
+            item.appendChild(deleteBtn);
+            
             linksList.appendChild(item);
         });
 
@@ -177,6 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             url = 'https://' + url;
+        }
+
+        if (!isValidURL(url)) {
+            showToast('URL inválida! Use apenas HTTP ou HTTPS.', 'error');
+            return;
         }
 
         links.push({ name, url });
