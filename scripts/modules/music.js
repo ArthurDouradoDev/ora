@@ -6,7 +6,8 @@ const MusicSystem = {
         isPlayerMinimized: false,
         currentPlaylistUrl: '',
         currentPlaylistIndex: -1,
-        allPlaylists: []
+        allPlaylists: [],
+        deletedDefaultPlaylists: []
     },
 
     deps: {}, // Deprecated, kept for structure but unused
@@ -27,8 +28,12 @@ const MusicSystem = {
         try {
             const stored = SafeStorage.getItem('ora_user_playlists');
             this.state.userPlaylists = stored ? JSON.parse(stored) : [];
+            
+            const deleted = SafeStorage.getItem('ora_deleted_default_playlists');
+            this.state.deletedDefaultPlaylists = deleted ? JSON.parse(deleted) : [];
         } catch (e) {
             this.state.userPlaylists = [];
+            this.state.deletedDefaultPlaylists = [];
         }
     },
 
@@ -169,7 +174,7 @@ const MusicSystem = {
                 if (playlist.source === 'spotify' && fetchedData.thumbnail_url) {
                     coverEl.innerHTML = `
                         <img src="${fetchedData.thumbnail_url}" loading="lazy" alt="${fetchedData.title}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
-                        ${!playlist.id.startsWith('def-') ? '<button class="delete-btn" title="Remover"><i class="ph ph-trash"></i></button>' : ''}
+                        <button class="delete-btn" title="Remover"><i class="ph ph-trash"></i></button>
                     `;
                     const newDelBtn = coverEl.querySelector('.delete-btn');
                     if (newDelBtn) {
@@ -191,6 +196,9 @@ const MusicSystem = {
         this.dom.playlistGrid.innerHTML = '';
         this.state.allPlaylists = [...this.state.defaultPlaylists, ...this.state.userPlaylists];
 
+        // Filter out deleted default playlists
+        this.state.allPlaylists = this.state.allPlaylists.filter(p => !this.state.deletedDefaultPlaylists.includes(p.id));
+
         this.state.allPlaylists.forEach((playlist) => {
             const card = document.createElement('div');
             card.className = 'playlist-card';
@@ -204,10 +212,7 @@ const MusicSystem = {
                 coverHtml = `<i class="ph ${iconClass}"></i>`;
             }
 
-            let deleteBtnHtml = '';
-            if (!playlist.id.startsWith('def-')) {
-                deleteBtnHtml = `<button class="delete-btn" title="Remover"><i class="ph ph-trash"></i></button>`;
-            }
+            let deleteBtnHtml = `<button class="delete-btn" title="Remover"><i class="ph ph-trash"></i></button>`;
 
             card.innerHTML = `
                 <div class="playlist-cover">
@@ -315,8 +320,18 @@ const MusicSystem = {
     },
 
     removePlaylist: function(id) {
-        this.state.userPlaylists = this.state.userPlaylists.filter((p) => p.id !== id);
-        this.saveUserPlaylists();
+        if (id.startsWith('def-')) {
+            // It's a default playlist, add to deleted list
+            if (!this.state.deletedDefaultPlaylists.includes(id)) {
+                this.state.deletedDefaultPlaylists.push(id);
+                SafeStorage.setItem('ora_deleted_default_playlists', JSON.stringify(this.state.deletedDefaultPlaylists));
+            }
+        } else {
+            // It's a user playlist, remove from list
+            this.state.userPlaylists = this.state.userPlaylists.filter((p) => p.id !== id);
+            this.saveUserPlaylists();
+        }
+
         this.renderPlaylists();
         showToast('Removido com sucesso.', 'info');
     },

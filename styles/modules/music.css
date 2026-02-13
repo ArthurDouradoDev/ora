@@ -69,6 +69,39 @@
     color: white;
 }
 
+/* --- DELETE BUTTON --- */
+.playlist-cover .delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ff6b6b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.playlist-card:hover .delete-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.playlist-cover .delete-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: #ff6b6b;
+    transform: scale(1.1);
+}
+
 .playlist-source {
     font-size: 0.75rem;
     opacity: 0.6;

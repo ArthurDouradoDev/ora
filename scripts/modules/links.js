@@ -256,17 +256,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reuse existing helper if available, or define local
     function openModal(modal) {
-        if (!modal) return;
-        modal.style.display = 'flex';
-        // Add animation class if not present
-        if (!modal.classList.contains('active')) {
-             modal.classList.add('active'); // Assuming css handles .glass-panel.active or similar
+        if (typeof animateModal === 'function') {
+            animateModal(modal, true);
+        } else {
+            if (!modal) return;
+            modal.style.display = 'flex';
+            modal.classList.add('active');
         }
     }
 
     function closeModal(modal) {
-        if (!modal) return;
-        modal.style.display = 'none';
-        modal.classList.remove('active');
+        if (typeof animateModal === 'function') {
+            animateModal(modal, false);
+        } else {
+             if (!modal) return;
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+        }
     }
 });
