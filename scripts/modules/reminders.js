@@ -229,7 +229,10 @@ const ReminderSystem = {
     isDone: function(prefix) {
         const todayStr = new Date().toDateString();
         const key = prefix + '_' + todayStr;
-        return !!SafeStorage.getItem(key);
+        const value = SafeStorage.getItem(key);
+        
+        // Retorna true se foi marcado como feito hoje
+        return value === 'true';
     },
 
     // --- Logic ---
