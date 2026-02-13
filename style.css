@@ -67,15 +67,7 @@ header {
 
 .links-container { display: flex; gap: 10px; }
 
-.action-btn {
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
+
 
 /* --- MAIN --- */
 main {
@@ -169,26 +161,7 @@ footer {
     opacity: 0.8;
 }
 
-.control-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: transform 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-}
 
-.control-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(255,255,255,0.2);
-}
 
 /* --- MUSICA MODAL & PLAYLISTS --- */
 .modal-header {
@@ -206,21 +179,7 @@ footer {
     font-weight: 600;
 }
 
-.icon-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: transform 0.2s;
-    padding: 5px;
-    border-radius: 50%;
-}
 
-.icon-btn:hover {
-    background: rgba(255,255,255,0.1);
-    transform: scale(1.1);
-}
 
 .add-playlist-section {
     display: flex;
@@ -249,23 +208,7 @@ footer {
     color: rgba(255, 255, 255, 0.6);
 }
 
-.glass-panel-sm {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    padding: 0 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    font-size: 1.2rem;
-}
 
-.glass-panel-sm:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
 
 /* Music Modal Wrapper */
 /* REMOVED OLD MODAL STYLE */
@@ -347,33 +290,7 @@ footer {
 }
 
 /* Botão de deletar (aparece em cima da capa) */
-.delete-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    border: none;
-    color: #ff6b6b;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0; /* Invisível por padrão */
-    transition: all 0.2s;
-    z-index: 5;
-}
 
-.playlist-card:hover .delete-btn {
-    opacity: 1; /* Visível no hover */
-}
-
-.delete-btn:hover {
-    background: #ff6b6b;
-    color: white;
-}
 
 /* --- MUSIC LIBRARY (Modal) --- */
 #music-library {
@@ -456,22 +373,7 @@ footer {
     gap: 5px;
 }
 
-.icon-btn-sm {
-    background: transparent;
-    border: none;
-    color: rgba(255,255,255,0.7);
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 4px;
-    border-radius: 50%;
-    transition: all 0.2s;
-}
 
-.icon-btn-sm:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-    transform: scale(1.1);
-}
 
 .iframe-container {
     width: 100%;
@@ -502,38 +404,7 @@ footer {
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.control-btn-mini {
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    font-size: 1.3rem;
-    padding: 8px;
-    border-radius: 50%;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-}
 
-.control-btn-mini:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    transform: scale(1.05);
-}
-
-.control-btn-play {
-    background: rgba(255, 255, 255, 0.15);
-    font-size: 1.5rem;
-    width: 42px;
-    height: 42px;
-}
-
-.control-btn-play:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
 
 .volume-control {
     display: flex;
@@ -817,30 +688,7 @@ footer {
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.lang-btn {
-    flex: 1;
-    padding: 8px 16px;
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.25s ease;
-    letter-spacing: 0.3px;
-}
 
-.lang-btn.active {
-    background: rgba(255, 255, 255, 0.12);
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.lang-btn:hover:not(.active) {
-    color: rgba(255, 255, 255, 0.8);
-}
 
 /* --- PRAYER TEXT AREA --- */
 .prayer-text {
@@ -1271,35 +1119,7 @@ footer {
     justify-content: center;
 }
 
-.rosary-chaplet-btn {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    padding: 10px 16px;
-    font-size: 0.82rem;
-    font-family: 'Montserrat', sans-serif;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
 
-.rosary-chaplet-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.rosary-chaplet-btn.active {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
-    color: white;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.06);
-}
 
 /* --- Mystery Selector --- */
 .rosary-mystery-selector {
@@ -1309,30 +1129,7 @@ footer {
     flex-wrap: wrap;
 }
 
-.rosary-mystery-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    color: rgba(255, 255, 255, 0.6);
-    padding: 6px 14px;
-    font-size: 0.78rem;
-    font-family: 'Montserrat', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
 
-.rosary-mystery-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.rosary-mystery-btn.active {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: white;
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
-}
 
 /* --- Mystery Name --- */
 .rosary-mystery-name {
@@ -1619,13 +1416,7 @@ footer {
     justify-content: center;
 }
 
-.exam-virtues-btn {
-    font-size: 0.82rem;
-    font-family: 'Montserrat', sans-serif;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 12px;
-}
+
 
 .exam-streak {
     display: flex;
@@ -1737,29 +1528,7 @@ footer {
     flex-wrap: wrap;
 }
 
-.exam-emoji-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 14px 22px;
-    font-size: 1.3rem;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    color: white;
-}
 
-.exam-emoji-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: scale(1.08);
-}
-
-.exam-emoji-btn.active {
-    background: rgba(238, 187, 85, 0.15);
-    border-color: rgba(238, 187, 85, 0.5);
-    box-shadow: 0 0 16px rgba(238, 187, 85, 0.15);
-    transform: scale(1.05);
-}
 
 
 
@@ -1811,26 +1580,7 @@ footer {
     justify-content: center;
 }
 
-.checkin-emoji-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    flex: 1;
-    color: white;
-}
 
-.checkin-emoji-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-}
 
 .checkin-emoji {
     font-size: 1.6rem;
@@ -2009,38 +1759,6 @@ footer {
 .virtue-actions {
     display: flex;
     gap: 6px;
-}
-
-.virtue-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    font-size: 0.85rem;
-}
-
-.virtue-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.virtue-success-btn.active {
-    background: rgba(74, 222, 128, 0.2);
-    border-color: rgba(74, 222, 128, 0.4);
-    color: #4ade80;
-}
-
-.virtue-fail-btn.active {
-    background: rgba(248, 113, 113, 0.2);
-    border-color: rgba(248, 113, 113, 0.4);
-    color: #f87171;
 }
 
 .virtues-summary {
@@ -2436,56 +2154,7 @@ input:checked + .slider:before {
     z-index: 5;
 }
 
-.quick-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    border-radius: 50px; /* Pill shape */
-    background: rgba(255, 255, 255, 0.1); /* Slightly different from standard glass-panel-sm */
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-}
 
-.quick-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.link-icon {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    object-fit: contain;
-}
-
-.quick-link-add {
-    padding: 8px; /* Circular/Square */
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-    color: rgba(255,255,255,0.7);
-    transition: all 0.2s;
-}
-
-.quick-link-add:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    transform: scale(1.1);
-}
 
 /* --- LINKS MANAGEMENT MODAL --- */
 #links-modal {
@@ -2534,14 +2203,7 @@ input:checked + .slider:before {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-#add-link-btn {
-    align-self: flex-end;
-    width: 100%;
-    justify-content: center;
-    padding: 8px;
-    font-size: 1.2rem;
-    margin-top: 5px;
-}
+
 
 .manage-links-list {
     display: flex;
@@ -2641,33 +2303,7 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-.check-btn, .pray-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    cursor: pointer;
-}
 
-.pray-btn i {
-    pointer-events: none;
-}
-
-.pray-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-.check-btn:hover {
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
-}
 
 /* Modal Slide Animation */
 .modal-slide {
