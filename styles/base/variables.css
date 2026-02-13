@@ -1,0 +1,6 @@
+:root {
+    --glass-bg: rgba(20, 20, 20, 0.4); /* Um pouco mais escuro para contraste */
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: 12px;
+    --text-primary: #ffffff;
+}

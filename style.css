@@ -1,9 +1,4 @@
-:root {
-    --glass-bg: rgba(20, 20, 20, 0.4); /* Um pouco mais escuro para contraste */
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: 12px;
-    --text-primary: #ffffff;
-}
+
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -44,11 +39,7 @@ header, footer {
     position: relative;
 }
 
-main {
-    z-index: 1;
-    position: relative;
-    flex: 1;
-}
+/* Main merged below */
 
 /* --- ESTILO DOS PAINÉIS (GLASSMORPHISM) --- */
 .glass-panel {
@@ -94,6 +85,9 @@ main {
     justify-content: center;
     text-align: center;
     padding-top: 60px; /* Push content down to center it better */
+    z-index: 1;
+    position: relative;
+    flex: 1;
 }
 
 .clock {
@@ -869,100 +863,9 @@ footer {
 }
 
 /* --- ANGELUS REMINDER --- */
-#angelus-reminder {
-    position: absolute;
-    top: 15%; /* Position above clock */
-    left: 50%;
-    transform: translateX(-50%);
-    
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 12px 20px;
-    border-radius: 50px;
-    
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    z-index: 100;
-}
+/* Angelus Reminder merged to bottom */
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translate(-50%, -20px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
-}
 
-.angelus-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-}
-
-.angelus-content i {
-    font-size: 1.2rem;
-    color: #eebb55; /* Gold/Bell color */
-    animation: bellRing 2s infinite ease-in-out;
-}
-
-@keyframes bellRing {
-    0%, 100% { transform: rotate(0); }
-    10%, 30%, 50%, 70%, 90% { transform: rotate(5deg); }
-    20%, 40%, 60%, 80% { transform: rotate(-5deg); }
-}
-
-.angelus-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.check-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.check-btn:hover {
-    background: #4caf50;
-    color: white;
-    border-color: #4caf50;
-    transform: scale(1.1);
-}
-
-.pray-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.pray-btn:hover {
-    background: #eebb55; /* Gold color */
-    color: white;
-    border-color: #eebb55;
-    transform: scale(1.1);
-}
-
-.pray-btn i {
-    pointer-events: none;
-}
 
 .footer-left {
     display: flex;
@@ -1572,7 +1475,8 @@ footer {
 }
 
 /* --- Navigation Bar --- */
-.rosary-nav {
+.rosary-nav,
+.exam-flow-nav {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1580,7 +1484,8 @@ footer {
     padding-top: 4px;
 }
 
-.rosary-nav .icon-btn {
+.rosary-nav .icon-btn,
+.exam-flow-nav .icon-btn {
     width: 40px;
     height: 40px;
     display: flex;
@@ -1593,13 +1498,15 @@ footer {
     transition: all 0.2s ease;
 }
 
-.rosary-nav .icon-btn:hover {
+.rosary-nav .icon-btn:hover,
+.exam-flow-nav .icon-btn:hover {
     background: rgba(255, 255, 255, 0.15);
     transform: scale(1.1);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
 }
 
-.rosary-counter {
+.rosary-counter,
+.exam-step-counter {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     font-family: 'Montserrat', sans-serif;
@@ -1854,40 +1761,11 @@ footer {
     transform: scale(1.05);
 }
 
-.exam-flow-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    padding-top: 4px;
-}
 
-.exam-flow-nav .icon-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.2s ease;
-}
 
-.exam-flow-nav .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.1);
-}
 
-.exam-step-counter {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-    min-width: 60px;
-    text-align: center;
-}
+
+
 
 /* --- Pomodoro Check-in --- */
 #pomodoro-checkin {
@@ -2027,24 +1905,7 @@ footer {
 }
 
 /* --- Midday Reminder --- */
-#midday-reminder {
-    position: absolute;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 12px 20px;
-    border-radius: 50px;
-
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-
-    z-index: 100;
-}
+/* Midday Reminder merged to bottom */
 
 #midday-reminder .angelus-content i {
     color: #fadc64;
@@ -2052,24 +1913,7 @@ footer {
 }
 
 /* --- Evening Reminder --- */
-#evening-reminder {
-    position: absolute;
-    top: 15%;
-    left: 50%;
-    transform: translateX(-50%);
-
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 12px 20px;
-    border-radius: 50px;
-
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-
-    z-index: 100;
-}
+/* Evening Reminder merged to bottom */
 
 #evening-reminder:hover {
     transform: translateX(-50%);
@@ -2081,24 +1925,7 @@ footer {
 }
 
 /* --- Rosary Suggestion --- */
-#rosary-reminder {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 12px 20px;
-    border-radius: 50px;
-
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(244, 114, 182, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-
-    z-index: 500;
-}
+/* Rosary Reminder merged to bottom */
 
 #rosary-reminder:hover {
     transform: translateX(-50%);
@@ -2767,6 +2594,8 @@ input:checked + .slider:before {
    ============================================================ */
 #angelus-reminder,
 #mercy-reminder,
+#midday-reminder,
+#evening-reminder,
 #rosary-reminder {
     position: fixed;
     top: 90px;
@@ -2796,12 +2625,38 @@ input:checked + .slider:before {
 .angelus-content i {
     font-size: 1.2rem;
     color: var(--text-primary);
+    animation: bellRing 2s infinite ease-in-out;
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(0); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(5deg); }
+    20%, 40%, 60%, 80% { transform: rotate(-5deg); }
 }
 
 .angelus-actions {
     display: flex;
     gap: 8px;
     margin-left: auto;
+    align-items: center;
+}
+
+.check-btn, .pray-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.pray-btn i {
+    pointer-events: none;
 }
 
 .pray-btn:hover {
