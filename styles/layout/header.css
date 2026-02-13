@@ -1,0 +1,142 @@
+/* ============================================
+   HEADER - Top Navigation & Actions
+   ============================================ */
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+/* ============================================
+   LINKS CONTAINER (esquerda)
+   ============================================ */
+
+.links-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* ============================================
+   ACTION BUTTONS (botões do header)
+   ============================================ */
+
+.action-btn {
+    /* Herda .glass-panel do glass-panels.css */
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.action-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Ícone dentro do botão */
+.action-btn i {
+    font-size: 1.1rem;
+}
+
+/* ============================================
+   QUICK LINKS (links rápidos salvos)
+   ============================================ */
+
+#quick-links-container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.quick-link {
+    /* Herda .glass-panel-sm */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    text-decoration: none;
+    color: white;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.quick-link:hover {
+    transform: translateY(-2px);
+}
+
+/* Favicon do link */
+.quick-link-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.quick-link-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* Botão de gerenciar links */
+#manage-links-btn {
+    /* Herda .action-btn */
+    font-size: 0.85rem;
+    padding: 8px 14px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    header {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .links-container {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        font-size: 0.85rem;
+        padding: 8px 15px;
+    }
+
+    #quick-links-container {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-btn {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+
+    .action-btn i {
+        font-size: 1rem;
+    }
+
+    .quick-link-name {
+        max-width: 80px;
+    }
+}

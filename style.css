@@ -34,23 +34,13 @@ body {
 }
 
 /* O conteúdo deve ficar acima do overlay */
-header, footer {
-    z-index: 10; 
-    position: relative;
-}
+
 
 /* Main merged below */
 
 
 
-/* --- HEADER --- */
-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px;
-}
 
-.links-container { display: flex; gap: 10px; }
 
 
 
@@ -82,52 +72,11 @@ main {
 
 
 
-/* --- FOOTER --- */
-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 20px;
-}
-
-.quote-container {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    width: 60%;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-}
-
-.quote-text { font-style: italic; font-size: 1.1rem; margin-bottom: 5px; }
-.quote-author { font-size: 0.8rem; text-transform: uppercase; opacity: 0.8; }
 
 
 
-.player-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
 
-.track-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.9rem;
-    color: var(--text-primary);
-}
 
-#track-name {
-    font-weight: 600;
-}
-
-#track-artist {
-    font-size: 0.8rem;
-    opacity: 0.8;
-}
 
 
 
@@ -606,10 +555,7 @@ footer {
 
 
 
-.footer-left {
-    display: flex;
-    gap: 10px;
-}
+
 
 /* ============================================================
    FOCUS TIMER (POMODORO)

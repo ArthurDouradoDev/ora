@@ -1,0 +1,206 @@
+/* ============================================
+   FOOTER - Bottom Section (Quote & Controls)
+   ============================================ */
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+/* ============================================
+   QUOTE CONTAINER (centro absoluto)
+   ============================================ */
+
+.quote-container {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 60%;
+    max-width: 800px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.quote-text {
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.5;
+}
+
+.quote-author {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+    letter-spacing: 1px;
+}
+
+/* ============================================
+   FOOTER CONTROLS (esquerda e direita)
+   ============================================ */
+
+.footer-left,
+.footer-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 1;
+}
+
+
+/* ============================================
+   PLAYER CONTROLS (direita do footer)
+   ============================================ */
+
+#footer-player {
+    /* Herda .glass-panel */
+    padding: 15px 20px;
+    min-width: 300px;
+}
+
+.player-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Info da track */
+.track-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 0; /* Para ellipsis funcionar */
+}
+
+#track-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+#track-artist {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Botões de controle */
+.control-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 968px) {
+    .quote-container {
+        width: 70%;
+        bottom: 20px;
+    }
+
+    .quote-text {
+        font-size: 1rem;
+    }
+
+    .quote-author {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    footer {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .quote-container {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        width: 100%;
+        order: 1;
+        margin-bottom: 15px;
+    }
+
+    .footer-left,
+    .footer-right {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .footer-left {
+        order: 2;
+    }
+
+    .footer-right {
+        order: 3;
+    }
+
+    #footer-player {
+        min-width: auto;
+        width: 100%;
+    }
+
+    #track-name,
+    #track-artist {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .quote-text {
+        font-size: 0.9rem;
+    }
+
+    .control-btn {
+        font-size: 1.3rem;
+        width: 36px;
+        height: 36px;
+    }
+
+    #footer-player {
+        padding: 12px 15px;
+    }
+
+    .player-controls {
+        gap: 10px;
+    }
+}
