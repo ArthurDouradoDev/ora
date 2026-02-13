@@ -1,0 +1,218 @@
+/* ============================================
+   MODALS - Base Structure & Animations
+   ============================================ */
+
+/* Overlay de fundo */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+}
+
+.modal-overlay.active {
+    display: block;
+}
+
+/* Container base do modal */
+.modal {
+    position: fixed;
+    display: none;
+    flex-direction: column;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    color: white;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+/* ============================================
+   POSICIONAMENTO (tipos de modal)
+   ============================================ */
+
+/* Modal centralizado (rosary, exam, music) */
+.modal-center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+/* Modal no canto (mini-player, prayer-list) */
+.modal-corner-right {
+    top: 90px;
+    right: 20px;
+    width: 350px;
+}
+
+.modal-corner-left {
+    top: 90px;
+    left: 20px;
+}
+
+.modal-corner-bottom-right {
+    bottom: 80px;
+    right: 20px;
+}
+
+.modal-corner-bottom-left {
+    bottom: 80px;
+    left: 20px;
+}
+
+/* Modal fullscreen (focus timer fullscreen) */
+.modal-fullscreen {
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+}
+
+/* ============================================
+   ESTRUTURA INTERNA (header, body, footer)
+   ============================================ */
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.modal-title, .modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Scrollbar customizada para modal body */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 20px;
+}
+
+.modal-footer {
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* ============================================
+   ANIMAÇÕES
+   ============================================ */
+
+/* Scale in/out (para modals centralizados) */
+@keyframes modalScaleIn {
+    from { 
+        opacity: 0; 
+        transform: translate(-50%, -50%) scale(0.95); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1); 
+    }
+}
+
+@keyframes modalScaleOut {
+    from { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1); 
+    }
+    to { 
+        opacity: 0; 
+        transform: translate(-50%, -50%) scale(0.93); 
+    }
+}
+
+/* Fade up/down (para modals de canto) */
+@keyframes modalFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalFadeDown {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(12px); }
+}
+
+/* Slide down/up (para Angelus reminder) */
+@keyframes modalSlideDown {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+/* Fullscreen fade */
+@keyframes fsFadeIn {
+    from { opacity: 0; transform: scale(1.05); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fsFadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(1.05); }
+}
+
+/* ============================================
+   CLASSES DE ANIMAÇÃO
+   ============================================ */
+
+/* Modals centralizados */
+.modal-scale.modal-opening { 
+    animation: modalScaleIn 0.25s ease forwards; 
+}
+.modal-scale.modal-closing { 
+    animation: modalScaleOut 0.2s ease forwards; 
+}
+
+/* Modals de canto */
+.modal-fade.modal-opening { 
+    animation: modalFadeUp 0.25s ease forwards; 
+}
+.modal-fade.modal-closing { 
+    animation: modalFadeDown 0.2s ease forwards; 
+}
+
+/* Angelus/reminders */
+.modal-slide.modal-opening { 
+    animation: modalSlideDown 0.4s ease forwards; 
+}
+.modal-slide.modal-closing { 
+    animation: modalSlideUp 0.3s ease forwards; 
+}
+
+/* Fullscreen */
+.modal-fs.modal-opening { 
+    animation: fsFadeIn 0.3s ease forwards; 
+}
+.modal-fs.modal-closing { 
+    animation: fsFadeOut 0.25s ease forwards; 
+}

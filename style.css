@@ -147,20 +147,7 @@ footer {
 
 
 /* --- MUSICA MODAL & PLAYLISTS --- */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 10px;
-}
 
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
 
 
 
@@ -258,25 +245,14 @@ footer {
 
 /* --- MUSIC LIBRARY (Modal) --- */
 #music-library {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 750px; /* Mais largo */
     max-width: 90vw;
     height: 70vh; /* Altura fixa */
     padding: 30px;
     
-    background: rgba(20, 20, 20, 0.85); /* Fundo um pouco mais opaco para leitura */
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-    border-radius: 20px;
-    
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    z-index: 200;
 }
 
 #music-library::-webkit-scrollbar {
@@ -292,16 +268,12 @@ footer {
 
 /* --- MINI PLAYER (Fixed Position - Left Side) --- */
 #mini-player {
-    position: fixed;
-    top: 90px; /* Below the header */
-    left: 20px; /* Aligned with left margin */
     padding: 15px;
     width: 350px; /* Increased width */
     
     display: flex;
     flex-direction: column;
     gap: 10px;
-    z-index: 100;
     
     /* Smooth transitions for minimize/maximize */
     transition: all 0.3s ease;
@@ -499,25 +471,14 @@ footer {
 
 /* --- PRAYER LIST MODAL --- */
 #prayer-list {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
     width: 420px;
     max-width: 90vw;
     max-height: 60vh;
     padding: 25px;
 
-    background: rgba(20, 20, 20, 0.4);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-    border-radius: 20px;
-
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    z-index: 200;
 }
 
 #prayer-list:hover {
@@ -599,37 +560,18 @@ footer {
 
 /* --- PRAYER READER MODAL --- */
 #prayer-reader {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 550px;
     max-width: 92vw;
     height: 75vh;
     padding: 30px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
-    z-index: 300;
 }
 
 #prayer-reader:hover {
-    transform: translate(-50%, -50%);
-}
-
-#prayer-reader .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 12px;
+    transform: -50%, -50%;
 }
 
 #prayer-reader .modal-header h3 {
@@ -690,23 +632,13 @@ footer {
 
 /* --- COMPACT MINI MODAL --- */
 #focus-mini {
-    position: fixed;
-    bottom: 80px;
-    left: 20px;
     padding: 15px;
     width: 300px;
 
     display: flex;
     flex-direction: column;
     gap: 10px;
-    z-index: 100;
 
-    background: rgba(20, 20, 20, 0.4);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-    border-radius: 18px;
     transition: all 0.3s ease;
 }
 
@@ -1018,26 +950,15 @@ footer {
    ============================================================ */
 
 #rosary-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 520px;
     max-width: 92vw;
     max-height: 85vh;
     padding: 25px 30px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
     gap: 16px;
-    z-index: 300;
     overflow-y: auto;
 }
 
@@ -1265,26 +1186,15 @@ footer {
 
 /* --- Exam Type Modal --- */
 #exam-type-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 440px;
     max-width: 92vw;
     max-height: 85vh;
     padding: 25px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
     gap: 16px;
-    z-index: 200;
     overflow-y: auto;
 }
 
@@ -1375,26 +1285,15 @@ footer {
 
 /* --- Exam Flow Modal --- */
 #exam-flow-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 480px;
     max-width: 92vw;
     max-height: 85vh;
     padding: 25px 30px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
     gap: 20px;
-    z-index: 300;
 }
 
 #exam-flow-modal:hover {
@@ -1454,19 +1353,9 @@ footer {
 
 /* --- Pomodoro Check-in --- */
 #pomodoro-checkin {
-    position: fixed;
-    bottom: 80px;
-    left: 20px;
     padding: 18px;
     width: 320px;
-    z-index: 150;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-    border-radius: 18px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
@@ -1510,26 +1399,15 @@ footer {
 
 /* --- Micro Prayer Modal --- */
 #micro-prayer-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 400px;
     max-width: 92vw;
     max-height: 80vh;
     padding: 25px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
     gap: 18px;
-    z-index: 300;
 }
 
 #micro-prayer-modal:hover {
@@ -1604,26 +1482,15 @@ footer {
 
 /* --- Virtues Modal --- */
 #virtues-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 440px;
     max-width: 92vw;
     max-height: 85vh;
     padding: 25px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
     gap: 16px;
-    z-index: 300;
     overflow-y: auto;
 }
 
@@ -1692,26 +1559,15 @@ footer {
 
 /* --- Virtues Editor --- */
 #virtues-editor {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 400px;
     max-width: 92vw;
     max-height: 80vh;
     padding: 25px;
-
-    background: rgba(15, 15, 15, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-    border-radius: 20px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
 
     display: flex;
     flex-direction: column;
     gap: 14px;
-    z-index: 350;
     overflow-y: auto;
 }
 
