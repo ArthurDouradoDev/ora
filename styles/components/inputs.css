@@ -1,0 +1,245 @@
+/* --- INPUTS, TEXTAREAS, SELECTS --- */
+
+/* Focus Section Input */
+.focus-section input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    font-size: 2rem;
+    color: white;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    outline: none;
+    width: 100%;
+    max-width: 500px;
+}
+
+.focus-section input::placeholder {
+    color: rgba(255, 255, 255, 0.61);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+}
+
+/* Playlist Input */
+#playlist-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    transition: all 0.2s;
+}
+
+#playlist-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+#playlist-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Focus Settings Input */
+.focus-setting-row input {
+    width: 60px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.focus-setting-row input:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Remove number input arrows */
+.focus-setting-row input::-webkit-outer-spin-button,
+.focus-setting-row input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Exam Textarea */
+.exam-textarea {
+    width: 100%;
+    min-height: 120px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.exam-textarea:focus {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(238, 187, 85, 0.3);
+    box-shadow: 0 0 16px rgba(238, 187, 85, 0.08);
+}
+
+.exam-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Virtues Input */
+.add-virtue-section input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.add-virtue-section input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.add-virtue-section input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Blocker Input */
+.add-site-section input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.add-site-section input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Prayer Search Input */
+.prayer-search-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0 10px;
+    transition: all 0.2s ease;
+}
+
+.prayer-search-container:focus-within {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+}
+
+.search-icon {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 8px;
+}
+
+#prayer-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    padding: 10px 0;
+    outline: none;
+}
+
+#prayer-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Add Link Input */
+.add-link-section input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    width: 100%;
+}
+
+.add-link-section input:focus {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* General Switch Toggle check if it should be here? It's an input type checkbox */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider {
+    background-color: #2e7d32;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
