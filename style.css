@@ -41,22 +41,7 @@ header, footer {
 
 /* Main merged below */
 
-/* --- ESTILO DOS PAINÉIS (GLASSMORPHISM) --- */
-.glass-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    color: white;
-    transition: all 0.3s ease;
-}
 
-.glass-panel:hover {
-    background: rgba(60, 60, 60, 0.5);
-    transform: translateY(-2px);
-}
 
 /* --- HEADER --- */
 header {

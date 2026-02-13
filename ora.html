@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="scripts/phosphor.js"></script>
     <link rel="stylesheet" href="styles/base/variables.css">
+    <link rel="stylesheet" href="styles/components/glass-panels.css">
     <link rel="stylesheet" href="styles/components/buttons.css">
     <link rel="stylesheet" href="styles/components/inputs.css">
     <link rel="stylesheet" href="styles/components/modals.css">
@@ -60,7 +61,7 @@
     </div>
 
     <!-- Music Library Modal -->
-    <div id="music-library" class="modal modal-center modal-scale" style="display: none;">
+    <div id="music-library" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <h3>Biblioteca</h3>
             <button id="close-library-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -75,7 +76,7 @@
     </div>
 
     <!-- Mini Player - Fixed Position Left Side -->
-    <div id="mini-player" class="modal modal-corner-left modal-fade" style="display: none;">
+    <div id="mini-player" class="glass-panel modal modal-corner-left modal-fade" style="display: none;">
         <div class="player-header">
             <span id="now-playing-text">Tocando...</span>
             <div class="player-actions">
@@ -141,7 +142,7 @@
     </footer>
 
     <!-- Focus Timer - Compact Mini Modal -->
-    <div id="focus-mini" class="modal modal-corner-bottom-left modal-fade" style="display: none;">
+    <div id="focus-mini" class="glass-panel modal modal-corner-bottom-left modal-fade" style="display: none;">
         <div class="focus-mini-header">
             <span class="focus-mini-phase">Foco</span>
             <div class="focus-mini-actions">
@@ -208,7 +209,7 @@
     </div>
 
     <!-- Prayer List Modal -->
-    <div id="prayer-list" class="modal modal-corner-bottom-right modal-fade" style="display: none;">
+    <div id="prayer-list" class="glass-panel modal modal-corner-bottom-right modal-fade" style="display: none;">
         <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Orações</h3>
@@ -223,7 +224,7 @@
     </div>
 
     <!-- Prayer Reader Modal -->
-    <div id="prayer-reader" class="modal modal-center modal-scale" style="display: none;">
+    <div id="prayer-reader" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="back-to-list-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3 id="prayer-reader-title">Oração</h3>
@@ -237,7 +238,7 @@
     </div>
 
     <!-- Rosary (Terço) Modal -->
-    <div id="rosary-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="rosary-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <h3 id="rosary-modal-title">Santo Terço</h3>
             <div class="lang-toggle-rosary" style="display: flex; gap: 8px; margin-right: 16px;">
@@ -271,7 +272,7 @@
     </div>
 
     <!-- Exam Type Selector Modal -->
-    <div id="exam-type-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="exam-type-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <h3>Examinar</h3>
             <button id="close-exam-type-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -288,7 +289,7 @@
     </div>
 
     <!-- Exam Flow Modal -->
-    <div id="exam-flow-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="exam-flow-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="exam-flow-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3 id="exam-flow-title">Exame</h3>
@@ -307,7 +308,7 @@
     </div>
 
     <!-- Pomodoro Emotional Check-in -->
-    <div id="pomodoro-checkin" class="modal modal-center modal-fade" style="display: none;">
+    <div id="pomodoro-checkin" class="glass-panel modal modal-center modal-fade" style="display: none;">
         <div class="checkin-header">
             <span class="checkin-title">Como está seu coração?</span>
             <button id="close-checkin-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>
@@ -316,7 +317,7 @@
     </div>
 
     <!-- Micro-Prayer Suggestion -->
-    <div id="micro-prayer-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="micro-prayer-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="micro-prayer-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3>Oração Rápida</h3>
@@ -369,7 +370,7 @@
     </div>
 
     <!-- Virtues Checklist Modal -->
-    <div id="virtues-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="virtues-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="virtues-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3>Virtudes do Dia</h3>
@@ -385,7 +386,7 @@
     </div>
 
     <!-- Virtues Editor Modal -->
-    <div id="virtues-editor" class="modal modal-center modal-scale" style="display: none;">
+    <div id="virtues-editor" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <button id="virtues-editor-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
             <h3>Editar Virtudes</h3>
@@ -399,7 +400,7 @@
     </div>
 
     <!-- Site Blocker Modal -->
-    <div id="blocker-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="blocker-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <h3>Bloqueador de Sites</h3>
             <button id="close-blocker-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -429,7 +430,7 @@
     <div id="toast-container"></div>
 
     <!-- Manage Links Modal -->
-    <div id="links-modal" class="modal modal-center modal-scale" style="display: none;">
+    <div id="links-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <h3>Gerenciar Links</h3>
             <button id="close-links-btn" class="icon-btn"><i class="ph ph-x"></i></button>
