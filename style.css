@@ -100,10 +100,6 @@ main {
 
 /* --- PLAYLIST GRID (Estilo Galeria) --- */
 .playlist-grid {
-    display: grid;
-    /* Reduzi de 140px para 110px para caber 5 itens */
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
-    gap: 15px; /* Reduzi o espaçamento para caber mais */
     margin-top: 20px;
     padding-bottom: 20px;
 }
@@ -1140,11 +1136,7 @@ main {
     font-style: italic;
 }
 
-.exam-type-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
+
 
 .exam-type-card {
     background: rgba(255, 255, 255, 0.04);
@@ -1345,11 +1337,7 @@ main {
     transform: translate(-50%, -50%);
 }
 
-.micro-prayer-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-}
+
 
 .micro-prayer-card {
     background: rgba(255, 255, 255, 0.04);

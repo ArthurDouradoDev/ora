@@ -3,4 +3,11 @@
     --glass-border: rgba(255, 255, 255, 0.1);
     --glass-blur: 12px;
     --text-primary: #ffffff;
+    
+    /* ESPAÇAMENTO */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
 }
