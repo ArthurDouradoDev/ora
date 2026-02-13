@@ -1,0 +1,277 @@
+/* --- MUSICA MODAL & PLAYLISTS --- */
+
+.add-playlist-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* --- PLAYLIST GRID (Estilo Galeria) --- */
+.playlist-grid {
+    margin-top: 20px;
+    padding-bottom: 20px;
+}
+
+.playlist-card {
+    background: transparent; /* Remove fundo do card inteiro */
+    border: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Vertical */
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    position: relative;
+}
+
+.playlist-card:hover .playlist-cover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.3);
+}
+
+/* A "Capa do Álbum" */
+.playlist-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Garante que seja quadrado */
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem; /* Ícone grande */
+    color: rgba(255,255,255,0.8);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.playlist-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Garante que a imagem preencha tudo sem esticar */
+    display: block;
+}
+
+.playlist-info {
+    width: 100%;
+    overflow: hidden;
+}
+/* Ajuste opcional para o título não ficar muito grande */
+.playlist-title {
+    font-size: 0.85rem; /* Um pouco menor */
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+    color: white;
+}
+
+.playlist-source {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* --- MUSIC LIBRARY (Modal) --- */
+#music-library {
+    width: 750px; /* Mais largo */
+    max-width: 90vw;
+    height: 70vh; /* Altura fixa */
+    padding: 30px;
+    
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#music-library::-webkit-scrollbar {
+    width: 6px;
+}
+#music-library::-webkit-scrollbar-track {
+    background: transparent;
+}
+#music-library::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 20px;
+}
+
+/* --- MINI PLAYER (Fixed Position - Left Side) --- */
+#mini-player {
+    padding: 15px;
+    width: 350px; /* Increased width */
+    
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    
+    /* Smooth transitions for minimize/maximize */
+    transition: all 0.3s ease;
+    
+    /* Remove hover transform to keep it stable */
+    &:hover {
+        transform: none;
+    }
+}
+
+/* Minimized state - compact view */
+#mini-player.minimized {
+    width: 280px; /* Slightly narrower when minimized */
+}
+
+#mini-player.minimized .player-header {
+    padding-bottom: 0;
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    padding-bottom: 10px;
+    transition: padding 0.3s ease;
+}
+
+.player-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.iframe-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    max-height: 352px;
+}
+
+/* Hide iframe container when minimized */
+#mini-player.minimized .iframe-container {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Playback Controls */
+.playback-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    max-width: 120px;
+    margin-left: 10px;
+}
+
+.volume-control i {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.volume-slider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.mini-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- TOAST NOTIFICATIONS --- */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: rgba(20, 20, 20, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    min-width: 250px;
+    transform: translateX(100%);
+    opacity: 0;
+    animation: slideIn 0.3s forwards;
+}
+
+.toast.toast-success i { color: #4ade80; }
+.toast.toast-error i { color: #f87171; }
+.toast.toast-info i { color: #60a5fa; }
+
+.toast.hide {
+    animation: slideOut 0.3s forwards;
+}
+
+.playlist-cover.loading {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}

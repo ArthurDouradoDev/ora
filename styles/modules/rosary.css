@@ -1,0 +1,229 @@
+/* ============================================================
+   ROSARY (TERÇO) MODAL
+   ============================================================ */
+
+#rosary-modal {
+    width: 520px;
+    max-width: 92vw;
+    max-height: 85vh;
+    padding: 25px 30px;
+    background: rgba(15, 15, 15, 0.92); /* Specific override */
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+#rosary-modal:hover {
+    transform: translate(-50%, -50%);
+}
+
+#rosary-modal::-webkit-scrollbar { width: 5px; }
+#rosary-modal::-webkit-scrollbar-track { background: transparent; }
+#rosary-modal::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 10px;
+}
+
+/* --- Chaplet Type Selector --- */
+.rosary-chaplet-selector {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+/* --- Mystery Selector --- */
+.rosary-mystery-selector {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* --- Mystery Name --- */
+.rosary-mystery-name {
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    min-height: 1.2em;
+    transition: all 0.3s ease;
+}
+
+/* --- Beads Container --- */
+.rosary-beads-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 8px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rosary-beads-container::-webkit-scrollbar { height: 3px; }
+.rosary-beads-container::-webkit-scrollbar-track { background: transparent; }
+.rosary-beads-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 10px;
+}
+
+/* --- Individual Bead --- */
+.rosary-bead {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.rosary-bead:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.2);
+}
+
+.rosary-bead.visited {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.rosary-bead.active {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: white;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.5), 0 0 30px rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Larger beads for Pai Nosso / special prayers */
+.rosary-bead.bead-large {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+}
+
+.rosary-bead.bead-large.active {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+}
+
+/* Decade separators */
+.rosary-bead-separator {
+    width: 2px;
+    height: 20px;
+    min-width: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+    border-radius: 1px;
+}
+
+/* Disabled beads (grey, non-interactive) */
+.rosary-bead.disabled {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.04);
+    cursor: default;
+    opacity: 0.3;
+}
+
+.rosary-bead.disabled:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: none;
+}
+
+/* Hide mystery selector when in misericordia mode */
+#rosary-modal.mode-misericordia .rosary-mystery-selector {
+    display: none;
+}
+
+/* --- Prayer Display --- */
+.rosary-prayer-display {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 18px 22px;
+    min-height: 120px;
+    max-height: 200px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+.rosary-prayer-display::-webkit-scrollbar { width: 4px; }
+.rosary-prayer-display::-webkit-scrollbar-track { background: transparent; }
+.rosary-prayer-display::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 10px;
+}
+
+.rosary-prayer-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.rosary-prayer-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: pre-line;
+}
+
+/* --- Navigation Bar --- */
+.rosary-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding-top: 4px;
+}
+
+.rosary-nav .icon-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
+}
+
+.rosary-nav .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+.rosary-counter {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* --- ROSARY SUGGESTION REMINDER --- */
+#rosary-reminder:hover {
+    transform: translateX(-50%);
+}
+
+#rosary-reminder .angelus-content i {
+    color: #f472b6; /* Pink/Rose */
+    animation: none;
+}

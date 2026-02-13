@@ -1,0 +1,13 @@
+/* --- HELPER CLASSES --- */
+
+.text-danger {
+    color: #ef5350;
+    background: rgba(239, 83, 80, 0.1);
+    border-color: rgba(239, 83, 80, 0.2);
+}
+
+.text-danger:hover {
+    background: rgba(239, 83, 80, 0.2);
+    border-color: rgba(239, 83, 80, 0.4);
+    transform: scale(1.05);
+}
