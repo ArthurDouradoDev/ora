@@ -1,0 +1,67 @@
+/* ============================================================
+   REMINDERS (Angelus, Mercy, Midday, Evening, Rosary Suggestion)
+   ============================================================ */
+
+#angelus-reminder,
+#mercy-reminder,
+#midday-reminder,
+#evening-reminder,
+#rosary-reminder {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 20px;
+    
+    /* Ensure it doesn't stretch */
+    width: auto;
+    min-width: 300px;
+    max-width: 90vw;
+}
+
+.angelus-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.angelus-content i {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    animation: bellRing 2s infinite ease-in-out;
+}
+
+.angelus-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    align-items: center;
+}
+
+/* Modal Slide Animation */
+.modal-slide {
+    animation: modalSlideDown 0.4s ease-out forwards;
+}
+
+/* --- Midday Reminder Specifics --- */
+#midday-reminder .angelus-content i {
+    color: #fadc64;
+    animation: none;
+}
+
+/* --- Evening Reminder Specifics --- */
+#evening-reminder:hover {
+    transform: translateX(-50%);
+}
+
+#evening-reminder .angelus-content i {
+    color: #a78bfa;
+    animation: none;
+}
