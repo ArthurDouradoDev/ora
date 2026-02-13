@@ -53,6 +53,10 @@ footer {
     z-index: 1;
 }
 
+.footer-right {
+    align-items: flex-end;
+}
+
 
 /* ============================================
    PLAYER CONTROLS (direita do footer)
