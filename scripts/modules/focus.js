@@ -32,6 +32,9 @@ const FocusSystem = {
         this.loadSettingsUI();
         this.updateDisplay();
 
+        // AudioContext Singleton
+        this.audioContext = null;
+
         console.log('[Ora] Focus Timer initialized');
     },
 
@@ -271,49 +274,52 @@ const FocusSystem = {
     },
 
     startTimer: function() {
-        if (this.timerInterval) return;
+        if (this.isTimerRunning) return;
         this.isTimerRunning = true;
-                
-        // Optimization: Use requestAnimationFrame for smoother timer, but kept simple setInterval for now as refactor is focused on storage
-        this.timerInterval = setInterval(() => {
-            this.timeRemaining--;
+        
+        // Precision Timer Logic
+        const now = Date.now();
+        this.expectedEndTime = now + (this.timeRemaining * 1000);
+        
+        this.tick();
+    },
 
+    tick: function() {
+        if (!this.isTimerRunning) return;
+
+        const now = Date.now();
+        const remainingSeconds = Math.max(0, Math.ceil((this.expectedEndTime - now) / 1000));
+        
+        // Only update if second changed (to avoid unnecessary DOM updates)
+        if (remainingSeconds !== this.timeRemaining) {
+            this.timeRemaining = remainingSeconds;
+            
             if (this.phase === 'focus') {
-                this.totalFocusSeconds++;
-                // Save total seconds async (fire and forget for performance loop, or debounce if strictly needed, but 1/sec is okay-ish for chrome.storage)
-                // Better: Save only on pause/stop or periodically to avoid 1 write/sec which might hit quotas.
-                // However, user wants to see total update.
-                // For now, let's throttle saving?
-                // Actually chrome.storage.local has high quotas, but 1/s is frequent.
-                // Let's safe-guard: save only every 5 seconds or on stop.
-                if (this.totalFocusSeconds % 5 === 0) {
+                 this.totalFocusSeconds++;
+                 if (this.totalFocusSeconds % 5 === 0) {
                      AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
-                }
+                 }
             }
-
+            
             this.updateDisplay();
+        }
 
-            if (this.timeRemaining <= 0) {
-                clearInterval(this.timerInterval);
-                this.timerInterval = null;
-                this.isTimerRunning = false;
-                
-                // Ensure final state saved
-                AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
-                
-                this.playTone();
-                this.advancePhase();
-            }
-        }, 1000);
-        this.updateDisplay();
+        if (this.timeRemaining <= 0) {
+            this.isTimerRunning = false;
+            AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
+            this.playTone();
+            this.advancePhase();
+        } else {
+            this.animationFrameId = requestAnimationFrame(() => this.tick());
+        }
     },
 
     pauseTimer: function() {
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-        }
         this.isTimerRunning = false;
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
         // Save state on pause
         if (this.phase === 'focus') {
             AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());

@@ -210,14 +210,12 @@ async function initApp() {
             intentionInput.value = savedIntention;
         }
 
-        // Use debounce for improvements as suggested plan
-        let debounceTimer;
+        const saveIntention = window.debounce((value) => {
+             AsyncStorage.set('ora_intention', value);
+        }, 500);
+
         intentionInput.addEventListener('input', (e) => {
-            const value = e.target.value;
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                 AsyncStorage.set('ora_intention', value);
-            }, 500);
+            saveIntention(e.target.value);
         });
 
         // Listen for storage changes from other windows/tabs (requires background script usually, chrome.storage.onChanged)

@@ -68,6 +68,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (addLinkBtn) {
             addLinkBtn.addEventListener('click', addNewLink);
         }
+
+        // Event Delegation for Delete Buttons
+        if (linksList) {
+            linksList.addEventListener('click', (e) => {
+                const deleteBtn = e.target.closest('.delete-link-btn');
+                if (deleteBtn) {
+                    const index = parseInt(deleteBtn.dataset.index);
+                    deleteLink(index);
+                }
+            });
+        }
     }
 
 
@@ -187,13 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             linksList.appendChild(item);
         });
 
-        // Add event listeners for delete buttons (delegation could be better but sticking to simple refactor first)
-        document.querySelectorAll('.delete-link-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.currentTarget.getAttribute('data-index'));
-                deleteLink(index);
-            });
-        });
+
         
         // Update Add Button State
         if (links.length >= MAX_LINKS) {

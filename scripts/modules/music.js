@@ -7,7 +7,10 @@ const MusicSystem = {
         currentPlaylistUrl: '',
         currentPlaylistIndex: -1,
         allPlaylists: [],
-        deletedDefaultPlaylists: []
+        currentPlaylistIndex: -1,
+        allPlaylists: [],
+        deletedDefaultPlaylists: [],
+        metadataCache: new Map()
     },
 
     deps: {}, // Deprecated, kept for structure but unused
@@ -160,8 +163,16 @@ const MusicSystem = {
             const coverEl = cardElement.querySelector('.playlist-cover');
             if (coverEl) coverEl.classList.add('loading');
 
-            const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
-            const fetchedData = await response.json();
+            const cacheKey = `${playlist.source}_${playlist.externalId}`;
+            let fetchedData;
+
+            if (this.state.metadataCache.has(cacheKey)) {
+                fetchedData = this.state.metadataCache.get(cacheKey);
+            } else {
+                const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+                fetchedData = await response.json();
+                this.state.metadataCache.set(cacheKey, fetchedData);
+            }
 
             if (coverEl) coverEl.classList.remove('loading');
 
