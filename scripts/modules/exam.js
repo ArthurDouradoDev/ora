@@ -101,7 +101,7 @@ const ExamSystem = {
         if (d.examFlowBackBtn) {
             d.examFlowBackBtn.addEventListener('click', () => {
                 this.closeExamFlow();
-                this.openExamTypeModal();
+                setTimeout(() => this.openExamTypeModal(), 300);
             });
         }
 
@@ -132,7 +132,7 @@ const ExamSystem = {
         if (d.virtuesBackBtn) {
             d.virtuesBackBtn.addEventListener('click', () => {
                 this.closeVirtuesModal();
-                this.openExamTypeModal();
+                setTimeout(() => this.openExamTypeModal(), 300);
             });
         }
 
@@ -141,7 +141,7 @@ const ExamSystem = {
         if (d.virtuesEditorBackBtn) {
             d.virtuesEditorBackBtn.addEventListener('click', () => {
                 this.closeVirtuesEditor();
-                this.openVirtuesModal();
+                setTimeout(() => this.openVirtuesModal(), 300);
             });
         }
         if (d.addVirtueBtn) d.addVirtueBtn.addEventListener('click', () => this.addNewVirtue());
