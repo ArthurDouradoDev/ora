@@ -35,7 +35,7 @@ const ReminderSystem = {
         }
     },
 
-    init: function(data) {
+    init: async function(data) {
         this.prayers = data.prayers || [];
         this.examData = data.exam || {};
         
@@ -46,10 +46,10 @@ const ReminderSystem = {
         this.startMonitoring();
         
         // Initial checks
-        this.checkAngelusTime();
-        this.checkMercyTime();
-        this.checkMiddayExam();
-        this.checkEveningExam();
+        await this.checkAngelusTime();
+        await this.checkMercyTime();
+        await this.checkMiddayExam();
+        await this.checkEveningExam();
         
         console.log('[Ora] Reminder System initialized');
     },
@@ -95,11 +95,11 @@ const ReminderSystem = {
         }
 
         if (this.elements.angelus.checkBtn) {
-            this.elements.angelus.checkBtn.addEventListener('click', () => {
+            this.elements.angelus.checkBtn.addEventListener('click', async () => {
                 const now = new Date();
                 const windowName = this.getAngelusWindow(now.getHours());
                 if (windowName) {
-                    this.markDone('angelus_done_' + windowName);
+                    await this.markDone('angelus_done_' + windowName);
                 }
                 this.hideModal(this.elements.angelus.modal);
                 showToast('Angelus rezado!', 'success');
@@ -123,8 +123,8 @@ const ReminderSystem = {
         }
 
         if (this.elements.mercy.checkBtn) {
-            this.elements.mercy.checkBtn.addEventListener('click', () => {
-                this.markDone('mercy_done');
+            this.elements.mercy.checkBtn.addEventListener('click', async () => {
+                await this.markDone('mercy_done');
                 this.hideModal(this.elements.mercy.modal);
                 showToast('Terço da Misericórdia rezado!', 'success');
             });
@@ -143,8 +143,8 @@ const ReminderSystem = {
         }
 
         if (this.elements.midday.checkBtn) {
-            this.elements.midday.checkBtn.addEventListener('click', () => {
-                this.markDone('ora_midday_done');
+            this.elements.midday.checkBtn.addEventListener('click', async () => {
+                await this.markDone('ora_midday_done');
                 this.hideModal(this.elements.midday.modal);
                 showToast('Exame meridiano marcado como feito!', 'success');
             });
@@ -160,8 +160,8 @@ const ReminderSystem = {
         }
 
         if (this.elements.evening.checkBtn) {
-            this.elements.evening.checkBtn.addEventListener('click', () => {
-                this.markDone('ora_evening_done');
+            this.elements.evening.checkBtn.addEventListener('click', async () => {
+                await this.markDone('ora_evening_done');
                 this.hideModal(this.elements.evening.modal);
                 showToast('Exame noturno registrado!', 'success');
             });
@@ -198,11 +198,11 @@ const ReminderSystem = {
 
     startMonitoring: function() {
         // Check every minute
-        setInterval(() => {
-            this.checkAngelusTime();
-            this.checkMercyTime();
-            this.checkMiddayExam();
-            this.checkEveningExam();
+        setInterval(async () => {
+            await this.checkAngelusTime();
+            await this.checkMercyTime();
+            await this.checkMiddayExam();
+            await this.checkEveningExam();
         }, 60000);
     },
 
@@ -220,16 +220,16 @@ const ReminderSystem = {
         }
     },
 
-    markDone: function(prefix) {
+    markDone: async function(prefix) {
         const todayStr = new Date().toDateString();
         const key = prefix + '_' + todayStr;
-        SafeStorage.setItem(key, 'true');
+        await AsyncStorage.set(key, 'true');
     },
 
-    isDone: function(prefix) {
+    isDone: async function(prefix) {
         const todayStr = new Date().toDateString();
         const key = prefix + '_' + todayStr;
-        const value = SafeStorage.getItem(key);
+        const value = await AsyncStorage.get(key);
         
         // Retorna true se foi marcado como feito hoje
         return value === 'true';
@@ -244,16 +244,17 @@ const ReminderSystem = {
         return null;
     },
 
-    checkAngelusTime: function() {
+    checkAngelusTime: async function() {
         const now = new Date();
         const hours = now.getHours();
         const windowName = this.getAngelusWindow(hours);
 
         if (windowName) {
-            if (!this.isDone('angelus_done_' + windowName)) {
+            const done = await this.isDone('angelus_done_' + windowName);
+            if (!done) {
                 this.showModal(this.elements.angelus.modal);
                 // Notification (optional, keeping consistent with old logic)
-                this.trySendNotification('Hora do Angelus', 'O Anjo do Senhor anunciou a Maria...', windowName);
+                await this.trySendNotification('Hora do Angelus', 'O Anjo do Senhor anunciou a Maria...', windowName);
             } else {
                 this.hideModal(this.elements.angelus.modal);
             }
@@ -262,7 +263,7 @@ const ReminderSystem = {
         }
     },
 
-    checkMercyTime: function() {
+    checkMercyTime: async function() {
         // If Rosary modal is already open, do not show reminder
         if (isModalVisible(document.getElementById('rosary-modal'))) {
             this.hideModal(this.elements.mercy.modal);
@@ -272,7 +273,8 @@ const ReminderSystem = {
         const hours = new Date().getHours();
         // 15h - 16h
         if (hours === 15) {
-            if (!this.isDone('mercy_done')) {
+            const done = await this.isDone('mercy_done');
+            if (!done) {
                 this.showModal(this.elements.mercy.modal);
             } else {
                 this.hideModal(this.elements.mercy.modal);
@@ -282,11 +284,12 @@ const ReminderSystem = {
         }
     },
 
-    checkMiddayExam: function() {
+    checkMiddayExam: async function() {
         const hours = new Date().getHours();
         // 11h - 14h
         if (hours >= 11 && hours < 14) {
-            if (!this.isDone('ora_midday_done')) {
+            const done = await this.isDone('ora_midday_done');
+            if (!done) {
                 this.showModal(this.elements.midday.modal);
             }
         } else {
@@ -294,11 +297,12 @@ const ReminderSystem = {
         }
     },
 
-    checkEveningExam: function() {
+    checkEveningExam: async function() {
         const hours = new Date().getHours();
         // 18h+
         if (hours >= 18) {
-            if (!this.isDone('ora_evening_done')) {
+            const done = await this.isDone('ora_evening_done');
+            if (!done) {
                 this.showModal(this.elements.evening.modal);
             }
         } else {
@@ -320,16 +324,16 @@ const ReminderSystem = {
         }
     },
 
-    trySendNotification: function(title, body, windowName) {
+    trySendNotification: async function(title, body, windowName) {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
         
         const todayStr = new Date().toDateString();
         const key = 'angelus_notif_' + windowName + '_' + todayStr;
-        if (SafeStorage.getItem(key)) return; // Already sent
+        if (await AsyncStorage.get(key)) return; // Already sent
 
         try {
             new Notification(title, { body: body, icon: 'assets/icon.png' });
-            SafeStorage.setItem(key, 'true');
+            await AsyncStorage.set(key, 'true');
         } catch (e) {
             console.warn('[Ora] Notification failed:', e);
         }
@@ -337,7 +341,15 @@ const ReminderSystem = {
 
     playTone: function() {
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            // Reusing context helps performance
+            if (!this.audioContext) {
+                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+
+            const ctx = this.audioContext;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain);

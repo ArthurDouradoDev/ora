@@ -12,11 +12,11 @@ const MusicSystem = {
 
     deps: {}, // Deprecated, kept for structure but unused
 
-    init: function(defaultPlaylists) {
+    init: async function(defaultPlaylists) {
         this.state.defaultPlaylists = defaultPlaylists || [];
-        // Dependencies are now global (SafeStorage, animateModal, etc.)
+        // Dependencies are now global (AsyncStorage, animateModal, etc.)
         
-        this.loadUserPlaylists();
+        await this.loadUserPlaylists();
         this.cacheDOM();
         this.bindEvents();
         this.renderPlaylists();
@@ -24,21 +24,22 @@ const MusicSystem = {
         console.log('[Ora] Music System initialized');
     },
 
-    loadUserPlaylists: function() {
+    loadUserPlaylists: async function() {
         try {
-            const stored = SafeStorage.getItem('ora_user_playlists');
-            this.state.userPlaylists = stored ? JSON.parse(stored) : [];
+            const stored = await AsyncStorage.get('ora_user_playlists');
+            this.state.userPlaylists = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : [];
             
-            const deleted = SafeStorage.getItem('ora_deleted_default_playlists');
-            this.state.deletedDefaultPlaylists = deleted ? JSON.parse(deleted) : [];
+            const deleted = await AsyncStorage.get('ora_deleted_default_playlists');
+            this.state.deletedDefaultPlaylists = deleted ? (typeof deleted === 'string' ? JSON.parse(deleted) : deleted) : [];
         } catch (e) {
+            console.error('[Music] Error loading playlists:', e);
             this.state.userPlaylists = [];
             this.state.deletedDefaultPlaylists = [];
         }
     },
 
-    saveUserPlaylists: function() {
-        SafeStorage.setItem('ora_user_playlists', JSON.stringify(this.state.userPlaylists));
+    saveUserPlaylists: async function() {
+        await AsyncStorage.set('ora_user_playlists', JSON.stringify(this.state.userPlaylists));
     },
 
     cacheDOM: function() {
@@ -324,7 +325,7 @@ const MusicSystem = {
             // It's a default playlist, add to deleted list
             if (!this.state.deletedDefaultPlaylists.includes(id)) {
                 this.state.deletedDefaultPlaylists.push(id);
-                SafeStorage.setItem('ora_deleted_default_playlists', JSON.stringify(this.state.deletedDefaultPlaylists));
+                AsyncStorage.set('ora_deleted_default_playlists', JSON.stringify(this.state.deletedDefaultPlaylists));
             }
         } else {
             // It's a user playlist, remove from list

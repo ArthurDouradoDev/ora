@@ -1,6 +1,6 @@
 // links.js
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const linksContainer = document.getElementById('quick-links-container');
     const linksModal = document.getElementById('links-modal');
     const linksList = document.getElementById('manage-links-list');
@@ -22,19 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // State
-    let links = JSON.parse(localStorage.getItem('oraLinks'));
-    
-    if (!links) {
-        links = DEFAULT_LINKS;
-        // Save defaults immediately so they persist
-        localStorage.setItem('oraLinks', JSON.stringify(links));
-    }
+    let links = [];
+
+    // Favicon Cache
+    const faviconCache = new Map();
 
     // Max limits
     const MAX_LINKS = 6;
     const MAX_NAME_LENGTH = 20;
 
     // --- Init ---
+    await loadLinks();
     renderLinks();
     setupEventListeners();
 
@@ -72,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+
     function getFavicon(url) {
         try {
             const urlObj = new URL(url);
@@ -79,7 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Protocolo inválido');
             }
             const domain = urlObj.hostname;
-            return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+            if (faviconCache.has(domain)) {
+                return faviconCache.get(domain);
+            }
+
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            faviconCache.set(domain, faviconUrl);
+            return faviconUrl;
         } catch (e) {
             console.error('[Links] Erro ao obter favicon:', e);
             // Return a generic local icon
@@ -101,9 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         linksContainer.innerHTML = '';
 
-        // If no links, maybe show a placeholder or just the manage button?
-        // User asked for a button to open the popup IN the section.
-        // So we render the links + the manage button at the end.
+        // Optimization: Use DocumentFragment
+        const fragment = document.createDocumentFragment();
 
         links.forEach(link => {
             const linkEl = document.createElement('a');
@@ -115,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = getFavicon(link.url);
             img.alt = link.name;
             img.className = 'link-icon';
+            img.loading = 'lazy';
             
             const span = document.createElement('span');
             span.textContent = link.name;
@@ -122,8 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
             linkEl.appendChild(img);
             linkEl.appendChild(span);
             
-            linksContainer.appendChild(linkEl);
+            fragment.appendChild(linkEl);
         });
+
+        linksContainer.appendChild(fragment);
 
         // Append the "Manage" button at the end of the grid/row
         const manageBtn = document.createElement('button');
@@ -178,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
             linksList.appendChild(item);
         });
 
-        // Add event listeners for delete buttons
+        // Add event listeners for delete buttons (delegation could be better but sticking to simple refactor first)
         document.querySelectorAll('.delete-link-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const index = parseInt(e.currentTarget.getAttribute('data-index'));
@@ -198,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addNewLink() {
+    async function addNewLink() {
         const name = linkNameInput.value.trim();
         let url = linkUrlInput.value.trim();
 
@@ -227,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         links.push({ name, url });
-        saveLinks();
+        await saveLinks();
         
         linkNameInput.value = '';
         linkUrlInput.value = '';
@@ -237,27 +246,42 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Link adicionado!', 'success');
     }
 
-    function deleteLink(index) {
+    async function deleteLink(index) {
         links.splice(index, 1);
-        saveLinks(links);
+        await saveLinks();
         renderManageList();
         renderLinks();
         showToast('Link removido.', 'info');
     }
 
-    // Load links
-    function loadLinks() {
+    // Load links (Async)
+    async function loadLinks() {
         try {
-            const saved = SafeStorage.getItem('ora_quick_links');
-            return saved ? JSON.parse(saved) : [];
+            const rawLinks = await AsyncStorage.get('ora_quick_links'); // Use updated SafeStorage or AsyncStorage if directly available
+            if (rawLinks) {
+                links = (typeof rawLinks === 'string') ? JSON.parse(rawLinks) : rawLinks;
+            } else {
+                 // Try legacy key
+                const legacyLinks = await AsyncStorage.get('oraLinks');
+                if (legacyLinks) {
+                     links = (typeof legacyLinks === 'string') ? JSON.parse(legacyLinks) : legacyLinks;
+                     // Migrate to new key
+                     await AsyncStorage.set('ora_quick_links', links);
+                     await AsyncStorage.remove('oraLinks');
+                } else {
+                    links = DEFAULT_LINKS;
+                    await saveLinks();
+                }
+            }
         } catch (e) {
-            return [];
+            console.error('[Links] Error loading links:', e);
+            links = DEFAULT_LINKS;
         }
     }
 
-    // Save links
-    function saveLinks(links) {
-        SafeStorage.setItem('ora_quick_links', JSON.stringify(links));
+    // Save links (Async)
+    async function saveLinks() {
+        await AsyncStorage.set('ora_quick_links', links); // Store as object/array directly supported by chrome.storage
     }
 
     // Reuse existing helper if available, or define local

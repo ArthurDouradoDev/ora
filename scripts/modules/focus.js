@@ -12,16 +12,19 @@ const FocusSystem = {
     },
 
 
-    init: function() {
+    init: async function() {
         this.todayKey = 'ora_focus_total_' + new Date().toDateString();
-        this.totalFocusSeconds = parseInt(SafeStorage.getItem(this.todayKey)) || 0;
+        
+        // Load initial state async
+        const savedTotal = await AsyncStorage.get(this.todayKey);
+        this.totalFocusSeconds = parseInt(savedTotal) || 0;
         
         // Initialize state
         this.pomodoroCount = 0;
         this.phase = 'focus';
         this.settings = { focus: 25, pause: 5, longPause: 15 };
 
-        this.loadSettings();
+        await this.loadSettings();
         this.cacheDOM();
         this.bindEvents();
         
@@ -35,6 +38,8 @@ const FocusSystem = {
     cacheDOM: function() {
         // Mini
         this.elements.mini.container = document.getElementById('focus-mini');
+        if (!this.elements.mini.container) return; // Guard if elements missing
+
         this.elements.mini.phase = this.elements.mini.container.querySelector('.focus-mini-phase');
         this.elements.mini.timer = this.elements.mini.container.querySelector('.focus-mini-timer');
         this.elements.mini.total = this.elements.mini.container.querySelector('.focus-mini-total');
@@ -70,6 +75,8 @@ const FocusSystem = {
     },
 
     bindEvents: function() {
+        if (!this.elements.mini.container) return;
+
         // Open timer
         if (this.elements.triggers.btnFocus) {
             this.elements.triggers.btnFocus.addEventListener('click', (e) => {
@@ -118,7 +125,7 @@ const FocusSystem = {
 
         // Settings input change
         [this.elements.settings.focusInput, this.elements.settings.pauseInput, this.elements.settings.longPauseInput].forEach(input => {
-            input.addEventListener('change', () => this.saveSettings());
+            if (input) input.addEventListener('change', () => this.saveSettings());
         });
 
         // Close settings on click outside
@@ -138,10 +145,12 @@ const FocusSystem = {
         });
     },
 
-    loadSettings: function() {
+    loadSettings: async function() {
         try {
-            const savedSettings = SafeStorage.getItem('ora_focus_settings');
-            if (savedSettings) this.settings = JSON.parse(savedSettings);
+            const savedSettings = await AsyncStorage.get('ora_focus_settings');
+            if (savedSettings) {
+                this.settings = (typeof savedSettings === 'string') ? JSON.parse(savedSettings) : savedSettings;
+            }
         } catch (e) { /* use defaults */ }
         
         // Initial time update
@@ -150,12 +159,13 @@ const FocusSystem = {
     },
 
     loadSettingsUI: function() {
+        if (!this.elements.settings.focusInput) return;
         this.elements.settings.focusInput.value = this.settings.focus;
         this.elements.settings.pauseInput.value = this.settings.pause;
         this.elements.settings.longPauseInput.value = this.settings.longPause;
     },
 
-    saveSettings: function() {
+    saveSettings: async function() {
         const f = parseInt(this.elements.settings.focusInput.value) || 25;
         const p = parseInt(this.elements.settings.pauseInput.value) || 5;
         const lp = parseInt(this.elements.settings.longPauseInput.value) || 15;
@@ -166,7 +176,7 @@ const FocusSystem = {
             longPause: Math.max(1, Math.min(60, lp))
         };
 
-        SafeStorage.setItem('ora_focus_settings', JSON.stringify(this.settings));
+        await AsyncStorage.set('ora_focus_settings', JSON.stringify(this.settings));
 
         // If timer is not running, update the current phase duration
         if (!this.isTimerRunning) {
@@ -206,6 +216,8 @@ const FocusSystem = {
     },
 
     updateDisplay: function() {
+        if (!this.elements.mini.container) return;
+
         const timeStr = this.formatTime(this.timeRemaining);
         const label = this.getPhaseLabel(this.phase);
         const totalStr = this.formatTotalFocus(this.totalFocusSeconds);
@@ -261,12 +273,22 @@ const FocusSystem = {
     startTimer: function() {
         if (this.timerInterval) return;
         this.isTimerRunning = true;
+                
+        // Optimization: Use requestAnimationFrame for smoother timer, but kept simple setInterval for now as refactor is focused on storage
         this.timerInterval = setInterval(() => {
             this.timeRemaining--;
 
             if (this.phase === 'focus') {
                 this.totalFocusSeconds++;
-                SafeStorage.setItem(this.todayKey, this.totalFocusSeconds.toString());
+                // Save total seconds async (fire and forget for performance loop, or debounce if strictly needed, but 1/sec is okay-ish for chrome.storage)
+                // Better: Save only on pause/stop or periodically to avoid 1 write/sec which might hit quotas.
+                // However, user wants to see total update.
+                // For now, let's throttle saving?
+                // Actually chrome.storage.local has high quotas, but 1/s is frequent.
+                // Let's safe-guard: save only every 5 seconds or on stop.
+                if (this.totalFocusSeconds % 5 === 0) {
+                     AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
+                }
             }
 
             this.updateDisplay();
@@ -275,6 +297,10 @@ const FocusSystem = {
                 clearInterval(this.timerInterval);
                 this.timerInterval = null;
                 this.isTimerRunning = false;
+                
+                // Ensure final state saved
+                AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
+                
                 this.playTone();
                 this.advancePhase();
             }
@@ -288,6 +314,10 @@ const FocusSystem = {
             this.timerInterval = null;
         }
         this.isTimerRunning = false;
+        // Save state on pause
+        if (this.phase === 'focus') {
+            AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
+        }
         this.updateDisplay();
     },
 
@@ -345,7 +375,15 @@ const FocusSystem = {
 
     playTone: function() {
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            // Reusing context helps performance
+            if (!this.audioContext) {
+                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+
+            const ctx = this.audioContext;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain);

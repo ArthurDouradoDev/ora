@@ -1,14 +1,14 @@
 const BackgroundSystem = {
     data: [],
     
-    init(backgroundData) {
+    async init(backgroundData) {
         // Accept data from script.js (which fetches it)
         this.data = backgroundData || [];
-        this.setBackground();
+        await this.setBackground();
         console.log('[Ora] Background System Initialized');
     },
 
-    setBackground() {
+    async setBackground() {
         try {
             if (!this.data || this.data.length === 0) {
                 console.warn('[Ora] No background images available.');
@@ -16,20 +16,21 @@ const BackgroundSystem = {
             }
 
             const today = new Date().toDateString();
-            const savedDate = SafeStorage.getItem('catholic_dash_date');
+            const savedDate = await AsyncStorage.get('catholic_dash_date');
             let imageUrl;
 
             // Check if we already have a saved image for today
-            if (savedDate === today && SafeStorage.getItem('catholic_dash_image')) {
-                imageUrl = SafeStorage.getItem('catholic_dash_image');
+            const savedImage = await AsyncStorage.get('catholic_dash_image');
+            if (savedDate === today && savedImage) {
+                imageUrl = savedImage;
             } else {
                 // Select a new random image
                 const randomIndex = Math.floor(Math.random() * this.data.length);
                 imageUrl = this.data[randomIndex];
                 
                 // Persist the selection
-                SafeStorage.setItem('catholic_dash_date', today);
-                SafeStorage.setItem('catholic_dash_image', imageUrl);
+                await AsyncStorage.set('catholic_dash_date', today);
+                await AsyncStorage.set('catholic_dash_image', imageUrl);
             }
 
             // Apply to body

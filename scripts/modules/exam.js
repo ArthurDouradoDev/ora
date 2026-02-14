@@ -11,7 +11,7 @@ const ExamSystem = {
     data: null,
     // config: removed, dependencies are global
 
-    init(data) {
+    init: async function(data) {
         this.data = data;
         // Global dependencies: SafeStorage, animateModal, isModalVisible, showToast
         
@@ -30,6 +30,9 @@ const ExamSystem = {
                 this.startExam(e.detail.type);
             }
         });
+
+        // Initialize UI with async data
+        await this.updateStreakDisplay();
 
         console.log('[Ora] ExamSystem initialized');
     },
@@ -109,7 +112,6 @@ const ExamSystem = {
         if (d.examPrevBtn) d.examPrevBtn.addEventListener('click', () => this.prevExamStep());
 
         // Close on click outside
-        // Close on click outside
         document.addEventListener('click', (e) => {
             if (isModalVisible(d.examTypeModal) &&
                 !d.examTypeModal.contains(e.target) &&
@@ -171,22 +173,27 @@ const ExamSystem = {
         else this.dom.btnExam.classList.add('exam-evening');
     },
 
-    getWeeklyExamCount() {
+    getWeeklyExamCount: async function() {
         let count = 0;
         const now = new Date();
         const dayOfWeek = now.getDay();
         for (let i = 0; i <= dayOfWeek; i++) {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
-            d.setDate(d.getDate() - i);
             const key = 'ora_exam_done_' + d.toDateString();
-            if (SafeStorage.getItem(key)) count++;
+            if (await AsyncStorage.get(key)) count++;
         }
         return count;
     },
 
-    openExamTypeModal() {
-        const { examTypeGrid, examSuggestion, examStreakText, examTypeModal } = this.dom;
+    updateStreakDisplay: async function() {
+        if (!this.dom.examStreakText) return;
+        const weekCount = await this.getWeeklyExamCount();
+        this.dom.examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
+    },
+
+    openExamTypeModal: async function() {
+        const { examTypeGrid, examSuggestion, examTypeModal } = this.dom;
         const { exam } = this.data;
         
         examTypeGrid.innerHTML = '';
@@ -210,9 +217,7 @@ const ExamSystem = {
             examTypeGrid.appendChild(card);
         });
 
-        const weekCount = this.getWeeklyExamCount();
-        if (examStreakText) examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
-
+        await this.updateStreakDisplay();
         animateModal(examTypeModal, true);
     },
 
@@ -220,18 +225,14 @@ const ExamSystem = {
         animateModal(this.dom.examTypeModal, false);
     },
 
-    startExam(type) {
+    startExam: async function(type) {
         this.state.currentExamType = type;
         this.state.currentExamStep = 0;
         this.state.examAnswers = new Array(this.data.exam.types[type].questions.length).fill('');
         this.closeExamTypeModal();
 
-        const weekCount = this.getWeeklyExamCount();
-        if (this.dom.examStreakText) this.dom.examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
-
-        animateModal(this.dom.examFlowModal, true); // Should open flow modal, not typemodal again? Or wait, startExam opens the questions.
-        // The original code in 231 said animateModal(examTypeModal, true). That seems wrong if we just closed it.
-        // It likely meant opening examFlowModal.
+        await this.updateStreakDisplay();
+        animateModal(this.dom.examFlowModal, true);
         this.renderExamStep();
     },
 
@@ -332,19 +333,19 @@ const ExamSystem = {
         }
     },
 
-    finishExam() {
+    finishExam: async function() {
         const { currentExamType, examAnswers } = this.state;
         
         // Save as done today
         const todayStr = new Date().toDateString();
-        SafeStorage.setItem('ora_exam_done_' + todayStr, 'true');
+        await AsyncStorage.set('ora_exam_done_' + todayStr, 'true');
 
         // Also mark the corresponding reminder as done
         if (currentExamType === 'night') {
-            SafeStorage.setItem('ora_evening_done_' + todayStr, 'true');
+            await AsyncStorage.set('ora_evening_done_' + todayStr, 'true');
             if (window.ReminderSystem) window.ReminderSystem.hideModal(document.getElementById('evening-reminder'));
         } else if (currentExamType === 'midday') {
-            SafeStorage.setItem('ora_midday_done_' + todayStr, 'true');
+             await AsyncStorage.set('ora_midday_done_' + todayStr, 'true');
             if (window.ReminderSystem) window.ReminderSystem.hideModal(document.getElementById('midday-reminder'));
         }
 
@@ -355,11 +356,12 @@ const ExamSystem = {
             answers: examAnswers
         };
         try {
-            let logs = JSON.parse(SafeStorage.getItem('ora_exam_logs') || '[]');
+            const existingLogs = await AsyncStorage.get('ora_exam_logs');
+            let logs = existingLogs ? ((typeof existingLogs === 'string') ? JSON.parse(existingLogs) : existingLogs) : [];
             logs.push(log);
             // Keep last 30 entries
             if (logs.length > 30) logs = logs.slice(-30);
-            SafeStorage.setItem('ora_exam_logs', JSON.stringify(logs));
+            await AsyncStorage.set('ora_exam_logs', JSON.stringify(logs));
         } catch (e) { /* ignore */ }
 
         animateModal(this.dom.examFlowModal, false);
@@ -432,35 +434,35 @@ const ExamSystem = {
 
     // --- Virtues Checklist ---
 
-    loadVirtues() {
+    loadVirtues: async function() {
         try {
-            const saved = SafeStorage.getItem('ora_virtues_list');
-            if (saved) return JSON.parse(saved);
+            const saved = await AsyncStorage.get('ora_virtues_list');
+            if (saved) return (typeof saved === 'string') ? JSON.parse(saved) : saved;
         } catch (e) { /* use defaults */ }
         return this.data.exam.defaultVirtues.map(v => ({ ...v }));
     },
 
-    saveVirtues(virtues) {
-        SafeStorage.setItem('ora_virtues_list', JSON.stringify(virtues));
+    saveVirtues: async function(virtues) {
+        await AsyncStorage.set('ora_virtues_list', JSON.stringify(virtues));
     },
 
-    getVirtueLog() {
+    getVirtueLog: async function() {
         const todayStr = new Date().toDateString();
         try {
-            const saved = SafeStorage.getItem('ora_virtues_log_' + todayStr);
-            if (saved) return JSON.parse(saved);
+            const saved = await AsyncStorage.get('ora_virtues_log_' + todayStr);
+            if (saved) return (typeof saved === 'string') ? JSON.parse(saved) : saved;
         } catch (e) { /* ignore */ }
         return {};
     },
 
-    saveVirtueLog(log) {
+    saveVirtueLog: async function(log) {
         const todayStr = new Date().toDateString();
-        SafeStorage.setItem('ora_virtues_log_' + todayStr, JSON.stringify(log));
+        await AsyncStorage.set('ora_virtues_log_' + todayStr, JSON.stringify(log));
     },
 
-    openVirtuesModal() {
+    openVirtuesModal: async function() {
         this.closeExamTypeModal();
-        this.renderVirtuesList();
+        await this.renderVirtuesList();
         animateModal(this.dom.virtuesModal, true);
     },
 
@@ -468,9 +470,9 @@ const ExamSystem = {
         animateModal(this.dom.virtuesModal, false);
     },
 
-    renderVirtuesList() {
-        const virtues = this.loadVirtues();
-        const log = this.getVirtueLog();
+    renderVirtuesList: async function() {
+        const virtues = await this.loadVirtues();
+        const log = await this.getVirtueLog();
         const { virtuesList, virtuesSummaryText } = this.dom;
         
         virtuesList.innerHTML = '';
@@ -496,22 +498,24 @@ const ExamSystem = {
             const successBtn = card.querySelector('.virtue-success-btn');
             const failBtn = card.querySelector('.virtue-fail-btn');
 
-            successBtn.addEventListener('click', (e) => {
+            successBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                const currentLog = this.getVirtueLog();
+                // need to reload log to ensure consistency or carry local state?
+                // simple optmistic update
+                const currentLog = await this.getVirtueLog();
                 currentLog[v.id] = currentLog[v.id] === 'success' ? undefined : 'success';
                 if (currentLog[v.id] === undefined) delete currentLog[v.id];
-                this.saveVirtueLog(currentLog);
-                this.renderVirtuesList();
+                await this.saveVirtueLog(currentLog);
+                await this.renderVirtuesList();
             });
 
-            failBtn.addEventListener('click', (e) => {
+            failBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                const currentLog = this.getVirtueLog();
+                const currentLog = await this.getVirtueLog();
                 currentLog[v.id] = currentLog[v.id] === 'fail' ? undefined : 'fail';
                 if (currentLog[v.id] === undefined) delete currentLog[v.id];
-                this.saveVirtueLog(currentLog);
-                this.renderVirtuesList();
+                await this.saveVirtueLog(currentLog);
+                await this.renderVirtuesList();
             });
 
             if (status === 'success') practiced++;
@@ -523,9 +527,9 @@ const ExamSystem = {
 
     // --- Virtues Editor ---
 
-    openVirtuesEditor() {
+    openVirtuesEditor: async function() {
         animateModal(this.dom.virtuesModal, false);
-        this.renderVirtuesEditor();
+        await this.renderVirtuesEditor();
         animateModal(this.dom.virtuesEditor, true);
     },
 
@@ -533,8 +537,8 @@ const ExamSystem = {
         animateModal(this.dom.virtuesEditor, false);
     },
 
-    renderVirtuesEditor() {
-        const virtues = this.loadVirtues();
+    renderVirtuesEditor: async function() {
+        const virtues = await this.loadVirtues();
         const { virtuesEditorList } = this.dom;
         virtuesEditorList.innerHTML = '';
 
@@ -546,29 +550,30 @@ const ExamSystem = {
                 <span>${v.name}</span>
                 <button class="icon-btn-sm virtue-remove-btn" title="Remover"><i class="ph ph-trash"></i></button>
             `;
-            item.querySelector('.virtue-remove-btn').addEventListener('click', () => {
-                const updated = this.loadVirtues().filter(vv => vv.id !== v.id);
-                this.saveVirtues(updated);
-                this.renderVirtuesEditor();
+            item.querySelector('.virtue-remove-btn').addEventListener('click', async () => {
+                const current = await this.loadVirtues(); // reload to be safe
+                const updated = current.filter(vv => vv.id !== v.id);
+                await this.saveVirtues(updated);
+                await this.renderVirtuesEditor();
             });
             virtuesEditorList.appendChild(item);
         });
     },
 
-    addNewVirtue() {
+    addNewVirtue: async function() {
         const { newVirtueInput } = this.dom;
         const name = newVirtueInput.value.trim();
         if (!name) return;
 
-        const virtues = this.loadVirtues();
+        const virtues = await this.loadVirtues();
         virtues.push({
             id: 'custom-' + Date.now(),
             name: name,
             icon: 'ph-star'
         });
-        this.saveVirtues(virtues);
+        await this.saveVirtues(virtues);
         newVirtueInput.value = '';
-        this.renderVirtuesEditor();
+        await this.renderVirtuesEditor();
         showToast(`"${name}" adicionada!`, 'success');
     }
 };

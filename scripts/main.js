@@ -79,7 +79,7 @@ async function initApp() {
     // 2b. Frase e Saudação Dinâmicas
     // ============================================================
 
-    function setQuote() {
+    async function setQuote() {
         try {
             if (!data.quotes || data.quotes.length === 0) return;
             const quoteText = document.querySelector('.quote-text');
@@ -87,15 +87,21 @@ async function initApp() {
             if (!quoteText || !quoteAuthor) return;
 
             const today = new Date().toDateString();
-            const savedQuoteDate = SafeStorage.getItem('ora_quote_date');
+            const savedQuoteDate = await AsyncStorage.get('ora_quote_date');
+            
             let quoteIndex;
 
-            if (savedQuoteDate === today && SafeStorage.getItem('ora_quote_index') !== null) {
-                quoteIndex = parseInt(SafeStorage.getItem('ora_quote_index'));
-            } else {
+            if (savedQuoteDate === today) {
+                const savedIndex = await AsyncStorage.get('ora_quote_index');
+                if (savedIndex !== null) {
+                    quoteIndex = parseInt(savedIndex);
+                }
+            } 
+            
+            if (quoteIndex === undefined) {
                 quoteIndex = Math.floor(Math.random() * data.quotes.length);
-                SafeStorage.setItem('ora_quote_date', today);
-                SafeStorage.setItem('ora_quote_index', quoteIndex.toString());
+                await AsyncStorage.set('ora_quote_date', today);
+                await AsyncStorage.set('ora_quote_index', quoteIndex.toString());
             }
 
             const quote = data.quotes[quoteIndex] || data.quotes[0];
@@ -105,24 +111,30 @@ async function initApp() {
             console.error('[Ora] Error in setQuote:', e);
         }
     }
-    setQuote();
+    await setQuote();
 
-    function setGreeting() {
+    async function setGreeting() {
         try {
             if (!data.greetings || data.greetings.length === 0) return;
             const greetingEl = document.querySelector('.greeting');
             if (!greetingEl) return;
 
             const today = new Date().toDateString();
-            const savedGreetingDate = SafeStorage.getItem('ora_greeting_date');
+            const savedGreetingDate = await AsyncStorage.get('ora_greeting_date');
+            
             let greetingIndex;
 
-            if (savedGreetingDate === today && SafeStorage.getItem('ora_greeting_index') !== null) {
-                greetingIndex = parseInt(SafeStorage.getItem('ora_greeting_index'));
-            } else {
+            if (savedGreetingDate === today) {
+                 const savedIndex = await AsyncStorage.get('ora_greeting_index');
+                 if (savedIndex !== null) {
+                     greetingIndex = parseInt(savedIndex);
+                 }
+            }
+            
+            if (greetingIndex === undefined) {
                 greetingIndex = Math.floor(Math.random() * data.greetings.length);
-                SafeStorage.setItem('ora_greeting_date', today);
-                SafeStorage.setItem('ora_greeting_index', greetingIndex.toString());
+                await AsyncStorage.set('ora_greeting_date', today);
+                await AsyncStorage.set('ora_greeting_index', greetingIndex.toString());
             }
 
             greetingEl.textContent = data.greetings[greetingIndex] || data.greetings[0];
@@ -130,7 +142,7 @@ async function initApp() {
             console.error('[Ora] Error in setGreeting:', e);
         }
     }
-    setGreeting();
+    await setGreeting();
 
     // ============================================================
     // 3. Music Library & Player Logic
@@ -138,7 +150,7 @@ async function initApp() {
 
     // Initialize Music System
     if (window.MusicSystem) {
-        window.MusicSystem.init(data.defaultPlaylists);
+        await window.MusicSystem.init(data.defaultPlaylists);
         // Dependencies are now global
 
     } else {
@@ -193,19 +205,25 @@ async function initApp() {
     const intentionInput = document.getElementById('intention-input');
 
     if (intentionInput) {
-        const savedIntention = SafeStorage.getItem('ora_intention');
+        const savedIntention = await AsyncStorage.get('ora_intention');
         if (savedIntention) {
             intentionInput.value = savedIntention;
         }
 
+        // Use debounce for improvements as suggested plan
+        let debounceTimer;
         intentionInput.addEventListener('input', (e) => {
             const value = e.target.value;
-            SafeStorage.setItem('ora_intention', value);
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                 AsyncStorage.set('ora_intention', value);
+            }, 500);
         });
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'ora_intention') {
-                intentionInput.value = e.newValue || '';
+        // Listen for storage changes from other windows/tabs (requires background script usually, chrome.storage.onChanged)
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+            if (namespace === 'local' && changes.ora_intention) {
+                 intentionInput.value = changes.ora_intention.newValue || '';
             }
         });
     }
@@ -216,7 +234,7 @@ async function initApp() {
 
     // Initialize Focus System
     if (window.FocusSystem) {
-        window.FocusSystem.init();
+        await window.FocusSystem.init();
     } else {
         console.error('FocusSystem not found!');
     }
@@ -234,6 +252,7 @@ async function initApp() {
     // 9. SITE BLOCKER INTEGRATION
     // ============================================================
     if (window.Blocker) {
+        // Blocker logic should also be async aware if needed, but init is enough
         window.Blocker.init();
         
         const btnBlocker = document.getElementById('btn-blocker');

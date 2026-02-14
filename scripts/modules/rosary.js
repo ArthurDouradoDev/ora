@@ -34,7 +34,7 @@ const RosarySystem = {
         rosarySuggestion: null // The reminder/suggestion modal
     },
 
-    init: function(data) {
+    init: async function(data) {
         // Unpack data
         this.structure = data.rosary.structure;
         this.mysteries = data.rosary.mysteries;
@@ -42,7 +42,7 @@ const RosarySystem = {
         this.basePrayers = data.prayers;
 
         this.cacheDOM();
-        this.loadProgress();
+        await this.loadProgress();
         this.bindEvents();
         
         console.log('[Ora] Rosary System Initialized');
@@ -69,11 +69,11 @@ const RosarySystem = {
         if (!this.elements.container) console.error('[Rosary] Container not found!');
     },
 
-    loadProgress: function() {
+    loadProgress: async function() {
         try {
-            const saved = SafeStorage.getItem('ora_rosary_progress');
+            const saved = await AsyncStorage.get('ora_rosary_progress');
             if (saved) {
-                const parsed = JSON.parse(saved);
+                const parsed = (typeof saved === 'string') ? JSON.parse(saved) : saved;
                 this.currentBead = parsed.bead || 0;
                 this.mystery = parsed.mystery || 'gozosos';
                 this.chapletType = parsed.chapletType || 'terco';
@@ -82,8 +82,8 @@ const RosarySystem = {
         } catch (e) { console.error(e); }
     },
 
-    saveProgress: function() {
-        SafeStorage.setItem('ora_rosary_progress', JSON.stringify({
+    saveProgress: async function() {
+        await AsyncStorage.set('ora_rosary_progress', JSON.stringify({
             bead: this.currentBead,
             mystery: this.mystery,
             chapletType: this.chapletType,

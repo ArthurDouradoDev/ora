@@ -4,22 +4,55 @@
 
 // 1. Safe Storage Helper
 // Works on file:// where localStorage might be blocked or throw errors
-const SafeStorage = {
-    getItem: (key) => {
-        try { 
-            return localStorage.getItem(key); 
-        } catch (e) { 
-            console.error(`[Storage] Error reading '${key}':`, e);
-            return null; 
+// 1. Safe Storage Helper (Synchronous - DEPRECATED)
+// Kept for backward compatibility during migration
+// SafeStorage removed - use AsyncStorage
+
+
+// 1.5 Async Storage Helper (Chrome Storage API)
+// Handles migration from localStorage on first access
+const AsyncStorage = {
+    get: async (key, defaultValue = null) => {
+        try {
+            const data = await chrome.storage.local.get([key]);
+            
+            // Check if key exists in chrome.storage
+            if (data[key] !== undefined) {
+                return data[key];
+            }
+            
+            // If not, check localStorage (Migration)
+            const localValue = localStorage.getItem(key);
+            if (localValue !== null) {
+                console.log(`[Storage] Migrating '${key}' from localStorage`);
+                await chrome.storage.local.set({ [key]: localValue });
+                // Optional: localStorage.removeItem(key); // Keep for safety for now
+                return localValue;
+            }
+
+            return defaultValue;
+        } catch (e) {
+            console.error(`[AsyncStorage] Error getting '${key}':`, e);
+            return defaultValue;
         }
     },
-    setItem: (key, value) => {
-        try { 
-            localStorage.setItem(key, value); 
+
+    set: async (key, value) => {
+        try {
+            await chrome.storage.local.set({ [key]: value });
             return true;
-        } catch (e) { 
-            console.error(`[Storage] Error saving '${key}':`, e);
-            if (window.showToast) window.showToast('Erro ao salvar dados. Armazenamento cheio?', 'error');
+        } catch (e) {
+            console.error(`[AsyncStorage] Error setting '${key}':`, e);
+            return false;
+        }
+    },
+
+    remove: async (key) => {
+        try {
+            await chrome.storage.local.remove(key);
+            return true;
+        } catch (e) {
+            console.error(`[AsyncStorage] Error removing '${key}':`, e);
             return false;
         }
     }
@@ -114,7 +147,7 @@ function showToast(message, type = 'success') {
 }
 
 // Expose globally (explicitly, though const/function in root scope usually does this in non-module scripts)
-window.SafeStorage = SafeStorage;
+
 window.animateModal = animateModal;
 window.isModalVisible = isModalVisible;
 window.showToast = showToast;
