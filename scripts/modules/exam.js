@@ -258,8 +258,18 @@ const ExamSystem = {
             textarea.className = 'exam-textarea';
             textarea.placeholder = 'Escreva aqui...';
             textarea.value = examAnswers[currentExamStep] || '';
+            
+            // Limit characters to prevent issues
+            const MAX_CHARS = 5000;
+            
             textarea.addEventListener('input', (e) => {
-                examAnswers[currentExamStep] = e.target.value;
+                let val = e.target.value;
+                if (val.length > MAX_CHARS) {
+                    val = val.substring(0, MAX_CHARS);
+                    e.target.value = val;
+                    showToast(`Limite de ${MAX_CHARS} caracteres atingido`, 'info');
+                }
+                examAnswers[currentExamStep] = val;
             });
             this.dom.examInputArea.appendChild(textarea);
             setTimeout(() => textarea.focus(), 100);

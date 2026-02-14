@@ -6,14 +6,56 @@
 // Works on file:// where localStorage might be blocked or throw errors
 const SafeStorage = {
     getItem: (key) => {
-        try { return localStorage.getItem(key); }
-        catch (e) { return null; }
+        try { 
+            return localStorage.getItem(key); 
+        } catch (e) { 
+            console.error(`[Storage] Error reading '${key}':`, e);
+            return null; 
+        }
     },
     setItem: (key, value) => {
-        try { localStorage.setItem(key, value); }
-        catch (e) { /* silently fail */ }
+        try { 
+            localStorage.setItem(key, value); 
+            return true;
+        } catch (e) { 
+            console.error(`[Storage] Error saving '${key}':`, e);
+            if (window.showToast) window.showToast('Erro ao salvar dados. Armazenamento cheio?', 'error');
+            return false;
+        }
     }
 };
+
+// 1.1 Data Integrity Helper
+async function loadDataWithIntegrity(url, expectedHash) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const blob = await response.blob();
+        const buffer = await blob.arrayBuffer();
+        const dataStr = new TextDecoder().decode(buffer);
+        const data = JSON.parse(dataStr); // Verify valid JSON first
+
+        // Verify Hash
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        if (hashHex !== expectedHash) {
+            console.error(`[Integrity] Mismatch for ${url}`);
+            console.error(`Expected: ${expectedHash}`);
+            console.error(`Actual:   ${hashHex}`);
+            alert(`Atenção: A integridade do arquivo ${url} não pôde ser verificada. O arquivo pode ter sido alterado.`);
+            throw new Error('Integrity check failed');
+        }
+
+        return data;
+    } catch (e) {
+        console.error(`[Integrity] Error loading ${url}:`, e);
+        throw e;
+    }
+}
+window.loadDataWithIntegrity = loadDataWithIntegrity;
 
 // 2. Modal Animation Helpers
 function animateModal(el, show) {

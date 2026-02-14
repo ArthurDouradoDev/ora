@@ -27,13 +27,13 @@ const toastContainer = document.getElementById('toast-container');
 async function loadAppData() {
     try {
         const [backgrounds, playlists, prayers, quotes, greetings, rosary, exam] = await Promise.all([
-            fetch('data/backgrounds.json').then(r => r.json()),
-            fetch('data/playlists.json').then(r => r.json()),
-            fetch('data/prayers.json').then(r => r.json()),
-            fetch('data/quotes.json').then(r => r.json()),
-            fetch('data/greetings.json').then(r => r.json()),
-            fetch('data/rosary.json').then(r => r.json()),
-            fetch('data/exam.json').then(r => r.json())
+            loadDataWithIntegrity('data/backgrounds.json', '29d379bd14aaf9dfa5cc5acd768e3fe3c0ace6d17881a471ecdb3db0389096b9'),
+            loadDataWithIntegrity('data/playlists.json', '04a5b2aee2de55468bb096f7f650aaca54753d90feaae2131d706e7165bab365'),
+            loadDataWithIntegrity('data/prayers.json', '9f7a461833c4c2a0e8faf7c3941ed39b2553134e5f2298c2032b53e4427c5502'),
+            loadDataWithIntegrity('data/quotes.json', '3bfca6044172e6e4baeda21ad790eb845a81797502bf67466d2e2ed49257fe40'),
+            loadDataWithIntegrity('data/greetings.json', 'b1fe7107c0894c5e27639de33a693b866d3879ea93a0d39daf85479cf9f8968c'),
+            loadDataWithIntegrity('data/rosary.json', 'ea9aec21a25217dbf9f267fa0f59628555d07858a99a55f77f2b33b1f96aca74'),
+            loadDataWithIntegrity('data/exam.json', '18fb78b5b694f1dda5382c4ad45cd6bc7b214e511891e516cac85d957ae7b6f1')
         ]);
 
         return {

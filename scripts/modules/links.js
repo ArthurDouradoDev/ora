@@ -74,10 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getFavicon(url) {
         try {
-            const domain = new URL(url).hostname;
+            const urlObj = new URL(url);
+            if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                throw new Error('Protocolo inválido');
+            }
+            const domain = urlObj.hostname;
             return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
         } catch (e) {
-            return 'https://www.google.com/s2/favicons?domain=example.com';
+            console.error('[Links] Erro ao obter favicon:', e);
+            // Return a generic local icon
+            return 'assets/icon.png';
         }
     }
 

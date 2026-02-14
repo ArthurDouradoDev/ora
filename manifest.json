@@ -10,7 +10,12 @@
     "128": "assets/icon.png"
   },
   "permissions": ["storage", "declarativeNetRequest"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "https://*.unsplash.com/*",
+    "https://*.google.com/*",
+    "https://*.youtube.com/*",
+    "https://*.spotify.com/*"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; frame-src https://www.youtube.com https://open.spotify.com https://*.github.io; connect-src https://api.unsplash.com https://www.google.com https://noembed.com; img-src 'self' https: data:; default-src 'self'; upgrade-insecure-requests;"
   }

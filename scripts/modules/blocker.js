@@ -6,7 +6,8 @@
 const Blocker = {
     state: {
         isEnabled: false,
-        blockedSites: [] // Array of { id: number, url: string }
+        blockedSites: [], // Array of { id: number, url: string }
+        updateInProgress: false
     },
 
     async init() {
@@ -84,37 +85,54 @@ const Blocker = {
     },
 
     async updateRules() {
-        // First, remove all existing dynamic rules to avoid conflicts
-        const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-        const oldRuleIds = oldRules.map(rule => rule.id);
-        
-        // If disabled, just clear rules
-        if (!this.state.isEnabled) {
-            await chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: oldRuleIds,
-                addRules: []
-            });
-            return;
+        // Mutex to prevent race conditions
+        if (this.state.updateInProgress) {
+            console.warn('[Blocker] Update already in progress, queuing retry...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            // Simple retry once
+            if (this.state.updateInProgress) return; 
         }
 
-        // Create new rules
-        const newRules = this.state.blockedSites.map((site, index) => ({
-            id: index + 1, // Rule IDs must be integers
-            priority: 1,
-            action: { 
-                type: 'redirect',
-                redirect: { extensionPath: '/blocked.html' }
-            },
-            condition: {
-                urlFilter: site.url,
-                resourceTypes: ['main_frame']
-            }
-        }));
+        this.state.updateInProgress = true;
 
-        await chrome.declarativeNetRequest.updateDynamicRules({
-            removeRuleIds: oldRuleIds,
-            addRules: newRules
-        });
+        try {
+            // First, remove all existing dynamic rules to avoid conflicts
+            const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+            const oldRuleIds = oldRules.map(rule => rule.id);
+            
+            // If disabled, just clear rules
+            if (!this.state.isEnabled) {
+                await chrome.declarativeNetRequest.updateDynamicRules({
+                    removeRuleIds: oldRuleIds,
+                    addRules: []
+                });
+                return;
+            }
+
+            // Create new rules
+            const newRules = this.state.blockedSites.map((site, index) => ({
+                id: index + 1, // Rule IDs must be integers
+                priority: 1,
+                action: { 
+                    type: 'redirect',
+                    redirect: { extensionPath: '/blocked.html' }
+                },
+                condition: {
+                    urlFilter: site.url,
+                    resourceTypes: ['main_frame']
+                }
+            }));
+
+            await chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: oldRuleIds,
+                addRules: newRules
+            });
+        } catch (error) {
+            console.error('[Blocker] Failed to update rules:', error);
+            showToast('Erro ao atualizar bloqueador', 'error');
+        } finally {
+            this.state.updateInProgress = false;
+        }
     },
 
     // UI Handling
