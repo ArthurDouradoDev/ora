@@ -215,44 +215,72 @@ const MusicSystem = {
             const card = document.createElement('div');
             card.className = 'playlist-card';
 
-            let coverHtml;
+            // Create cover container
+            const coverDiv = document.createElement('div');
+            coverDiv.className = 'playlist-cover';
+
             if (playlist.source === 'youtube' && playlist.idType !== 'playlist' && playlist.externalId) {
                 const thumbUrl = `https://img.youtube.com/vi/${playlist.externalId}/mqdefault.jpg`;
-                coverHtml = `<img src="${thumbUrl}" loading="lazy" alt="${playlist.title}" onerror="this.onerror=null; this.parentNode.innerHTML='<i class=\\'ph ph-youtube-logo\\'></i>'">`;
+                const img = document.createElement('img');
+                img.src = thumbUrl;
+                img.loading = 'lazy';
+                img.alt = playlist.title;
+                img.onerror = function() {
+                    // Safe error handling without inline script
+                    this.style.display = 'none';
+                    const icon = document.createElement('i');
+                    icon.className = 'ph ph-youtube-logo';
+                    coverDiv.insertBefore(icon, this); 
+                    this.remove();
+                };
+                coverDiv.appendChild(img);
             } else {
                 let iconClass = playlist.icon || (playlist.source === 'spotify' ? 'ph-spotify-logo' : 'ph-youtube-logo');
-                coverHtml = `<i class="ph ${iconClass}"></i>`;
+                const icon = document.createElement('i');
+                icon.className = `ph ${iconClass}`;
+                coverDiv.appendChild(icon);
             }
 
-            let deleteBtnHtml = `<button class="delete-btn" title="Remover"><i class="ph ph-trash"></i></button>`;
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.title = 'Remover';
+            deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.removePlaylist(playlist.id);
+            };
+            coverDiv.appendChild(deleteBtn);
 
-            card.innerHTML = `
-                <div class="playlist-cover">
-                    ${coverHtml}
-                    ${deleteBtnHtml}
-                </div>
-                <div class="playlist-info">
-                    <div class="playlist-title" title="${playlist.title}">${playlist.title}</div>
-                    <div class="playlist-source">
-                        <i class="ph ${playlist.source === 'spotify' ? 'ph-spotify-logo' : 'ph-youtube-logo'}"></i>
-                        ${playlist.source === 'youtube' ? 'YouTube' : 'Spotify'}
-                    </div>
-                </div>
+            // Create info container
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'playlist-info';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'playlist-title';
+            titleDiv.title = playlist.title;
+            titleDiv.textContent = playlist.title;
+
+            const sourceDiv = document.createElement('div');
+            sourceDiv.className = 'playlist-source';
+            sourceDiv.innerHTML = `
+                <i class="ph ${playlist.source === 'spotify' ? 'ph-spotify-logo' : 'ph-youtube-logo'}"></i>
+                ${playlist.source === 'youtube' ? 'YouTube' : 'Spotify'}
             `;
 
+            infoDiv.appendChild(titleDiv);
+            infoDiv.appendChild(sourceDiv);
+
+            // Assemble card
+            card.appendChild(coverDiv);
+            card.appendChild(infoDiv);
+
             card.onclick = (e) => {
+                // If clicked on delete button, do nothing (handled by stopPropagation)
                 if (e.target.closest('.delete-btn')) return;
                 this.playPlaylist(playlist);
                 animateModal(this.dom.musicLibrary, false);
             };
-
-            const delBtnEl = card.querySelector('.delete-btn');
-            if (delBtnEl) {
-                delBtnEl.onclick = (e) => {
-                    e.stopPropagation();
-                    this.removePlaylist(playlist.id);
-                };
-            }
 
             this.dom.playlistGrid.appendChild(card);
 

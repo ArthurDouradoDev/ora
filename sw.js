@@ -1,21 +1,20 @@
 const CACHE_NAME = 'ora-cache-v1';
 
-// We do not cache local extension files in 'install' because:
-// 1. They are already local in the extension package (fast access).
-// 2. The Cache API 'addAll' often fails or throws errors with 'chrome-extension://' scheme.
-// 3. It avoids data duplication.
+// Only precache external assets if needed. 
+// Local extension files are already fast and 'cache.addAll' often fails with chrome-extension:// scheme.
+const PRECACHE_URLS = [
+    // Add external static assets here if you want them to be available offline immediately
+    // e.g. 'https://fonts.googleapis.com/...' (though usually better to cache on demand)
+];
 
 self.addEventListener('install', (event) => {
-    // Force immediate activation
     self.skipWaiting();
-    console.log('[Service Worker] Installed');
+    console.log('[Service Worker] Install');
+    // Skip addAll if array is empty or implementation is risky for local files
 });
 
 self.addEventListener('activate', (event) => {
-    // Claim clients immediately so the SW controls the page on first load
     event.waitUntil(clients.claim());
-    
-    // Clear old caches if any
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
@@ -32,42 +31,32 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
-    // Only cache HTTP/HTTPS requests (external resources like Unsplash images, fonts, etc.)
-    // Do NOT try to cache chrome-extension:// resources
-    if (requestUrl.protocol.startsWith('http')) {
-        /* 
-        // TEMPORARILY DISABLED: Runtime caching seems to be causing issues with Icons and Favicons.
-        // Reverting to direct network fetch to ensure assets load correctly.
-        event.respondWith(
-            caches.match(event.request).then((response) => {
-                if (response) {
-                    return response;
-                }
-                
-                // Clone the request because it's a stream
-                const fetchRequest = event.request.clone();
-
-                return fetch(fetchRequest).then((response) => {
-                    // Check if we received a valid response
-                    if (!response || response.status !== 200 || response.type !== 'basic' && response.type !== 'cors') {
-                        return response;
-                    }
-
-                    // Clone the response because it's a stream
-                    const responseToCache = response.clone();
-
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
-
-                    return response;
-                }).catch(() => {
-                    // Start of offline fallback logic if needed
-                });
-            })
-        );
-        */
-        return; // Let the browser handle the fetch normally
+    // Filter: Only cache HTTP/HTTPS (External resources)
+    // Ignore chrome-extension://, data:, etc.
+    if (!requestUrl.protocol.startsWith('http')) {
+        return; 
     }
-    // For chrome-extension:// requests, let the browser handle them (from disk)
+
+    // Strategy: Stale-While-Revalidate for external static assets (Fonts, Icons, etc.)
+    event.respondWith(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.match(event.request).then((cachedResponse) => {
+                const fetchPromise = fetch(event.request).then((networkResponse) => {
+                    // Check if we received a valid response
+                    // Note: Chrome extensions have CORS limitations. 
+                    // 'opaque' responses (status 0) from no-cors requests can be cached but limit JS access.
+                    // For fonts/images it's usually fine.
+                    if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+                         cache.put(event.request, networkResponse.clone());
+                    }
+                    return networkResponse;
+                }).catch((err) => {
+                    // Network failed
+                    console.log('[SW] Network fetch failed for', event.request.url, err);
+                    return cachedResponse; 
+                });
+                return cachedResponse || fetchPromise;
+            });
+        })
+    );
 });
