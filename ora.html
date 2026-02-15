@@ -483,18 +483,6 @@
     <script src="scripts/modules/exam.js"></script>
     <script src="scripts/modules/focus.js"></script>
     <script src="scripts/main.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('[ServiceWorker] Registered with scope:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('[ServiceWorker] Registration failed:', error);
-                    });
-            });
-        }
-    </script>
+    <script src="scripts/sw-init.js"></script>
 </body>
 </html>
