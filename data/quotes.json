@@ -1,10 +1,210 @@
 [
-  { "text": "Tarde te amei, ó beleza tão antiga e tão nova!", "author": "Santo Agostinho" },
-  { "text": "Quem não ora, não tem necessidade do demônio para levá-lo ao inferno.", "author": "Santa Teresa d'Ávila" },
-  { "text": "A oração é a respiração da alma.", "author": "São Padre Pio" },
-  { "text": "Tudo posso naquele que me fortalece.", "author": "Filipenses 4,13" },
-  { "text": "Nada te perturbe, nada te espante. Tudo passa. Deus não muda.", "author": "Santa Teresa d'Ávila" },
-  { "text": "Não tenhais medo! Abri as portas a Cristo!", "author": "São João Paulo II" },
-  { "text": "Onde não há amor, ponha amor e encontrará amor.", "author": "São João da Cruz" },
-  { "text": "Sê fiel nas pequenas coisas, porque nelas reside a tua força.", "author": "Madre Teresa de Calcutá" }
+  {
+    "text": "Tarde te amei, ó beleza tão antiga e tão nova!",
+    "author": "Santo Agostinho"
+  },
+  {
+    "text": "Quem não ora, não tem necessidade do demônio para levá-lo ao inferno.",
+    "author": "Santa Teresa d'Ávila"
+  },
+  {
+    "text": "A oração é a respiração da alma.",
+    "author": "São Padre Pio"
+  },
+  {
+    "text": "Tudo posso naquele que me fortalece.",
+    "author": "Filipenses 4,13"
+  },
+  {
+    "text": "Nada te perturbe, nada te espante. Tudo passa. Deus não muda.",
+    "author": "Santa Teresa d'Ávila"
+  },
+  {
+    "text": "Não tenhais medo! Abri as portas a Cristo!",
+    "author": "São João Paulo II"
+  },
+  {
+    "text": "Onde não há amor, ponha amor e encontrará amor.",
+    "author": "São João da Cruz"
+  },
+  {
+    "text": "Sê fiel nas pequenas coisas, porque nelas reside a tua força.",
+    "author": "Madre Teresa de Calcutá"
+  },
+  {
+    "text": "Se o mundo for contra a verdade, então serei contra o mundo.",
+    "author": "Santo Atanásio"
+  },
+  {
+    "text": "Todas as minhas obras e trabalhos têm como base duas coisas: a Missa e o Rosário.",
+    "author": "São João Bosco"
+  },
+  {
+    "text": "A alma que caminha no amor não cansa nem se cansa.",
+    "author": "São João da Cruz"
+  },
+  {
+    "text": "Um cristão deve ser outro Cristo.",
+    "author": "Santa Teresa dos Andes"
+  },
+  {
+    "text": "Deus nunca se cansa de perdoar, somos nós que nos cansamos de pedir perdão.",
+    "author": "Papa Francisco"
+  },
+  {
+    "text": "Não há pecado que a misericórdia de Deus não possa alcançar.",
+    "author": "São Padre Pio de Pietrelcina"
+  },
+  {
+    "text": "A misericórdia é a maior das virtudes.",
+    "author": "Santo Tomás de Aquino"
+  },
+  {
+    "text": "Confiai na misericórdia de Deus mais do que em vossa própria miséria.",
+    "author": "Santa Teresa do Menino Jesus"
+  },
+  {
+    "text": "Não temais aproximar-vos da confissão: é o tribunal da misericórdia.",
+    "author": "Papa João Paulo I"
+  },
+  {
+    "text": "O coração misericordioso é o que mais se assemelha ao de Cristo.",
+    "author": "São Vicente de Paulo"
+  },
+  {
+    "text": "Nada agrada tanto a Deus quanto um coração que perdoa, como Ele perdoa.",
+    "author": "São Francisco de Assis"
+  },
+  {
+    "text": "Se queres ser santo, começa por ser misericordioso.",
+    "author": "São João Maria Vianney"
+  },
+  {
+    "text": "A misericórdia é a vitória do amor sobre o pecado.",
+    "author": "São Leão Magno"
+  },
+  {
+    "text": "A misericórdia é a flor do amor.",
+    "author": "Santa Faustina Kowalska"
+  },
+  {
+    "text": "O Pai quer que o ame, porque Ele me perdoou não muito, mas tudo.",
+    "author": "Santa Teresinha"
+  },
+  {
+    "text": "A quem Deus quer fazer muito santo, o faz muito devoto da Virgem Maria.",
+    "author": "São Luís Maria Grignion de Montfort"
+  },
+  {
+    "text": "Se Deus é por nós, quem será contra nós?",
+    "author": "Rom 8,31"
+  },
+  {
+    "text": "Só se ama aquilo que se conhece.",
+    "author": "Santo Agostinho"
+  },
+  {
+    "text": "Não pode ter Deus como Pai aquele que não tem a Igreja como mãe.",
+    "author": "Santo Agostinho"
+  },
+  {
+    "text": "É viva a Palavra quando são as obras que falam.",
+    "author": "Santo Antônio"
+  },
+  {
+    "text": "Volte à paz, antes do pôr do sol, com aqueles com quem teve desavença",
+    "author": "São Bento"
+  },
+  {
+    "text": "Como é que os homens podem amar uns aos outros se não amam o Amor?",
+    "author": "São Francisco de Assis"
+  },
+  {
+    "text": "Os que não passam pela Sexta-feira Santa, nunca vão chegar ao Domingo da Ressurreição",
+    "author": "São Francisco de Assis"
+  },
+  {
+    "text": "O Amor transforma os cemitérios em jardins",
+    "author": "São Francisco de Assis"
+  },
+  {
+    "text": "Nada por força, tudo por amor.",
+    "author": "São Francisco de Sales"
+  },
+  {
+    "text": "A humildade aperfeiçoa o homem em seus deveres para com Deus",
+    "author": "São Francisco de Sales"
+  },
+  {
+    "text": "Maria é a mestra da santidade.",
+    "author": "São Francisco de Sales"
+  },
+  {
+    "text": "Primeiro, oração; depois, expiação; em terceiro lugar, muito, em ‘terceiro lugar’, ação.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "A oração é a arma mais poderosa do cristão.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "O heroísmo do trabalho está em ‘acabar’ cada tarefa.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "Quem procura Maria, encontra Jesus.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "Conquista os teus amigos um a um - para Cristo.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "Recorre a Maria! Sem Ela, nada podemos fazer em Jesus.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "A santidade grande está em cumprir os deveres pequenos de cada instante.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "Cumpre o pequeno dever de cada momento: faz o que deves e está no que fazes.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "Não há virtude mais cristã do que a doçura.",
+    "author": "São Josemaria Escrivá"
+  },
+  {
+    "text": "O mundo espera com ansiedade o nosso testemunho de amor.",
+    "author": "São João Paulo II"
+  },
+  {
+    "text": "Só Cristo é capaz de preencher até ao fim o espaço do coração humano.",
+    "author": "São João Paulo II"
+  },
+  {
+    "text": "Todos somos chamados à santidade, e só os santos podem renovar a humanidade.",
+    "author": "São João Paulo II"
+  },
+  {
+    "text": "Não tenhais medo! Abri, melhor, escancarai as portas a Cristo!",
+    "author": "São João Paulo II"
+  },
+  {
+    "text": "Por causa de prazeres passageiros, sofrem-se grandes tormentos eternos.",
+    "author": "São João da Cruz"
+  },
+  {
+    "text": "O amor é a única força que pode realmente transformar o mundo.",
+    "author": "Papa Bento XVI"
+  },
+  {
+    "text": "A verdade é una e indivisível, eternamente a mesma e não submete aos caprichos do tempo.",
+    "author": "São Pio X"
+  },
+  {
+    "text": "A santidade não consiste em coisas extraordinárias, mas em cumprir bem os deveres de cada dia.",
+    "author": "São Pio X"
+  }
 ]

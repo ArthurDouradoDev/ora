@@ -58,37 +58,18 @@ const AsyncStorage = {
     }
 };
 
-// 1.1 Data Integrity Helper
-async function loadDataWithIntegrity(url, expectedHash) {
+// 1.1 Data Loading Helper
+async function loadJSON(url) {
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        const blob = await response.blob();
-        const buffer = await blob.arrayBuffer();
-        const dataStr = new TextDecoder().decode(buffer);
-        const data = JSON.parse(dataStr); // Verify valid JSON first
-
-        // Verify Hash
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        if (hashHex !== expectedHash) {
-            console.error(`[Integrity] Mismatch for ${url}`);
-            console.error(`Expected: ${expectedHash}`);
-            console.error(`Actual:   ${hashHex}`);
-            alert(`Atenção: A integridade do arquivo ${url} não pôde ser verificada. O arquivo pode ter sido alterado.`);
-            throw new Error('Integrity check failed');
-        }
-
-        return data;
+        return await response.json();
     } catch (e) {
-        console.error(`[Integrity] Error loading ${url}:`, e);
+        console.error(`[Data] Error loading ${url}:`, e);
         throw e;
     }
 }
-window.loadDataWithIntegrity = loadDataWithIntegrity;
+window.loadJSON = loadJSON;
 
 // 2. Modal Animation Helpers
 function animateModal(el, show) {
