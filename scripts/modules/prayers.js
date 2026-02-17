@@ -31,6 +31,7 @@ const PrayerSystem = {
         this.elements.readerTitle = document.getElementById('prayer-reader-title');
         this.elements.readerText = document.getElementById('prayer-text');
         this.elements.langBtns = document.querySelectorAll('.lang-btn');
+        this.elements.langToggle = document.querySelector('#prayer-reader .lang-toggle');
         this.elements.searchInput = document.getElementById('prayer-search-input');
         this.elements.btnPrayers = document.getElementById('btn-prayers');
     },
@@ -139,6 +140,13 @@ const PrayerSystem = {
         const text = this.currentPrayer.text[this.currentLang] || this.currentPrayer.text['pt'];
         this.elements.readerText.textContent = text;
         
+        // Check availability of Latin
+        const hasLatin = this.currentPrayer.text.la && this.currentPrayer.text.la.trim() !== '';
+        
+        if (this.elements.langToggle) {
+             this.elements.langToggle.style.display = hasLatin ? 'flex' : 'none';
+        }
+
         this.elements.langBtns.forEach(btn => {
             if (btn.dataset.lang === this.currentLang) {
                 btn.classList.add('active');
