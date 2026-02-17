@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ora - Nova Aba",
-  "version": "1.1",
+  "version": "1.1.1",
   "description": "Um espaço de oração e foco para substituir a nova aba.",
   "chrome_url_overrides": {
     "newtab": "ora.html"
@@ -14,11 +14,16 @@
   },
   "permissions": ["storage", "declarativeNetRequest"],
   "host_permissions": [
+    "<all_urls>",
     "https://*.unsplash.com/*",
     "https://*.google.com/*",
     "https://*.youtube.com/*",
     "https://*.spotify.com/*"
   ],
+  "web_accessible_resources": [{
+    "resources": ["blocked.html"],
+    "matches": ["<all_urls>"]
+  }],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://unpkg.com; frame-src https://www.youtube.com https://open.spotify.com https://*.github.io; connect-src https://api.unsplash.com https://www.google.com https://noembed.com https://images.unsplash.com https://plus.unsplash.com https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://*.gstatic.com https://img.youtube.com https://i.ytimg.com https://*.ytimg.com; img-src 'self' https: data:; default-src 'self'; upgrade-insecure-requests;"
   }

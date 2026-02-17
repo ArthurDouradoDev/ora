@@ -118,7 +118,7 @@ const Blocker = {
                     redirect: { extensionPath: '/blocked.html' }
                 },
                 condition: {
-                    urlFilter: site.url,
+                    urlFilter: `||${site.url}`,
                     resourceTypes: ['main_frame']
                 }
             }));
