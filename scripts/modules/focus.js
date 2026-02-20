@@ -1,8 +1,9 @@
 const FocusSystem = {
-    // Dependencies: Global (SafeStorage, animateModal, isModalVisible)
+    // Dependencies: Global (animateModal, isModalVisible)
     
     // Constants
     RING_CIRCUMFERENCE: 2 * Math.PI * 90, // ~565.48
+    POMODORO_STATE_KEY: 'ora_pomodoro_state',
 
     elements: {
         mini: {},
@@ -11,23 +12,43 @@ const FocusSystem = {
         triggers: {}
     },
 
+    // Local state (derived from SW state)
+    isTimerRunning: false,
+    phase: 'focus',
+    timeRemaining: 25 * 60,
+    totalDuration: 25 * 60,
+    pomodoroCount: 0,
+    totalFocusSeconds: 0,
+    settings: { focus: 25, pause: 5, longPause: 15 },
+    expectedEndTime: null,
+
 
     init: async function() {
-        this.todayKey = 'ora_focus_total_' + new Date().toDateString();
-        
-        // Load initial state async
-        const savedTotal = await AsyncStorage.get(this.todayKey);
-        this.totalFocusSeconds = parseInt(savedTotal) || 0;
-        
-        // Initialize state
-        this.pomodoroCount = 0;
-        this.phase = 'focus';
-        this.settings = { focus: 25, pause: 5, longPause: 15 };
-
-        await this.loadSettings();
         this.cacheDOM();
         this.bindEvents();
-        
+
+        // Load current state from Service Worker
+        await this.syncFromSW();
+
+        // Listen for storage changes (cross-tab sync)
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'local' && changes[this.POMODORO_STATE_KEY]) {
+                const newState = changes[this.POMODORO_STATE_KEY].newValue;
+                if (newState) {
+                    this.applyState(newState);
+                }
+            }
+        });
+
+        // Listen for phase completion notifications from SW
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'pomodoro:phaseComplete') {
+                    this.onPhaseComplete(event.data.phase);
+                }
+            });
+        }
+
         // Initialize UI
         this.loadSettingsUI();
         this.updateDisplay();
@@ -37,6 +58,110 @@ const FocusSystem = {
 
         console.log('[Ora] Focus Timer initialized');
     },
+
+    // --- Communication with Service Worker ---
+
+    sendCommand: function(type, data = {}) {
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({ type, ...data }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error('[Focus] SW message error:', chrome.runtime.lastError.message);
+                    reject(chrome.runtime.lastError);
+                    return;
+                }
+                if (response && response.state) {
+                    this.applyState(response.state);
+                    resolve(response.state);
+                } else if (response && response.error) {
+                    reject(new Error(response.error));
+                } else {
+                    resolve(null);
+                }
+            });
+        });
+    },
+
+    syncFromSW: async function() {
+        try {
+            await this.sendCommand('pomodoro:getState');
+        } catch (e) {
+            console.warn('[Focus] Could not sync from SW, using defaults:', e);
+        }
+    },
+
+    applyState: function(state) {
+        const wasRunning = this.isTimerRunning;
+
+        this.isTimerRunning = state.isRunning;
+        this.phase = state.phase;
+        this.totalDuration = state.totalDuration;
+        this.pomodoroCount = state.pomodoroCount;
+        this.totalFocusSeconds = state.totalFocusSeconds;
+        this.settings = state.settings;
+        this.expectedEndTime = state.expectedEndTime;
+
+        // Calculate accurate timeRemaining
+        if (state.isRunning && state.expectedEndTime) {
+            this.timeRemaining = Math.max(0, Math.ceil((state.expectedEndTime - Date.now()) / 1000));
+        } else {
+            this.timeRemaining = state.timeRemaining;
+        }
+
+        // Manage local UI tick
+        if (state.isRunning && !wasRunning) {
+            this.startLocalTick();
+        } else if (!state.isRunning && wasRunning) {
+            this.stopLocalTick();
+        }
+
+        this.loadSettingsUI();
+        this.updateDisplay();
+    },
+
+    // --- Local UI Tick ---
+    // A local setInterval that recalculates display time from expectedEndTime.
+    // Even if throttled, it self-corrects because the math is timestamp-based.
+
+    startLocalTick: function() {
+        this.stopLocalTick();
+        this._tickInterval = setInterval(() => {
+            if (!this.isTimerRunning || !this.expectedEndTime) {
+                this.stopLocalTick();
+                return;
+            }
+            const remaining = Math.max(0, Math.ceil((this.expectedEndTime - Date.now()) / 1000));
+            if (remaining !== this.timeRemaining) {
+                this.timeRemaining = remaining;
+                this.updateDisplay();
+            }
+        }, 1000);
+    },
+
+    stopLocalTick: function() {
+        if (this._tickInterval) {
+            clearInterval(this._tickInterval);
+            this._tickInterval = null;
+        }
+    },
+
+    // --- Phase Completion Handler ---
+
+    onPhaseComplete: function(completedPhase) {
+        this.playTone();
+
+        // Trigger side-effects that were previously in advancePhase
+        if (completedPhase === 'focus') {
+            if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion();
+            // Check if it was the 4th pomodoro (now in longPause)
+            if (this.phase === 'longPause') {
+                setTimeout(() => {
+                    if (window.ExamSystem) window.ExamSystem.showPomodoroCheckin();
+                }, 500);
+            }
+        }
+    },
+
+    // --- DOM & Events ---
 
     cacheDOM: function() {
         // Mini
@@ -148,19 +273,6 @@ const FocusSystem = {
         });
     },
 
-    loadSettings: async function() {
-        try {
-            const savedSettings = await AsyncStorage.get('ora_focus_settings');
-            if (savedSettings) {
-                this.settings = (typeof savedSettings === 'string') ? JSON.parse(savedSettings) : savedSettings;
-            }
-        } catch (e) { /* use defaults */ }
-        
-        // Initial time update
-        this.timeRemaining = this.getPhaseDuration(this.phase);
-        this.totalDuration = this.timeRemaining;
-    },
-
     loadSettingsUI: function() {
         if (!this.elements.settings.focusInput) return;
         this.elements.settings.focusInput.value = this.settings.focus;
@@ -168,28 +280,22 @@ const FocusSystem = {
         this.elements.settings.longPauseInput.value = this.settings.longPause;
     },
 
-    saveSettings: async function() {
+    saveSettings: function() {
         const f = parseInt(this.elements.settings.focusInput.value) || 25;
         const p = parseInt(this.elements.settings.pauseInput.value) || 5;
         const lp = parseInt(this.elements.settings.longPauseInput.value) || 15;
 
-        this.settings = {
+        const settings = {
             focus: Math.max(1, Math.min(120, f)),
             pause: Math.max(1, Math.min(30, p)),
             longPause: Math.max(1, Math.min(60, lp))
         };
 
-        await AsyncStorage.set('ora_focus_settings', JSON.stringify(this.settings));
-
-        // If timer is not running, update the current phase duration
-        if (!this.isTimerRunning) {
-            this.timeRemaining = this.getPhaseDuration(this.phase);
-            this.totalDuration = this.timeRemaining;
-            this.updateDisplay();
-        }
+        this.sendCommand('pomodoro:updateSettings', { settings });
     },
 
-    // Logic
+    // --- Display ---
+
     formatTime: function(seconds) {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
@@ -209,13 +315,6 @@ const FocusSystem = {
         if (phase === 'pause') return 'Pausa';
         if (phase === 'longPause') return 'Pausa Longa';
         return 'Foco';
-    },
-
-    getPhaseDuration: function(phase) {
-        if (phase === 'focus') return this.settings.focus * 60;
-        if (phase === 'pause') return this.settings.pause * 60;
-        if (phase === 'longPause') return this.settings.longPause * 60;
-        return this.settings.focus * 60;
     },
 
     updateDisplay: function() {
@@ -273,111 +372,25 @@ const FocusSystem = {
         }
     },
 
-    startTimer: function() {
-        if (this.isTimerRunning) return;
-        this.isTimerRunning = true;
-        
-        // Precision Timer Logic
-        const now = Date.now();
-        this.expectedEndTime = now + (this.timeRemaining * 1000);
-        
-        this.tick();
-    },
-
-    tick: function() {
-        if (!this.isTimerRunning) return;
-
-        const now = Date.now();
-        const remainingSeconds = Math.max(0, Math.ceil((this.expectedEndTime - now) / 1000));
-        
-        // Only update if second changed (to avoid unnecessary DOM updates)
-        if (remainingSeconds !== this.timeRemaining) {
-            this.timeRemaining = remainingSeconds;
-            
-            if (this.phase === 'focus') {
-                 this.totalFocusSeconds++;
-                 if (this.totalFocusSeconds % 5 === 0) {
-                     AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
-                 }
-            }
-            
-            this.updateDisplay();
-        }
-
-        if (this.timeRemaining <= 0) {
-            this.isTimerRunning = false;
-            AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
-            this.playTone();
-            this.advancePhase();
-        } else {
-            this.animationFrameId = requestAnimationFrame(() => this.tick());
-        }
-    },
-
-    pauseTimer: function() {
-        this.isTimerRunning = false;
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-        }
-        // Save state on pause
-        if (this.phase === 'focus') {
-            AsyncStorage.set(this.todayKey, this.totalFocusSeconds.toString());
-        }
-        this.updateDisplay();
-    },
+    // --- Timer Actions (delegate to SW) ---
 
     toggleTimer: function() {
-        if (this.isTimerRunning) this.pauseTimer();
-        else this.startTimer();
+        if (this.isTimerRunning) {
+            this.sendCommand('pomodoro:pause');
+        } else {
+            this.sendCommand('pomodoro:start');
+        }
     },
 
     resetTimer: function() {
-        this.pauseTimer();
-        this.timeRemaining = this.getPhaseDuration(this.phase);
-        this.totalDuration = this.timeRemaining;
-        this.updateDisplay();
-    },
-
-    advancePhase: function() {
-        if (this.phase === 'focus') {
-            this.pomodoroCount++;
-            if (this.pomodoroCount % 4 === 0) {
-                this.phase = 'longPause';
-                if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion();
-                setTimeout(() => {
-                    if (window.ExamSystem) window.ExamSystem.showPomodoroCheckin();
-                }, 500);
-            } else {
-                this.phase = 'pause';
-                if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion();
-            }
-        } else {
-            this.phase = 'focus';
-        }
-
-        this.timeRemaining = this.getPhaseDuration(this.phase);
-        this.totalDuration = this.timeRemaining;
-        this.updateDisplay();
-        this.startTimer();
+        this.sendCommand('pomodoro:reset');
     },
 
     skipPhase: function() {
-        this.pauseTimer();
-        if (this.phase === 'focus') {
-            this.pomodoroCount++;
-            if (this.pomodoroCount % 4 === 0) {
-                this.phase = 'longPause';
-            } else {
-                this.phase = 'pause';
-            }
-        } else {
-            this.phase = 'focus';
-        }
-        this.timeRemaining = this.getPhaseDuration(this.phase);
-        this.totalDuration = this.timeRemaining;
-        this.updateDisplay();
+        this.sendCommand('pomodoro:skip');
     },
+
+    // --- Audio ---
 
     playTone: function() {
         try {
@@ -403,7 +416,8 @@ const FocusSystem = {
         } catch (e) { /* audio not available */ }
     },
 
-    // Modes
+    // --- Modes ---
+
     showCompact: function() {
         this.mode = 'compact';
         animateModal(this.elements.mini.container, true);
@@ -420,7 +434,8 @@ const FocusSystem = {
     },
 
     closeFocusTimer: function() {
-        this.pauseTimer();
+        this.sendCommand('pomodoro:close');
+        this.stopLocalTick();
         animateModal(this.elements.mini.container, false);
         animateModal(this.elements.fs.container, false);
         this.elements.fs.settingsPanel.style.display = 'none';

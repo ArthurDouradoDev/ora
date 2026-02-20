@@ -12,7 +12,7 @@
   "background": {
     "service_worker": "sw.js"
   },
-  "permissions": ["storage", "declarativeNetRequest"],
+  "permissions": ["storage", "declarativeNetRequest", "alarms"],
   "host_permissions": [
     "<all_urls>",
     "https://*.unsplash.com/*",
