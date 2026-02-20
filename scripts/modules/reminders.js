@@ -8,6 +8,11 @@ const ReminderSystem = {
 
     // DOM Elements
     elements: {
+        carlo: {
+            modal: null,
+            openBtn: null,
+            checkBtn: null
+        },
         angelus: {
             modal: null,
             openBtn: null,
@@ -46,6 +51,7 @@ const ReminderSystem = {
         this.startMonitoring();
         
         // Initial checks
+        await this.checkCarloAcutisReminder();
         await this.checkAngelusTime();
         await this.checkMercyTime();
         await this.checkMiddayExam();
@@ -55,6 +61,10 @@ const ReminderSystem = {
     },
 
     cacheDOM: function() {
+        this.elements.carlo.modal = document.getElementById('carlo-reminder');
+        this.elements.carlo.openBtn = document.getElementById('open-carlo-btn');
+        this.elements.carlo.checkBtn = document.getElementById('check-carlo-btn');
+
         this.elements.angelus.modal = document.getElementById('angelus-reminder');
         this.elements.angelus.openBtn = document.getElementById('open-angelus-btn');
         this.elements.angelus.checkBtn = document.getElementById('check-angelus-btn');
@@ -77,6 +87,29 @@ const ReminderSystem = {
     },
 
     bindEvents: function() {
+        // --- Carlo Acutis ---
+        if (this.elements.carlo.openBtn) {
+            this.elements.carlo.openBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Close reminder
+                this.hideModal(this.elements.carlo.modal);
+                
+                // Open prayer
+                const carloPrayer = this.prayers.find(p => p.id === 'sao-carlo-acutis');
+                if (carloPrayer && window.PrayerSystem) {
+                    window.PrayerSystem.openReader(carloPrayer);
+                } else {
+                    console.error('[Ora] Carlo Acutis prayer not found or PrayerSystem missing');
+                }
+            });
+        }
+
+        if (this.elements.carlo.checkBtn) {
+            this.elements.carlo.checkBtn.addEventListener('click', () => {
+                this.hideModal(this.elements.carlo.modal);
+            });
+        }
+
         // --- Angelus ---
         if (this.elements.angelus.openBtn) {
             this.elements.angelus.openBtn.addEventListener('click', (e) => {
@@ -236,6 +269,22 @@ const ReminderSystem = {
     },
 
     // --- Logic ---
+
+    checkCarloAcutisReminder: async function() {
+        if (!chrome.storage || !chrome.storage.session) return;
+        
+        try {
+            const data = await chrome.storage.session.get(['carlo_acutis_shown']);
+            if (!data.carlo_acutis_shown) {
+                // Show reminder
+                this.showModal(this.elements.carlo.modal);
+                // Mark as shown for the rest of the session
+                await chrome.storage.session.set({ carlo_acutis_shown: true });
+            }
+        } catch (e) {
+            console.warn('[Ora] Error accessing session storage for Carlo Acutis reminder:', e);
+        }
+    },
 
     getAngelusWindow: function(hours) {
         if (hours >= 6 && hours < 8) return 'morning';

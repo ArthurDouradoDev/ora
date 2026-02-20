@@ -6,7 +6,8 @@
 #mercy-reminder,
 #midday-reminder,
 #evening-reminder,
-#rosary-reminder {
+#rosary-reminder,
+#carlo-reminder {
     position: fixed;
     top: 90px;
     left: 50%;
@@ -56,6 +57,11 @@
 #midday-reminder .angelus-content i {
     color: #fadc64;
     animation: none;
+}
+
+/* --- Carlo Acutis Reminder Specifics --- */
+#carlo-reminder {
+    z-index: 950; /* Sobreposto aos outros caso se encontrem */
 }
 
 /* --- Evening Reminder Specifics --- */
