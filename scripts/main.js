@@ -61,19 +61,60 @@ async function loadAppData() {
 }
 
 async function initApp() {
+    // ============================================================
+    // CHECK IF LOADING SCREEN IS NEEDED (only first open per session)
+    // ============================================================
+    let showLoading = false;
+    try {
+        const session = await chrome.storage.session.get('ora_bg_loaded');
+        if (!session.ora_bg_loaded) {
+            showLoading = true;
+            // First open in this session — activate loading screen
+            const ls = document.getElementById('loading-screen');
+            if (ls) ls.classList.add('active');
+            document.body.classList.add('app-loading');
+            
+            // ============================================================
+            // LOADING SCREEN DISMISSAL (Setup early to catch fast cache responses)
+            // ============================================================
+            function dismissLoading() {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (!loadingScreen || loadingScreen.classList.contains('fade-out')) return;
+
+                loadingScreen.classList.add('fade-out');
+                document.body.classList.remove('app-loading');
+                document.body.classList.add('app-ready');
+
+                // Remove from DOM after transition
+                loadingScreen.addEventListener('transitionend', () => {
+                    loadingScreen.remove();
+                }, { once: true });
+            }
+
+            // Listen for background image ready right now, before starting any promises
+            window.addEventListener('ora:background-ready', dismissLoading, { once: true });
+
+            // Safety timeout — never leave user stuck on loading
+            setTimeout(dismissLoading, 8000);
+        }
+    } catch (e) {
+        console.warn('[Ora] session storage check failed:', e);
+    }
+
+    // Start background preload early — in parallel with JSON data loading
+    let bgPreloadPromise = Promise.resolve();
+    if (typeof BackgroundSystem !== 'undefined') {
+        const bgDataPromise = loadJSON('data/backgrounds.json');
+        bgPreloadPromise = bgDataPromise.then(bgData => {
+            return BackgroundSystem.init(bgData);
+        }).catch(e => console.error('[Ora] Early bg preload failed:', e));
+    }
+
     const data = await loadAppData();
     console.log('[Ora] Data loaded:', Object.keys(data));
 
-    // ============================================================
-    // 2. Imagem de Fundo Dinâmica
-    // ============================================================
-
-    // Initialize Background System (now handled in background.js)
-    if (typeof BackgroundSystem !== 'undefined') {
-        BackgroundSystem.init(data.backgroundImages);
-    } else {
-        console.error('BackgroundSystem not found!');
-    }
+    // Wait for background init if it hasn't finished yet
+    await bgPreloadPromise;
 
     // ============================================================
     // 2b. Frase e Saudação Dinâmicas
