@@ -1,8 +1,12 @@
 # Ora - Nova Aba Católica
 
-**Ora** é uma extensão para Google Chrome que transforma sua "Nova Aba" em um ambiente de foco, oração e produtividade, com uma estética *glassmorphism* moderna e serena. O objetivo é ajudar o usuário a manter a presença de Deus ao longo do dia de trabalho ou estudo, integrando ferramentas de produtividade (como Pomodoro e Bloqueador de Sites) com práticas espirituais (Angelus, Terço, Exame de Consciência).
+[![Website oratime.com.br](https://img.shields.io/badge/Website-oratime.com.br-blue?style=for-the-badge&logo=google-chrome)](https://oratime.com.br)
+
+**Ora** é uma extensão para navegadores (Google Chrome, Microsoft Edge, Brave, etc.) que transforma sua aba inicial em um ambiente de foco, oração e produtividade, com uma estética *glassmorphism* moderna e serena. O objetivo é ajudar o usuário a manter a presença de Deus ao longo do dia de trabalho ou estudo, integrando ferramentas de produtividade (como Método Pomodoro e Bloqueador de Sites) com práticas espirituais profundas (Angelus, Terço, Exame de Consciência).
 
 ![Ora Screenshot](assets/screen.png)
+
+Acesse **[oratime.com.br](https://oratime.com.br)** para fazer o download oficial da extensão.
 
 ## ✨ Funcionalidades Principais
 
@@ -55,16 +59,24 @@
     *   Vídeos do YouTube frequentemente retornavam o *Erro 153* ou *152* dentro da extensão. Isso ocorre porque o YouTube bloqueia a reprodução de certos conteúdos quando a origem é uma extensão local (`chrome-extension://`).
     *   **Solução (Relay):** Foi implementado um "Relay" hospedado no GitHub Pages. O player da extensão carrega um `iframe` que aponta para essa página externa, passando os parâmetros do vídeo via URL. Assim, o servidor do YouTube reconhece uma origem web válida e permite a reprodução.
 
-## 🛠️ Instalação (Modo Desenvolvedor)
+## 📥 Download e Instalação
 
-Como esta é uma extensão local (não publicada na loja), siga os passos para instalar:
+A maneira oficial e mais atualizada de obter a extensão **Ora** é baixando através do nosso site:
 
-1.  Baixe ou clone este repositório em seu computador.
-2.  Abra o Google Chrome e digite `chrome://extensions` na barra de endereços.
-3.  Ative o **Modo do desenvolvedor** no canto superior direito.
-4.  Clique em **Carregar sem compactação** (Load unpacked).
-5.  Selecione a pasta onde estão os arquivos do projeto (`.../Ora`).
-6.  Abra uma nova aba no Chrome e a extensão estará ativa!
+👉 **Acesse: [oratime.com.br](https://oratime.com.br)**
+
+Lá você encontrará guias ilustrados passo a passo para instalação no Google Chrome e no Microsoft Edge.
+
+### 🛠️ Instalação Manual (Código Fonte / Modo Desenvolvedor)
+
+Caso você queira utilizar a versão de desenvolvimento mais recente deste repositório, siga os passos abaixo:
+
+1.  Baixe o `.zip` ou clone este repositório (`git clone`) em seu computador.
+2.  Abra o seu navegador (Chrome, Edge, Brave) e acesse a página de extensões: `chrome://extensions` ou `edge://extensions`.
+3.  Ative o **Modo do desenvolvedor** (geralmente no canto superior direito ou esquerdo).
+4.  Clique no botão **Carregar sem compactação** (Load unpacked).
+5.  Selecione a pasta raiz do projeto (`.../Ora`) onde se encontra o arquivo `manifest.json`.
+6.  Pronto! Abra uma nova aba no seu navegador e o Ora estará ativo.
 
 ## ⚙️ Configuração
 
