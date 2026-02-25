@@ -103,11 +103,14 @@ async function loadState() {
             if (state.todayKey !== currentKey) {
                 state.todayKey = currentKey;
                 state.totalFocusSeconds = 0;
+                state.pomodoroCount = 0; // Reset Pomodoro dots count
                 // Try to load today's total from legacy key
                 const legacyTotal = await chrome.storage.local.get([currentKey]);
                 if (legacyTotal[currentKey]) {
                     state.totalFocusSeconds = parseInt(legacyTotal[currentKey]) || 0;
                 }
+                // Persist the rollover immediately so open tabs detect the change
+                chrome.storage.local.set({ [POMODORO_STATE_KEY]: state });
             }
             return state;
         }
