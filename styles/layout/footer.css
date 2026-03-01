@@ -32,6 +32,8 @@ footer {
     margin-bottom: 5px;
     color: rgba(255, 255, 255, 0.95);
     line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .quote-author {
@@ -39,6 +41,8 @@ footer {
     text-transform: uppercase;
     opacity: 0.8;
     letter-spacing: 1px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 /* ============================================
@@ -134,7 +138,7 @@ footer {
 
 @media (max-width: 968px) {
     .quote-container {
-        width: 70%;
+        width: 50%;
         bottom: 20px;
     }
 
