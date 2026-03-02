@@ -23,7 +23,7 @@ Acesse **[oratime.com.br](https://oratime.com.br)** para fazer o download oficia
 *   **Orações e Liturgia:**
     *   **Biblioteca Pesquisável:** Encontre rapidamente orações específicas com a nova barra de busca.
     *   Leitor de orações com alternância rápida entre PT/LA.
-    *   Link direto para a Liturgia Diária.
+    *   Links diretos para a **Bíblia** e a **Liturgia Diária**.
 *   **Exame de Consciência:**
     *   Lembretes para Exame de Meio-Dia e Exame da Noite.
     *   Interface guiada para revisão do dia e preparação para o descanso.
@@ -97,7 +97,6 @@ Caso você queira utilizar a versão de desenvolvimento mais recente deste repos
 
 *   `manifest.json`: Configurações da extensão.
 *   `ora.html`: Interface principal (Nova Aba).
-*   `script.js`: (Obsoleto) Lógica antiga, migrada para `scripts/main.js`.
 *   `assets/`: Imagens e ícones.
 *   `data/`: Arquivos JSON com base de dados (orações, citações, etc).
 *   `scripts/`:
