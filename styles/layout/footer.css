@@ -12,37 +12,46 @@ footer {
 }
 
 /* ============================================
-   QUOTE CONTAINER (centro absoluto)
+   QUOTE CONTAINER (centro flexível)
    ============================================ */
 
 .quote-container {
     position: absolute;
-    bottom: 30px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    width: 60%;
-    max-width: 800px;
+    width: 40%;
+    max-width: 600px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
 }
 
 .quote-text {
     font-style: italic;
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 5px;
     color: rgba(255, 255, 255, 0.95);
     line-height: 1.5;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .quote-author {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     opacity: 0.8;
     letter-spacing: 1px;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ============================================
@@ -55,6 +64,7 @@ footer {
     gap: 10px;
     align-items: center;
     z-index: 1;
+    flex-shrink: 0;
 }
 
 .footer-right {
@@ -138,16 +148,13 @@ footer {
 
 @media (max-width: 968px) {
     .quote-container {
-        width: 50%;
-        bottom: 20px;
+        width: 35%;
     }
 
     .quote-text {
-        font-size: 1rem;
-    }
-
-    .quote-author {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 }
 
@@ -164,8 +171,16 @@ footer {
         left: auto;
         transform: none;
         width: 100%;
+        max-width: 100%;
         order: 1;
         margin-bottom: 15px;
+        pointer-events: auto;
+    }
+
+    .quote-text {
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+        font-size: 0.95rem;
     }
 
     .footer-left,
