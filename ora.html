@@ -446,28 +446,111 @@
 
     <!-- Site Blocker Modal -->
     <div id="blocker-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3>Bloqueador de Sites</h3>
-            <button id="close-blocker-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        
-        <div class="blocker-controls">
-            <div class="blocker-status">
-                <span id="blocker-status-text">Inativo</span>
-                <label class="switch">
-                    <input type="checkbox" id="blocker-toggle">
-                    <span class="slider round"></span>
-                </label>
+        <!-- Lock Overlay (shown when lock is active) -->
+        <div id="blocker-lock-overlay" class="blocker-lock-overlay" style="display: none;">
+            <div class="lock-overlay-content">
+                <i class="ph ph-lock"></i>
+                <p class="lock-overlay-title">Bloqueador Travado</p>
+                <p class="lock-overlay-subtitle">Digite o versículo abaixo para desbloquear:</p>
+                <div class="lock-verse-ref" id="lock-verse-ref"></div>
+                <div class="lock-verse-display" id="lock-verse-display"></div>
+                <input type="text" id="lock-verse-input" class="lock-verse-input" placeholder="Comece a digitar..." autocomplete="off" spellcheck="false">
+                <div class="lock-progress-bar">
+                    <div class="lock-progress-fill" id="lock-progress-fill"></div>
+                </div>
+                <button id="lock-cancel-btn" class="icon-btn-sm lock-cancel-btn">Cancelar</button>
             </div>
         </div>
 
-        <div class="add-site-section">
-            <input type="text" id="blocked-site-input" placeholder="ex: facebook.com">
-            <button id="add-blocked-site-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
+        <div class="modal-header">
+            <h3>Bloqueador de Sites</h3>
+            <div class="blocker-header-actions">
+                <div class="blocker-status">
+                    <span id="blocker-status-text">Inativo</span>
+                    <label class="switch">
+                        <input type="checkbox" id="blocker-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button id="close-blocker-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </div>
         </div>
 
-        <div id="blocked-sites-list" class="blocked-sites-list">
-            <!-- Items injected by JS -->
+        <!-- Tab Bar -->
+        <div class="blocker-tabs">
+            <button class="blocker-tab-btn active" data-tab="sites"><i class="ph ph-globe"></i> Sites</button>
+            <button class="blocker-tab-btn" data-tab="limits"><i class="ph ph-hash"></i> Limites</button>
+            <button class="blocker-tab-btn" data-tab="time"><i class="ph ph-clock-countdown"></i> Horário</button>
+            <button class="blocker-tab-btn" data-tab="lock"><i class="ph ph-lock"></i> Trava</button>
+        </div>
+
+        <!-- Tab Panels -->
+        <div class="blocker-tab-content">
+            <!-- Tab: Sites -->
+            <div id="tab-sites" class="blocker-tab-panel active">
+                <div class="add-site-section">
+                    <input type="text" id="blocked-site-input" placeholder="ex: facebook.com">
+                    <button id="add-blocked-site-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
+                </div>
+                <div id="blocked-sites-list" class="blocked-sites-list">
+                    <!-- Items injected by JS -->
+                </div>
+                <div class="blocker-empty-state" id="blocker-empty-sites" style="display: none;">
+                    <i class="ph ph-shield-slash"></i>
+                    <p>Nenhum site bloqueado ainda.</p>
+                </div>
+            </div>
+
+            <!-- Tab: Limites de Acesso -->
+            <div id="tab-limits" class="blocker-tab-panel">
+                <p class="tab-description">Defina quantas vezes cada site pode ser acessado por dia ou por hora.</p>
+                <div id="limits-sites-list" class="blocker-config-list">
+                    <!-- Items injected by JS -->
+                </div>
+                <div class="blocker-empty-state" id="blocker-empty-limits" style="display: none;">
+                    <i class="ph ph-list-dashes"></i>
+                    <p>Adicione sites na aba "Sites" primeiro.</p>
+                </div>
+            </div>
+
+            <!-- Tab: Horário de Bloqueio -->
+            <div id="tab-time" class="blocker-tab-panel">
+                <p class="tab-description">Defina um horário em que o site ficará completamente bloqueado (ex.: das 22:00 às 08:00).</p>
+                <div id="time-sites-list" class="blocker-config-list">
+                    <!-- Items injected by JS -->
+                </div>
+                <div class="blocker-empty-state" id="blocker-empty-time" style="display: none;">
+                    <i class="ph ph-hourglass"></i>
+                    <p>Adicione sites na aba "Sites" primeiro.</p>
+                </div>
+            </div>
+
+            <!-- Tab: Trava -->
+            <div id="tab-lock" class="blocker-tab-panel">
+                <div class="lock-section">
+                    <div class="lock-header-row">
+                        <div class="lock-info">
+                            <i class="ph ph-lock-key"></i>
+                            <div>
+                                <p class="lock-title">Trava de Segurança</p>
+                                <p class="lock-subtitle">Quando ativada, será necessário digitar um versículo bíblico para alterar as configurações do bloqueador.</p>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="lock-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="lock-preview" id="lock-preview" style="display: none;">
+                        <div class="lock-preview-card">
+                            <i class="ph ph-book-open-text"></i>
+                            <p class="lock-preview-verse" id="lock-preview-verse"></p>
+                            <span class="lock-preview-ref" id="lock-preview-ref"></span>
+                        </div>
+                        <p class="lock-preview-hint">Este versículo será solicitado na próxima vez que você abrir o bloqueador.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

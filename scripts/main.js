@@ -291,8 +291,7 @@ async function initApp() {
     // 9. SITE BLOCKER INTEGRATION
     // ============================================================
     if (window.Blocker) {
-        // Blocker logic should also be async aware if needed, but init is enough
-        window.Blocker.init();
+        await window.Blocker.init();
         
         const btnBlocker = document.getElementById('btn-blocker');
         const blockerModal = document.getElementById('blocker-modal');
@@ -303,6 +302,7 @@ async function initApp() {
                 e.stopPropagation();
                 if (!isModalVisible(blockerModal)) {
                     animateModal(blockerModal, true);
+                    window.Blocker.onModalOpen();
                 } else {
                     animateModal(blockerModal, false);
                 }
@@ -315,8 +315,12 @@ async function initApp() {
             });
         }
         
-        // Close on click outside
+        // Close on click outside (but not if clicking inside lock overlay/inputs)
         document.addEventListener('click', (e) => {
+            if (blockerModal && blockerModal.contains(document.activeElement) && 
+                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+                return;
+            }
              if (isModalVisible(blockerModal) && 
                 !blockerModal.contains(e.target) && 
                 !btnBlocker.contains(e.target)) {

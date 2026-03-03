@@ -200,6 +200,31 @@ async function notifyPhaseComplete(phase) {
 
 // --- Message Handler ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // ── Bloqueador: configurar alarme de revogação de acesso temporário ──
+    if (message && message.action === 'setup_revoke_alarm') {
+        const { ruleId, durationMinutes } = message;
+        const tabId = sender?.tab?.id;
+
+        const handle = async () => {
+            // Safety net: alarm revokes the rule after the session duration
+            if (durationMinutes > 0 && durationMinutes !== Infinity) {
+                await chrome.alarms.create(`blocker_revoke_${ruleId}`, { delayInMinutes: durationMinutes });
+            }
+            // Tab-based: also track which tab owns this allow rule so we can
+            // revoke it immediately when the user closes that tab
+            if (tabId) {
+                const data = await chrome.storage.session.get('blocker_sessions');
+                const sessions = data.blocker_sessions || {};
+                sessions[tabId] = ruleId;
+                await chrome.storage.session.set({ blocker_sessions: sessions });
+            }
+        };
+
+        handle().then(() => sendResponse({ success: true }));
+        return true; // keep channel open for async response
+    }
+
+    // ── Pomodoro ──
     if (!message || !message.type || !message.type.startsWith('pomodoro:')) return false;
 
     const handler = async () => {
@@ -361,5 +386,41 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         }
         await saveState(state);
         await startAlarm(state);
+    }
+});
+
+// ============================================================
+// SITE BLOCKER BACKGROUND LOGIC
+// ============================================================
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    // Handle Blocker: revoke temporary allow rule when session time expires
+    if (alarm.name.startsWith('blocker_revoke_')) {
+        const ruleId = parseInt(alarm.name.slice('blocker_revoke_'.length), 10);
+        if (!isNaN(ruleId)) {
+            await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [ruleId] });
+            // Clean up session mapping for this rule
+            const data = await chrome.storage.session.get('blocker_sessions');
+            const sessions = data.blocker_sessions || {};
+            for (const tabId of Object.keys(sessions)) {
+                if (sessions[tabId] === ruleId) delete sessions[tabId];
+            }
+            await chrome.storage.session.set({ blocker_sessions: sessions });
+            console.log(`[Blocker] Session expired — revoked allow rule ${ruleId}`);
+        }
+        return;
+    }
+});
+
+// ── Blocker: revoke allow rule immediately when the user closes the tab ──
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+    const data = await chrome.storage.session.get('blocker_sessions');
+    const sessions = data.blocker_sessions || {};
+    if (sessions[tabId] !== undefined) {
+        const ruleId = sessions[tabId];
+        await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [ruleId] });
+        delete sessions[tabId];
+        await chrome.storage.session.set({ blocker_sessions: sessions });
+        console.log(`[Blocker] Tab ${tabId} closed — session ended, revoked rule ${ruleId}`);
     }
 });
