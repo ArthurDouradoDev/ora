@@ -74,7 +74,8 @@ const PrayerSystem = {
         if (closeReaderBtn) closeReaderBtn.addEventListener('click', () => this.closeReader());
 
         const backBtn = document.getElementById('back-to-list-btn');
-        if (backBtn) backBtn.addEventListener('click', () => {
+        if (backBtn) backBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             this.closeReader();
             this.openList();
         });
