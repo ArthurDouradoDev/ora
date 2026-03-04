@@ -19,13 +19,21 @@ const FocusSystem = {
     totalDuration: 25 * 60,
     pomodoroCount: 0,
     totalFocusSeconds: 0,
-    settings: { focus: 25, pause: 5, longPause: 15 },
+    settings: { focus: 25, pause: 5, longPause: 15, sound: true, autoNext: false, continuousAlarm: false, wakeLock: false },
     expectedEndTime: null,
+    wakeLock: null,
+    continuousAlarmInterval: null,
 
 
     init: async function() {
         this.cacheDOM();
         this.bindEvents();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && this.isTimerRunning && this.settings.wakeLock) {
+                this.manageWakeLock(true);
+            }
+        });
 
         // Load current state from Service Worker
         await this.syncFromSW();
@@ -110,8 +118,14 @@ const FocusSystem = {
         // Manage local UI tick
         if (state.isRunning && !wasRunning) {
             this.startLocalTick();
+            this.manageWakeLock(true);
         } else if (!state.isRunning && wasRunning) {
             this.stopLocalTick();
+            this.manageWakeLock(false);
+        } else if (state.isRunning) {
+            this.manageWakeLock(true);
+        } else {
+            this.manageWakeLock(false);
         }
 
         this.loadSettingsUI();
@@ -147,7 +161,12 @@ const FocusSystem = {
     // --- Phase Completion Handler ---
 
     onPhaseComplete: function(completedPhase) {
-        this.playTone();
+        if (this.settings.sound !== false) {
+            this.playTone();
+            if (this.settings.continuousAlarm) {
+                this.startContinuousAlarm();
+            }
+        }
 
         // Trigger side-effects that were previously in advancePhase
         if (completedPhase === 'focus') {
@@ -197,6 +216,10 @@ const FocusSystem = {
         this.elements.settings.focusInput = document.getElementById('setting-focus');
         this.elements.settings.pauseInput = document.getElementById('setting-pause');
         this.elements.settings.longPauseInput = document.getElementById('setting-long-pause');
+        this.elements.settings.soundInput = document.getElementById('setting-sound');
+        this.elements.settings.autoNextInput = document.getElementById('setting-auto-next');
+        this.elements.settings.continuousAlarmInput = document.getElementById('setting-continuous-alarm');
+        this.elements.settings.wakeLockInput = document.getElementById('setting-wake-lock');
 
         // Triggers
         this.elements.triggers.btnFocus = document.getElementById('btn-focus');
@@ -252,7 +275,15 @@ const FocusSystem = {
         });
 
         // Settings input change
-        [this.elements.settings.focusInput, this.elements.settings.pauseInput, this.elements.settings.longPauseInput].forEach(input => {
+        [
+            this.elements.settings.focusInput, 
+            this.elements.settings.pauseInput, 
+            this.elements.settings.longPauseInput,
+            this.elements.settings.soundInput,
+            this.elements.settings.autoNextInput,
+            this.elements.settings.continuousAlarmInput,
+            this.elements.settings.wakeLockInput
+        ].forEach(input => {
             if (input) input.addEventListener('change', () => this.saveSettings());
         });
 
@@ -271,6 +302,9 @@ const FocusSystem = {
                  this.showCompact();
              }
         });
+
+        // Stop continuous alarm on interaction
+        document.body.addEventListener('click', () => this.stopContinuousAlarm());
     },
 
     loadSettingsUI: function() {
@@ -278,6 +312,13 @@ const FocusSystem = {
         this.elements.settings.focusInput.value = this.settings.focus;
         this.elements.settings.pauseInput.value = this.settings.pause;
         this.elements.settings.longPauseInput.value = this.settings.longPause;
+        
+        if (this.elements.settings.soundInput) {
+            this.elements.settings.soundInput.checked = this.settings.sound !== false;
+            this.elements.settings.autoNextInput.checked = this.settings.autoNext === true;
+            this.elements.settings.continuousAlarmInput.checked = this.settings.continuousAlarm === true;
+            this.elements.settings.wakeLockInput.checked = this.settings.wakeLock === true;
+        }
     },
 
     saveSettings: function() {
@@ -288,7 +329,11 @@ const FocusSystem = {
         const settings = {
             focus: Math.max(1, Math.min(120, f)),
             pause: Math.max(1, Math.min(30, p)),
-            longPause: Math.max(1, Math.min(60, lp))
+            longPause: Math.max(1, Math.min(60, lp)),
+            sound: this.elements.settings.soundInput ? this.elements.settings.soundInput.checked : true,
+            autoNext: this.elements.settings.autoNextInput ? this.elements.settings.autoNextInput.checked : false,
+            continuousAlarm: this.elements.settings.continuousAlarmInput ? this.elements.settings.continuousAlarmInput.checked : false,
+            wakeLock: this.elements.settings.wakeLockInput ? this.elements.settings.wakeLockInput.checked : false
         };
 
         this.sendCommand('pomodoro:updateSettings', { settings });
@@ -356,6 +401,13 @@ const FocusSystem = {
         // Dots
         this.renderDots(this.elements.mini.dots);
         this.renderDots(this.elements.fs.dots);
+
+        // Title
+        if (this.isTimerRunning) {
+            document.title = `Ora - ${timeStr}`;
+        } else {
+            document.title = 'Ora - Nova Aba';
+        }
     },
 
     renderDots: function(container) {
@@ -390,7 +442,39 @@ const FocusSystem = {
         this.sendCommand('pomodoro:skip');
     },
 
-    // --- Audio ---
+    // --- Audio & Wake Lock ---
+
+    manageWakeLock: async function(active) {
+        if (!('wakeLock' in navigator)) return;
+        
+        try {
+            if (active && !this.wakeLock) {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                this.wakeLock.addEventListener('release', () => {
+                    this.wakeLock = null;
+                });
+            } else if (!active && this.wakeLock) {
+                await this.wakeLock.release();
+                this.wakeLock = null;
+            }
+        } catch (err) {
+            console.warn('[Focus] Wake Lock error:', err);
+        }
+    },
+
+    startContinuousAlarm: function() {
+        this.stopContinuousAlarm();
+        this.continuousAlarmInterval = setInterval(() => {
+            this.playTone();
+        }, 3000); // Play every 3 seconds
+    },
+
+    stopContinuousAlarm: function() {
+        if (this.continuousAlarmInterval) {
+            clearInterval(this.continuousAlarmInterval);
+            this.continuousAlarmInterval = null;
+        }
+    },
 
     playTone: function() {
         try {

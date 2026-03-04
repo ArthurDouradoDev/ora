@@ -250,6 +250,34 @@
                 <label>Pausa Longa (min)</label>
                 <input type="number" id="setting-long-pause" min="1" max="60" value="15">
             </div>
+            <div class="focus-setting-row">
+                <label>Som</label>
+                <label class="switch">
+                    <input type="checkbox" id="setting-sound" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="focus-setting-row">
+                <label>Avançar Automaticamente</label>
+                <label class="switch">
+                    <input type="checkbox" id="setting-auto-next">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="focus-setting-row">
+                <label>Alarme Contínuo</label>
+                <label class="switch">
+                    <input type="checkbox" id="setting-continuous-alarm">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="focus-setting-row">
+                <label>Manter Tela Ativa</label>
+                <label class="switch">
+                    <input type="checkbox" id="setting-wake-lock">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
     </div>
 
@@ -353,7 +381,7 @@
     </div>
 
     <!-- Pomodoro Emotional Check-in -->
-    <div id="pomodoro-checkin" class="glass-panel modal modal-center modal-fade" style="display: none;">
+    <div id="pomodoro-checkin" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="checkin-header">
             <span class="checkin-title">Como está seu coração?</span>
             <button id="close-checkin-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>

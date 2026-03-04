@@ -82,7 +82,15 @@ function getDefaultState() {
         pomodoroCount: 0,
         totalFocusSeconds: 0,
         todayKey: getTodayKey(),
-        settings: { focus: 25, pause: 5, longPause: 15 }
+        settings: { 
+            focus: 25, 
+            pause: 5, 
+            longPause: 15,
+            sound: true,
+            autoNext: false,
+            continuousAlarm: false,
+            wakeLock: false
+        }
     };
 }
 
@@ -124,7 +132,7 @@ async function loadState() {
                 const oldSettings = typeof migration['ora_focus_settings'] === 'string'
                     ? JSON.parse(migration['ora_focus_settings'])
                     : migration['ora_focus_settings'];
-                defaultState.settings = oldSettings;
+                defaultState.settings = { ...defaultState.settings, ...oldSettings };
                 defaultState.timeRemaining = getPhaseDuration(defaultState.phase, oldSettings);
                 defaultState.totalDuration = defaultState.timeRemaining;
             } catch (e) { /* use defaults */ }
@@ -295,7 +303,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     state.settings = {
                         focus: Math.max(1, Math.min(120, settings.focus || 25)),
                         pause: Math.max(1, Math.min(30, settings.pause || 5)),
-                        longPause: Math.max(1, Math.min(60, settings.longPause || 15))
+                        longPause: Math.max(1, Math.min(60, settings.longPause || 15)),
+                        sound: settings.sound !== undefined ? settings.sound : true,
+                        autoNext: settings.autoNext !== undefined ? settings.autoNext : false,
+                        continuousAlarm: settings.continuousAlarm !== undefined ? settings.continuousAlarm : false,
+                        wakeLock: settings.wakeLock !== undefined ? settings.wakeLock : false
                     };
                     // If not running, update current phase duration
                     if (!state.isRunning) {
@@ -363,11 +375,19 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         const completedPhase = state.phase;
         state = advancePhase(state);
 
-        // Auto-start next phase
-        state.isRunning = true;
-        state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
-        await saveState(state);
-        await startAlarm(state);
+        if (state.settings.autoNext) {
+            // Auto-start next phase
+            state.isRunning = true;
+            state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
+            await saveState(state);
+            await startAlarm(state);
+        } else {
+            // Pause and wait for manual start
+            state.isRunning = false;
+            state.expectedEndTime = null;
+            await saveState(state);
+            await clearAlarm();
+        }
 
         // Notify tabs to play tone and show system notifications
         await notifyPhaseComplete(completedPhase);
