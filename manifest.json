@@ -20,6 +20,12 @@
     "https://*.youtube.com/*",
     "https://*.spotify.com/*"
   ],
+  "content_scripts": [{
+    "matches": ["https://www.youtube-nocookie.com/*"],
+    "js": ["scripts/youtube-adblocker.js"],
+    "run_at": "document_start",
+    "all_frames": true
+  }],
   "web_accessible_resources": [{
     "resources": ["blocked.html"],
     "matches": ["<all_urls>"]
