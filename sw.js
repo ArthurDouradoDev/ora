@@ -444,3 +444,95 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
         console.log(`[Blocker] Tab ${tabId} closed — session ended, revoked rule ${ruleId}`);
     }
 });
+
+// ============================================================
+// SITE BLOCKER — FALLBACK via webNavigation
+// ============================================================
+// DNR redirect rules work for most sites, but fail for SPAs like
+// Gmail and X/Twitter whose Service Workers intercept requests before
+// DNR can act. This listener is the safety net: it fires after
+// every committed navigation and redirects the tab if the URL matches
+// a blocked domain.
+
+const BLOCKER_ALIASES = {
+    'gmail.com':          ['mail.google.com'],
+    'mail.google.com':    ['gmail.com'],
+    'twitter.com':        ['x.com'],
+    'x.com':              ['twitter.com'],
+    'facebook.com':       ['fb.com', 'www.facebook.com'],
+    'fb.com':             ['facebook.com'],
+    'instagram.com':      ['www.instagram.com'],
+    'reddit.com':         ['old.reddit.com', 'www.reddit.com', 'new.reddit.com'],
+    'old.reddit.com':     ['reddit.com'],
+};
+
+// ── In-memory cache of blocker config (avoids storage reads on every navigation)
+let _blockerCfg = null;
+
+chrome.storage.local.get(['blocker_config']).then(data => {
+    _blockerCfg = data.blocker_config || null;
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.blocker_config) {
+        _blockerCfg = changes.blocker_config.newValue;
+    }
+});
+
+// ── Helper: check if a hostname matches a site or its aliases ──
+function matchesSiteOrAlias(hostname, site) {
+    const candidates = [site.url, ...(BLOCKER_ALIASES[site.url] || [])];
+    for (const d of candidates) {
+        if (hostname === d || hostname.endsWith('.' + d)) return true;
+    }
+    return false;
+}
+
+// ── webNavigation.onCommitted — fires after the navigation is committed ──
+chrome.webNavigation.onCommitted.addListener(async (details) => {
+    // Only process top-level frame navigations
+    if (details.frameId !== 0) return;
+
+    // Ignore non-http(s) URLs (extension pages, chrome://, etc.)
+    if (!details.url.startsWith('http://') && !details.url.startsWith('https://')) return;
+
+    try {
+        const cfg = _blockerCfg || (await chrome.storage.local.get(['blocker_config'])).blocker_config;
+        if (!cfg || !cfg.enabled || !cfg.sites || cfg.sites.length === 0) return;
+
+        const url = new URL(details.url);
+        const hostname = url.hostname.replace(/^www\./, '');
+
+        // Find matching blocked site
+        let matchedSite = null;
+        for (const site of cfg.sites) {
+            if (matchesSiteOrAlias(hostname, site)) {
+                matchedSite = site;
+                break;
+            }
+        }
+        if (!matchedSite) return;
+
+        // Check if this tab has an active allow session (user clicked "Continue")
+        const sessionData = await chrome.storage.session.get('blocker_sessions');
+        const sessions = sessionData.blocker_sessions || {};
+        if (sessions[details.tabId] !== undefined) return;
+
+        // Also check for active DNR allow rules for this domain
+        const allRules = await chrome.declarativeNetRequest.getDynamicRules();
+        const hasAllow = allRules.some(r =>
+            r.id >= 1000 && r.id < 10000 &&
+            r.action?.type === 'allow' &&
+            r.condition?.requestDomains?.some(d => hostname === d || hostname.endsWith('.' + d))
+        );
+        if (hasAllow) return;
+
+        // Redirect to blocked page
+        const blockedUrl = chrome.runtime.getURL('blocked.html')
+            + '?domain=' + encodeURIComponent(matchedSite.url);
+        chrome.tabs.update(details.tabId, { url: blockedUrl });
+        console.log(`[Blocker Fallback] Redirected tab ${details.tabId} from ${hostname} to blocked page`);
+    } catch (e) {
+        console.error('[Blocker Fallback] Error:', e);
+    }
+});

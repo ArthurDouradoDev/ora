@@ -23,8 +23,43 @@ function minutesUntilBlockedWindow(schedule) {
     return cur < from ? from - cur : (24 * 60) - cur + from;
 }
 
+// Known domain aliases (mirrored from blocker.js / sw.js)
+const DOMAIN_ALIASES = {
+    'gmail.com':          ['mail.google.com'],
+    'mail.google.com':    ['gmail.com'],
+    'twitter.com':        ['x.com'],
+    'x.com':              ['twitter.com'],
+    'facebook.com':       ['fb.com', 'www.facebook.com'],
+    'fb.com':             ['facebook.com'],
+    'instagram.com':      ['www.instagram.com'],
+    'reddit.com':         ['old.reddit.com', 'www.reddit.com', 'new.reddit.com'],
+    'old.reddit.com':     ['reddit.com'],
+};
+
+/**
+ * Create allow rules for a domain AND all its known aliases.
+ * Uses requestDomains for reliable matching (consistent with blocker.js).
+ */
+function buildAllowRules(primaryDomain) {
+    const allDomains = [primaryDomain, ...(DOMAIN_ALIASES[primaryDomain] || [])];
+    // Single allow rule with requestDomains covering all aliases
+    const ruleId = 1000 + (Math.abs(hashCode(primaryDomain)) % 9000);
+    return {
+        ruleId,
+        rules: [{
+            id: ruleId,
+            priority: 2,
+            action: { type: 'allow' },
+            condition: { requestDomains: allDomains, resourceTypes: ['main_frame'] }
+        }]
+    };
+}
+
 (async function () {
-    const domain = location.hash.slice(1).replace(/^www\./, '');
+    // Read domain from query param (?domain=) with hash (#) fallback
+    const params = new URLSearchParams(location.search);
+    const domain = (params.get('domain') || location.hash.slice(1)).replace(/^www\./, '');
+
     if (!domain) {
         document.getElementById('always-section').style.display = 'block';
         return;
@@ -45,7 +80,10 @@ function minutesUntilBlockedWindow(schedule) {
         return;
     }
 
-    const site = config.sites.find(s => domain.endsWith(s.url));
+    // The domain is the primary domain set by blocker.js / sw.js.
+    // Try exact match first, then endsWith for subdomains.
+    const site = config.sites.find(s => s.url === domain)
+              || config.sites.find(s => domain.endsWith(s.url));
     if (!site) {
         document.getElementById('always-section').style.display = 'block';
         return;
@@ -97,25 +135,38 @@ function minutesUntilBlockedWindow(schedule) {
         return;
     }
 
+    /**
+     * Helper: create allow rules, notify SW to set up revoke alarm,
+     * then navigate to the target site.
+     */
+    async function allowAndNavigate(targetDomain, durationMinutes) {
+        const { ruleId, rules } = buildAllowRules(site.url);
+
+        // Create allow rules (primary + aliases via requestDomains)
+        await chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [ruleId],
+            addRules: rules
+        });
+
+        // Wait for SW to register the session BEFORE navigating,
+        // so the webNavigation fallback doesn't re-block the tab.
+        await new Promise(resolve => {
+            chrome.runtime.sendMessage(
+                { action: 'setup_revoke_alarm', ruleId, durationMinutes },
+                () => resolve()
+            );
+        });
+
+        window.location.replace('https://' + targetDomain);
+    }
+
     // ── No limits blocking AND no access limit → auto-continue (transparent) ──
     if (!hasAccessLimit) {
         let durationMinutes = 60;
         if (hasScheduleLimit) {
             durationMinutes = Math.min(durationMinutes, minutesUntilBlockedWindow(site.scheduleLimit));
         }
-
-        const ruleId = 1000 + (Math.abs(hashCode(site.url)) % 9000);
-        await chrome.declarativeNetRequest.updateDynamicRules({
-            removeRuleIds: [ruleId],
-            addRules: [{
-                id: ruleId,
-                priority: 2,
-                action: { type: 'allow' },
-                condition: { urlFilter: `||${site.url}`, resourceTypes: ['main_frame'] }
-            }]
-        });
-        chrome.runtime.sendMessage({ action: 'setup_revoke_alarm', ruleId, durationMinutes });
-        window.location.replace('https://' + domain);
+        await allowAndNavigate(domain, durationMinutes);
         return;
     }
 
@@ -143,25 +194,11 @@ function minutesUntilBlockedWindow(schedule) {
         site.todayAccesses++;
         await chrome.storage.local.set({ blocker_config: config });
 
-        const ruleId = 1000 + (Math.abs(hashCode(site.url)) % 9000);
-
-        // Allow rule lasts 60 min (one session), capped by remaining time in schedule window
         let durationMinutes = 60;
         if (hasScheduleLimit) {
             durationMinutes = Math.min(durationMinutes, minutesUntilBlockedWindow(site.scheduleLimit));
         }
 
-        await chrome.declarativeNetRequest.updateDynamicRules({
-            removeRuleIds: [ruleId],
-            addRules: [{
-                id: ruleId,
-                priority: 2,
-                action: { type: 'allow' },
-                condition: { urlFilter: `||${site.url}`, resourceTypes: ['main_frame'] }
-            }]
-        });
-
-        chrome.runtime.sendMessage({ action: 'setup_revoke_alarm', ruleId, durationMinutes });
-        window.location.replace('https://' + domain);
+        await allowAndNavigate(domain, durationMinutes);
     });
 })();

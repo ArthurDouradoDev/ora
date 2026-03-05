@@ -3,6 +3,21 @@
 // SITE BLOCKER — Advanced Tabbed Blocker
 // ============================================================
 
+// Known domain aliases — when a user blocks one domain, all its aliases
+// are also blocked. This handles sites that redirect to different domains
+// (e.g. gmail.com → mail.google.com, twitter.com → x.com).
+const DOMAIN_ALIASES = {
+    'gmail.com':          ['mail.google.com'],
+    'mail.google.com':    ['gmail.com'],
+    'twitter.com':        ['x.com'],
+    'x.com':              ['twitter.com'],
+    'facebook.com':       ['fb.com', 'www.facebook.com'],
+    'fb.com':             ['facebook.com'],
+    'instagram.com':      ['www.instagram.com'],
+    'reddit.com':         ['old.reddit.com', 'www.reddit.com', 'new.reddit.com'],
+    'old.reddit.com':     ['reddit.com'],
+};
+
 const Blocker = {
     state: {
         enabled: false,
@@ -803,26 +818,40 @@ const Blocker = {
                 return;
             }
 
-            const blockedPageUrl = chrome.runtime.getURL('/blocked.html');
+            const blockedPageUrl = chrome.runtime.getURL('blocked.html');
             const newRules = [];
             let ruleId = 1;
 
-            // ALL sites (always + limited) get redirected to blocked.html#domain
-            // blocked.html reads the hash to determine which site was blocked,
-            // checks config, and shows appropriate UI (blocked vs continue)
+            // ALL sites (always + limited) get redirected to blocked.html?domain=X
+            // blocked.html reads the query param to determine which site was blocked,
+            // checks config, and shows appropriate UI (blocked vs continue).
+            //
+            // We use requestDomains (explicit domain list) for maximum reliability
+            // across all Chromium browsers. Each site also includes its known aliases
+            // so that e.g. blocking gmail.com also blocks mail.google.com.
+            // Domain is passed as a query parameter (not hash) since DNR may strip
+            // fragment identifiers.
             this.state.sites.forEach(site => {
-                const escapedDomain = this.escapeRegex(site.url);
+                // Collect all domains: primary + aliases (skip aliases that are separate entries)
+                const allDomains = [site.url];
+                const aliases = DOMAIN_ALIASES[site.url] || [];
+                aliases.forEach(alias => {
+                    if (!this.state.sites.some(s => s.url === alias)) {
+                        allDomains.push(alias);
+                    }
+                });
+
                 newRules.push({
                     id: ruleId++,
                     priority: 1,
                     action: {
                         type: 'redirect',
                         redirect: {
-                            regexSubstitution: blockedPageUrl + '#\\1'
+                            url: blockedPageUrl + '?domain=' + encodeURIComponent(site.url)
                         }
                     },
                     condition: {
-                        regexFilter: `^https?://((?:[^/]*\\.)?${escapedDomain})(?:/.*)?$`,
+                        requestDomains: allDomains,
                         resourceTypes: ['main_frame']
                     }
                 });
