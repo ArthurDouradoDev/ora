@@ -142,6 +142,37 @@ function buildAllowRules(primaryDomain) {
     async function allowAndNavigate(targetDomain, durationMinutes) {
         const { ruleId, rules } = buildAllowRules(site.url);
 
+        // Fetch original full URL to preserve path/query (UX improvement)
+        let finalUrl = `https://${targetDomain}`;
+        try {
+            // First check if the fallback blocker passed it via query param
+            let originalUrl = params.get('url');
+
+            // If not, ask the Background SW (since DNR strips it)
+            if (!originalUrl) {
+                const response = await new Promise(resolve => {
+                    chrome.runtime.sendMessage({ action: 'get_original_url' }, resolve);
+                });
+                if (response && response.url) {
+                    originalUrl = response.url;
+                }
+            }
+
+            // Security check: ensure the retrieved URL belongs to the blocked domain
+            // or one of its aliases so we don't accidentally redirect elsewhere.
+            if (originalUrl) {
+                const urlObj = new URL(originalUrl);
+                const originalHostname = urlObj.hostname.replace(/^www\./, '');
+                const allAllowedDomains = [targetDomain, ...(DOMAIN_ALIASES[targetDomain] || [])];
+                
+                if (allAllowedDomains.some(d => originalHostname === d || originalHostname.endsWith('.' + d))) {
+                    finalUrl = originalUrl;
+                }
+            }
+        } catch (e) {
+            console.error('[Blocked] Failed to fetch original URL:', e);
+        }
+
         // Create allow rules (primary + aliases via requestDomains)
         await chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: [ruleId],
@@ -157,7 +188,7 @@ function buildAllowRules(primaryDomain) {
             );
         });
 
-        window.location.replace('https://' + targetDomain);
+        window.location.replace(finalUrl);
     }
 
     // ── No limits blocking AND no access limit → auto-continue (transparent) ──

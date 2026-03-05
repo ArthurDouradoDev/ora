@@ -208,6 +208,14 @@ async function notifyPhaseComplete(phase) {
 
 // --- Message Handler ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // ── Bloqueador: recuperar URL original completa ──
+    if (message && message.action === 'get_original_url') {
+        const tabId = sender?.tab?.id;
+        const url = tabId ? originalUrls.get(tabId) : null;
+        sendResponse({ url });
+        return true; 
+    }
+
     // ── Bloqueador: configurar alarme de revogação de acesso temporário ──
     if (message && message.action === 'setup_revoke_alarm') {
         const { ruleId, durationMinutes } = message;
@@ -434,6 +442,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 // ── Blocker: revoke allow rule immediately when the user closes the tab ──
 chrome.tabs.onRemoved.addListener(async (tabId) => {
+    // Clean up original URL tracking
+    originalUrls.delete(tabId);
+
     const data = await chrome.storage.session.get('blocker_sessions');
     const sessions = data.blocker_sessions || {};
     if (sessions[tabId] !== undefined) {
@@ -488,7 +499,19 @@ function matchesSiteOrAlias(hostname, site) {
     return false;
 }
 
-// ── webNavigation.onCommitted — fires after the navigation is committed ──
+// ── webNavigation.onBeforeNavigate — Rastreamento de URL original ──
+// Quando o DNR bloqueia um site, ele corta o path/query da URL.
+// Com esse listener, salvamos a URL exata ANTES do bloqueio acontecer,
+// para que a página blocked.html possa oferecer um "Continuar" exato.
+const originalUrls = new Map();
+
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    if (details.frameId === 0 && (details.url.startsWith('http://') || details.url.startsWith('https://'))) {
+        originalUrls.set(details.tabId, details.url);
+    }
+});
+
+// ── webNavigation.onCommitted — Fallback Blocker (SPAs, etc.) ──
 chrome.webNavigation.onCommitted.addListener(async (details) => {
     // Only process top-level frame navigations
     if (details.frameId !== 0) return;
@@ -529,7 +552,8 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
 
         // Redirect to blocked page
         const blockedUrl = chrome.runtime.getURL('blocked.html')
-            + '?domain=' + encodeURIComponent(matchedSite.url);
+            + '?domain=' + encodeURIComponent(matchedSite.url)
+            + '&url=' + encodeURIComponent(details.url);
         chrome.tabs.update(details.tabId, { url: blockedUrl });
         console.log(`[Blocker Fallback] Redirected tab ${details.tabId} from ${hostname} to blocked page`);
     } catch (e) {
