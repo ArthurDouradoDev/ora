@@ -78,9 +78,27 @@ const Blocker = {
                 }
                 // Migrate: timeLimit → scheduleLimit
                 if (!s.scheduleLimit) {
-                    s.scheduleLimit = { enabled: false, fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 };
+                    s.scheduleLimit = { 
+                        enabled: false, 
+                        schedules: [{ fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 }] 
+                    };
                     delete s.timeLimit;
                     delete s.todayTimeSpent;
+                    needsMigration = true;
+                }
+                
+                // Migrate: single schedule to schedules array
+                if (s.scheduleLimit && !Array.isArray(s.scheduleLimit.schedules)) {
+                    s.scheduleLimit.schedules = [{
+                        fromHour: s.scheduleLimit.fromHour ?? 22,
+                        fromMinute: s.scheduleLimit.fromMinute ?? 0,
+                        toHour: s.scheduleLimit.toHour ?? 8,
+                        toMinute: s.scheduleLimit.toMinute ?? 0
+                    }];
+                    delete s.scheduleLimit.fromHour;
+                    delete s.scheduleLimit.fromMinute;
+                    delete s.scheduleLimit.toHour;
+                    delete s.scheduleLimit.toMinute;
                     needsMigration = true;
                 }
                 return s;
@@ -97,7 +115,7 @@ const Blocker = {
                 url: site.url,
                 mode: 'always',
                 accessLimit: { enabled: false, count: 5, period: 'day' },
-                scheduleLimit: { enabled: false, fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 },
+                scheduleLimit: { enabled: false, schedules: [{ fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 }] },
                 todayAccesses: 0,
                 lastAccessDate: this.getTodayStr()
             }));
@@ -450,7 +468,7 @@ const Blocker = {
             url: domain,
             mode: 'always',
             accessLimit: { enabled: false, count: 5, period: 'day' },
-            scheduleLimit: { enabled: false, fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 },
+            scheduleLimit: { enabled: false, schedules: [{ fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 }] },
             todayAccesses: 0,
             lastAccessDate: this.getTodayStr()
         });
@@ -690,60 +708,107 @@ const Blocker = {
             toggleLabel.appendChild(chkSpan);
             toggleRow.appendChild(toggleLabel);
 
-            // Time range row (visible only when enabled)
-            const timeRow = document.createElement('div');
-            timeRow.className = 'config-card-row';
-            timeRow.style.display = site.scheduleLimit.enabled ? '' : 'none';
+            // Schedules container (visible only when enabled)
+            const schedulesContainer = document.createElement('div');
+            schedulesContainer.style.display = site.scheduleLimit.enabled ? 'flex' : 'none';
+            schedulesContainer.style.flexDirection = 'column';
+            schedulesContainer.style.gap = '8px';
+            schedulesContainer.style.marginTop = '8px';
 
-            const fromLabel = document.createElement('label');
-            fromLabel.textContent = 'Das';
+            const renderSchedules = () => {
+                schedulesContainer.innerHTML = '';
+                site.scheduleLimit.schedules.forEach((schedule, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'config-card-row';
+                    
+                    const fromLabel = document.createElement('label');
+                    fromLabel.textContent = 'Das';
 
-            const fromInput = document.createElement('input');
-            fromInput.type = 'time';
-            fromInput.value = `${pad(site.scheduleLimit.fromHour)}:${pad(site.scheduleLimit.fromMinute)}`;
-            fromInput.addEventListener('change', () => {
-                const [h, m] = fromInput.value.split(':').map(Number);
-                site.scheduleLimit.fromHour = h;
-                site.scheduleLimit.fromMinute = m;
-                this.saveState();
-                this.renderScheduleTab();
-            });
+                    const fromInput = document.createElement('input');
+                    fromInput.type = 'time';
+                    fromInput.value = `${pad(schedule.fromHour)}:${pad(schedule.fromMinute)}`;
+                    fromInput.addEventListener('change', () => {
+                        const [h, m] = fromInput.value.split(':').map(Number);
+                        schedule.fromHour = h;
+                        schedule.fromMinute = m;
+                        this.saveState();
+                        this.renderScheduleTab();
+                    });
 
-            const toLabel = document.createElement('label');
-            toLabel.textContent = 'às';
-            toLabel.style.flex = '0';
+                    const toLabel = document.createElement('label');
+                    toLabel.textContent = 'às';
+                    toLabel.style.flex = '0';
 
-            const toInput = document.createElement('input');
-            toInput.type = 'time';
-            toInput.value = `${pad(site.scheduleLimit.toHour)}:${pad(site.scheduleLimit.toMinute)}`;
-            toInput.addEventListener('change', () => {
-                const [h, m] = toInput.value.split(':').map(Number);
-                site.scheduleLimit.toHour = h;
-                site.scheduleLimit.toMinute = m;
-                this.saveState();
-                this.renderScheduleTab();
-            });
+                    const toInput = document.createElement('input');
+                    toInput.type = 'time';
+                    toInput.value = `${pad(schedule.toHour)}:${pad(schedule.toMinute)}`;
+                    toInput.addEventListener('change', () => {
+                        const [h, m] = toInput.value.split(':').map(Number);
+                        schedule.toHour = h;
+                        schedule.toMinute = m;
+                        this.saveState();
+                        this.renderScheduleTab();
+                    });
 
-            timeRow.appendChild(fromLabel);
-            timeRow.appendChild(fromInput);
-            timeRow.appendChild(toLabel);
-            timeRow.appendChild(toInput);
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'icon-btn-sm text-danger';
+                    deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
+                    deleteBtn.title = 'Remover horário';
+                    deleteBtn.style.marginLeft = 'auto';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        site.scheduleLimit.schedules.splice(index, 1);
+                        this.saveState();
+                        this.renderScheduleTab();
+                    });
+
+                    row.appendChild(fromLabel);
+                    row.appendChild(fromInput);
+                    row.appendChild(toLabel);
+                    row.appendChild(toInput);
+                    if (site.scheduleLimit.schedules.length > 1) {
+                        row.appendChild(deleteBtn);
+                    }
+                    
+                    schedulesContainer.appendChild(row);
+                });
+                
+                const addRow = document.createElement('div');
+                addRow.className = 'config-card-row';
+                addRow.style.justifyContent = 'center';
+                const addBtn = document.createElement('button');
+                addBtn.className = 'mode-toggle-btn';
+                addBtn.style.padding = '6px 14px';
+                addBtn.style.marginTop = '4px';
+                addBtn.innerHTML = '<i class="ph ph-plus"></i> Adicionar horário';
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    site.scheduleLimit.schedules.push({ fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 });
+                    this.saveState();
+                    this.renderScheduleTab();
+                });
+                addRow.appendChild(addBtn);
+                schedulesContainer.appendChild(addRow);
+            };
+
+            if (site.scheduleLimit.schedules) {
+                renderSchedules();
+            }
 
             card.appendChild(header);
             card.appendChild(toggleRow);
-            card.appendChild(timeRow);
+            card.appendChild(schedulesContainer);
 
             // Status indicator when enabled
-            if (site.scheduleLimit.enabled) {
+            if (site.scheduleLimit.enabled && site.scheduleLimit.schedules && site.scheduleLimit.schedules.length > 0) {
                 const status = document.createElement('div');
                 status.className = 'config-card-usage';
                 const blocked = this.isWithinBlockedSchedule(site.scheduleLimit);
-                const fromStr = `${pad(site.scheduleLimit.fromHour)}:${pad(site.scheduleLimit.fromMinute)}`;
-                const toStr = `${pad(site.scheduleLimit.toHour)}:${pad(site.scheduleLimit.toMinute)}`;
+                
                 if (blocked) {
-                    status.innerHTML = `<span class="usage-text" style="color:#f87171;">⛔ Bloqueado agora (${fromStr}–${toStr})</span>`;
+                    status.innerHTML = `<span class="usage-text" style="color:#f87171;">⛔ Bloqueado agora</span>`;
                 } else {
-                    status.innerHTML = `<span class="usage-text" style="color:#4ade80;">✓ Permitido agora · bloqueado das ${fromStr} às ${toStr}</span>`;
+                    status.innerHTML = `<span class="usage-text" style="color:#4ade80;">✓ Permitido agora</span>`;
                 }
                 card.appendChild(status);
             }
@@ -882,20 +947,33 @@ const Blocker = {
         }
     },
 
-    isWithinBlockedSchedule(schedule) {
+    isWithinBlockedSchedule(scheduleLimit) {
+        if (!scheduleLimit || !Array.isArray(scheduleLimit.schedules)) return false;
         const now = new Date();
         const cur = now.getHours() * 60 + now.getMinutes();
-        const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
-        const to = (schedule.toHour || 0) * 60 + (schedule.toMinute || 0);
-        if (from === to) return false;
-        return from < to ? (cur >= from && cur < to) : (cur >= from || cur < to);
+        
+        for (const schedule of scheduleLimit.schedules) {
+            const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
+            const to = (schedule.toHour || 0) * 60 + (schedule.toMinute || 0);
+            if (from === to) continue;
+            const isBlocked = from < to ? (cur >= from && cur < to) : (cur >= from || cur < to);
+            if (isBlocked) return true;
+        }
+        return false;
     },
 
-    minutesUntilBlockedWindow(schedule) {
+    minutesUntilBlockedWindow(scheduleLimit) {
+        if (!scheduleLimit || !Array.isArray(scheduleLimit.schedules) || scheduleLimit.schedules.length === 0) return 0;
         const now = new Date();
         const cur = now.getHours() * 60 + now.getMinutes();
-        const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
-        return cur < from ? from - cur : (24 * 60) - cur + from;
+        
+        let minMinutes = 24 * 60;
+        for (const schedule of scheduleLimit.schedules) {
+            const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
+            const diff = cur < from ? from - cur : (24 * 60) - cur + from;
+            if (diff < minMinutes) minMinutes = diff;
+        }
+        return minMinutes === 24 * 60 ? 0 : minMinutes;
     },
 
     isSiteOverLimit(site) {

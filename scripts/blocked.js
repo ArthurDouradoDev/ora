@@ -7,20 +7,33 @@ function hashCode(str) {
     return hash;
 }
 
-function isWithinBlockedSchedule(schedule) {
+function isWithinBlockedSchedule(scheduleLimit) {
+    if (!scheduleLimit || !Array.isArray(scheduleLimit.schedules)) return false;
     const now = new Date();
     const cur = now.getHours() * 60 + now.getMinutes();
-    const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
-    const to = (schedule.toHour || 0) * 60 + (schedule.toMinute || 0);
-    if (from === to) return false;
-    return from < to ? (cur >= from && cur < to) : (cur >= from || cur < to);
+    
+    for (const schedule of scheduleLimit.schedules) {
+        const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
+        const to = (schedule.toHour || 0) * 60 + (schedule.toMinute || 0);
+        if (from === to) continue;
+        const isBlocked = from < to ? (cur >= from && cur < to) : (cur >= from || cur < to);
+        if (isBlocked) return true;
+    }
+    return false;
 }
 
-function minutesUntilBlockedWindow(schedule) {
+function minutesUntilBlockedWindow(scheduleLimit) {
+    if (!scheduleLimit || !Array.isArray(scheduleLimit.schedules) || scheduleLimit.schedules.length === 0) return 0;
     const now = new Date();
     const cur = now.getHours() * 60 + now.getMinutes();
-    const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
-    return cur < from ? from - cur : (24 * 60) - cur + from;
+    
+    let minMinutes = 24 * 60;
+    for (const schedule of scheduleLimit.schedules) {
+        const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
+        const diff = cur < from ? from - cur : (24 * 60) - cur + from;
+        if (diff < minMinutes) minMinutes = diff;
+    }
+    return minMinutes === 24 * 60 ? 0 : minMinutes;
 }
 
 // Known domain aliases (mirrored from blocker.js / sw.js)
@@ -125,8 +138,20 @@ function buildAllowRules(primaryDomain) {
         if (scheduleBlocked) {
             badgeEl.className = 'reason-badge badge-time';
             badgeEl.innerHTML = '<i class="ph ph-clock"></i><span id="overlimit-badge-text">Fora do horário</span>';
-            const fromStr = `${pad(site.scheduleLimit.fromHour)}:${pad(site.scheduleLimit.fromMinute)}`;
-            const toStr = `${pad(site.scheduleLimit.toHour)}:${pad(site.scheduleLimit.toMinute)}`;
+            
+            // Find the active schedule
+            const now = new Date();
+            const cur = now.getHours() * 60 + now.getMinutes();
+            let activeSchedule = site.scheduleLimit.schedules[0];
+            for (const schedule of site.scheduleLimit.schedules) {
+                const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
+                const to = (schedule.toHour || 0) * 60 + (schedule.toMinute || 0);
+                const isBlocked = from < to ? (cur >= from && cur < to) : (cur >= from || cur < to);
+                if (isBlocked) { activeSchedule = schedule; break; }
+            }
+
+            const fromStr = `${pad(activeSchedule.fromHour)}:${pad(activeSchedule.fromMinute)}`;
+            const toStr = `${pad(activeSchedule.toHour)}:${pad(activeSchedule.toMinute)}`;
             msg.textContent = `${site.url} está bloqueado das ${fromStr} às ${toStr}.`;
         } else {
             badgeText.textContent = 'Limite de acessos excedido';
@@ -215,10 +240,8 @@ function buildAllowRules(primaryDomain) {
     usageBar.className = 'usage-bar-fill ' + cls;
     usageBar.style.width = Math.min(100, barPct) + '%';
 
-    if (hasScheduleLimit) {
-        const fromStr = `${pad(site.scheduleLimit.fromHour)}:${pad(site.scheduleLimit.fromMinute)}`;
-        const toStr = `${pad(site.scheduleLimit.toHour)}:${pad(site.scheduleLimit.toMinute)}`;
-        sessionNote.textContent = `Bloqueado das ${fromStr} às ${toStr}`;
+    if (hasScheduleLimit && site.scheduleLimit.schedules && site.scheduleLimit.schedules.length > 0) {
+        sessionNote.textContent = `Possui restrições de horário`;
     }
 
     document.getElementById('continue-btn').addEventListener('click', async () => {
