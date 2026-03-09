@@ -52,8 +52,8 @@ async function loadAppData() {
             backgroundImages: [],
             defaultPlaylists: [],
             prayers: [],
-            quotes: [{ text: "Fiat Voluntas Tua", author: "" }],
-            greetings: ["Fiat Voluntas Tua"],
+            quotes: [{ text: { pt: "Fiat Voluntas Tua", en: "Thy Will Be Done", es: "Hágase Tu Voluntad" }, author: "" }],
+            greetings: [{ pt: "Fiat Voluntas Tua", en: "Thy Will Be Done", es: "Hágase Tu Voluntad" }],
             rosary: { structure: [], mysteries: {}, extraPrayers: {} },
             exam: { types: {}, defaultVirtues: [], pomodoroCheckin: {} }
         };
@@ -101,6 +101,25 @@ async function initApp() {
         console.warn('[Ora] session storage check failed:', e);
     }
 
+    // ============================================================
+    // LOAD i18n LOCALE (must happen before any module init)
+    // ============================================================
+    try {
+        const savedLocale = await AsyncStorage.get('ora_locale', 'pt');
+        window._i18nLocale = savedLocale;
+        const [localeStrings, fallbackStrings] = await Promise.all([
+            loadJSON(`data/i18n/${savedLocale}.json`).catch(() => null),
+            savedLocale !== 'pt' ? loadJSON('data/i18n/pt.json').catch(() => ({})) : Promise.resolve(null)
+        ]);
+        window._i18nStrings = localeStrings || {};
+        window._i18nFallback = fallbackStrings || localeStrings || {};
+        if (savedLocale === 'pt') window._i18nFallback = window._i18nStrings;
+        applyI18n();
+        console.log(`[Ora] i18n loaded: ${savedLocale}`);
+    } catch (e) {
+        console.warn('[Ora] i18n load failed, using defaults:', e);
+    }
+
     // Start background preload early — in parallel with JSON data loading
     let bgPreloadPromise = Promise.resolve();
     if (typeof BackgroundSystem !== 'undefined') {
@@ -146,7 +165,9 @@ async function initApp() {
             }
 
             const quote = data.quotes[quoteIndex] || data.quotes[0];
-            quoteText.textContent = `"${quote.text}"`;
+            const locale = window._i18nLocale || 'pt';
+            const qText = (typeof quote.text === 'object') ? (quote.text[locale] || quote.text.pt || '') : quote.text;
+            quoteText.textContent = `"${qText}"`;
             quoteAuthor.textContent = quote.author;
         } catch (e) {
             console.error('[Ora] Error in setQuote:', e);
@@ -178,7 +199,9 @@ async function initApp() {
                 await AsyncStorage.set('ora_greeting_index', greetingIndex.toString());
             }
 
-            greetingEl.textContent = data.greetings[greetingIndex] || data.greetings[0];
+            const greeting = data.greetings[greetingIndex] || data.greetings[0];
+            const locale = window._i18nLocale || 'pt';
+            greetingEl.textContent = (typeof greeting === 'object') ? (greeting[locale] || greeting.pt || '') : greeting;
         } catch (e) {
             console.error('[Ora] Error in setGreeting:', e);
         }
@@ -326,6 +349,37 @@ async function initApp() {
                 !btnBlocker.contains(e.target)) {
                 animateModal(blockerModal, false);
             }
+        });
+    }
+
+    // ============================================================
+    // 10. LANGUAGE SELECTOR
+    // ============================================================
+    const langSelect = document.getElementById('language-select');
+    if (langSelect) {
+        langSelect.value = window._i18nLocale || 'pt';
+        langSelect.addEventListener('change', async (e) => {
+            const newLocale = e.target.value;
+            await AsyncStorage.set('ora_locale', newLocale);
+            window._i18nLocale = newLocale;
+            try {
+                const [newStrings, newFallback] = await Promise.all([
+                    loadJSON(`data/i18n/${newLocale}.json`).catch(() => null),
+                    newLocale !== 'pt' ? loadJSON('data/i18n/pt.json').catch(() => ({})) : Promise.resolve(null)
+                ]);
+                window._i18nStrings = newStrings || {};
+                window._i18nFallback = newFallback || newStrings || {};
+                if (newLocale === 'pt') window._i18nFallback = window._i18nStrings;
+            } catch (err) {
+                console.error('[Ora] Failed to load locale:', err);
+            }
+            applyI18n();
+            // Re-set quote and greeting with new locale
+            await setQuote();
+            await setGreeting();
+            // Notify other modules
+            window.dispatchEvent(new CustomEvent('ora:locale-changed', { detail: { locale: newLocale } }));
+            console.log(`[Ora] Locale changed to: ${newLocale}`);
         });
     }
 

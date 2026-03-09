@@ -217,17 +217,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         let url = linkUrlInput.value.trim();
 
         if (!name || !url) {
-            showToast('Preencha nome e URL!', 'error');
+            showToast(t('toast.link_fill_fields'), 'error');
             return;
         }
 
         if (name.length > MAX_NAME_LENGTH) {
-            showToast(`O nome deve ter no máximo ${MAX_NAME_LENGTH} caracteres.`, 'error');
+            showToast(t('toast.link_name_max', { max: MAX_NAME_LENGTH }), 'error');
             return;
         }
 
         if (links.length >= MAX_LINKS) {
-            showToast('Limite de 6 links atingido.', 'error');
+            showToast(t('toast.link_limit_reached'), 'error');
             return;
         }
 
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (!isValidURL(url)) {
-            showToast('URL inválida! Use apenas HTTP ou HTTPS.', 'error');
+            showToast(t('toast.link_invalid_url'), 'error');
             return;
         }
 
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         renderManageList();
         renderLinks();
-        showToast('Link adicionado!', 'success');
+        showToast(t('toast.link_added'), 'success');
     }
 
     async function deleteLink(index) {
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await saveLinks();
         renderManageList();
         renderLinks();
-        showToast('Link removido.', 'info');
+        showToast(t('toast.link_removed'), 'info');
     }
 
     // Load links (Async)

@@ -1,210 +1,54 @@
 [
-  {
-    "text": "Tarde te amei, ó beleza tão antiga e tão nova!",
-    "author": "Santo Agostinho"
-  },
-  {
-    "text": "Quem não ora, não tem necessidade do demônio para levá-lo ao inferno.",
-    "author": "Santa Teresa d'Ávila"
-  },
-  {
-    "text": "A oração é a respiração da alma.",
-    "author": "São Padre Pio"
-  },
-  {
-    "text": "Tudo posso naquele que me fortalece.",
-    "author": "Filipenses 4,13"
-  },
-  {
-    "text": "Nada te perturbe, nada te espante. Tudo passa. Deus não muda.",
-    "author": "Santa Teresa d'Ávila"
-  },
-  {
-    "text": "Não tenhais medo! Abri as portas a Cristo!",
-    "author": "São João Paulo II"
-  },
-  {
-    "text": "Onde não há amor, ponha amor e encontrará amor.",
-    "author": "São João da Cruz"
-  },
-  {
-    "text": "Sê fiel nas pequenas coisas, porque nelas reside a tua força.",
-    "author": "Madre Teresa de Calcutá"
-  },
-  {
-    "text": "Se o mundo for contra a verdade, então serei contra o mundo.",
-    "author": "Santo Atanásio"
-  },
-  {
-    "text": "Todas as minhas obras e trabalhos têm como base duas coisas: a Missa e o Rosário.",
-    "author": "São João Bosco"
-  },
-  {
-    "text": "A alma que caminha no amor não cansa nem se cansa.",
-    "author": "São João da Cruz"
-  },
-  {
-    "text": "Um cristão deve ser outro Cristo.",
-    "author": "Santa Teresa dos Andes"
-  },
-  {
-    "text": "Deus nunca se cansa de perdoar, somos nós que nos cansamos de pedir perdão.",
-    "author": "Papa Francisco"
-  },
-  {
-    "text": "Não há pecado que a misericórdia de Deus não possa alcançar.",
-    "author": "São Padre Pio de Pietrelcina"
-  },
-  {
-    "text": "A misericórdia é a maior das virtudes.",
-    "author": "Santo Tomás de Aquino"
-  },
-  {
-    "text": "Confiai na misericórdia de Deus mais do que em vossa própria miséria.",
-    "author": "Santa Teresa do Menino Jesus"
-  },
-  {
-    "text": "Não temais aproximar-vos da confissão: é o tribunal da misericórdia.",
-    "author": "Papa João Paulo I"
-  },
-  {
-    "text": "O coração misericordioso é o que mais se assemelha ao de Cristo.",
-    "author": "São Vicente de Paulo"
-  },
-  {
-    "text": "Nada agrada tanto a Deus quanto um coração que perdoa, como Ele perdoa.",
-    "author": "São Francisco de Assis"
-  },
-  {
-    "text": "Se queres ser santo, começa por ser misericordioso.",
-    "author": "São João Maria Vianney"
-  },
-  {
-    "text": "A misericórdia é a vitória do amor sobre o pecado.",
-    "author": "São Leão Magno"
-  },
-  {
-    "text": "A misericórdia é a flor do amor.",
-    "author": "Santa Faustina Kowalska"
-  },
-  {
-    "text": "O Pai quer que o ame, porque Ele me perdoou não muito, mas tudo.",
-    "author": "Santa Teresinha"
-  },
-  {
-    "text": "A quem Deus quer fazer muito santo, o faz muito devoto da Virgem Maria.",
-    "author": "São Luís Maria Grignion de Montfort"
-  },
-  {
-    "text": "Se Deus é por nós, quem será contra nós?",
-    "author": "Rom 8,31"
-  },
-  {
-    "text": "Só se ama aquilo que se conhece.",
-    "author": "Santo Agostinho"
-  },
-  {
-    "text": "Não pode ter Deus como Pai aquele que não tem a Igreja como mãe.",
-    "author": "Santo Agostinho"
-  },
-  {
-    "text": "É viva a Palavra quando são as obras que falam.",
-    "author": "Santo Antônio"
-  },
-  {
-    "text": "Volte à paz, antes do pôr do sol, com aqueles com quem teve desavença",
-    "author": "São Bento"
-  },
-  {
-    "text": "Como é que os homens podem amar uns aos outros se não amam o Amor?",
-    "author": "São Francisco de Assis"
-  },
-  {
-    "text": "Os que não passam pela Sexta-feira Santa, nunca vão chegar ao Domingo da Ressurreição",
-    "author": "São Francisco de Assis"
-  },
-  {
-    "text": "O Amor transforma os cemitérios em jardins",
-    "author": "São Francisco de Assis"
-  },
-  {
-    "text": "Nada por força, tudo por amor.",
-    "author": "São Francisco de Sales"
-  },
-  {
-    "text": "A humildade aperfeiçoa o homem em seus deveres para com Deus",
-    "author": "São Francisco de Sales"
-  },
-  {
-    "text": "Maria é a mestra da santidade.",
-    "author": "São Francisco de Sales"
-  },
-  {
-    "text": "Primeiro, oração; depois, expiação; em terceiro lugar, muito, em ‘terceiro lugar’, ação.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "A oração é a arma mais poderosa do cristão.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "O heroísmo do trabalho está em ‘acabar’ cada tarefa.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "Quem procura Maria, encontra Jesus.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "Conquista os teus amigos um a um - para Cristo.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "Recorre a Maria! Sem Ela, nada podemos fazer em Jesus.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "A santidade grande está em cumprir os deveres pequenos de cada instante.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "Cumpre o pequeno dever de cada momento: faz o que deves e está no que fazes.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "Não há virtude mais cristã do que a doçura.",
-    "author": "São Josemaria Escrivá"
-  },
-  {
-    "text": "O mundo espera com ansiedade o nosso testemunho de amor.",
-    "author": "São João Paulo II"
-  },
-  {
-    "text": "Só Cristo é capaz de preencher até ao fim o espaço do coração humano.",
-    "author": "São João Paulo II"
-  },
-  {
-    "text": "Todos somos chamados à santidade, e só os santos podem renovar a humanidade.",
-    "author": "São João Paulo II"
-  },
-  {
-    "text": "Não tenhais medo! Abri, melhor, escancarai as portas a Cristo!",
-    "author": "São João Paulo II"
-  },
-  {
-    "text": "Por causa de prazeres passageiros, sofrem-se grandes tormentos eternos.",
-    "author": "São João da Cruz"
-  },
-  {
-    "text": "O amor é a única força que pode realmente transformar o mundo.",
-    "author": "Papa Bento XVI"
-  },
-  {
-    "text": "A verdade é una e indivisível, eternamente a mesma e não submete aos caprichos do tempo.",
-    "author": "São Pio X"
-  },
-  {
-    "text": "A santidade não consiste em coisas extraordinárias, mas em cumprir bem os deveres de cada dia.",
-    "author": "São Pio X"
-  }
+  { "text": { "pt": "Tarde te amei, ó beleza tão antiga e tão nova!", "en": "Late have I loved you, O beauty so ancient and so new!", "es": "¡Tarde te amé, oh belleza tan antigua y tan nueva!" }, "author": "Santo Agostinho" },
+  { "text": { "pt": "Quem não ora, não tem necessidade do demônio para levá-lo ao inferno.", "en": "He who does not pray has no need of the devil to lead him to hell.", "es": "Quien no ora, no tiene necesidad del demonio para llevarlo al infierno." }, "author": "Santa Teresa d'Ávila" },
+  { "text": { "pt": "A oração é a respiração da alma.", "en": "Prayer is the breath of the soul.", "es": "La oración es la respiración del alma." }, "author": "São Padre Pio" },
+  { "text": { "pt": "Tudo posso naquele que me fortalece.", "en": "I can do all things through Him who strengthens me.", "es": "Todo lo puedo en Aquel que me fortalece." }, "author": "Filipenses 4,13" },
+  { "text": { "pt": "Nada te perturbe, nada te espante. Tudo passa. Deus não muda.", "en": "Let nothing disturb you, let nothing frighten you. All things pass. God does not change.", "es": "Nada te turbe, nada te espante. Todo pasa. Dios no cambia." }, "author": "Santa Teresa d'Ávila" },
+  { "text": { "pt": "Não tenhais medo! Abri as portas a Cristo!", "en": "Be not afraid! Open the doors to Christ!", "es": "¡No tengáis miedo! ¡Abrid las puertas a Cristo!" }, "author": "São João Paulo II" },
+  { "text": { "pt": "Onde não há amor, ponha amor e encontrará amor.", "en": "Where there is no love, put love and you will find love.", "es": "Donde no hay amor, pon amor y encontrarás amor." }, "author": "São João da Cruz" },
+  { "text": { "pt": "Sê fiel nas pequenas coisas, porque nelas reside a tua força.", "en": "Be faithful in small things because it is in them that your strength lies.", "es": "Sé fiel en las cosas pequeñas, porque en ellas reside tu fuerza." }, "author": "Madre Teresa de Calcutá" },
+  { "text": { "pt": "Se o mundo for contra a verdade, então serei contra o mundo.", "en": "If the world goes against truth, then I will go against the world.", "es": "Si el mundo va contra la verdad, entonces iré contra el mundo." }, "author": "Santo Atanásio" },
+  { "text": { "pt": "Todas as minhas obras e trabalhos têm como base duas coisas: a Missa e o Rosário.", "en": "All my works and labors are based on two things: the Mass and the Rosary.", "es": "Todas mis obras y trabajos tienen como base dos cosas: la Misa y el Rosario." }, "author": "São João Bosco" },
+  { "text": { "pt": "A alma que caminha no amor não cansa nem se cansa.", "en": "The soul that walks in love neither tires nor grows weary.", "es": "El alma que camina en el amor no se cansa ni se fatiga." }, "author": "São João da Cruz" },
+  { "text": { "pt": "Um cristão deve ser outro Cristo.", "en": "A Christian must be another Christ.", "es": "Un cristiano debe ser otro Cristo." }, "author": "Santa Teresa dos Andes" },
+  { "text": { "pt": "Deus nunca se cansa de perdoar, somos nós que nos cansamos de pedir perdão.", "en": "God never tires of forgiving us; we are the ones who get tired of asking for forgiveness.", "es": "Dios nunca se cansa de perdonar, somos nosotros los que nos cansamos de pedir perdón." }, "author": "Papa Francisco" },
+  { "text": { "pt": "Não há pecado que a misericórdia de Deus não possa alcançar.", "en": "There is no sin that the mercy of God cannot reach.", "es": "No hay pecado que la misericordia de Dios no pueda alcanzar." }, "author": "São Padre Pio de Pietrelcina" },
+  { "text": { "pt": "A misericórdia é a maior das virtudes.", "en": "Mercy is the greatest of virtues.", "es": "La misericordia es la mayor de las virtudes." }, "author": "Santo Tomás de Aquino" },
+  { "text": { "pt": "Confiai na misericórdia de Deus mais do que em vossa própria miséria.", "en": "Trust in the mercy of God more than in your own misery.", "es": "Confiad en la misericordia de Dios más que en vuestra propia miseria." }, "author": "Santa Teresa do Menino Jesus" },
+  { "text": { "pt": "Não temais aproximar-vos da confissão: é o tribunal da misericórdia.", "en": "Do not be afraid to approach confession: it is the tribunal of mercy.", "es": "No temáis acercaros a la confesión: es el tribunal de la misericordia." }, "author": "Papa João Paulo I" },
+  { "text": { "pt": "O coração misericordioso é o que mais se assemelha ao de Cristo.", "en": "The merciful heart is the one most resembling Christ's.", "es": "El corazón misericordioso es el que más se asemeja al de Cristo." }, "author": "São Vicente de Paulo" },
+  { "text": { "pt": "Nada agrada tanto a Deus quanto um coração que perdoa, como Ele perdoa.", "en": "Nothing pleases God more than a heart that forgives, as He forgives.", "es": "Nada agrada tanto a Dios como un corazón que perdona, como Él perdona." }, "author": "São Francisco de Assis" },
+  { "text": { "pt": "Se queres ser santo, começa por ser misericordioso.", "en": "If you want to be holy, start by being merciful.", "es": "Si quieres ser santo, comienza por ser misericordioso." }, "author": "São João Maria Vianney" },
+  { "text": { "pt": "A misericórdia é a vitória do amor sobre o pecado.", "en": "Mercy is the victory of love over sin.", "es": "La misericordia es la victoria del amor sobre el pecado." }, "author": "São Leão Magno" },
+  { "text": { "pt": "A misericórdia é a flor do amor.", "en": "Mercy is the flower of love.", "es": "La misericordia es la flor del amor." }, "author": "Santa Faustina Kowalska" },
+  { "text": { "pt": "O Pai quer que o ame, porque Ele me perdoou não muito, mas tudo.", "en": "The Father wants me to love Him, because He forgave me not much, but everything.", "es": "El Padre quiere que lo ame, porque Él me perdonó no mucho, sino todo." }, "author": "Santa Teresinha" },
+  { "text": { "pt": "A quem Deus quer fazer muito santo, o faz muito devoto da Virgem Maria.", "en": "Whom God wants to make very holy, He makes very devoted to the Virgin Mary.", "es": "A quien Dios quiere hacer muy santo, lo hace muy devoto de la Virgen María." }, "author": "São Luís Maria Grignion de Montfort" },
+  { "text": { "pt": "Se Deus é por nós, quem será contra nós?", "en": "If God is for us, who can be against us?", "es": "Si Dios está con nosotros, ¿quién estará contra nosotros?" }, "author": "Rom 8,31" },
+  { "text": { "pt": "Só se ama aquilo que se conhece.", "en": "One only loves what one knows.", "es": "Solo se ama lo que se conoce." }, "author": "Santo Agostinho" },
+  { "text": { "pt": "Não pode ter Deus como Pai aquele que não tem a Igreja como mãe.", "en": "He cannot have God as Father who does not have the Church as Mother.", "es": "No puede tener a Dios como Padre quien no tiene a la Iglesia como madre." }, "author": "Santo Agostinho" },
+  { "text": { "pt": "É viva a Palavra quando são as obras que falam.", "en": "The Word is alive when it is deeds that speak.", "es": "Está viva la Palabra cuando son las obras las que hablan." }, "author": "Santo Antônio" },
+  { "text": { "pt": "Volte à paz, antes do pôr do sol, com aqueles com quem teve desavença", "en": "Return to peace, before sunset, with those with whom you have quarreled.", "es": "Vuelve a la paz, antes de la puesta del sol, con aquellos con quienes tuviste desavenencia." }, "author": "São Bento" },
+  { "text": { "pt": "Como é que os homens podem amar uns aos outros se não amam o Amor?", "en": "How can men love one another if they do not love Love?", "es": "¿Cómo pueden los hombres amarse unos a otros si no aman al Amor?" }, "author": "São Francisco de Assis" },
+  { "text": { "pt": "Os que não passam pela Sexta-feira Santa, nunca vão chegar ao Domingo da Ressurreição", "en": "Those who do not go through Good Friday will never reach Easter Sunday.", "es": "Los que no pasan por el Viernes Santo, nunca llegarán al Domingo de Resurrección." }, "author": "São Francisco de Assis" },
+  { "text": { "pt": "O Amor transforma os cemitérios em jardins", "en": "Love transforms cemeteries into gardens.", "es": "El Amor transforma los cementerios en jardines." }, "author": "São Francisco de Assis" },
+  { "text": { "pt": "Nada por força, tudo por amor.", "en": "Nothing by force, everything by love.", "es": "Nada por fuerza, todo por amor." }, "author": "São Francisco de Sales" },
+  { "text": { "pt": "A humildade aperfeiçoa o homem em seus deveres para com Deus", "en": "Humility perfects man in his duties to God.", "es": "La humildad perfecciona al hombre en sus deberes para con Dios." }, "author": "São Francisco de Sales" },
+  { "text": { "pt": "Maria é a mestra da santidade.", "en": "Mary is the teacher of holiness.", "es": "María es la maestra de la santidad." }, "author": "São Francisco de Sales" },
+  { "text": { "pt": "Primeiro, oração; depois, expiação; em terceiro lugar, muito, em 'terceiro lugar', ação.", "en": "First, prayer; then, atonement; in third place, much, in 'third place', action.", "es": "Primero, oración; después, expiación; en tercer lugar, mucho, en 'tercer lugar', acción." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "A oração é a arma mais poderosa do cristão.", "en": "Prayer is the most powerful weapon of the Christian.", "es": "La oración es el arma más poderosa del cristiano." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "O heroísmo do trabalho está em 'acabar' cada tarefa.", "en": "The heroism of work lies in 'finishing' each task.", "es": "El heroísmo del trabajo está en 'acabar' cada tarea." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "Quem procura Maria, encontra Jesus.", "en": "Whoever seeks Mary, finds Jesus.", "es": "Quien busca a María, encuentra a Jesús." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "Conquista os teus amigos um a um - para Cristo.", "en": "Win your friends one by one — for Christ.", "es": "Conquista a tus amigos uno a uno — para Cristo." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "Recorre a Maria! Sem Ela, nada podemos fazer em Jesus.", "en": "Turn to Mary! Without Her, we can do nothing in Jesus.", "es": "¡Recurre a María! Sin Ella, nada podemos hacer en Jesús." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "A santidade grande está em cumprir os deveres pequenos de cada instante.", "en": "Great holiness lies in fulfilling the small duties of each moment.", "es": "La gran santidad está en cumplir los pequeños deberes de cada instante." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "Cumpre o pequeno dever de cada momento: faz o que deves e está no que fazes.", "en": "Fulfill the small duty of each moment: do what you must and be in what you do.", "es": "Cumple el pequeño deber de cada momento: haz lo que debes y está en lo que haces." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "Não há virtude mais cristã do que a doçura.", "en": "There is no more Christian virtue than gentleness.", "es": "No hay virtud más cristiana que la dulzura." }, "author": "São Josemaria Escrivá" },
+  { "text": { "pt": "O mundo espera com ansiedade o nosso testemunho de amor.", "en": "The world eagerly awaits our testimony of love.", "es": "El mundo espera con ansiedad nuestro testimonio de amor." }, "author": "São João Paulo II" },
+  { "text": { "pt": "Só Cristo é capaz de preencher até ao fim o espaço do coração humano.", "en": "Only Christ can fill the space of the human heart to the end.", "es": "Solo Cristo es capaz de llenar hasta el final el espacio del corazón humano." }, "author": "São João Paulo II" },
+  { "text": { "pt": "Todos somos chamados à santidade, e só os santos podem renovar a humanidade.", "en": "We are all called to holiness, and only the saints can renew humanity.", "es": "Todos estamos llamados a la santidad, y solo los santos pueden renovar la humanidad." }, "author": "São João Paulo II" },
+  { "text": { "pt": "Não tenhais medo! Abri, melhor, escancarai as portas a Cristo!", "en": "Be not afraid! Open wide the doors to Christ!", "es": "¡No tengáis miedo! ¡Abrid, mejor, abrid de par en par las puertas a Cristo!" }, "author": "São João Paulo II" },
+  { "text": { "pt": "Por causa de prazeres passageiros, sofrem-se grandes tormentos eternos.", "en": "For the sake of passing pleasures, one suffers great eternal torments.", "es": "Por causa de placeres pasajeros, se sufren grandes tormentos eternos." }, "author": "São João da Cruz" },
+  { "text": { "pt": "O amor é a única força que pode realmente transformar o mundo.", "en": "Love is the only force that can truly transform the world.", "es": "El amor es la única fuerza que puede realmente transformar el mundo." }, "author": "Papa Bento XVI" },
+  { "text": { "pt": "A verdade é una e indivisível, eternamente a mesma e não submete aos caprichos do tempo.", "en": "Truth is one and indivisible, eternally the same and not subject to the whims of time.", "es": "La verdad es una e indivisible, eternamente la misma y no se somete a los caprichos del tiempo." }, "author": "São Pio X" },
+  { "text": { "pt": "A santidade não consiste em coisas extraordinárias, mas em cumprir bem os deveres de cada dia.", "en": "Holiness does not consist of extraordinary things, but in fulfilling well the duties of each day.", "es": "La santidad no consiste en cosas extraordinarias, sino en cumplir bien los deberes de cada día." }, "author": "São Pio X" }
 ]

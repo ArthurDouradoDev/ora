@@ -2,6 +2,105 @@
 // UTILITIES (Global Helpers)
 // ============================================================
 
+// 0. i18n System
+window._i18nStrings = {};
+window._i18nFallback = {};
+window._i18nLocale = 'pt';
+
+/**
+ * Get a translated string by dot-notation key.
+ * Supports template interpolation: t('toast.link_name_max', { max: 20 })
+ * Falls back to Portuguese if key not found in active locale.
+ */
+function t(key, params) {
+    const keys = key.split('.');
+    let value = window._i18nStrings;
+    for (const k of keys) {
+        if (value && typeof value === 'object' && k in value) {
+            value = value[k];
+        } else {
+            value = undefined;
+            break;
+        }
+    }
+    // Fallback to Portuguese
+    if (value === undefined) {
+        value = window._i18nFallback;
+        for (const k of keys) {
+            if (value && typeof value === 'object' && k in value) {
+                value = value[k];
+            } else {
+                value = key; // Return the key itself as last resort
+                break;
+            }
+        }
+    }
+    // Template interpolation
+    if (typeof value === 'string' && params) {
+        for (const [pKey, pVal] of Object.entries(params)) {
+            value = value.replace(new RegExp(`\\{${pKey}\\}`, 'g'), pVal);
+        }
+    }
+    return value;
+}
+window.t = t;
+
+/**
+ * Apply translations to all DOM elements with data-i18n attributes.
+ * - data-i18n="key" → sets textContent
+ * - data-i18n-placeholder="key" → sets placeholder
+ * - data-i18n-title="key" → sets title attribute
+ * - data-i18n-html="key" → sets innerHTML (for elements with icons)
+ */
+function applyI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) el.textContent = t(key);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (key) el.placeholder = t(key);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (key) el.title = t(key);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        if (key) {
+            // Preserve existing icon markup, replace text after last </i>
+            const icon = el.querySelector('i');
+            if (icon) {
+                // Keep icon, replace text
+                const iconHtml = icon.outerHTML;
+                el.innerHTML = iconHtml + ' ' + t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    });
+    document.querySelectorAll('[data-i18n-href]').forEach(el => {
+        const key = el.getAttribute('data-i18n-href');
+        if (key) el.href = t(key);
+    });
+}
+window.applyI18n = applyI18n;
+
+/**
+ * Resolve a locale-aware value from an object with {pt, en, es} keys.
+ * If the input is a plain string, returns it as-is.
+ * Usage: l(verse.text) → returns the string for the active locale.
+ */
+function l(obj) {
+    if (typeof obj === 'string') return obj;
+    if (obj && typeof obj === 'object') {
+        const locale = window._i18nLocale || 'pt';
+        return obj[locale] || obj.pt || '';
+    }
+    return '';
+}
+window.l = l;
+
 // 1. Safe Storage Helper
 // Works on file:// where localStorage might be blocked or throw errors
 // 1. Safe Storage Helper (Synchronous - DEPRECATED)

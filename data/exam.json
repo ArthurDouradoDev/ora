@@ -1,64 +1,68 @@
 {
   "types": {
     "morning": {
-      "label": "Preparar o Dia",
+      "label": { "pt": "Preparar o Dia", "en": "Prepare the Day", "es": "Preparar el Día" },
       "icon": "☀️",
       "hours": [6, 11],
       "questions": [
-        { "text": "Pela graça de qual dia você agradece?", "type": "text" },
-        { "text": "Que virtude quer praticar hoje?", "type": "text" },
-        { "text": "Onde pode encontrar Deus hoje?", "type": "text" }
+        { "text": { "pt": "Pela graça de qual dia você agradece?", "en": "For the grace of which day are you thankful?", "es": "¿Por la gracia de qué día das gracias?" }, "type": "text" },
+        { "text": { "pt": "Que virtude quer praticar hoje?", "en": "What virtue do you want to practice today?", "es": "¿Qué virtud quieres practicar hoy?" }, "type": "text" },
+        { "text": { "pt": "Onde pode encontrar Deus hoje?", "en": "Where can you find God today?", "es": "¿Dónde puedes encontrar a Dios hoy?" }, "type": "text" }
       ]
     },
     "midday": {
-      "label": "Revisar a Manhã",
+      "label": { "pt": "Revisar a Manhã", "en": "Review the Morning", "es": "Revisar la Mañana" },
       "icon": "🌤️",
       "hours": [11, 14],
       "questions": [
-        { "text": "Como foi sua manhã?", "type": "thumbs" },
-        { "text": "Onde você viu/sentiu Deus na manhã?", "type": "text" },
-        { "text": "Como pode melhorar a tarde?", "type": "text" }
+        { "text": { "pt": "Como foi sua manhã?", "en": "How was your morning?", "es": "¿Cómo fue tu mañana?" }, "type": "thumbs" },
+        { "text": { "pt": "Onde você viu/sentiu Deus na manhã?", "en": "Where did you see/feel God this morning?", "es": "¿Dónde viste/sentiste a Dios esta mañana?" }, "type": "text" },
+        { "text": { "pt": "Como pode melhorar a tarde?", "en": "How can you improve the afternoon?", "es": "¿Cómo puedes mejorar la tarde?" }, "type": "text" }
       ]
     },
     "quick": {
-      "label": "Pausa Rápida",
+      "label": { "pt": "Pausa Rápida", "en": "Quick Pause", "es": "Pausa Rápida" },
       "icon": "⚡",
       "hours": [14, 18],
       "questions": [
-        { "text": "Como está seu coração agora?", "type": "emoji", "options": ["😌 Em paz", "😐 Neutro", "😟 Pesado"] }
+        { "text": { "pt": "Como está seu coração agora?", "en": "How is your heart right now?", "es": "¿Cómo está tu corazón ahora?" }, "type": "emoji", "options": [
+          { "pt": "😌 Em paz", "en": "😌 At peace", "es": "😌 En paz" },
+          { "pt": "😐 Neutro", "en": "😐 Neutral", "es": "😐 Neutro" },
+          { "pt": "😟 Pesado", "en": "😟 Heavy", "es": "😟 Pesado" }
+        ] }
       ]
     },
     "night": {
-      "label": "Revisar o Dia",
+      "label": { "pt": "Revisar o Dia", "en": "Review the Day", "es": "Revisar el Día" },
       "icon": "🌙",
       "hours": [18, 24],
       "questions": [
-        { "text": "Agradeça: pelo que você é grato hoje?", "type": "text" },
-        { "text": "Reveja: onde sentiu a presença de Deus?", "type": "text" },
-        { "text": "Examine: que sentimentos marcaram o dia?", "type": "text" },
-        { "text": "Arrependimento: onde você tropeçou?", "type": "text" },
-        { "text": "Resolva: como será amanhã?", "type": "text" }
+        { "text": { "pt": "Agradeça: pelo que você é grato hoje?", "en": "Give thanks: what are you grateful for today?", "es": "Agradece: ¿por qué estás agradecido hoy?" }, "type": "text" },
+        { "text": { "pt": "Reveja: onde sentiu a presença de Deus?", "en": "Review: where did you feel God's presence?", "es": "Revisa: ¿dónde sentiste la presencia de Dios?" }, "type": "text" },
+        { "text": { "pt": "Examine: que sentimentos marcaram o dia?", "en": "Examine: what feelings marked the day?", "es": "Examina: ¿qué sentimientos marcaron el día?" }, "type": "text" },
+        { "text": { "pt": "Arrependimento: onde você tropeçou?", "en": "Repentance: where did you stumble?", "es": "Arrepentimiento: ¿dónde tropezaste?" }, "type": "text" },
+        { "text": { "pt": "Resolva: como será amanhã?", "en": "Resolve: how will tomorrow be?", "es": "Resuelve: ¿cómo será mañana?" }, "type": "text" }
       ]
     }
   },
   "defaultVirtues": [
-    { "id": "paciencia", "name": "Paciência", "icon": "ph-hourglass" },
-    { "id": "caridade", "name": "Caridade", "icon": "ph-heart" },
-    { "id": "temperanca", "name": "Temperança", "icon": "ph-scales" },
-    { "id": "foco", "name": "Foco", "icon": "ph-crosshair" },
-    { "id": "humildade", "name": "Humildade", "icon": "ph-hand-heart" }
+    { "id": "paciencia", "name": { "pt": "Paciência", "en": "Patience", "es": "Paciencia" }, "icon": "ph-hourglass" },
+    { "id": "caridade", "name": { "pt": "Caridade", "en": "Charity", "es": "Caridad" }, "icon": "ph-heart" },
+    { "id": "temperanca", "name": { "pt": "Temperança", "en": "Temperance", "es": "Templanza" }, "icon": "ph-scales" },
+    { "id": "foco", "name": { "pt": "Foco", "en": "Focus", "es": "Enfoque" }, "icon": "ph-crosshair" },
+    { "id": "humildade", "name": { "pt": "Humildade", "en": "Humility", "es": "Humildad" }, "icon": "ph-hand-heart" }
   ],
   "pomodoroCheckin": {
-    "message": "Pause para refletir: Como está seu coração agora?",
+    "message": { "pt": "Pause para refletir: Como está seu coração agora?", "en": "Pause to reflect: How is your heart right now?", "es": "Haz una pausa para reflexionar: ¿Cómo está tu corazón ahora?" },
     "options": [
-      { "id": "peace", "emoji": "😌", "label": "Em paz" },
-      { "id": "neutral", "emoji": "😐", "label": "Neutro" },
-      { "id": "heavy", "emoji": "😟", "label": "Pesado" }
+      { "id": "peace", "emoji": "😌", "label": { "pt": "Em paz", "en": "At peace", "es": "En paz" } },
+      { "id": "neutral", "emoji": "😐", "label": { "pt": "Neutro", "en": "Neutral", "es": "Neutro" } },
+      { "id": "heavy", "emoji": "😟", "label": { "pt": "Pesado", "en": "Heavy", "es": "Pesado" } }
     ],
     "microPrayers": [
-      { "id": "breath", "label": "Respiração", "icon": "ph-wind", "text": "Inspire... Senhor, tenha piedade.\nExpire... Cristo, tenha piedade.\nInspire... Senhor, tenha piedade." },
-      { "id": "pai-nosso", "label": "Pai Nosso", "icon": "ph-hands-praying", "text": "prayer:pai-nosso" },
-      { "id": "silence", "label": "Só silêncio", "icon": "ph-ear", "text": "Fique em silêncio por um momento.\nDeixe Deus falar ao seu coração.\n\n\"Aquietai-vos e sabei que eu sou Deus.\" — Sl 46,10" }
+      { "id": "breath", "label": { "pt": "Respiração", "en": "Breathing", "es": "Respiración" }, "icon": "ph-wind", "text": { "pt": "Inspire... Senhor, tenha piedade.\nExpire... Cristo, tenha piedade.\nInspire... Senhor, tenha piedade.", "en": "Breathe in... Lord, have mercy.\nBreathe out... Christ, have mercy.\nBreathe in... Lord, have mercy.", "es": "Inspira... Señor, ten piedad.\nExpira... Cristo, ten piedad.\nInspira... Señor, ten piedad." } },
+      { "id": "pai-nosso", "label": { "pt": "Pai Nosso", "en": "Our Father", "es": "Padre Nuestro" }, "icon": "ph-hands-praying", "text": "prayer:pai-nosso" },
+      { "id": "silence", "label": { "pt": "Só silêncio", "en": "Just silence", "es": "Solo silencio" }, "icon": "ph-ear", "text": { "pt": "Fique em silêncio por um momento.\nDeixe Deus falar ao seu coração.\n\n\"Aquietai-vos e sabei que eu sou Deus.\" — Sl 46,10", "en": "Be silent for a moment.\nLet God speak to your heart.\n\n\"Be still, and know that I am God.\" — Ps 46:10", "es": "Quédate en silencio por un momento.\nDeja que Dios hable a tu corazón.\n\n\"Estad quietos, y conoced que yo soy Dios.\" — Sal 46,10" } }
     ]
   }
 }

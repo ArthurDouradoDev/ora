@@ -189,7 +189,7 @@ const ExamSystem = {
     updateStreakDisplay: async function() {
         if (!this.dom.examStreakText) return;
         const weekCount = await this.getWeeklyExamCount();
-        this.dom.examStreakText.textContent = `${weekCount} exame${weekCount !== 1 ? 's' : ''} esta semana`;
+        this.dom.examStreakText.textContent = t('exam.streak_text', { count: weekCount });
     },
 
     openExamTypeModal: async function() {
@@ -199,7 +199,7 @@ const ExamSystem = {
         examTypeGrid.innerHTML = '';
         const suggested = this.getExamType();
 
-        if (examSuggestion) examSuggestion.textContent = `Sugestão: ${exam.types[suggested].icon} ${exam.types[suggested].label}`;
+        if (examSuggestion) examSuggestion.textContent = `${t('exam.suggestion_prefix')}: ${exam.types[suggested].icon} ${l(exam.types[suggested].label)}`;
 
         Object.keys(exam.types).forEach(key => {
             const type = exam.types[key];
@@ -207,8 +207,8 @@ const ExamSystem = {
             card.className = 'exam-type-card' + (key === suggested ? ' suggested' : '');
             card.innerHTML = `
                 <span class="exam-type-icon">${type.icon}</span>
-                <span class="exam-type-label">${type.label}</span>
-                <span class="exam-type-count">${type.questions.length} ${type.questions.length === 1 ? 'pergunta' : 'perguntas'}</span>
+                <span class="exam-type-label">${l(type.label)}</span>
+                <span class="exam-type-count">${type.questions.length} ${type.questions.length === 1 ? t('exam.question_singular') : t('exam.question_plural')}</span>
             `;
             card.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -249,7 +249,7 @@ const ExamSystem = {
         this.dom.examStepCounter.textContent = `${currentExamStep + 1} / ${total}`;
 
         // Question
-        this.dom.examQuestionText.textContent = q.text;
+        this.dom.examQuestionText.textContent = l(q.text);
 
         // Input area
         this.dom.examInputArea.innerHTML = '';
@@ -268,7 +268,7 @@ const ExamSystem = {
                 if (val.length > MAX_CHARS) {
                     val = val.substring(0, MAX_CHARS);
                     e.target.value = val;
-                    showToast(`Limite de ${MAX_CHARS} caracteres atingido`, 'info');
+                    showToast(t('toast.exam_char_limit', { max: MAX_CHARS }), 'info');
                 }
                 examAnswers[currentExamStep] = val;
             });
@@ -294,7 +294,7 @@ const ExamSystem = {
             (q.options || []).forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'exam-emoji-btn' + (examAnswers[currentExamStep] === opt ? ' active' : '');
-                btn.textContent = opt;
+                btn.textContent = l(opt);
                 btn.addEventListener('click', () => {
                     examAnswers[currentExamStep] = opt;
                     this.renderExamStep();
@@ -365,7 +365,7 @@ const ExamSystem = {
         } catch (e) { /* ignore */ }
 
         animateModal(this.dom.examFlowModal, false);
-        showToast('Exame concluído! Deus te abençoe. 🙏', 'success');
+        showToast(t('toast.exam_done'), 'success');
         this.state.currentExamType = null;
     },
 
@@ -385,13 +385,13 @@ const ExamSystem = {
         options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'checkin-emoji-btn';
-            btn.innerHTML = `<span class="checkin-emoji">${opt.emoji}</span><span class="checkin-label">${opt.label}</span>`;
+            btn.innerHTML = `<span class="checkin-emoji">${opt.emoji}</span><span class="checkin-label">${l(opt.label)}</span>`;
             btn.addEventListener('click', () => {
                 animateModal(pomodoroCheckin, false);
                 if (opt.id === 'heavy') {
                     this.showMicroPrayerOptions();
                 } else {
-                    showToast(`${opt.emoji} ${opt.label} — que bom!`, 'success');
+                    showToast(t('toast.exam_checkin_response', { emoji: opt.emoji, label: l(opt.label) }), 'success');
                 }
             });
             checkinOptions.appendChild(btn);
@@ -412,15 +412,16 @@ const ExamSystem = {
             card.className = 'micro-prayer-card';
             card.innerHTML = `
                 <i class="ph ${mp.icon}"></i>
-                <span>${mp.label}</span>
+                <span>${l(mp.label)}</span>
             `;
             card.addEventListener('click', () => {
-                let text = mp.text;
+                let text = l(mp.text);
                 // Resolve prayer reference
                 if (text.startsWith('prayer:')) {
                     const prayerId = text.split(':')[1];
                     const prayer = this.data.prayers.find(p => p.id === prayerId);
-                    text = prayer ? prayer.text.pt : '';
+                    const locale = window._i18nLocale || 'pt';
+                    text = prayer ? (prayer.text[locale] || prayer.text.pt) : '';
                 }
                 microPrayerOptionsEl.style.display = 'none';
                 microPrayerTextEl.textContent = text;
@@ -487,7 +488,7 @@ const ExamSystem = {
             card.innerHTML = `
                 <div class="virtue-info">
                     <i class="ph ${v.icon}"></i>
-                    <span>${v.name}</span>
+                    <span>${l(v.name)}</span>
                 </div>
                 <div class="virtue-actions">
                     <button class="virtue-btn virtue-success-btn ${status === 'success' ? 'active' : ''}" title="Pratiquei"><i class="ph ph-check"></i></button>
@@ -522,7 +523,7 @@ const ExamSystem = {
             virtuesList.appendChild(card);
         });
 
-        if (virtuesSummaryText) virtuesSummaryText.textContent = `${practiced}/${total} virtudes praticadas hoje`;
+        if (virtuesSummaryText) virtuesSummaryText.textContent = `${practiced}/${total} ${t('exam.virtues_practiced')}`;
     },
 
     // --- Virtues Editor ---
@@ -547,7 +548,7 @@ const ExamSystem = {
             item.className = 'virtues-editor-item';
             item.innerHTML = `
                 <i class="ph ${v.icon}"></i>
-                <span>${v.name}</span>
+                <span>${l(v.name)}</span>
                 <button class="icon-btn-sm virtue-remove-btn" title="Remover"><i class="ph ph-trash"></i></button>
             `;
             item.querySelector('.virtue-remove-btn').addEventListener('click', async () => {
@@ -574,7 +575,7 @@ const ExamSystem = {
         await this.saveVirtues(virtues);
         newVirtueInput.value = '';
         await this.renderVirtuesEditor();
-        showToast(`"${name}" adicionada!`, 'success');
+        showToast(t('toast.exam_virtue_added', { name }), 'success');
     }
 };
 

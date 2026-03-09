@@ -1,33 +1,25 @@
 {
   "mysteries": {
-    "gozosos": [
-      "A Anunciação do Anjo a Nossa Senhora",
-      "A Visitação de Nossa Senhora a Santa Isabel",
-      "O Nascimento de Jesus",
-      "A Apresentação de Jesus no Templo",
-      "A Perda e o Encontro de Jesus no Templo"
-    ],
-    "dolorosos": [
-      "A Agonia de Jesus no Horto",
-      "A Flagelação de Jesus",
-      "A Coroação de Espinhos",
-      "Jesus carrega a Cruz",
-      "A Crucificação e Morte de Jesus"
-    ],
-    "gloriosos": [
-      "A Ressurreição de Jesus",
-      "A Ascensão de Jesus ao Céu",
-      "A Vinda do Espírito Santo",
-      "A Assunção de Nossa Senhora",
-      "A Coroação de Nossa Senhora"
-    ],
-    "luminosos": [
-      "O Batismo de Jesus no Jordão",
-      "A Auto-revelação de Jesus nas Bodas de Caná",
-      "O Anúncio do Reino de Deus",
-      "A Transfiguração de Jesus",
-      "A Instituição da Eucaristia"
-    ]
+    "gozosos": {
+      "pt": ["A Anunciação do Anjo a Nossa Senhora", "A Visitação de Nossa Senhora a Santa Isabel", "O Nascimento de Jesus", "A Apresentação de Jesus no Templo", "A Perda e o Encontro de Jesus no Templo"],
+      "en": ["The Annunciation", "The Visitation", "The Nativity", "The Presentation", "The Finding in the Temple"],
+      "es": ["La Anunciación del Ángel a Nuestra Señora", "La Visitación de Nuestra Señora a Santa Isabel", "El Nacimiento de Jesús", "La Presentación de Jesús en el Templo", "La Pérdida y el Hallazgo de Jesús en el Templo"]
+    },
+    "dolorosos": {
+      "pt": ["A Agonia de Jesus no Horto", "A Flagelação de Jesus", "A Coroação de Espinhos", "Jesus carrega a Cruz", "A Crucificação e Morte de Jesus"],
+      "en": ["The Agony in the Garden", "The Scourging at the Pillar", "The Crowning with Thorns", "The Carrying of the Cross", "The Crucifixion and Death of Jesus"],
+      "es": ["La Agonía de Jesús en el Huerto", "La Flagelación de Jesús", "La Coronación de Espinas", "Jesús carga la Cruz", "La Crucifixión y Muerte de Jesús"]
+    },
+    "gloriosos": {
+      "pt": ["A Ressurreição de Jesus", "A Ascensão de Jesus ao Céu", "A Vinda do Espírito Santo", "A Assunção de Nossa Senhora", "A Coroação de Nossa Senhora"],
+      "en": ["The Resurrection", "The Ascension", "The Descent of the Holy Spirit", "The Assumption of Mary", "The Coronation of Mary"],
+      "es": ["La Resurrección de Jesús", "La Ascensión de Jesús al Cielo", "La Venida del Espíritu Santo", "La Asunción de Nuestra Señora", "La Coronación de Nuestra Señora"]
+    },
+    "luminosos": {
+      "pt": ["O Batismo de Jesus no Jordão", "A Auto-revelação de Jesus nas Bodas de Caná", "O Anúncio do Reino de Deus", "A Transfiguração de Jesus", "A Instituição da Eucaristia"],
+      "en": ["The Baptism of Jesus", "The Wedding at Cana", "The Proclamation of the Kingdom", "The Transfiguration", "The Institution of the Eucharist"],
+      "es": ["El Bautismo de Jesús en el Jordán", "La Auto-revelación de Jesús en las Bodas de Caná", "El Anuncio del Reino de Dios", "La Transfiguración de Jesús", "La Institución de la Eucaristía"]
+    }
   },
   "structure": [
     { "type": "sinal-cruz", "label": "Sinal da Cruz", "decade": 0 },
@@ -113,23 +105,33 @@
   "extraPrayers": {
     "sinal-cruz": {
       "pt": "Em nome do Pai, e do Filho, e do Espírito Santo. Amém.",
-      "la": "In nomine Patris, et Filii, et Spiritus Sancti. Amen."
+      "la": "In nomine Patris, et Filii, et Spiritus Sancti. Amen.",
+      "en": "In the name of the Father, and of the Son, and of the Holy Spirit. Amen.",
+      "es": "En el nombre del Padre, y del Hijo, y del Espíritu Santo. Amén."
     },
     "fatima": {
       "pt": "Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o Céu, e socorrei principalmente as que mais precisarem.",
-      "la": "O mi Iesu, dimitte nobis debita nostra, salva nos ab igne inferiori, perduc in caelum omnes animas, praesertim eas, quae misericordiae tuae maxime indigent."
+      "la": "O mi Iesu, dimitte nobis debita nostra, salva nos ab igne inferiori, perduc in caelum omnes animas, praesertim eas, quae misericordiae tuae maxime indigent.",
+      "en": "O my Jesus, forgive us our sins, save us from the fires of hell, lead all souls to Heaven, especially those most in need of Thy mercy.",
+      "es": "Oh Jesús mío, perdona nuestros pecados, líbranos del fuego del infierno, lleva al cielo a todas las almas, especialmente las más necesitadas de tu misericordia."
     },
     "pai-eterno": {
       "pt": "Eterno Pai, eu Vos ofereço o Corpo e Sangue, Alma e Divindade de Vosso diletíssimo Filho, Nosso Senhor Jesus Cristo, em expiação dos nossos pecados e dos do mundo inteiro.",
-      "la": "Pater Aeterne, offero tibi Corpus et Sanguinem, Animam et Divinitatem dilectissimi Filii Tui, Domini nostri Iesu Christi, in expiationem peccatorum nostrorum et totius mundi."
+      "la": "Pater Aeterne, offero tibi Corpus et Sanguinem, Animam et Divinitatem dilectissimi Filii Tui, Domini nostri Iesu Christi, in expiationem peccatorum nostrorum et totius mundi.",
+      "en": "Eternal Father, I offer You the Body and Blood, Soul and Divinity of Your dearly beloved Son, Our Lord Jesus Christ, in atonement for our sins and those of the whole world.",
+      "es": "Padre Eterno, te ofrezco el Cuerpo y la Sangre, el Alma y la Divinidad de tu amadísimo Hijo, Nuestro Señor Jesucristo, en expiación de nuestros pecados y los del mundo entero."
     },
     "dolorosa-paixao": {
       "pt": "Pela Sua dolorosa Paixão, tende misericórdia de nós e do mundo inteiro.",
-      "la": "Pro dolorosa Eius Passione, miserere nobis et totius mundi."
+      "la": "Pro dolorosa Eius Passione, miserere nobis et totius mundi.",
+      "en": "For the sake of His sorrowful Passion, have mercy on us and on the whole world.",
+      "es": "Por su dolorosa Pasión, ten misericordia de nosotros y del mundo entero."
     },
     "santo-deus": {
       "pt": "Deus Santo, Deus Forte, Deus Imortal, tende piedade de nós e do mundo inteiro.",
-      "la": "Sancte Deus, Sancte Fortis, Sancte Immortalis, miserere nobis et totius mundi."
+      "la": "Sancte Deus, Sancte Fortis, Sancte Immortalis, miserere nobis et totius mundi.",
+      "en": "Holy God, Holy Mighty One, Holy Immortal One, have mercy on us and on the whole world.",
+      "es": "Dios Santo, Dios Fuerte, Dios Inmortal, ten piedad de nosotros y del mundo entero."
     }
   }
 }

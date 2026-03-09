@@ -1,7 +1,7 @@
 [
-  "Fiat Voluntas Tua",
-  "Deus te abençoe",
-  "A Paz de Cristo",
-  "Ad Maiorem Dei Gloriam",
-  "Deo Gratias"
+  { "pt": "Fiat Voluntas Tua", "en": "Thy Will Be Done", "es": "Hágase Tu Voluntad" },
+  { "pt": "Deus te abençoe", "en": "God bless you", "es": "Dios te bendiga" },
+  { "pt": "A Paz de Cristo", "en": "The Peace of Christ", "es": "La Paz de Cristo" },
+  { "pt": "Ad Maiorem Dei Gloriam", "en": "Ad Maiorem Dei Gloriam", "es": "Ad Maiorem Dei Gloriam" },
+  { "pt": "Deo Gratias", "en": "Deo Gratias", "es": "Deo Gratias" }
 ]

@@ -52,17 +52,17 @@
 
     <header>
         <div class="links-container">
-            <a href="https://padrepauloricardo.org/liturgia/" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;">
+            <a id="link-liturgy" href="https://padrepauloricardo.org/liturgia/" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.liturgy" data-i18n-href="header.liturgy_url">
                 <i class="ph ph-book-open-text"></i> Liturgia
             </a>
             
-            <div class="glass-panel action-btn" id="btn-music"><i class="ph ph-music-notes"></i> Música</div>
+            <div class="glass-panel action-btn" id="btn-music" data-i18n-html="header.music"><i class="ph ph-music-notes"></i> Música</div>
         </div>
         <div class="links-container">
-            <a href="https://padrepauloricardo.org/biblia/gn?cap=1&edition=matos-soares" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;">
+            <a id="link-bible" href="https://padrepauloricardo.org/biblia/gn?cap=1&edition=matos-soares" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.bible" data-i18n-href="header.bible_url">
                 <i class="ph ph-book-bookmark"></i> Bíblia
             </a>
-            <div class="glass-panel action-btn" id="btn-blocker"><i class="ph ph-shield-slash"></i> Bloqueador</div>
+            <div class="glass-panel action-btn" id="btn-blocker" data-i18n-html="blocker.modal_title"><i class="ph ph-shield-slash"></i> Bloqueador</div>
         </div>
     </header>
 
@@ -70,11 +70,11 @@
     <div id="angelus-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-bell-ringing"></i>
-            <span>Hora do Angelus</span>
+            <span data-i18n="reminders.angelus_title">Hora do Angelus</span>
         </div>
         <div class="angelus-actions">
-            <button id="open-angelus-btn" class="pray-btn" title="Rezar"><i class="ph ph-hands-praying"></i></button>
-            <button id="check-angelus-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+            <button id="open-angelus-btn" class="pray-btn" data-i18n-title="reminders.btn_pray" title="Rezar"><i class="ph ph-hands-praying"></i></button>
+            <button id="check-angelus-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
                 <i class="ph ph-check"></i>
             </button>
         </div>
@@ -84,11 +84,11 @@
     <div id="mercy-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-drop"></i>
-            <span>Hora da Misericórdia</span>
+            <span data-i18n="reminders.mercy_title">Hora da Misericórdia</span>
         </div>
         <div class="angelus-actions">
-            <button id="open-mercy-btn" class="pray-btn" title="Rezar"><i class="ph ph-hands-praying"></i></button>
-            <button id="check-mercy-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+            <button id="open-mercy-btn" class="pray-btn" data-i18n-title="reminders.btn_pray" title="Rezar"><i class="ph ph-hands-praying"></i></button>
+            <button id="check-mercy-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
                 <i class="ph ph-check"></i>
             </button>
         </div>
@@ -98,11 +98,11 @@
     <div id="carlo-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-laptop"></i>
-            <span>Oração para usar a internet</span>
+            <span data-i18n="reminders.carlo_title">Oração para usar a internet</span>
         </div>
         <div class="angelus-actions">
-            <button id="open-carlo-btn" class="pray-btn" title="Rezar"><i class="ph ph-hands-praying"></i></button>
-            <button id="check-carlo-btn" class="icon-btn-sm check-btn" title="Agora não">
+            <button id="open-carlo-btn" class="pray-btn" data-i18n-title="reminders.btn_pray" title="Rezar"><i class="ph ph-hands-praying"></i></button>
+            <button id="check-carlo-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_not_now" title="Agora não">
                 <i class="ph ph-x"></i>
             </button>
         </div>
@@ -111,12 +111,12 @@
     <!-- Music Library Modal -->
     <div id="music-library" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <h3>Biblioteca</h3>
+            <h3 data-i18n="music.library_title">Biblioteca</h3>
             <button id="close-library-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         
         <div class="add-playlist-section">
-            <input type="text" id="playlist-input" placeholder="Link YouTube/Spotify...">
+            <input type="text" id="playlist-input" placeholder="Link YouTube/Spotify..." data-i18n-placeholder="music.playlist_placeholder">
             <button id="add-playlist-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
         </div>
 
@@ -126,15 +126,15 @@
     <!-- Mini Player - Fixed Position Left Side -->
     <div id="mini-player" class="glass-panel modal modal-corner-left modal-fade" style="display: none;">
         <div class="player-header">
-            <span id="now-playing-text">Tocando...</span>
+            <span id="now-playing-text" data-i18n="music.now_playing">Tocando...</span>
             <div class="player-actions">
-                <button id="minimize-player-btn" class="icon-btn-sm" title="Minimizar">
+                <button id="minimize-player-btn" class="icon-btn-sm" data-i18n-title="music.btn_minimize" title="Minimizar">
                     <i class="ph ph-caret-down"></i>
                 </button>
-                <button id="open-external-btn" class="icon-btn-sm" title="Abrir no app">
+                <button id="open-external-btn" class="icon-btn-sm" data-i18n-title="music.btn_open_app" title="Abrir no app">
                     <i class="ph ph-arrow-square-out"></i>
                 </button>
-                <button id="close-player-btn" class="icon-btn-sm" title="Fechar">
+                <button id="close-player-btn" class="icon-btn-sm" data-i18n-title="music.btn_close" title="Fechar">
                     <i class="ph ph-x"></i>
                 </button>
             </div>
@@ -160,7 +160,7 @@
         <div class="clock" id="clock">00:00</div>
         <div class="greeting"></div>
         <div class="focus-section">
-            <input type="text" id="intention-input" placeholder="Qual sua intenção hoje?">
+            <input type="text" id="intention-input" placeholder="Qual sua intenção hoje?" data-i18n-placeholder="main.intention_placeholder">
         </div>
 
         <!-- Quick Links Section -->
@@ -171,8 +171,8 @@
 
     <footer>
         <div class="footer-left">
-            <div class="glass-panel action-btn" id="btn-focus"><i class="ph ph-timer"></i> Pomodoro</div>
-            <div class="glass-panel action-btn" id="btn-exam"><i class="ph ph-heart"></i> Examinar</div>
+            <div class="glass-panel action-btn" id="btn-focus" data-i18n-html="footer.pomodoro"><i class="ph ph-timer"></i> Pomodoro</div>
+            <div class="glass-panel action-btn" id="btn-exam" data-i18n-html="footer.exam"><i class="ph ph-heart"></i> Examinar</div>
         </div>
         
         <div class="quote-container">
@@ -181,27 +181,27 @@
         </div>
 
         <div class="footer-right">
-            <div class="glass-panel action-btn" id="btn-rosary"><i class="ph ph-cross"></i> Terço</div>
-            <div class="glass-panel action-btn" id="btn-prayers">Orações <i class="ph ph-caret-up"></i></div>
+            <div class="glass-panel action-btn" id="btn-rosary" data-i18n-html="footer.rosary"><i class="ph ph-cross"></i> Terço</div>
+            <div class="glass-panel action-btn" id="btn-prayers" data-i18n-html="footer.prayers">Orações <i class="ph ph-caret-up"></i></div>
         </div>
     </footer>
 
     <!-- Focus Timer - Compact Mini Modal -->
     <div id="focus-mini" class="glass-panel modal modal-corner-bottom-left modal-fade" style="display: none;">
         <div class="focus-mini-header">
-            <span class="focus-mini-phase">Foco</span>
+            <span class="focus-mini-phase" data-i18n="focus.phase_focus">Foco</span>
             <div class="focus-mini-actions">
-                <button id="focus-mini-expand" class="icon-btn-sm" title="Tela cheia"><i class="ph ph-arrows-out"></i></button>
-                <button id="focus-mini-minimize" class="icon-btn-sm" title="Minimizar"><i class="ph ph-caret-down"></i></button>
-                <button id="focus-mini-close" class="icon-btn-sm" title="Fechar"><i class="ph ph-x"></i></button>
+                <button id="focus-mini-expand" class="icon-btn-sm" data-i18n-title="focus.btn_fullscreen" title="Tela cheia"><i class="ph ph-arrows-out"></i></button>
+                <button id="focus-mini-minimize" class="icon-btn-sm" data-i18n-title="focus.btn_minimize" title="Minimizar"><i class="ph ph-caret-down"></i></button>
+                <button id="focus-mini-close" class="icon-btn-sm" data-i18n-title="focus.btn_close" title="Fechar"><i class="ph ph-x"></i></button>
             </div>
         </div>
         <div class="focus-mini-body">
             <div class="focus-mini-timer">25:00</div>
             <div class="focus-mini-controls">
-                <button id="focus-mini-play" class="icon-btn-sm" title="Iniciar"><i class="ph ph-play"></i></button>
-                <button id="focus-mini-skip" class="icon-btn-sm" title="Pular"><i class="ph ph-skip-forward"></i></button>
-                <button id="focus-mini-reset" class="icon-btn-sm" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
+                <button id="focus-mini-play" class="icon-btn-sm" data-i18n-title="focus.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
+                <button id="focus-mini-skip" class="icon-btn-sm" data-i18n-title="focus.btn_skip" title="Pular"><i class="ph ph-skip-forward"></i></button>
+                <button id="focus-mini-reset" class="icon-btn-sm" data-i18n-title="focus.btn_reset" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
             </div>
         </div>
         <div class="focus-mini-footer">
@@ -213,12 +213,12 @@
     <!-- Focus Timer - Fullscreen Overlay -->
     <div id="focus-fullscreen" class="modal-fs" style="display: none;">
         <div class="focus-fs-header">
-            <button id="focus-fs-settings-btn" class="icon-btn" title="Configurações"><i class="ph ph-gear"></i></button>
-            <button id="focus-fs-collapse" class="icon-btn" title="Modo compacto"><i class="ph ph-arrows-in"></i></button>
+            <button id="focus-fs-settings-btn" class="icon-btn" data-i18n-title="focus.btn_settings" title="Configurações"><i class="ph ph-gear"></i></button>
+            <button id="focus-fs-collapse" class="icon-btn" data-i18n-title="focus.btn_compact" title="Modo compacto"><i class="ph ph-arrows-in"></i></button>
         </div>
 
         <div class="focus-fs-content">
-            <div class="focus-fs-phase">Foco</div>
+            <div class="focus-fs-phase" data-i18n="focus.phase_focus">Foco</div>
             <div class="focus-fs-ring-container">
                 <svg class="focus-ring" viewBox="0 0 200 200">
                     <circle class="focus-ring-bg" cx="100" cy="100" r="90" />
@@ -228,51 +228,51 @@
             </div>
             <div class="focus-fs-dots"></div>
             <div class="focus-fs-controls">
-                <button id="focus-fs-reset" class="control-btn" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
-                <button id="focus-fs-play" class="control-btn control-btn-play" title="Iniciar"><i class="ph ph-play"></i></button>
-                <button id="focus-fs-skip" class="control-btn" title="Pular"><i class="ph ph-skip-forward"></i></button>
+                <button id="focus-fs-reset" class="control-btn" data-i18n-title="focus.btn_reset" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
+                <button id="focus-fs-play" class="control-btn control-btn-play" data-i18n-title="focus.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
+                <button id="focus-fs-skip" class="control-btn" data-i18n-title="focus.btn_skip" title="Pular"><i class="ph ph-skip-forward"></i></button>
             </div>
             <div class="focus-fs-total"><i class="ph ph-fire"></i> Total hoje: 0m</div>
         </div>
 
         <!-- Settings Panel (hidden by default) -->
         <div id="focus-settings" class="focus-settings-panel" style="display: none;">
-            <h4>Configurações</h4>
+            <h4 data-i18n="focus.settings_title">Configurações</h4>
             <div class="focus-setting-row">
-                <label>Foco (min)</label>
+                <label data-i18n="focus.setting_focus_min">Foco (min)</label>
                 <input type="number" id="setting-focus" min="1" max="120" value="25">
             </div>
             <div class="focus-setting-row">
-                <label>Pausa (min)</label>
+                <label data-i18n="focus.setting_pause_min">Pausa (min)</label>
                 <input type="number" id="setting-pause" min="1" max="30" value="5">
             </div>
             <div class="focus-setting-row">
-                <label>Pausa Longa (min)</label>
+                <label data-i18n="focus.setting_long_pause_min">Pausa Longa (min)</label>
                 <input type="number" id="setting-long-pause" min="1" max="60" value="15">
             </div>
             <div class="focus-setting-row">
-                <label>Som</label>
+                <label data-i18n="focus.setting_sound">Som</label>
                 <label class="switch">
                     <input type="checkbox" id="setting-sound" checked>
                     <span class="slider round"></span>
                 </label>
             </div>
             <div class="focus-setting-row">
-                <label>Avançar Automaticamente</label>
+                <label data-i18n="focus.setting_auto_next">Avançar Automaticamente</label>
                 <label class="switch">
                     <input type="checkbox" id="setting-auto-next">
                     <span class="slider round"></span>
                 </label>
             </div>
             <div class="focus-setting-row">
-                <label>Alarme Contínuo</label>
+                <label data-i18n="focus.setting_continuous_alarm">Alarme Contínuo</label>
                 <label class="switch">
                     <input type="checkbox" id="setting-continuous-alarm">
                     <span class="slider round"></span>
                 </label>
             </div>
             <div class="focus-setting-row">
-                <label>Manter Tela Ativa</label>
+                <label data-i18n="focus.setting_wake_lock">Manter Tela Ativa</label>
                 <label class="switch">
                     <input type="checkbox" id="setting-wake-lock">
                     <span class="slider round"></span>
@@ -285,12 +285,12 @@
     <div id="prayer-list" class="glass-panel modal modal-corner-bottom-right modal-fade" style="display: none;">
         <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Orações</h3>
+                <h3 data-i18n="prayers.list_title">Orações</h3>
                 <button id="close-prayer-list-btn" class="icon-btn"><i class="ph ph-x"></i></button>
             </div>
             <div class="prayer-search-container">
                 <i class="ph ph-magnifying-glass search-icon"></i>
-                <input type="text" id="prayer-search-input" placeholder="Buscar oração...">
+                <input type="text" id="prayer-search-input" placeholder="Buscar oração..." data-i18n-placeholder="prayers.search_placeholder">
             </div>
         </div>
         <div id="prayer-grid" class="prayer-grid"></div>
@@ -299,13 +299,13 @@
     <!-- Prayer Reader Modal -->
     <div id="prayer-reader" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <button id="back-to-list-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 id="prayer-reader-title">Oração</h3>
+            <button id="back-to-list-btn" class="icon-btn" data-i18n-title="prayers.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 id="prayer-reader-title" data-i18n="prayers.reader_title">Oração</h3>
             <button id="close-prayer-reader-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div class="lang-toggle">
-            <button class="lang-btn active" data-lang="pt">Português</button>
-            <button class="lang-btn" data-lang="la">Latim</button>
+            <button class="lang-btn active" data-lang="pt" data-i18n="prayers.lang_portuguese">Português</button>
+            <button class="lang-btn" data-lang="la" data-i18n="prayers.lang_latin">Latim</button>
         </div>
         <div id="prayer-text" class="prayer-text"></div>
     </div>
@@ -313,23 +313,23 @@
     <!-- Rosary (Terço) Modal -->
     <div id="rosary-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <h3 id="rosary-modal-title">Santo Terço</h3>
+            <h3 id="rosary-modal-title" data-i18n="rosary.modal_title">Santo Terço</h3>
             <div class="lang-toggle-rosary" style="display: flex; gap: 8px; margin-right: 16px;">
                 <button class="lang-btn active" data-lang="pt">PT</button>
                 <button class="lang-btn" data-lang="la">LA</button>
             </div>
-            <button id="reset-rosary-btn" class="icon-btn" title="Recomeçar"><i class="ph ph-arrow-counter-clockwise"></i></button>
+            <button id="reset-rosary-btn" class="icon-btn" data-i18n-title="rosary.btn_restart" title="Recomeçar"><i class="ph ph-arrow-counter-clockwise"></i></button>
             <button id="close-rosary-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div class="rosary-chaplet-selector">
-            <button class="rosary-chaplet-btn active" data-chaplet="terco"><i class="ph ph-cross"></i> Santo Terço</button>
-            <button class="rosary-chaplet-btn" data-chaplet="misericordia"><i class="ph ph-heart"></i> Misericórdia</button>
+            <button class="rosary-chaplet-btn active" data-chaplet="terco" data-i18n-html="rosary.chaplet_terco"><i class="ph ph-cross"></i> Santo Terço</button>
+            <button class="rosary-chaplet-btn" data-chaplet="misericordia" data-i18n-html="rosary.chaplet_mercy"><i class="ph ph-heart"></i> Misericórdia</button>
         </div>
         <div class="rosary-mystery-selector">
-            <button class="rosary-mystery-btn active" data-mystery="gozosos">Gozosos</button>
-            <button class="rosary-mystery-btn" data-mystery="dolorosos">Dolorosos</button>
-            <button class="rosary-mystery-btn" data-mystery="gloriosos">Gloriosos</button>
-            <button class="rosary-mystery-btn" data-mystery="luminosos">Luminosos</button>
+            <button class="rosary-mystery-btn active" data-mystery="gozosos" data-i18n="rosary.mystery_joyful">Gozosos</button>
+            <button class="rosary-mystery-btn" data-mystery="dolorosos" data-i18n="rosary.mystery_sorrowful">Dolorosos</button>
+            <button class="rosary-mystery-btn" data-mystery="gloriosos" data-i18n="rosary.mystery_glorious">Gloriosos</button>
+            <button class="rosary-mystery-btn" data-mystery="luminosos" data-i18n="rosary.mystery_luminous">Luminosos</button>
         </div>
         <div class="rosary-mystery-name"></div>
         <div class="rosary-beads-container"></div>
@@ -347,13 +347,13 @@
     <!-- Exam Type Selector Modal -->
     <div id="exam-type-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <h3>Examinar</h3>
+            <h3 data-i18n="exam.type_title">Examinar</h3>
             <button id="close-exam-type-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div class="exam-suggestion"></div>
         <div id="exam-type-grid" class="exam-type-grid grid grid-2 gap-sm"></div>
         <div class="exam-virtues-link">
-            <button id="open-virtues-btn" class="glass-panel-sm exam-virtues-btn"><i class="ph ph-list-checks"></i> Checklist de Virtudes</button>
+            <button id="open-virtues-btn" class="glass-panel-sm exam-virtues-btn" data-i18n-html="exam.virtues_checklist"><i class="ph ph-list-checks"></i> Checklist de Virtudes</button>
         </div>
         <div class="exam-streak">
             <i class="ph ph-fire"></i>
@@ -364,8 +364,8 @@
     <!-- Exam Flow Modal -->
     <div id="exam-flow-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <button id="exam-flow-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 id="exam-flow-title">Exame</h3>
+            <button id="exam-flow-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 id="exam-flow-title" data-i18n="exam.flow_title">Exame</h3>
             <button id="close-exam-flow-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div class="exam-progress-bar"><div class="exam-progress-fill"></div></div>
@@ -374,16 +374,16 @@
             <div class="exam-input-area"></div>
         </div>
         <div class="exam-flow-nav">
-            <button id="exam-prev-btn" class="icon-btn" title="Anterior"><i class="ph ph-caret-left"></i></button>
+            <button id="exam-prev-btn" class="icon-btn" data-i18n-title="exam.btn_prev" title="Anterior"><i class="ph ph-caret-left"></i></button>
             <span class="exam-step-counter">1 / 3</span>
-            <button id="exam-next-btn" class="icon-btn" title="Próximo"><i class="ph ph-caret-right"></i></button>
+            <button id="exam-next-btn" class="icon-btn" data-i18n-title="exam.btn_next" title="Próximo"><i class="ph ph-caret-right"></i></button>
         </div>
     </div>
 
     <!-- Pomodoro Emotional Check-in -->
     <div id="pomodoro-checkin" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="checkin-header">
-            <span class="checkin-title">Como está seu coração?</span>
+            <span class="checkin-title" data-i18n="exam.checkin_title">Como está seu coração?</span>
             <button id="close-checkin-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>
         </div>
         <div class="checkin-options"></div>
@@ -392,8 +392,8 @@
     <!-- Micro-Prayer Suggestion -->
     <div id="micro-prayer-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <button id="micro-prayer-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3>Oração Rápida</h3>
+            <button id="micro-prayer-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 data-i18n="exam.micro_prayer_title">Oração Rápida</h3>
             <button id="close-micro-prayer-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div id="micro-prayer-options" class="micro-prayer-grid grid grid-3 gap-sm"></div>
@@ -404,11 +404,11 @@
     <div id="midday-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-sun-horizon"></i>
-            <span>Hora do Exame Meridiano</span>
+            <span data-i18n="reminders.midday_title">Hora do Exame Meridiano</span>
         </div>
         <div class="angelus-actions">
-            <button id="start-midday-btn" class="pray-btn" title="Iniciar"><i class="ph ph-play"></i></button>
-            <button id="check-midday-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+            <button id="start-midday-btn" class="pray-btn" data-i18n-title="reminders.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
+            <button id="check-midday-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
                 <i class="ph ph-check"></i>
             </button>
         </div>
@@ -418,11 +418,11 @@
     <div id="evening-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-moon-stars"></i>
-            <span>Hora do Exame Noturno</span>
+            <span data-i18n="reminders.evening_title">Hora do Exame Noturno</span>
         </div>
         <div class="angelus-actions">
-            <button id="start-evening-btn" class="pray-btn" title="Iniciar"><i class="ph ph-play"></i></button>
-            <button id="check-evening-btn" class="icon-btn-sm check-btn" title="Marcar como feito">
+            <button id="start-evening-btn" class="pray-btn" data-i18n-title="reminders.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
+            <button id="check-evening-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
                 <i class="ph ph-check"></i>
             </button>
         </div>
@@ -432,11 +432,11 @@
     <div id="rosary-reminder" class="glass-panel modal-slide" style="display: none;">
         <div class="angelus-content">
             <i class="ph ph-flower-lotus"></i>
-            <span>Rezar uma dezena?</span>
+            <span data-i18n="reminders.rosary_suggestion">Rezar uma dezena?</span>
         </div>
         <div class="angelus-actions">
-            <button id="start-rosary-btn" class="pray-btn" title="Iniciar"><i class="ph ph-play"></i></button>
-            <button id="dismiss-rosary-btn" class="icon-btn-sm check-btn" title="Agora não">
+            <button id="start-rosary-btn" class="pray-btn" data-i18n-title="reminders.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
+            <button id="dismiss-rosary-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_not_now" title="Agora não">
                 <i class="ph ph-x"></i>
             </button>
         </div>
@@ -445,8 +445,8 @@
     <!-- Virtues Checklist Modal -->
     <div id="virtues-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <button id="virtues-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3>Virtudes do Dia</h3>
+            <button id="virtues-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 data-i18n="exam.virtues_title">Virtudes do Dia</h3>
             <button id="close-virtues-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div id="virtues-list" class="virtues-list"></div>
@@ -454,20 +454,20 @@
             <span id="virtues-summary-text"></span>
         </div>
         <div class="virtues-edit-section">
-            <button id="edit-virtues-btn" class="glass-panel-sm exam-virtues-btn"><i class="ph ph-pencil"></i> Editar Virtudes</button>
+            <button id="edit-virtues-btn" class="glass-panel-sm exam-virtues-btn" data-i18n-html="exam.virtues_edit"><i class="ph ph-pencil"></i> Editar Virtudes</button>
         </div>
     </div>
 
     <!-- Virtues Editor Modal -->
     <div id="virtues-editor" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <button id="virtues-editor-back-btn" class="icon-btn" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3>Editar Virtudes</h3>
+            <button id="virtues-editor-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
+            <h3 data-i18n="exam.virtues_editor_title">Editar Virtudes</h3>
             <button id="close-virtues-editor-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         <div id="virtues-editor-list" class="virtues-editor-list"></div>
         <div class="add-virtue-section">
-            <input type="text" id="new-virtue-input" placeholder="Nova virtude...">
+            <input type="text" id="new-virtue-input" placeholder="Nova virtude..." data-i18n-placeholder="exam.new_virtue_placeholder">
             <button id="add-virtue-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
         </div>
     </div>
@@ -478,23 +478,23 @@
         <div id="blocker-lock-overlay" class="blocker-lock-overlay" style="display: none;">
             <div class="lock-overlay-content">
                 <i class="ph ph-lock"></i>
-                <p class="lock-overlay-title">Bloqueador Travado</p>
-                <p class="lock-overlay-subtitle">Digite o versículo abaixo para desbloquear:</p>
+                <p class="lock-overlay-title" data-i18n="blocker.lock_overlay_title">Bloqueador Travado</p>
+                <p class="lock-overlay-subtitle" data-i18n="blocker.lock_overlay_subtitle">Digite o versículo abaixo para desbloquear:</p>
                 <div class="lock-verse-ref" id="lock-verse-ref"></div>
                 <div class="lock-verse-display" id="lock-verse-display"></div>
-                <input type="text" id="lock-verse-input" class="lock-verse-input" placeholder="Comece a digitar..." autocomplete="off" spellcheck="false">
+                <input type="text" id="lock-verse-input" class="lock-verse-input" placeholder="Comece a digitar..." autocomplete="off" spellcheck="false" data-i18n-placeholder="blocker.lock_input_placeholder">
                 <div class="lock-progress-bar">
                     <div class="lock-progress-fill" id="lock-progress-fill"></div>
                 </div>
-                <button id="lock-cancel-btn" class="icon-btn-sm lock-cancel-btn">Cancelar</button>
+                <button id="lock-cancel-btn" class="icon-btn-sm lock-cancel-btn" data-i18n="blocker.lock_cancel">Cancelar</button>
             </div>
         </div>
 
         <div class="modal-header">
-            <h3>Bloqueador de Sites</h3>
+            <h3 data-i18n="blocker.modal_title">Bloqueador de Sites</h3>
             <div class="blocker-header-actions">
                 <div class="blocker-status">
-                    <span id="blocker-status-text">Inativo</span>
+                    <span id="blocker-status-text" data-i18n="blocker.status_inactive">Inativo</span>
                     <label class="switch">
                         <input type="checkbox" id="blocker-toggle">
                         <span class="slider round"></span>
@@ -506,10 +506,10 @@
 
         <!-- Tab Bar -->
         <div class="blocker-tabs">
-            <button class="blocker-tab-btn active" data-tab="sites"><i class="ph ph-globe"></i> Sites</button>
-            <button class="blocker-tab-btn" data-tab="limits"><i class="ph ph-hash"></i> Limites</button>
-            <button class="blocker-tab-btn" data-tab="time"><i class="ph ph-clock-countdown"></i> Horário</button>
-            <button class="blocker-tab-btn" data-tab="lock"><i class="ph ph-lock"></i> Trava</button>
+            <button class="blocker-tab-btn active" data-tab="sites" data-i18n-html="blocker.tab_sites"><i class="ph ph-globe"></i> Sites</button>
+            <button class="blocker-tab-btn" data-tab="limits" data-i18n-html="blocker.tab_limits"><i class="ph ph-hash"></i> Limites</button>
+            <button class="blocker-tab-btn" data-tab="time" data-i18n-html="blocker.tab_time"><i class="ph ph-clock-countdown"></i> Horário</button>
+            <button class="blocker-tab-btn" data-tab="lock" data-i18n-html="blocker.tab_lock"><i class="ph ph-lock"></i> Trava</button>
         </div>
 
         <!-- Tab Panels -->
@@ -517,7 +517,7 @@
             <!-- Tab: Sites -->
             <div id="tab-sites" class="blocker-tab-panel active">
                 <div class="add-site-section">
-                    <input type="text" id="blocked-site-input" placeholder="ex: facebook.com">
+                    <input type="text" id="blocked-site-input" placeholder="ex: facebook.com" data-i18n-placeholder="blocker.site_placeholder">
                     <button id="add-blocked-site-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
                 </div>
                 <div id="blocked-sites-list" class="blocked-sites-list">
@@ -525,31 +525,31 @@
                 </div>
                 <div class="blocker-empty-state" id="blocker-empty-sites" style="display: none;">
                     <i class="ph ph-shield-slash"></i>
-                    <p>Nenhum site bloqueado ainda.</p>
+                    <p data-i18n="blocker.empty_sites">Nenhum site bloqueado ainda.</p>
                 </div>
             </div>
 
             <!-- Tab: Limites de Acesso -->
             <div id="tab-limits" class="blocker-tab-panel">
-                <p class="tab-description">Defina quantas vezes cada site pode ser acessado por dia ou por hora.</p>
+                <p class="tab-description" data-i18n="blocker.limits_description">Defina quantas vezes cada site pode ser acessado por dia ou por hora.</p>
                 <div id="limits-sites-list" class="blocker-config-list">
                     <!-- Items injected by JS -->
                 </div>
                 <div class="blocker-empty-state" id="blocker-empty-limits" style="display: none;">
                     <i class="ph ph-list-dashes"></i>
-                    <p>Adicione sites na aba "Sites" primeiro.</p>
+                    <p data-i18n="blocker.empty_limits">Adicione sites na aba "Sites" primeiro.</p>
                 </div>
             </div>
 
             <!-- Tab: Horário de Bloqueio -->
             <div id="tab-time" class="blocker-tab-panel">
-                <p class="tab-description">Defina um horário em que o site ficará completamente bloqueado (ex.: das 22:00 às 08:00).</p>
+                <p class="tab-description" data-i18n="blocker.time_description">Defina um horário em que o site ficará completamente bloqueado (ex.: das 22:00 às 08:00).</p>
                 <div id="time-sites-list" class="blocker-config-list">
                     <!-- Items injected by JS -->
                 </div>
                 <div class="blocker-empty-state" id="blocker-empty-time" style="display: none;">
                     <i class="ph ph-hourglass"></i>
-                    <p>Adicione sites na aba "Sites" primeiro.</p>
+                    <p data-i18n="blocker.empty_time">Adicione sites na aba "Sites" primeiro.</p>
                 </div>
             </div>
 
@@ -560,8 +560,8 @@
                         <div class="lock-info">
                             <i class="ph ph-lock-key"></i>
                             <div>
-                                <p class="lock-title">Trava de Segurança</p>
-                                <p class="lock-subtitle">Quando ativada, será necessário digitar um versículo bíblico para alterar as configurações do bloqueador.</p>
+                                <p class="lock-title" data-i18n="blocker.lock_title">Trava de Segurança</p>
+                                <p class="lock-subtitle" data-i18n="blocker.lock_subtitle">Quando ativada, será necessário digitar um versículo bíblico para alterar as configurações do bloqueador.</p>
                             </div>
                         </div>
                         <label class="switch">
@@ -575,11 +575,20 @@
                             <p class="lock-preview-verse" id="lock-preview-verse"></p>
                             <span class="lock-preview-ref" id="lock-preview-ref"></span>
                         </div>
-                        <p class="lock-preview-hint">Este versículo será solicitado na próxima vez que você abrir o bloqueador.</p>
+                        <p class="lock-preview-hint" data-i18n="blocker.lock_hint">Este versículo será solicitado na próxima vez que você abrir o bloqueador.</p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="language-selector" style="position: fixed; bottom: 16px; left: 16px; z-index: 50;">
+        <select id="language-select" class="glass-panel-sm" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); appearance: auto;">
+            <option value="pt">🇧🇷 PT</option>
+            <option value="en">🇺🇸 EN</option>
+            <option value="es">🇪🇸 ES</option>
+        </select>
     </div>
 
     <!-- Toast Container -->
@@ -588,13 +597,13 @@
     <!-- Manage Links Modal -->
     <div id="links-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
-            <h3>Gerenciar Links</h3>
+            <h3 data-i18n="links.modal_title">Gerenciar Links</h3>
             <button id="close-links-btn" class="icon-btn"><i class="ph ph-x"></i></button>
         </div>
         
         <div class="add-link-section">
-            <input type="text" id="link-name-input" placeholder="Nome (max 20 chars)" maxlength="20">
-            <input type="text" id="link-url-input" placeholder="URL (https://...)">
+            <input type="text" id="link-name-input" placeholder="Nome (max 20 chars)" maxlength="20" data-i18n-placeholder="links.name_placeholder">
+            <input type="text" id="link-url-input" placeholder="URL (https://...)" data-i18n-placeholder="links.url_placeholder">
             <button id="add-link-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
         </div>
 
@@ -602,7 +611,7 @@
             <!-- Items injected here -->
         </div>
         <div class="links-note">
-            <small>Máximo de 6 links.</small>
+            <small data-i18n="links.max_note">Máximo de 6 links.</small>
         </div>
     </div>
 

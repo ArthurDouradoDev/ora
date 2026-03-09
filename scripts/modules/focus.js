@@ -356,10 +356,10 @@ const FocusSystem = {
     },
 
     getPhaseLabel: function(phase) {
-        if (phase === 'focus') return 'Foco';
-        if (phase === 'pause') return 'Pausa';
-        if (phase === 'longPause') return 'Pausa Longa';
-        return 'Foco';
+        if (phase === 'focus') return t('focus.phase_focus');
+        if (phase === 'pause') return t('focus.phase_pause');
+        if (phase === 'longPause') return t('focus.phase_long_pause');
+        return t('focus.phase_focus');
     },
 
     updateDisplay: function() {
@@ -379,7 +379,7 @@ const FocusSystem = {
         // Fullscreen
         this.elements.fs.timer.textContent = timeStr;
         this.elements.fs.phase.textContent = label;
-        this.elements.fs.total.innerHTML = `<i class="ph ph-fire"></i> Total hoje: ${totalStr}`;
+        this.elements.fs.total.innerHTML = `<i class="ph ph-fire"></i> ${t('focus.total_today')}: ${totalStr}`;
         this.elements.fs.playBtn.innerHTML = `<i class="ph ${playIcon}"></i>`;
 
         // Ring

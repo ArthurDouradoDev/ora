@@ -135,7 +135,7 @@ const ReminderSystem = {
                     await this.markDone('angelus_done_' + windowName);
                 }
                 this.hideModal(this.elements.angelus.modal);
-                showToast('Angelus rezado!', 'success');
+                showToast(t('toast.angelus_done'), 'success');
             });
         }
 
@@ -159,7 +159,7 @@ const ReminderSystem = {
             this.elements.mercy.checkBtn.addEventListener('click', async () => {
                 await this.markDone('mercy_done');
                 this.hideModal(this.elements.mercy.modal);
-                showToast('Terço da Misericórdia rezado!', 'success');
+                showToast(t('toast.mercy_done'), 'success');
             });
         }
 
@@ -179,7 +179,7 @@ const ReminderSystem = {
             this.elements.midday.checkBtn.addEventListener('click', async () => {
                 await this.markDone('ora_midday_done');
                 this.hideModal(this.elements.midday.modal);
-                showToast('Exame meridiano marcado como feito!', 'success');
+                showToast(t('toast.midday_done'), 'success');
             });
         }
 
@@ -196,7 +196,7 @@ const ReminderSystem = {
             this.elements.evening.checkBtn.addEventListener('click', async () => {
                 await this.markDone('ora_evening_done');
                 this.hideModal(this.elements.evening.modal);
-                showToast('Exame noturno registrado!', 'success');
+                showToast(t('toast.evening_done'), 'success');
             });
         }
 

@@ -52,7 +52,7 @@ const Blocker = {
             this.state.verses = await loadJSON('data/verses.json');
         } catch (e) {
             console.error('[Blocker] Failed to load verses:', e);
-            this.state.verses = [{ text: "Deus é amor.", ref: "1Jo 4,8" }];
+            this.state.verses = [{ text: { pt: "Deus é amor.", en: "God is love.", es: "Dios es amor." }, ref: "1Jo 4,8" }];
         }
     },
 
@@ -243,9 +243,9 @@ const Blocker = {
         this.updateSwitchUI();
 
         if (this.state.enabled) {
-            showToast('Bloqueador ativado!', 'success');
+            showToast(t('toast.blocker_activated'), 'success');
         } else {
-            showToast('Bloqueador desativado.', 'info');
+            showToast(t('toast.blocker_deactivated'), 'info');
         }
     },
 
@@ -254,7 +254,7 @@ const Blocker = {
             this.dom.toggle.checked = this.state.enabled;
         }
         if (this.dom.statusText) {
-            this.dom.statusText.textContent = this.state.enabled ? 'Ativo' : 'Inativo';
+            this.dom.statusText.textContent = this.state.enabled ? t('blocker.status_active') : t('blocker.status_inactive');
             this.dom.statusText.style.color = this.state.enabled ? 'var(--accent-color)' : 'var(--text-muted)';
         }
     },
@@ -263,7 +263,10 @@ const Blocker = {
 
     getCurrentVerse() {
         const idx = this.state.lock.verseIndex % this.state.verses.length;
-        return this.state.verses[idx];
+        const verse = this.state.verses[idx];
+        const locale = window._i18nLocale || 'pt';
+        const verseText = (typeof verse.text === 'object') ? (verse.text[locale] || verse.text.pt || '') : verse.text;
+        return { text: verseText, ref: verse.ref };
     },
 
     setupLockListeners() {
@@ -292,14 +295,14 @@ const Blocker = {
             this.state.lock.verseIndex = Math.floor(Math.random() * this.state.verses.length);
             await this.saveState();
             this.renderLockTab();
-            showToast('Trava ativada!', 'success');
+            showToast(t('toast.blocker_lock_activated'), 'success');
         } else {
             if (this.state.lockUnlocked) {
                 // Already typed verse this session — allow direct disable
                 this.state.lock.enabled = false;
                 await this.saveState();
                 this.renderLockTab();
-                showToast('Trava desativada.', 'info');
+                showToast(t('toast.blocker_lock_deactivated'), 'info');
             } else {
                 // Need to type verse to disable
                 this.dom.lockToggle.checked = true; // Keep it checked
@@ -308,7 +311,7 @@ const Blocker = {
                     this.state.lockUnlocked = true;
                     this.saveState();
                     this.renderLockTab();
-                    showToast('Trava desativada.', 'info');
+                    showToast(t('toast.blocker_lock_deactivated'), 'info');
                 });
             }
         }
@@ -454,12 +457,12 @@ const Blocker = {
     async addSite(urlInput) {
         const domain = this.extractDomain(urlInput);
         if (!domain) {
-            showToast('URL inválida.', 'error');
+            showToast(t('toast.blocker_invalid_url'), 'error');
             return;
         }
 
         if (this.state.sites.some(site => site.url === domain)) {
-            showToast('Site já está na lista.', 'info');
+            showToast(t('toast.blocker_already_listed'), 'info');
             return;
         }
 
@@ -476,7 +479,7 @@ const Blocker = {
         await this.saveState();
         await this.updateRules();
         this.renderSitesTab();
-        showToast('Site bloqueado com sucesso!', 'success');
+        showToast(t('toast.blocker_site_added'), 'success');
     },
 
     async removeSite(id) {
@@ -484,7 +487,7 @@ const Blocker = {
         await this.saveState();
         await this.updateRules();
         this.renderCurrentTab();
-        showToast('Site removido da lista.', 'info');
+        showToast(t('toast.blocker_site_removed'), 'info');
     },
 
     async toggleSiteMode(id) {
@@ -523,7 +526,7 @@ const Blocker = {
 
             const modeBadge = document.createElement('span');
             modeBadge.className = `blocked-site-mode ${site.mode === 'always' ? 'mode-always' : 'mode-limited'}`;
-            modeBadge.textContent = site.mode === 'always' ? 'Sempre' : 'Limitado';
+            modeBadge.textContent = site.mode === 'always' ? t('blocker.mode_always') : t('blocker.mode_limited');
 
             info.appendChild(urlSpan);
             info.appendChild(modeBadge);
@@ -533,7 +536,7 @@ const Blocker = {
 
             const modeBtn = document.createElement('button');
             modeBtn.className = 'mode-toggle-btn';
-            modeBtn.textContent = site.mode === 'always' ? 'Limitar' : 'Bloquear';
+            modeBtn.textContent = site.mode === 'always' ? t('blocker.btn_limit') : t('blocker.btn_block');
             modeBtn.title = site.mode === 'always' ? 'Alternar para modo limitado' : 'Alternar para sempre bloqueado';
             modeBtn.addEventListener('click', () => this.toggleSiteMode(site.id));
 
@@ -598,7 +601,7 @@ const Blocker = {
                 this.renderLimitsTab();
             });
             const chkSpan = document.createElement('span');
-            chkSpan.textContent = 'Limitar acessos';
+            chkSpan.textContent = t('blocker.limit_label');
             toggleLabel.appendChild(chk);
             toggleLabel.appendChild(chkSpan);
             toggleRow.appendChild(toggleLabel);
@@ -609,7 +612,7 @@ const Blocker = {
             configRow.style.display = site.accessLimit.enabled ? '' : 'none';
 
             const label1 = document.createElement('label');
-            label1.textContent = 'Máximo';
+            label1.textContent = t('blocker.max_label');
 
             const countInput = document.createElement('input');
             countInput.type = 'number';
@@ -703,7 +706,7 @@ const Blocker = {
                 this.renderScheduleTab();
             });
             const chkSpan = document.createElement('span');
-            chkSpan.textContent = 'Bloquear por horário';
+            chkSpan.textContent = t('blocker.time_block_label');
             toggleLabel.appendChild(chk);
             toggleLabel.appendChild(chkSpan);
             toggleRow.appendChild(toggleLabel);
@@ -722,7 +725,7 @@ const Blocker = {
                     row.className = 'config-card-row';
                     
                     const fromLabel = document.createElement('label');
-                    fromLabel.textContent = 'Das';
+                    fromLabel.textContent = t('blocker.time_from');
 
                     const fromInput = document.createElement('input');
                     fromInput.type = 'time';
@@ -736,7 +739,7 @@ const Blocker = {
                     });
 
                     const toLabel = document.createElement('label');
-                    toLabel.textContent = 'às';
+                    toLabel.textContent = t('blocker.time_to');
                     toLabel.style.flex = '0';
 
                     const toInput = document.createElement('input');
@@ -941,7 +944,7 @@ const Blocker = {
             }
         } catch (error) {
             console.error('[Blocker] Failed to update rules:', error);
-            showToast('Erro ao atualizar bloqueador', 'error');
+            showToast(t('toast.blocker_update_error'), 'error');
         } finally {
             this.state.updateInProgress = false;
         }

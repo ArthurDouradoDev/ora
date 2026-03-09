@@ -294,7 +294,7 @@ const MusicSystem = {
         const input = this.dom.playlistInput.value.trim();
 
         if (!input) {
-            showToast('Por favor, preencha com a URL.', 'info');
+            showToast(t('toast.music_fill_url'), 'info');
             return;
         }
 
@@ -350,12 +350,12 @@ const MusicSystem = {
             this.renderPlaylists();
 
             if (newPlaylist.idType === 'playlist') {
-                showToast('Playlist adicionada!', 'success');
+                showToast(t('toast.music_playlist_added'), 'success');
             } else {
-                showToast('Música adicionada!', 'success');
+                showToast(t('toast.music_song_added'), 'success');
             }
         } else {
-            showToast('Não foi possível encontrar o vídeo/playlist.', 'error');
+            showToast(t('toast.music_not_found'), 'error');
         }
     },
 
@@ -373,7 +373,7 @@ const MusicSystem = {
         }
 
         this.renderPlaylists();
-        showToast('Removido com sucesso.', 'info');
+        showToast(t('toast.music_removed'), 'info');
     },
 
     playPlaylist: function(playlist) {

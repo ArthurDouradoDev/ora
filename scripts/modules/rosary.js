@@ -107,7 +107,7 @@ const RosarySystem = {
         // Misericordia
         if (this.chapletType === 'misericordia') {
             if (bead.decade === 0) {
-                if (index === 0) return { title: 'Sinal da Cruz', text: this.extraPrayers['sinal-cruz'].pt }; // Misericordia starts with sign of cross usually? Or keep default
+                if (index === 0) return { title: 'Sinal da Cruz', text: this.extraPrayers['sinal-cruz'][this.lang] || this.extraPrayers['sinal-cruz'].pt }; // Misericordia starts with sign of cross usually? Or keep default
                 if (index === 1) {
                     const p = this.basePrayers.find(pr => pr.id === 'pai-nosso');
                     return { title: 'Pai Nosso', text: p ? p.text.pt : '' };
@@ -262,9 +262,11 @@ const RosarySystem = {
         // Mystery Name (Decades 1-5 only for Terço)
         if (this.chapletType === 'terco' && bead.decade >= 1 && bead.decade <= 5) {
             const mysteries = this.mysteries[this.mystery];
-            this.elements.mysteryName.textContent = `${bead.decade}º Mistério: ${mysteries[bead.decade - 1]}`;
+            const locale = window._i18nLocale || 'pt';
+            const mysteryList = (typeof mysteries === 'object' && !Array.isArray(mysteries)) ? (mysteries[locale] || mysteries.pt || []) : mysteries;
+            this.elements.mysteryName.textContent = `${bead.decade}º ${t('rosary.mystery_label')}: ${mysteryList[bead.decade - 1]}`;
         } else if (this.chapletType === 'misericordia' && bead.decade >= 1 && bead.decade <= 5) {
-            this.elements.mysteryName.textContent = `${bead.decade}ª Dezena`;
+            this.elements.mysteryName.textContent = `${bead.decade}ª ${t('rosary.decade_label')}`;
         } else {
             this.elements.mysteryName.textContent = '';
         }
@@ -379,7 +381,7 @@ const RosarySystem = {
                 e.stopPropagation();
                 this.currentBead = 0;
                 this.refreshDisplay();
-                showToast('Terço reiniciado!', 'success');
+                showToast(t('toast.rosary_reset'), 'success');
             });
         }
 
