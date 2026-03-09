@@ -169,9 +169,20 @@
     "blocker_update_error": "Error al actualizar el bloqueador"
   },
   "settings": {
+    "title": "Configuración",
     "language_label": "Idioma",
     "language_pt": "Português",
     "language_en": "English",
-    "language_es": "Español"
+    "language_es": "Español",
+    "name_label": "Tu nombre",
+    "name_placeholder": "Tu nombre...",
+    "prayer_lang_label": "Idioma predeterminado de oraciones",
+    "reminders_label": "Recordatorios",
+    "reminder_carlo": "Oración al abrir (Carlo Acutis)",
+    "reminder_angelus": "Ángelus",
+    "reminder_mercy": "Hora de la Misericordia",
+    "reminder_midday": "Examen del Mediodía",
+    "reminder_evening": "Examen Nocturno",
+    "reminder_rosary": "Sugerencia de rosario (después del Pomodoro)"
   }
 }

@@ -169,9 +169,20 @@
     "blocker_update_error": "Error updating blocker"
   },
   "settings": {
+    "title": "Settings",
     "language_label": "Language",
     "language_pt": "Português",
     "language_en": "English",
-    "language_es": "Español"
+    "language_es": "Español",
+    "name_label": "Your name",
+    "name_placeholder": "Your name...",
+    "prayer_lang_label": "Default prayer language",
+    "reminders_label": "Reminders",
+    "reminder_carlo": "Opening prayer (Carlo Acutis)",
+    "reminder_angelus": "Angelus",
+    "reminder_mercy": "Divine Mercy Hour",
+    "reminder_midday": "Midday Examen",
+    "reminder_evening": "Evening Examen",
+    "reminder_rosary": "Rosary suggestion (after Pomodoro)"
   }
 }

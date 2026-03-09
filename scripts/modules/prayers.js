@@ -116,7 +116,7 @@ const PrayerSystem = {
     openReader: function(prayer) {
         if (!prayer) return;
         this.currentPrayer = prayer;
-        this.currentLang = 'pt'; // Default to PT
+        this.currentLang = window.SettingsSystem ? window.SettingsSystem.getPrayerLang() : 'pt';
         this.updateReader();
         
         animateModal(this.elements.listModal, false);

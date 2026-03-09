@@ -271,6 +271,7 @@ const ReminderSystem = {
     // --- Logic ---
 
     checkCarloAcutisReminder: async function() {
+        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('carlo')) return;
         if (!chrome.storage || !chrome.storage.session) return;
         
         try {
@@ -294,6 +295,7 @@ const ReminderSystem = {
     },
 
     checkAngelusTime: async function() {
+        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('angelus')) return;
         const now = new Date();
         const hours = now.getHours();
         const windowName = this.getAngelusWindow(hours);
@@ -313,6 +315,7 @@ const ReminderSystem = {
     },
 
     checkMercyTime: async function() {
+        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('mercy')) return;
         // If Rosary modal is already open, do not show reminder
         if (isModalVisible(document.getElementById('rosary-modal'))) {
             this.hideModal(this.elements.mercy.modal);
@@ -334,6 +337,7 @@ const ReminderSystem = {
     },
 
     checkMiddayExam: async function() {
+        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('midday')) return;
         const hours = new Date().getHours();
         // 11h - 14h
         if (hours >= 11 && hours < 14) {
@@ -347,6 +351,7 @@ const ReminderSystem = {
     },
 
     checkEveningExam: async function() {
+        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('evening')) return;
         const hours = new Date().getHours();
         // 18h+
         if (hours >= 18) {
@@ -360,6 +365,7 @@ const ReminderSystem = {
     },
 
     showRosarySuggestion: function() {
+        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('rosary')) return;
         // Only show if not already praying or doing exam
         const rosaryModal = document.getElementById('rosary-modal');
         const examModal = document.getElementById('exam-flow-modal');

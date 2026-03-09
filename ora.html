@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="styles/modules/prayers.css">
     <link rel="stylesheet" href="styles/modules/exam.css">
     <link rel="stylesheet" href="styles/modules/links.css">
+    <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
 </head>
@@ -63,6 +64,9 @@
                 <i class="ph ph-book-bookmark"></i> Bíblia
             </a>
             <div class="glass-panel action-btn" id="btn-blocker" data-i18n-html="blocker.modal_title"><i class="ph ph-shield-slash"></i> Bloqueador</div>
+            <div class="glass-panel action-btn action-btn-icon" id="btn-settings" data-i18n-title="settings.title" title="Configurações">
+                <i class="ph ph-gear"></i>
+            </div>
         </div>
     </header>
 
@@ -582,13 +586,96 @@
         </div>
     </div>
 
-    <!-- Language Selector -->
-    <div class="language-selector" style="position: fixed; bottom: 16px; left: 16px; z-index: 50;">
-        <select id="language-select" class="glass-panel-sm" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); appearance: auto;">
-            <option value="pt">🇧🇷 PT</option>
-            <option value="en">🇺🇸 EN</option>
-            <option value="es">🇪🇸 ES</option>
-        </select>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
+        <div class="modal-header">
+            <h3 data-i18n="settings.title">Configurações</h3>
+            <button id="close-settings-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+
+        <!-- Language -->
+        <div class="settings-section">
+            <h4 class="settings-section-title" data-i18n="settings.language_label">Idioma</h4>
+            <div class="settings-row">
+                <select id="settings-locale" class="settings-select">
+                    <option value="pt">🇧🇷 Português</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- User Name -->
+        <div class="settings-section">
+            <h4 class="settings-section-title" data-i18n="settings.name_label">Seu nome</h4>
+            <div class="settings-row">
+                <input type="text" id="settings-user-name" placeholder="Seu nome..." maxlength="30" data-i18n-placeholder="settings.name_placeholder">
+            </div>
+        </div>
+
+        <!-- Default Prayer Language -->
+        <div class="settings-section">
+            <h4 class="settings-section-title" data-i18n="settings.prayer_lang_label">Idioma padrão das orações</h4>
+            <div class="settings-row">
+                <div class="lang-toggle">
+                    <button class="lang-btn" data-prayer-lang="pt" data-i18n="prayers.lang_portuguese">Português</button>
+                    <button class="lang-btn" data-prayer-lang="la" data-i18n="prayers.lang_latin">Latim</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reminder Toggles -->
+        <div class="settings-section">
+            <h4 class="settings-section-title" data-i18n="settings.reminders_label">Lembretes</h4>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_carlo">Oração ao abrir (Carlo Acutis)</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-carlo" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_angelus">Angelus</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-angelus" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_mercy">Hora da Misericórdia</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-mercy" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_midday">Exame Meridiano</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-midday" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_evening">Exame Noturno</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-evening" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_rosary">Sugestão de terço (após Pomodoro)</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-rosary" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Container -->
@@ -625,6 +712,7 @@
     <script src="scripts/modules/music.js" defer></script>
     <script src="scripts/modules/exam.js" defer></script>
     <script src="scripts/modules/focus.js" defer></script>
+    <script src="scripts/modules/settings.js" defer></script>
     <script src="scripts/main.js" defer></script>
     <script src="scripts/sw-init.js" defer></script>
 </body>

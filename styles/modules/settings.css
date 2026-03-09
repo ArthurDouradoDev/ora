@@ -1,0 +1,133 @@
+/* Icon-only action button variant */
+.action-btn-icon {
+    padding: 10px 12px;
+    font-size: 1.1rem;
+}
+
+/* Settings modal */
+#settings-modal {
+    width: 420px;
+    max-height: 80vh;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+/* Section grouping */
+.settings-section {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.settings-section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px 0;
+}
+
+/* Settings row */
+.settings-row {
+    margin-bottom: 10px;
+}
+
+.settings-row:last-child {
+    margin-bottom: 0;
+}
+
+.settings-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.settings-toggle-row span {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Settings select */
+.settings-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    appearance: auto;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.settings-select:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Settings text input */
+#settings-user-name {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+#settings-user-name:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+#settings-user-name::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* Prayer language toggle within settings */
+#settings-modal .lang-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+/* Scrollbar */
+#settings-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+#settings-modal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#settings-modal::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+}
+
+#settings-modal::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #settings-modal {
+        width: 90vw;
+    }
+}

@@ -120,6 +120,13 @@ async function initApp() {
         console.warn('[Ora] i18n load failed, using defaults:', e);
     }
 
+    // ============================================================
+    // SETTINGS SYSTEM (before other modules)
+    // ============================================================
+    if (window.SettingsSystem) {
+        await window.SettingsSystem.init();
+    }
+
     // Start background preload early — in parallel with JSON data loading
     let bgPreloadPromise = Promise.resolve();
     if (typeof BackgroundSystem !== 'undefined') {
@@ -201,12 +208,29 @@ async function initApp() {
 
             const greeting = data.greetings[greetingIndex] || data.greetings[0];
             const locale = window._i18nLocale || 'pt';
-            greetingEl.textContent = (typeof greeting === 'object') ? (greeting[locale] || greeting.pt || '') : greeting;
+            let greetingText = (typeof greeting === 'object') ? (greeting[locale] || greeting.pt || '') : greeting;
+
+            const userName = window.SettingsSystem ? window.SettingsSystem.getUserName() : '';
+            if (userName) {
+                greetingText = `${greetingText}, ${userName}`;
+            }
+            greetingEl.textContent = greetingText;
         } catch (e) {
             console.error('[Ora] Error in setGreeting:', e);
         }
     }
     await setGreeting();
+
+    // Listen for settings changes to refresh greeting and quote
+    window.addEventListener('ora:settings-changed', async (e) => {
+        if (e.detail.key === 'userName') {
+            await setGreeting();
+        }
+    });
+    window.addEventListener('ora:locale-changed', async () => {
+        await setQuote();
+        await setGreeting();
+    });
 
     // ============================================================
     // 3. Music Library & Player Logic
@@ -349,37 +373,6 @@ async function initApp() {
                 !btnBlocker.contains(e.target)) {
                 animateModal(blockerModal, false);
             }
-        });
-    }
-
-    // ============================================================
-    // 10. LANGUAGE SELECTOR
-    // ============================================================
-    const langSelect = document.getElementById('language-select');
-    if (langSelect) {
-        langSelect.value = window._i18nLocale || 'pt';
-        langSelect.addEventListener('change', async (e) => {
-            const newLocale = e.target.value;
-            await AsyncStorage.set('ora_locale', newLocale);
-            window._i18nLocale = newLocale;
-            try {
-                const [newStrings, newFallback] = await Promise.all([
-                    loadJSON(`data/i18n/${newLocale}.json`).catch(() => null),
-                    newLocale !== 'pt' ? loadJSON('data/i18n/pt.json').catch(() => ({})) : Promise.resolve(null)
-                ]);
-                window._i18nStrings = newStrings || {};
-                window._i18nFallback = newFallback || newStrings || {};
-                if (newLocale === 'pt') window._i18nFallback = window._i18nStrings;
-            } catch (err) {
-                console.error('[Ora] Failed to load locale:', err);
-            }
-            applyI18n();
-            // Re-set quote and greeting with new locale
-            await setQuote();
-            await setGreeting();
-            // Notify other modules
-            window.dispatchEvent(new CustomEvent('ora:locale-changed', { detail: { locale: newLocale } }));
-            console.log(`[Ora] Locale changed to: ${newLocale}`);
         });
     }
 
