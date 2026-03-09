@@ -77,6 +77,11 @@
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+.settings-select option {
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
 /* Settings text input */
 #settings-user-name {
     width: 100%;

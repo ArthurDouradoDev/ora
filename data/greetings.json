@@ -1,7 +1,7 @@
 [
-  { "pt": "Fiat Voluntas Tua", "en": "Thy Will Be Done", "es": "Hágase Tu Voluntad" },
-  { "pt": "Deus te abençoe", "en": "God bless you", "es": "Dios te bendiga" },
-  { "pt": "A Paz de Cristo", "en": "The Peace of Christ", "es": "La Paz de Cristo" },
-  { "pt": "Ad Maiorem Dei Gloriam", "en": "Ad Maiorem Dei Gloriam", "es": "Ad Maiorem Dei Gloriam" },
-  { "pt": "Deo Gratias", "en": "Deo Gratias", "es": "Deo Gratias" }
+  { "pt": "Fiat Voluntas Tua", "en": "Thy Will Be Done", "es": "Hágase Tu Voluntad", "appendName": false },
+  { "pt": "Deus te abençoe", "en": "God bless you", "es": "Dios te bendiga", "appendName": true },
+  { "pt": "A Paz de Cristo", "en": "The Peace of Christ", "es": "La Paz de Cristo", "appendName": true },
+  { "pt": "Ad Maiorem Dei Gloriam", "en": "Ad Maiorem Dei Gloriam", "es": "Ad Maiorem Dei Gloriam", "appendName": false },
+  { "pt": "Deo Gratias", "en": "Deo Gratias", "es": "Deo Gratias", "appendName": false }
 ]

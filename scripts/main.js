@@ -211,7 +211,7 @@ async function initApp() {
             let greetingText = (typeof greeting === 'object') ? (greeting[locale] || greeting.pt || '') : greeting;
 
             const userName = window.SettingsSystem ? window.SettingsSystem.getUserName() : '';
-            if (userName) {
+            if (userName && greeting.appendName !== false) {
                 greetingText = `${greetingText}, ${userName}`;
             }
             greetingEl.textContent = greetingText;
