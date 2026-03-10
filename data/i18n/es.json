@@ -184,5 +184,13 @@
     "reminder_midday": "Examen del Mediodía",
     "reminder_evening": "Examen Nocturno",
     "reminder_rosary": "Sugerencia de rosario (después del Pomodoro)"
+  },
+  "tasks": {
+    "modal_title": "Tareas de Hoy",
+    "new_task_placeholder": "Nueva tarea...",
+    "opt_clear_done": "Limpiar completadas",
+    "opt_reset_today": "Restablecer todo para hoy",
+    "opt_reset_recurring": "Restablecer solo recurrentes",
+    "opt_remove_all": "Eliminar todas las tareas"
   }
 }

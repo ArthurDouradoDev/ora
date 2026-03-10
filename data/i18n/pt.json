@@ -184,5 +184,13 @@
     "reminder_midday": "Exame Meridiano",
     "reminder_evening": "Exame Noturno",
     "reminder_rosary": "Sugestão de terço (após Pomodoro)"
+  },
+  "tasks": {
+    "modal_title": "Tarefas de Hoje",
+    "new_task_placeholder": "Nova tarefa...",
+    "opt_clear_done": "Limpar concluídas",
+    "opt_reset_today": "Resetar tudo para hoje",
+    "opt_reset_recurring": "Resetar apenas recorrentes",
+    "opt_remove_all": "Remover todas as tarefas"
   }
 }

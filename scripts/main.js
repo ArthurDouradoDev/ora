@@ -325,6 +325,13 @@ async function initApp() {
         console.error('FocusSystem not found!');
     }
 
+    // Initialize Task System
+    if (window.TaskSystem) {
+        await window.TaskSystem.init();
+    } else {
+        console.error('TaskSystem not found!');
+    }
+
     // ============================================================
     // 8. EXAME DE CONSCIÊNCIA & VIRTUDES
     // ============================================================

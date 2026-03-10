@@ -171,6 +171,7 @@ const FocusSystem = {
         // Trigger side-effects that were previously in advancePhase
         if (completedPhase === 'focus') {
             if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion();
+            if (window.TaskSystem) window.TaskSystem.incrementActiveTaskCycle();
             // Check if it was the 4th pomodoro (now in longPause)
             if (this.phase === 'longPause') {
                 setTimeout(() => {

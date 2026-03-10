@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="styles/modules/exam.css">
     <link rel="stylesheet" href="styles/modules/links.css">
     <link rel="stylesheet" href="styles/modules/settings.css">
+    <link rel="stylesheet" href="styles/modules/tasks.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
 </head>
@@ -178,7 +179,6 @@
             <div class="glass-panel action-btn" id="btn-focus" data-i18n-html="footer.pomodoro"><i class="ph ph-timer"></i> Pomodoro</div>
             <div class="glass-panel action-btn" id="btn-exam" data-i18n-html="footer.exam"><i class="ph ph-heart"></i> Examinar</div>
         </div>
-        
         <div class="quote-container">
             <div class="quote-text"></div>
             <div class="quote-author"></div>
@@ -187,6 +187,10 @@
         <div class="footer-right">
             <div class="glass-panel action-btn" id="btn-rosary" data-i18n-html="footer.rosary"><i class="ph ph-cross"></i> Terço</div>
             <div class="glass-panel action-btn" id="btn-prayers" data-i18n-html="footer.prayers">Orações <i class="ph ph-caret-up"></i></div>
+            <div class="glass-panel action-btn action-btn-icon" id="btn-tasks" title="Tarefas">
+                <i class="ph ph-check-square"></i>
+                <span id="tasks-badge" class="tasks-badge" style="display: none;">0</span>
+            </div>
         </div>
     </footer>
 
@@ -223,6 +227,14 @@
 
         <div class="focus-fs-content">
             <div class="focus-fs-phase" data-i18n="focus.phase_focus">Foco</div>
+            <div class="focus-active-task-container fs-mode">
+                <span class="focus-active-task-label">Trabalhando em:</span>
+                <div class="focus-active-task-selector">
+                    <span id="focus-fs-active-task-name" class="active-task-name">Nenhuma tarefa selecionada</span>
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div id="focus-fs-tasks-dropdown" class="tasks-selector-dropdown glass-panel-sm" style="display: none;"></div>
+            </div>
             <div class="focus-fs-ring-container">
                 <svg class="focus-ring" viewBox="0 0 200 200">
                     <circle class="focus-ring-bg" cx="100" cy="100" r="90" />
@@ -702,6 +714,73 @@
         </div>
     </div>
 
+    <!-- Tasks Modal -->
+    <div id="tasks-modal" class="glass-panel modal modal-corner-bottom-right modal-fade" style="display: none;">
+        <div class="modal-header">
+            <div class="tasks-header-info">
+                <h3 data-i18n="tasks.modal_title">Tarefas de Hoje</h3>
+                <span id="tasks-progress-text" class="tasks-progress-text">0 de 0 concluídas</span>
+            </div>
+            <div class="tasks-header-actions">
+                <div class="dropdown-container">
+                    <button id="tasks-options-btn" class="icon-btn" title="Opções"><i class="ph ph-dots-three-vertical"></i></button>
+                    <div id="tasks-options-menu" class="tasks-dropdown-menu" style="display: none;">
+                        <button id="tasks-opt-clear-done" class="dropdown-item"><i class="ph ph-broom"></i> Limpar concluídas</button>
+                        <button id="tasks-opt-reset-today" class="dropdown-item"><i class="ph ph-arrow-counter-clockwise"></i> Resetar tudo para hoje</button>
+                        <button id="tasks-opt-reset-recurring" class="dropdown-item"><i class="ph ph-repeat"></i> Resetar apenas recorrentes</button>
+                        <div class="dropdown-divider"></div>
+                        <button id="tasks-opt-remove-all" class="dropdown-item danger"><i class="ph ph-trash"></i> Remover todas as tarefas</button>
+                    </div>
+                </div>
+                <button id="close-tasks-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </div>
+        </div>
+
+        <div class="add-task-section">
+            <div class="add-task-row">
+                <button id="toggle-recurring-btn" class="icon-btn-sm recurring-toggle" title="Repetir todo dia"><i class="ph ph-repeat"></i></button>
+                <input type="text" id="new-task-input" placeholder="Nova tarefa..." data-i18n-placeholder="tasks.new_task_placeholder">
+                <select id="task-cycles-select" class="task-cycles-select" title="Ciclos Pomodoro">
+                    <option value="1">1 🍅</option>
+                    <option value="2">2 🍅</option>
+                    <option value="3">3 🍅</option>
+                    <option value="4">4 🍅</option>
+                </select>
+                <button id="add-task-btn" class="task-add-btn"><i class="ph ph-plus"></i></button>
+            </div>
+            <div class="task-intention-row">
+                <i class="ph ph-cross intention-icon"></i>
+                <input type="text" id="task-intention-input" class="task-intention-input" placeholder="Ofereço por... (opcional)">
+            </div>
+        </div>
+
+        <div id="tasks-list-container" class="tasks-list-container">
+            <div id="tasks-routine-divider" class="tasks-divider" style="display: none;">
+                <span>Rotina</span>
+            </div>
+            <div id="tasks-list-routine" class="tasks-list"></div>
+
+            <div id="tasks-single-divider" class="tasks-divider" style="display: none;">
+                <span>Tarefas Únicas</span>
+            </div>
+            <div id="tasks-list-single" class="tasks-list"></div>
+
+            <div id="tasks-completed-divider" class="tasks-divider" style="display: none;">
+                <span>Concluídas</span>
+            </div>
+            <div id="tasks-list-completed" class="tasks-list"></div>
+
+            <div class="tasks-empty-state" id="tasks-empty-state">
+                <i class="ph ph-check-square-offset"></i>
+                <p>Nenhuma tarefa pendente para hoje.</p>
+            </div>
+        </div>
+
+        <div id="tasks-footer-msg" class="tasks-footer-msg" style="display: none;">
+            "Bem feito, servo bom e fiel." — Mt 25,21
+        </div>
+    </div>
+
     <script src="scripts/utils.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
     <script src="scripts/modules/prayers.js" defer></script>
@@ -712,6 +791,7 @@
     <script src="scripts/modules/music.js" defer></script>
     <script src="scripts/modules/exam.js" defer></script>
     <script src="scripts/modules/focus.js" defer></script>
+    <script src="scripts/modules/tasks.js" defer></script>
     <script src="scripts/modules/settings.js" defer></script>
     <script src="scripts/main.js" defer></script>
     <script src="scripts/sw-init.js" defer></script>

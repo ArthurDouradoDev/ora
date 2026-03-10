@@ -184,5 +184,13 @@
     "reminder_midday": "Midday Examen",
     "reminder_evening": "Evening Examen",
     "reminder_rosary": "Rosary suggestion (after Pomodoro)"
+  },
+  "tasks": {
+    "modal_title": "Today's Tasks",
+    "new_task_placeholder": "New task...",
+    "opt_clear_done": "Clear completed",
+    "opt_reset_today": "Reset all for today",
+    "opt_reset_recurring": "Reset only recurring",
+    "opt_remove_all": "Remove all tasks"
   }
 }
