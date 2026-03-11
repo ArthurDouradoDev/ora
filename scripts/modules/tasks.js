@@ -81,6 +81,7 @@ const TaskSystem = {
 
             // Pomodoro Integration (fullscreen only)
             fsActiveTaskName: document.getElementById('focus-fs-active-task-name'),
+            fsActiveTaskIntention: document.getElementById('focus-fs-active-task-intention'),
             fsTasksDropdown: document.getElementById('focus-fs-tasks-dropdown')
         };
     },
@@ -673,6 +674,16 @@ const TaskSystem = {
         const taskName = activeTask ? activeTask.text : 'Nenhuma tarefa selecionada';
 
         if (this.elements.fsActiveTaskName) this.elements.fsActiveTaskName.textContent = taskName;
+
+        // Show intention below task name in fullscreen focus mode
+        if (this.elements.fsActiveTaskIntention) {
+            if (activeTask && activeTask.intention) {
+                this.elements.fsActiveTaskIntention.textContent = `Ofereço por: ${activeTask.intention}`;
+                this.elements.fsActiveTaskIntention.style.display = 'block';
+            } else {
+                this.elements.fsActiveTaskIntention.style.display = 'none';
+            }
+        }
 
         // Render fullscreen dropdown
         const dropdownEl = this.elements.fsTasksDropdown;
