@@ -22,7 +22,7 @@ const Blocker = {
     state: {
         enabled: false,
         sites: [], // Array of site objects
-        lock: { enabled: false, verseIndex: 0 },
+        lock: { enabled: false, verseIndex: 0, writeUnlockEnabled: false },
         verses: [],
         updateInProgress: false,
         lockUnlocked: false, // true after user types verse this session
@@ -62,7 +62,10 @@ const Blocker = {
         if (data.blocker_config) {
             const config = data.blocker_config;
             this.state.enabled = config.enabled || false;
-            this.state.lock = config.lock || { enabled: false, verseIndex: 0 };
+            this.state.lock = config.lock || { enabled: false, verseIndex: 0, writeUnlockEnabled: false };
+            if (this.state.lock.writeUnlockEnabled === undefined) {
+                this.state.lock.writeUnlockEnabled = false;
+            }
 
             let needsMigration = false;
             this.state.sites = (config.sites || []).map(site => {
@@ -180,6 +183,7 @@ const Blocker = {
             emptyTime: document.getElementById('blocker-empty-time'),
             // Lock tab
             lockToggle: document.getElementById('lock-toggle'),
+            lockWriteUnlockToggle: document.getElementById('lock-write-unlock-toggle'),
             lockPreview: document.getElementById('lock-preview'),
             lockPreviewVerse: document.getElementById('lock-preview-verse'),
             lockPreviewRef: document.getElementById('lock-preview-ref'),
@@ -274,6 +278,13 @@ const Blocker = {
             this.dom.lockToggle.addEventListener('change', () => this.toggleLock());
         }
 
+        if (this.dom.lockWriteUnlockToggle) {
+            this.dom.lockWriteUnlockToggle.addEventListener('change', async () => {
+                this.state.lock.writeUnlockEnabled = this.dom.lockWriteUnlockToggle.checked;
+                await this.saveState();
+            });
+        }
+
         if (this.dom.lockCancelBtn) {
             this.dom.lockCancelBtn.addEventListener('click', () => {
                 this.hideLockOverlay();
@@ -283,6 +294,7 @@ const Blocker = {
         }
 
         if (this.dom.lockVerseInput) {
+            this.dom.lockVerseInput.addEventListener('paste', (e) => e.preventDefault());
             this.dom.lockVerseInput.addEventListener('input', (e) => this.handleVerseInput(e));
         }
     },
@@ -361,7 +373,7 @@ const Blocker = {
             else if (i === matchedCount) cls = 'char-current';
             else cls = 'char-pending';
 
-            const ch = verseText[i] === ' ' ? '&nbsp;' : this.escapeHTML(verseText[i]);
+            const ch = this.escapeHTML(verseText[i]);
             html += `<span class="${cls}">${ch}</span>`;
         }
         this.dom.lockVerseDisplay.innerHTML = html;
@@ -373,9 +385,11 @@ const Blocker = {
         const target = verse.text;
 
         // Check how many characters match from the start
+        const normalize = ch => ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
         let matchCount = 0;
         for (let i = 0; i < typed.length && i < target.length; i++) {
-            if (typed[i].toLowerCase() === target[i].toLowerCase()) {
+            if (normalize(typed[i]) === normalize(target[i])) {
                 matchCount++;
             } else {
                 // Wrong character — shake and clear
@@ -825,6 +839,9 @@ const Blocker = {
     renderLockTab() {
         if (this.dom.lockToggle) {
             this.dom.lockToggle.checked = this.state.lock.enabled;
+        }
+        if (this.dom.lockWriteUnlockToggle) {
+            this.dom.lockWriteUnlockToggle.checked = this.state.lock.writeUnlockEnabled;
         }
 
         if (this.state.lock.enabled && this.state.verses.length > 0) {

@@ -486,6 +486,12 @@
     padding: 4px 0;
 }
 
+.lock-section-separator {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .lock-header-row {
     display: flex;
     align-items: flex-start;
@@ -632,6 +638,21 @@
     margin-bottom: 20px;
     min-height: 2em;
     letter-spacing: 0.5px;
+    max-height: 160px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    text-align: left;
+    padding: 0 2px;
+}
+
+.lock-verse-display::-webkit-scrollbar { width: 3px; }
+.lock-verse-display::-webkit-scrollbar-track { background: transparent; }
+.lock-verse-display::-webkit-scrollbar-thumb {
+    background: rgba(238, 187, 85, 0.3);
+    border-radius: 2px;
 }
 
 .lock-verse-display .char-correct {

@@ -187,6 +187,162 @@
         /* Hidden initially, shown by JS */
         #limited-section { display: none; }
         #always-section { display: none; }
+
+        /* Verse unlock overlay (shown over overlimit section) */
+        #verse-unlock-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+        }
+
+        .verse-unlock-box {
+            background: rgba(15, 15, 15, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 36px 40px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .verse-unlock-icon {
+            font-size: 2.8rem;
+            color: #eebb55;
+            margin-bottom: 14px;
+        }
+
+        .verse-unlock-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            margin: 0 0 6px 0;
+        }
+
+        .verse-unlock-subtitle {
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.45);
+            margin: 0 0 20px 0;
+        }
+
+        .verse-unlock-ref {
+            font-size: 0.78rem;
+            color: #eebb55;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .verse-unlock-liturgia {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.35);
+            margin: 0 0 16px 0;
+            font-style: italic;
+        }
+
+        .verse-unlock-display {
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            margin-bottom: 18px;
+            letter-spacing: 0.3px;
+            max-height: 180px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            text-align: left;
+            padding: 0 4px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+
+        .verse-unlock-display::-webkit-scrollbar {
+            width: 3px;
+        }
+        .verse-unlock-display::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .verse-unlock-display::-webkit-scrollbar-thumb {
+            background: rgba(238, 187, 85, 0.3);
+            border-radius: 2px;
+        }
+
+        .verse-unlock-display .char-correct { color: #4ade80; }
+        .verse-unlock-display .char-current { color: white; text-decoration: underline; text-underline-offset: 4px; }
+        .verse-unlock-display .char-pending { color: rgba(255, 255, 255, 0.22); }
+
+        .verse-unlock-input {
+            width: 100%;
+            max-width: 340px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .verse-unlock-input:focus {
+            border-color: rgba(238, 187, 85, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .verse-unlock-input.error {
+            border-color: rgba(248, 113, 113, 0.5);
+            animation: inputShake 0.4s ease;
+        }
+
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .verse-unlock-progress {
+            width: 100%;
+            max-width: 340px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 12px auto 16px;
+        }
+
+        .verse-unlock-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #eebb55, #4ade80);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.15s ease;
+        }
+
+        .verse-unlock-cancel {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.45);
+            padding: 7px 18px;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .verse-unlock-cancel:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.75);
+        }
     </style>
 </head>
 <body>
@@ -230,7 +386,29 @@
                 <span id="overlimit-badge-text">Limite excedido</span>
             </div>
             <p id="overlimit-message">Você atingiu o limite para este site hoje.</p>
-            <a href="ora.html" class="btn"><i class="ph ph-arrow-left"></i> Voltar para o Ora</a>
+            <div class="btn-group">
+                <a href="ora.html" class="btn"><i class="ph ph-arrow-left"></i> Voltar para o Ora</a>
+                <button class="btn btn-continue" id="verse-unlock-btn" style="display:none;">
+                    <i class="ph ph-key"></i> Desbloquear com versículo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gospel Unlock Overlay -->
+    <div id="verse-unlock-overlay">
+        <div class="verse-unlock-box">
+            <div class="verse-unlock-icon"><i class="ph ph-book-open-text"></i></div>
+            <p class="verse-unlock-title" id="verse-unlock-title">Evangelho do Dia</p>
+            <p class="verse-unlock-subtitle" id="verse-unlock-subtitle">Digite o evangelho abaixo para acessar o site:</p>
+            <div class="verse-unlock-ref" id="verse-unlock-ref"></div>
+            <p class="verse-unlock-liturgia" id="verse-unlock-liturgia"></p>
+            <div class="verse-unlock-display" id="verse-unlock-display"></div>
+            <input class="verse-unlock-input" id="verse-unlock-input" type="text" autocomplete="off" spellcheck="false" placeholder="Comece a digitar...">
+            <div class="verse-unlock-progress">
+                <div class="verse-unlock-progress-fill" id="verse-unlock-progress-fill"></div>
+            </div>
+            <button class="verse-unlock-cancel" id="verse-unlock-cancel">Cancelar</button>
         </div>
     </div>
 

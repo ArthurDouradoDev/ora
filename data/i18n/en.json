@@ -121,6 +121,8 @@
     "lock_overlay_subtitle": "Type the verse below to unlock:",
     "lock_input_placeholder": "Start typing...",
     "lock_cancel": "Cancel",
+    "lock_write_unlock_label": "Lock for blocked site access",
+    "lock_write_unlock_subtitle": "When enabled, the user must type a Bible verse to access sites that have exceeded their limit or are in a blocked schedule.",
     "mode_always": "Always",
     "mode_limited": "Limited",
     "btn_limit": "Limit",

@@ -121,6 +121,8 @@
     "lock_overlay_subtitle": "Escriba el versículo a continuación para desbloquear:",
     "lock_input_placeholder": "Comience a escribir...",
     "lock_cancel": "Cancelar",
+    "lock_write_unlock_label": "Bloqueo para acceso a sitios bloqueados",
+    "lock_write_unlock_subtitle": "Cuando está activado, el usuario deberá escribir un versículo bíblico para acceder a sitios que superaron su límite o están en horario bloqueado.",
     "mode_always": "Siempre",
     "mode_limited": "Limitado",
     "btn_limit": "Limitar",
