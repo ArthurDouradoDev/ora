@@ -111,9 +111,21 @@ function buildAllowRules(primaryDomain) {
         await chrome.storage.local.set({ blocker_config: config });
     }
 
-    // ALWAYS mode — hard block, no continue
+    // ALWAYS mode — hard block, with optional gospel unlock (global setting)
     if (site.mode === 'always') {
         document.getElementById('always-section').style.display = 'block';
+
+        // Show gospel-unlock button if the global setting is enabled
+        if (config.lock?.writeUnlockEnabled) {
+            const alwaysUnlockBtn = document.getElementById('always-verse-unlock-btn');
+            if (alwaysUnlockBtn) {
+                alwaysUnlockBtn.style.display = '';
+                alwaysUnlockBtn.addEventListener('click', () => {
+                    showGospelUnlock(() => allowAndNavigate(domain, 60));
+                });
+            }
+        }
+
         return;
     }
 
@@ -158,8 +170,8 @@ function buildAllowRules(primaryDomain) {
             msg.textContent = `Você já acessou ${site.url} ${site.todayAccesses} de ${site.accessLimit.count} vezes hoje.`;
         }
 
-        // Show gospel-unlock button if the feature is enabled
-        if (config.lock?.writeUnlockEnabled) {
+        // Show gospel-unlock button if the per-site feature is enabled
+        if (site.writeUnlockEnabled) {
             const unlockBtn = document.getElementById('verse-unlock-btn');
             if (unlockBtn) {
                 unlockBtn.innerHTML = '<i class="ph ph-book-open-text"></i> Acessar com evangelho';
@@ -259,7 +271,7 @@ function buildAllowRules(primaryDomain) {
 
     const continueBtn = document.getElementById('continue-btn');
 
-    if (config.lock?.writeUnlockEnabled) {
+    if (site.writeUnlockEnabled) {
         continueBtn.innerHTML = '<i class="ph ph-book-open-text"></i> Acessar com evangelho';
         continueBtn.addEventListener('click', () => {
             showGospelUnlock(async () => {

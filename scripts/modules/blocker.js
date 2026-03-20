@@ -107,6 +107,26 @@ const Blocker = {
                 return s;
             });
 
+            // Migrate global writeUnlockEnabled → per-site for limited sites
+            // (global lock.writeUnlockEnabled is kept for always-blocked sites)
+            if (config.lock && config.lock.writeUnlockEnabled !== undefined) {
+                const globalValue = !!config.lock.writeUnlockEnabled;
+                this.state.sites.forEach(site => {
+                    if (site.writeUnlockEnabled === undefined) {
+                        site.writeUnlockEnabled = (site.mode === 'limited') ? globalValue : false;
+                    }
+                });
+                needsMigration = true;
+            } else {
+                // Ensure all sites have the field
+                this.state.sites.forEach(site => {
+                    if (site.writeUnlockEnabled === undefined) {
+                        site.writeUnlockEnabled = false;
+                        needsMigration = true;
+                    }
+                });
+            }
+
             this.migrateDaily();
             if (needsMigration) await this.saveState();
         } else if (data.blocker_enabled !== undefined || data.blocker_sites) {
@@ -487,7 +507,8 @@ const Blocker = {
             accessLimit: { enabled: false, count: 5, period: 'day' },
             scheduleLimit: { enabled: false, schedules: [{ fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 }] },
             todayAccesses: 0,
-            lastAccessDate: this.getTodayStr()
+            lastAccessDate: this.getTodayStr(),
+            writeUnlockEnabled: false
         });
 
         await this.saveState();
@@ -559,6 +580,8 @@ const Blocker = {
             deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
             deleteBtn.title = 'Remover site';
             deleteBtn.addEventListener('click', () => this.removeSite(site.id));
+
+
 
             actions.appendChild(modeBtn);
             actions.appendChild(deleteBtn);
@@ -671,6 +694,25 @@ const Blocker = {
                 `;
                 card.appendChild(usage);
             }
+
+            // Gospel unlock toggle for this limited site
+            const gospelRow = document.createElement('div');
+            gospelRow.className = 'config-card-row';
+            const gospelLabel = document.createElement('label');
+            gospelLabel.className = 'config-toggle-label';
+            const gospelChk = document.createElement('input');
+            gospelChk.type = 'checkbox';
+            gospelChk.checked = !!site.writeUnlockEnabled;
+            gospelChk.addEventListener('change', () => {
+                site.writeUnlockEnabled = gospelChk.checked;
+                this.saveState();
+            });
+            const gospelSpan = document.createElement('span');
+            gospelSpan.textContent = 'Permitir acesso digitando o evangelho';
+            gospelLabel.appendChild(gospelChk);
+            gospelLabel.appendChild(gospelSpan);
+            gospelRow.appendChild(gospelLabel);
+            card.appendChild(gospelRow);
 
             list.appendChild(card);
         });
@@ -840,6 +882,7 @@ const Blocker = {
         if (this.dom.lockToggle) {
             this.dom.lockToggle.checked = this.state.lock.enabled;
         }
+        // writeUnlockEnabled for always-blocked sites (global toggle)
         if (this.dom.lockWriteUnlockToggle) {
             this.dom.lockWriteUnlockToggle.checked = this.state.lock.writeUnlockEnabled;
         }

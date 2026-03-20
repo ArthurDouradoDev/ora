@@ -7,10 +7,57 @@ const PRECACHE_URLS = [
     // e.g. 'https://fonts.googleapis.com/...' (though usually better to cache on demand)
 ];
 
+// ============================================================
+// GOSPEL DAILY REFRESH — Proactive cache update
+// ============================================================
+const GOSPEL_CACHE_KEY = 'liturgy_gospel_cache';
+const LITURGY_API = 'https://liturgia.up.railway.app/v2/';
+const GOSPEL_ALARM = 'gospel_daily_refresh';
+
+async function refreshGospelCache() {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    // Check if cache is already up-to-date
+    try {
+        const data = await chrome.storage.local.get([GOSPEL_CACHE_KEY]);
+        const cached = data[GOSPEL_CACHE_KEY];
+        if (cached && cached.date === todayStr) {
+            console.log('[SW Gospel] Cache already up-to-date for', todayStr);
+            return;
+        }
+    } catch (e) { /* proceed to fetch */ }
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const resp = await fetch(LITURGY_API, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const json = await resp.json();
+        const gospelEntry = json.leituras?.evangelho?.[0];
+        if (gospelEntry) {
+            const gospel = {
+                date: todayStr,
+                text: (gospelEntry.texto || '').replace(/\n+/g, ' ').trim(),
+                ref: gospelEntry.referencia || '',
+                titulo: gospelEntry.titulo || '',
+                liturgia: json.liturgia || ''
+            };
+            await chrome.storage.local.set({ [GOSPEL_CACHE_KEY]: gospel });
+            console.log('[SW Gospel] Cache refreshed for', todayStr, '—', gospel.ref);
+        }
+    } catch (e) {
+        console.error('[SW Gospel] Failed to refresh cache:', e);
+    }
+}
+
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     console.log('[Service Worker] Install');
-    // Skip addAll if array is empty or implementation is risky for local files
+    // Set up repeating alarm for gospel refresh (every 60 minutes)
+    chrome.alarms.create(GOSPEL_ALARM, { delayInMinutes: 1, periodInMinutes: 60 });
+    // Fetch gospel immediately on install
+    event.waitUntil(refreshGospelCache());
 });
 
 self.addEventListener('activate', (event) => {
@@ -26,6 +73,13 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
+    // Ensure gospel alarm exists and refresh cache on activate
+    chrome.alarms.get(GOSPEL_ALARM, (alarm) => {
+        if (!alarm) {
+            chrome.alarms.create(GOSPEL_ALARM, { delayInMinutes: 1, periodInMinutes: 60 });
+        }
+    });
+    event.waitUntil(refreshGospelCache());
 });
 
 self.addEventListener('fetch', (event) => {
@@ -422,6 +476,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // ============================================================
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+    // Handle Gospel daily refresh
+    if (alarm.name === GOSPEL_ALARM) {
+        await refreshGospelCache();
+        return;
+    }
+
     // Handle Blocker: revoke temporary allow rule when session time expires
     if (alarm.name.startsWith('blocker_revoke_')) {
         const ruleId = parseInt(alarm.name.slice('blocker_revoke_'.length), 10);
