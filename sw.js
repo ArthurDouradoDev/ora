@@ -537,6 +537,18 @@ const BLOCKER_ALIASES = {
     'old.reddit.com':     ['reddit.com'],
 };
 
+// Global exceptions for Google OAuth (so it doesn't break when YouTube etc. is blocked)
+const AUTH_WHITELIST_REGEXES = [
+    /^https?:\/\/(www\.)?youtube\.com\/(signin|accounts|account_redirect)/i,
+    /^https?:\/\/accounts\.youtube\.com/i,
+    /^https?:\/\/(www\.)?google\.com\/(signin|accounts|account_redirect|ServiceLogin)/i,
+    /^https?:\/\/accounts\.google\.com/i
+];
+
+function isAuthWhitelist(url) {
+    return AUTH_WHITELIST_REGEXES.some(re => re.test(url));
+}
+
 // ── In-memory cache of blocker config (avoids storage reads on every navigation)
 let _blockerCfg = null;
 
@@ -578,6 +590,9 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
 
     // Ignore non-http(s) URLs (extension pages, chrome://, etc.)
     if (!details.url.startsWith('http://') && !details.url.startsWith('https://')) return;
+
+    // Check auth whitelist so we don't block OAuth redirects
+    if (isAuthWhitelist(details.url)) return;
 
     try {
         const cfg = _blockerCfg || (await chrome.storage.local.get(['blocker_config'])).blocker_config;

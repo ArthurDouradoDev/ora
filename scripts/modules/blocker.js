@@ -950,6 +950,31 @@ const Blocker = {
             const newRules = [];
             let ruleId = 1;
 
+            // Add global unblock rules for Google OAuth endpoints (so YouTube block doesn't break sign-ins)
+            const OAUTH_EXCEPTIONS = [
+                '||youtube.com/signin*',
+                '||youtube.com/accounts*',
+                '||youtube.com/account_redirect*',
+                '||accounts.youtube.com/*',
+                '||google.com/signin*',
+                '||google.com/accounts*',
+                '||google.com/account_redirect*',
+                '||google.com/ServiceLogin*',
+                '||accounts.google.com/*'
+            ];
+
+            OAUTH_EXCEPTIONS.forEach(filter => {
+                newRules.push({
+                    id: ruleId++,
+                    priority: 3,
+                    action: { type: 'allow' },
+                    condition: {
+                        urlFilter: filter,
+                        resourceTypes: ['main_frame', 'sub_frame']
+                    }
+                });
+            });
+
             // ALL sites (always + limited) get redirected to blocked.html?domain=X
             // blocked.html reads the query param to determine which site was blocked,
             // checks config, and shows appropriate UI (blocked vs continue).
