@@ -163,9 +163,24 @@ async function loadState() {
             // Ensure todayKey is current (handles day rollover)
             const currentKey = getTodayKey();
             if (state.todayKey !== currentKey) {
+                // A session is only preserved across midnight if it is genuinely
+                // still running (expectedEndTime in the future). Anything else is
+                // residue from a previous day and must be fully reset.
+                const activeCrossMidnight = state.isRunning && state.expectedEndTime && state.expectedEndTime > Date.now();
+
                 state.todayKey = currentKey;
                 state.totalFocusSeconds = 0;
                 state.pomodoroCount = 0; // Reset Pomodoro dots count
+
+                if (!activeCrossMidnight) {
+                    state.isRunning = false;
+                    state.expectedEndTime = null;
+                    state.phase = 'focus';
+                    state.timeRemaining = getPhaseDuration('focus', state.settings);
+                    state.totalDuration = state.timeRemaining;
+                    chrome.alarms.clear(POMODORO_ALARM);
+                }
+
                 // Try to load today's total from legacy key
                 const legacyTotal = await chrome.storage.local.get([currentKey]);
                 if (legacyTotal[currentKey]) {
@@ -173,6 +188,12 @@ async function loadState() {
                 }
                 // Persist the rollover immediately so open tabs detect the change
                 chrome.storage.local.set({ [POMODORO_STATE_KEY]: state });
+
+                // Purge focus-total keys from previous days (they accumulate forever otherwise)
+                chrome.storage.local.get(null).then(all => {
+                    const stale = Object.keys(all).filter(k => k.startsWith('ora_focus_total_') && k !== currentKey);
+                    if (stale.length) chrome.storage.local.remove(stale);
+                });
             }
             return state;
         }
