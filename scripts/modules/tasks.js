@@ -62,16 +62,18 @@ const TaskSystem = {
             toggleRecurring: document.getElementById('toggle-recurring-btn'),
             btnAdd: document.getElementById('add-task-btn'),
 
-            // Lists
-            listRoutine: document.getElementById('tasks-list-routine'),
-            listSingle: document.getElementById('tasks-list-single'),
+            // Lists (unified: pending + collapsible completed)
+            listActive: document.getElementById('tasks-list-active'),
             listCompleted: document.getElementById('tasks-list-completed'),
-
-            // Dividers
-            divRoutine: document.getElementById('tasks-routine-divider'),
-            divSingle: document.getElementById('tasks-single-divider'),
-            divCompleted: document.getElementById('tasks-completed-divider'),
+            completedToggle: document.getElementById('tasks-completed-toggle'),
+            completedCount: document.getElementById('tasks-completed-count'),
             emptyState: document.getElementById('tasks-empty-state'),
+
+            // Active Task Bar (home footer)
+            activeTaskBar: document.getElementById('active-task-bar'),
+            activeTaskBarName: document.getElementById('active-task-bar-name'),
+            activeTaskBarCycles: document.getElementById('active-task-bar-cycles'),
+            activeTaskBarPlay: document.getElementById('active-task-bar-play'),
 
             // Dropdown Actions
             optClearDone: document.getElementById('tasks-opt-clear-done'),
@@ -134,14 +136,11 @@ const TaskSystem = {
                 !this.elements.optionsBtn.contains(e.target) && !this.elements.optionsMenu.contains(e.target)) {
                 this.elements.optionsMenu.style.display = 'none';
             }
-            // Close tasks modal on outside click
-            // Check both contains AND closest — because render() may remove the target from DOM
-            // before this handler fires, making contains() return false even if click was inside modal
+            // Close tasks modal on outside click (centered modal)
             if (this.elements.modal && isModalVisible(this.elements.modal) &&
                 !this.elements.modal.contains(e.target) &&
-                !e.target.closest('#tasks-modal') &&
                 this.elements.btnTasks && !this.elements.btnTasks.contains(e.target)) {
-                // Extra guard: if the target is detached from DOM, it was inside the modal before render()
+                // Guard: detached target = was inside modal before re-render, ignore
                 if (!document.contains(e.target)) return;
                 animateModal(this.elements.modal, false);
             }
@@ -153,6 +152,34 @@ const TaskSystem = {
                 }
             }
         });
+
+        // Completed section toggle
+        if (this.elements.completedToggle) {
+            this.elements.completedToggle.addEventListener('click', () => {
+                const opened = this.elements.completedToggle.classList.toggle('open');
+                this.elements.listCompleted.style.display = opened ? 'flex' : 'none';
+            });
+        }
+
+        // Active task bar (home footer)
+        if (this.elements.activeTaskBar) {
+            this.elements.activeTaskBar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Avoid re-opening when the play button is clicked
+                if (e.target.closest('#active-task-bar-play')) return;
+                if (!isModalVisible(this.elements.modal)) {
+                    animateModal(this.elements.modal, true);
+                }
+            });
+        }
+        if (this.elements.activeTaskBarPlay) {
+            this.elements.activeTaskBarPlay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (this.activeTaskId) {
+                    this.startPomodoroForTask(this.activeTaskId);
+                }
+            });
+        }
 
         this.elements.optClearDone.addEventListener('click', () => {
             this.clearDone();
@@ -330,22 +357,20 @@ const TaskSystem = {
         if (idx === -1) return;
 
         const task = this.tasks[idx];
-        // Find the neighbor in the same group (recurring/single/done)
-        const sameGroup = (a, b) => a.recurring === b.recurring && a.done === b.done;
+        if (task.done) return; // completed tasks are not reorderable in the unified list
 
+        // Move among pending tasks regardless of recurring vs single
         if (direction === 'up') {
-            // Find previous task in same group
             for (let i = idx - 1; i >= 0; i--) {
-                if (sameGroup(this.tasks[i], task)) {
+                if (!this.tasks[i].done) {
                     this.tasks.splice(idx, 1);
                     this.tasks.splice(i, 0, task);
                     break;
                 }
             }
         } else {
-            // Find next task in same group
             for (let i = idx + 1; i < this.tasks.length; i++) {
-                if (sameGroup(this.tasks[i], task)) {
+                if (!this.tasks[i].done) {
                     this.tasks.splice(idx, 1);
                     this.tasks.splice(i, 0, task);
                     break;
@@ -499,37 +524,39 @@ const TaskSystem = {
     // --- Rendering ---
 
     render: function() {
-        const routine = this.tasks.filter(t => t.recurring && !t.done);
-        const single = this.tasks.filter(t => !t.recurring && !t.done);
+        const pending = this.tasks.filter(t => !t.done);
         const completed = this.tasks.filter(t => t.done);
 
-        const routineFragment = document.createDocumentFragment();
-        const singleFragment = document.createDocumentFragment();
+        const pendingFragment = document.createDocumentFragment();
         const completedFragment = document.createDocumentFragment();
 
-        routine.forEach(t => this.renderTaskItem(t, routineFragment));
-        single.forEach(t => this.renderTaskItem(t, singleFragment));
+        pending.forEach(t => this.renderTaskItem(t, pendingFragment));
         completed.forEach(t => this.renderTaskItem(t, completedFragment));
 
-        this.elements.listRoutine.innerHTML = '';
-        this.elements.listRoutine.appendChild(routineFragment);
-
-        this.elements.listSingle.innerHTML = '';
-        this.elements.listSingle.appendChild(singleFragment);
+        this.elements.listActive.innerHTML = '';
+        this.elements.listActive.appendChild(pendingFragment);
 
         this.elements.listCompleted.innerHTML = '';
         this.elements.listCompleted.appendChild(completedFragment);
 
-        // Dividers
-        this.elements.divRoutine.style.display = routine.length > 0 ? 'block' : 'none';
-        this.elements.divSingle.style.display = single.length > 0 ? 'block' : 'none';
-        this.elements.divCompleted.style.display = completed.length > 0 ? 'block' : 'none';
+        // Completed toggle visibility + count
+        if (this.elements.completedToggle) {
+            this.elements.completedToggle.style.display = completed.length > 0 ? 'flex' : 'none';
+            if (this.elements.completedCount) {
+                this.elements.completedCount.textContent = `(${completed.length})`;
+            }
+            // Keep collapsed display state in sync: if no completed, hide list regardless
+            if (completed.length === 0) {
+                this.elements.completedToggle.classList.remove('open');
+                this.elements.listCompleted.style.display = 'none';
+            }
+        }
 
         // Empty State
         this.elements.emptyState.style.display = (this.tasks.length === 0) ? 'flex' : 'none';
 
         // Badge & Progress
-        const pendingCount = routine.length + single.length;
+        const pendingCount = pending.length;
         const totalCount = this.tasks.length;
         const doneCount = completed.length;
 
@@ -539,7 +566,7 @@ const TaskSystem = {
         }
 
         if (this.elements.progressText) {
-            this.elements.progressText.textContent = `${doneCount} de ${totalCount} concluídas`;
+            this.elements.progressText.textContent = t('tasks.progress_text', { done: doneCount, total: totalCount });
         }
 
         // Footer encouragement
@@ -561,11 +588,11 @@ const TaskSystem = {
             item.classList.add('editing');
             item.innerHTML = `
                 <div class="task-edit-form">
-                    <input type="text" class="task-edit-input" value="${this.escapeHtml(task.text)}" placeholder="Nome da tarefa...">
-                    <input type="text" class="task-edit-intention" value="${this.escapeHtml(task.intention || '')}" placeholder="Ofereço por... (opcional)">
+                    <input type="text" class="task-edit-input" value="${this.escapeHtml(task.text)}" placeholder="${this.escapeHtml(t('tasks.edit_name_placeholder'))}">
+                    <input type="text" class="task-edit-intention" value="${this.escapeHtml(task.intention || '')}" placeholder="${this.escapeHtml(t('tasks.intention_placeholder'))}">
                     <div class="task-edit-actions">
-                        <button class="task-edit-save"><i class="ph ph-check"></i> Salvar</button>
-                        <button class="task-edit-cancel"><i class="ph ph-x"></i> Cancelar</button>
+                        <button class="task-edit-save"><i class="ph ph-check"></i> ${this.escapeHtml(t('tasks.edit_save'))}</button>
+                        <button class="task-edit-cancel"><i class="ph ph-x"></i> ${this.escapeHtml(t('tasks.edit_cancel'))}</button>
                     </div>
                 </div>
             `;
@@ -610,27 +637,40 @@ const TaskSystem = {
             cyclesHtml += `<div class="focus-dot ${isCompletedCycle ? 'completed' : ''}"></div>`;
         }
 
+        const recurringBadge = task.recurring
+            ? `<span class="task-badge-recurring" title="${this.escapeHtml(t('tasks.recurring_badge'))}"><i class="ph ph-repeat"></i></span>`
+            : '';
+
+        const intentionChip = task.intention
+            ? `<span class="task-intention-chip">
+                   <i class="ph ph-cross"></i>
+                   <span class="task-intention-label">${this.escapeHtml(t('tasks.offer_for'))}:</span>
+                   <span class="task-intention-text">${this.escapeHtml(task.intention)}</span>
+               </span>`
+            : '';
+
         item.innerHTML = `
             <div class="task-checkbox-container">
                 <div class="task-checkbox ${isChecked}" data-id="${task.id}">${checkIcon}</div>
             </div>
             <div class="task-content">
                 <div class="task-title-row">
-                    ${task.recurring ? '<i class="ph ph-repeat task-recurring-icon" title="Rotina"></i>' : ''}
+                    ${recurringBadge}
                     <span class="task-title">${this.escapeHtml(task.text)}</span>
+                    ${task.id === this.activeTaskId && !task.done ? '<i class="ph ph-play-circle task-active-indicator" title="Foco atual"></i>' : ''}
                 </div>
-                ${task.intention ? `<span class="task-intention">Ofereço por: ${this.escapeHtml(task.intention)}</span>` : ''}
+                ${intentionChip}
                 <div class="task-cycles">${cyclesHtml}</div>
             </div>
             <div class="task-actions">
-                ${!task.done ? `<button class="icon-btn-sm btn-move-up" data-id="${task.id}" title="Mover para cima"><i class="ph ph-caret-up"></i></button>` : ''}
-                ${!task.done ? `<button class="icon-btn-sm btn-move-down" data-id="${task.id}" title="Mover para baixo"><i class="ph ph-caret-down"></i></button>` : ''}
-                ${!task.done && task.id !== this.activeTaskId ? `<button class="icon-btn-sm btn-start-pomodoro" data-id="${task.id}" title="Iniciar Pomodoro"><i class="ph ph-play"></i></button>` : ''}
-                <button class="icon-btn-sm btn-edit-task" data-id="${task.id}" title="Editar"><i class="ph ph-pencil-simple"></i></button>
+                ${!task.done ? `<button class="icon-btn-sm btn-move-up" data-id="${task.id}" title="${this.escapeHtml(t('tasks.move_up'))}"><i class="ph ph-caret-up"></i></button>` : ''}
+                ${!task.done ? `<button class="icon-btn-sm btn-move-down" data-id="${task.id}" title="${this.escapeHtml(t('tasks.move_down'))}"><i class="ph ph-caret-down"></i></button>` : ''}
+                ${!task.done && task.id !== this.activeTaskId ? `<button class="icon-btn-sm btn-start-pomodoro primary-action" data-id="${task.id}" title="${this.escapeHtml(t('tasks.start_focus'))}"><i class="ph ph-play"></i></button>` : ''}
+                <button class="icon-btn-sm btn-edit-task" data-id="${task.id}" title="${this.escapeHtml(t('tasks.edit_task'))}"><i class="ph ph-pencil-simple"></i></button>
                 ${task.recurring ?
-                    `<button class="icon-btn-sm btn-unrecur" data-id="${task.id}" title="Tornar tarefa única"><i class="ph ph-arrow-bend-down-right"></i></button>`
+                    `<button class="icon-btn-sm btn-unrecur" data-id="${task.id}" title="${this.escapeHtml(t('tasks.make_single'))}"><i class="ph ph-arrow-bend-down-right"></i></button>`
                     : ''}
-                <button class="icon-btn-sm btn-delete-task" data-id="${task.id}" title="Excluir"><i class="ph ph-trash"></i></button>
+                <button class="icon-btn-sm btn-delete-task" data-id="${task.id}" title="${this.escapeHtml(t('tasks.delete_task'))}"><i class="ph ph-trash"></i></button>
             </div>
         `;
 
@@ -669,19 +709,39 @@ const TaskSystem = {
     },
 
     updateActiveTaskUI: function() {
-        const pendingTasks = this.tasks.filter(t => !t.done);
-        const activeTask = pendingTasks.find(t => t.id === this.activeTaskId);
-        const taskName = activeTask ? activeTask.text : 'Nenhuma tarefa selecionada';
+        const pendingTasks = this.tasks.filter(task => !task.done);
+        const activeTask = pendingTasks.find(task => task.id === this.activeTaskId);
+        const taskName = activeTask ? activeTask.text : t('tasks.no_active_task');
 
         if (this.elements.fsActiveTaskName) this.elements.fsActiveTaskName.textContent = taskName;
 
         // Show intention below task name in fullscreen focus mode
         if (this.elements.fsActiveTaskIntention) {
             if (activeTask && activeTask.intention) {
-                this.elements.fsActiveTaskIntention.textContent = `Ofereço por: ${activeTask.intention}`;
+                this.elements.fsActiveTaskIntention.textContent = `${t('tasks.offer_for')}: ${activeTask.intention}`;
                 this.elements.fsActiveTaskIntention.style.display = 'block';
             } else {
                 this.elements.fsActiveTaskIntention.style.display = 'none';
+            }
+        }
+
+        // Home footer active-task bar
+        if (this.elements.activeTaskBar) {
+            if (activeTask) {
+                this.elements.activeTaskBar.style.display = 'flex';
+                if (this.elements.activeTaskBarName) {
+                    this.elements.activeTaskBarName.textContent = activeTask.text;
+                }
+                if (this.elements.activeTaskBarCycles) {
+                    let cyclesHtml = '';
+                    for (let i = 0; i < activeTask.totalCycles; i++) {
+                        const done = i < activeTask.completedCycles;
+                        cyclesHtml += `<div class="focus-dot ${done ? 'completed' : ''}"></div>`;
+                    }
+                    this.elements.activeTaskBarCycles.innerHTML = cyclesHtml;
+                }
+            } else {
+                this.elements.activeTaskBar.style.display = 'none';
             }
         }
 
@@ -692,7 +752,7 @@ const TaskSystem = {
 
         const btnNone = document.createElement('button');
         btnNone.className = 'task-selector-item' + (!this.activeTaskId ? ' selected' : '');
-        btnNone.innerHTML = `<i class="ph ph-x-circle"></i> Nenhuma tarefa`;
+        btnNone.innerHTML = `<i class="ph ph-x-circle"></i> ${this.escapeHtml(t('tasks.no_task_option'))}`;
         btnNone.addEventListener('click', () => {
             this.setActiveTask(null);
             dropdownEl.style.display = 'none';

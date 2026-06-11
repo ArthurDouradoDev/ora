@@ -194,6 +194,16 @@
         </div>
     </footer>
 
+    <!-- Active Task Bar (visible when there's an active task) -->
+    <div id="active-task-bar" class="active-task-bar" style="display: none;">
+        <div class="active-task-bar-label" data-i18n="tasks.active_label">Foco atual</div>
+        <div class="active-task-bar-content">
+            <span id="active-task-bar-name" class="active-task-bar-name"></span>
+            <div id="active-task-bar-cycles" class="active-task-bar-cycles"></div>
+        </div>
+        <button id="active-task-bar-play" class="icon-btn-sm active-task-bar-play" data-i18n-title="tasks.start_focus" title="Iniciar foco nesta tarefa"><i class="ph ph-play"></i></button>
+    </div>
+
     <!-- Focus Timer - Compact Mini Modal -->
     <div id="focus-mini" class="glass-panel modal modal-corner-bottom-left modal-fade" style="display: none;">
         <div class="focus-mini-header">
@@ -732,7 +742,7 @@
     </div>
 
     <!-- Tasks Modal -->
-    <div id="tasks-modal" class="glass-panel modal modal-corner-bottom-right modal-fade" style="display: none;">
+    <div id="tasks-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <div class="tasks-header-info">
                 <h3 data-i18n="tasks.modal_title">Tarefas de Hoje</h3>
@@ -740,13 +750,13 @@
             </div>
             <div class="tasks-header-actions">
                 <div class="dropdown-container">
-                    <button id="tasks-options-btn" class="icon-btn" title="Opções"><i class="ph ph-dots-three-vertical"></i></button>
+                    <button id="tasks-options-btn" class="icon-btn" data-i18n-title="tasks.options_title" title="Opções"><i class="ph ph-dots-three-vertical"></i></button>
                     <div id="tasks-options-menu" class="tasks-dropdown-menu" style="display: none;">
-                        <button id="tasks-opt-clear-done" class="dropdown-item"><i class="ph ph-broom"></i> Limpar concluídas</button>
-                        <button id="tasks-opt-reset-today" class="dropdown-item"><i class="ph ph-arrow-counter-clockwise"></i> Resetar tudo para hoje</button>
-                        <button id="tasks-opt-reset-recurring" class="dropdown-item"><i class="ph ph-repeat"></i> Resetar apenas recorrentes</button>
+                        <button id="tasks-opt-clear-done" class="dropdown-item"><i class="ph ph-broom"></i> <span data-i18n="tasks.opt_clear_done">Limpar concluídas</span></button>
+                        <button id="tasks-opt-reset-today" class="dropdown-item"><i class="ph ph-arrow-counter-clockwise"></i> <span data-i18n="tasks.opt_reset_today">Resetar tudo para hoje</span></button>
+                        <button id="tasks-opt-reset-recurring" class="dropdown-item"><i class="ph ph-repeat"></i> <span data-i18n="tasks.opt_reset_recurring">Resetar apenas recorrentes</span></button>
                         <div class="dropdown-divider"></div>
-                        <button id="tasks-opt-remove-all" class="dropdown-item danger"><i class="ph ph-trash"></i> Remover todas as tarefas</button>
+                        <button id="tasks-opt-remove-all" class="dropdown-item danger"><i class="ph ph-trash"></i> <span data-i18n="tasks.opt_remove_all">Remover todas as tarefas</span></button>
                     </div>
                 </div>
                 <button id="close-tasks-btn" class="icon-btn"><i class="ph ph-x"></i></button>
@@ -755,9 +765,9 @@
 
         <div class="add-task-section">
             <div class="add-task-row">
-                <button id="toggle-recurring-btn" class="icon-btn-sm recurring-toggle" title="Repetir todo dia"><i class="ph ph-repeat"></i></button>
+                <button id="toggle-recurring-btn" class="icon-btn-sm recurring-toggle" data-i18n-title="tasks.recurring_toggle_title" title="Repetir todo dia"><i class="ph ph-repeat"></i></button>
                 <input type="text" id="new-task-input" placeholder="Nova tarefa..." data-i18n-placeholder="tasks.new_task_placeholder">
-                <select id="task-cycles-select" class="task-cycles-select" title="Ciclos Pomodoro">
+                <select id="task-cycles-select" class="task-cycles-select" data-i18n-title="tasks.cycles_title" title="Ciclos Pomodoro">
                     <option value="1">1 🍅</option>
                     <option value="2">2 🍅</option>
                     <option value="3">3 🍅</option>
@@ -767,33 +777,27 @@
             </div>
             <div class="task-intention-row">
                 <i class="ph ph-cross intention-icon"></i>
-                <input type="text" id="task-intention-input" class="task-intention-input" placeholder="Ofereço por... (opcional)">
+                <input type="text" id="task-intention-input" class="task-intention-input" placeholder="Ofereço por... (opcional)" data-i18n-placeholder="tasks.intention_placeholder">
             </div>
         </div>
 
         <div id="tasks-list-container" class="tasks-list-container">
-            <div id="tasks-routine-divider" class="tasks-divider" style="display: none;">
-                <span>Rotina</span>
-            </div>
-            <div id="tasks-list-routine" class="tasks-list"></div>
+            <div id="tasks-list-active" class="tasks-list"></div>
 
-            <div id="tasks-single-divider" class="tasks-divider" style="display: none;">
-                <span>Tarefas Únicas</span>
-            </div>
-            <div id="tasks-list-single" class="tasks-list"></div>
-
-            <div id="tasks-completed-divider" class="tasks-divider" style="display: none;">
-                <span>Concluídas</span>
-            </div>
-            <div id="tasks-list-completed" class="tasks-list"></div>
+            <button id="tasks-completed-toggle" class="tasks-completed-toggle" style="display: none;">
+                <i class="ph ph-caret-right"></i>
+                <span data-i18n="tasks.completed_label">Concluídas</span>
+                <span id="tasks-completed-count" class="tasks-completed-count">(0)</span>
+            </button>
+            <div id="tasks-list-completed" class="tasks-list tasks-list-completed" style="display: none;"></div>
 
             <div class="tasks-empty-state" id="tasks-empty-state">
                 <i class="ph ph-check-square-offset"></i>
-                <p>Nenhuma tarefa pendente para hoje.</p>
+                <p data-i18n="tasks.empty_state">Nenhuma tarefa pendente para hoje.</p>
             </div>
         </div>
 
-        <div id="tasks-footer-msg" class="tasks-footer-msg" style="display: none;">
+        <div id="tasks-footer-msg" class="tasks-footer-msg" style="display: none;" data-i18n="tasks.footer_msg">
             "Bem feito, servo bom e fiel." — Mt 25,21
         </div>
     </div>
