@@ -194,14 +194,49 @@
         </div>
     </footer>
 
-    <!-- Active Task Bar (visible when there's an active task) -->
-    <div id="active-task-bar" class="active-task-bar" style="display: none;">
-        <div class="active-task-bar-label" data-i18n="tasks.active_label">Foco atual</div>
-        <div class="active-task-bar-content">
-            <span id="active-task-bar-name" class="active-task-bar-name"></span>
-            <div id="active-task-bar-cycles" class="active-task-bar-cycles"></div>
+    <!-- Home Tasks Widget (docked to the right edge, collapsible) -->
+    <div id="home-tasks-widget" class="home-tasks-widget" style="display: none;">
+        <button id="home-tasks-collapse" class="home-tasks-collapse" data-i18n-title="tasks.widget_collapse" title="Recolher">
+            <i class="ph ph-caret-right"></i>
+        </button>
+        <div class="home-tasks-body">
+            <div class="home-tasks-header">
+                <span class="home-tasks-title"><i class="ph ph-check-square"></i> <span data-i18n="tasks.today_label">Hoje</span></span>
+                <button id="home-tasks-view-all" class="home-tasks-view-all"></button>
+            </div>
+            <div id="home-tasks-list" class="home-tasks-list"></div>
+            <div id="home-tasks-done-msg" class="home-tasks-done-msg" style="display: none;" data-i18n="tasks.all_done_short">Tudo concluído por hoje 🙌</div>
+            <button id="home-tasks-plan-cta" class="home-tasks-plan-cta" style="display: none;">
+                <i class="ph ph-plus-circle"></i> <span data-i18n="tasks.plan_cta">Quais são as suas prioridades hoje?</span>
+            </button>
         </div>
-        <button id="active-task-bar-play" class="icon-btn-sm active-task-bar-play" data-i18n-title="tasks.start_focus" title="Iniciar foco nesta tarefa"><i class="ph ph-play"></i></button>
+    </div>
+
+    <!-- Morning Ritual Modal (first tab of the day) -->
+    <div id="morning-ritual-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
+        <div class="modal-header">
+            <h3 data-i18n="tasks.ritual_title">Planeje seu dia</h3>
+            <button id="ritual-close-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+        <p id="ritual-greeting" class="ritual-greeting"></p>
+        <div id="ritual-stats" class="ritual-stats" style="display: none;"></div>
+        <div id="ritual-week" class="ritual-stats ritual-week" style="display: none;"></div>
+        <div class="ritual-section" id="ritual-routine-section" style="display: none;">
+            <h4 data-i18n="tasks.ritual_routine_label">Sua rotina de hoje</h4>
+            <div id="ritual-routine-list" class="ritual-routine-list"></div>
+        </div>
+        <div class="ritual-section">
+            <h4 data-i18n="tasks.ritual_priorities_label">Quais são as suas 3 prioridades hoje?</h4>
+            <div class="ritual-priority-inputs">
+                <input type="text" class="ritual-priority-input" maxlength="80" placeholder="1.">
+                <input type="text" class="ritual-priority-input" maxlength="80" placeholder="2.">
+                <input type="text" class="ritual-priority-input" maxlength="80" placeholder="3.">
+            </div>
+        </div>
+        <div class="ritual-actions">
+            <button id="ritual-skip-btn" class="ritual-skip-btn" data-i18n="tasks.ritual_skip">Pular</button>
+            <button id="ritual-start-btn" class="ritual-start-btn" data-i18n="tasks.ritual_start">Começar o dia</button>
+        </div>
     </div>
 
     <!-- Focus Timer - Compact Mini Modal -->
@@ -517,6 +552,32 @@
             </div>
         </div>
 
+        <!-- Friction Overlay (contemplative pause before a timed disable) -->
+        <div id="blocker-friction-overlay" class="blocker-lock-overlay" style="display: none;">
+            <div class="lock-overlay-content friction-content">
+                <i class="ph ph-hands-praying"></i>
+                <p class="lock-overlay-title" data-i18n="blocker.friction_title">Um momento de pausa</p>
+                <p class="lock-overlay-subtitle" data-i18n="blocker.friction_subtitle">Respire fundo. Por que você quer desativar o bloqueio agora?</p>
+                <div class="lock-preview-card friction-verse-card">
+                    <i class="ph ph-book-open-text"></i>
+                    <p class="lock-preview-verse" id="friction-verse-text"></p>
+                    <span class="lock-preview-ref" id="friction-verse-ref"></span>
+                </div>
+                <p class="friction-duration-label" data-i18n="blocker.friction_duration_label">Por quanto tempo você precisa desativar?</p>
+                <div class="friction-duration-options">
+                    <button class="friction-duration-btn" data-minutes="15">15 min</button>
+                    <button class="friction-duration-btn" data-minutes="30">30 min</button>
+                    <button class="friction-duration-btn" data-minutes="60" data-i18n="blocker.friction_1h">1 hora</button>
+                    <button class="friction-duration-btn" data-minutes="eod" data-i18n="blocker.friction_eod">Resto do dia</button>
+                </div>
+                <p class="friction-note" data-i18n="blocker.friction_note">O bloqueador será reativado automaticamente ao fim do período.</p>
+                <div class="friction-actions">
+                    <button id="friction-keep-btn" class="friction-keep-btn" data-i18n="blocker.friction_keep">Manter bloqueio</button>
+                    <button id="friction-confirm-btn" class="friction-confirm-btn" disabled></button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-header">
             <h3 data-i18n="blocker.modal_title">Bloqueador de Sites</h3>
             <div class="blocker-header-actions">
@@ -767,12 +828,6 @@
             <div class="add-task-row">
                 <button id="toggle-recurring-btn" class="icon-btn-sm recurring-toggle" data-i18n-title="tasks.recurring_toggle_title" title="Repetir todo dia"><i class="ph ph-repeat"></i></button>
                 <input type="text" id="new-task-input" placeholder="Nova tarefa..." data-i18n-placeholder="tasks.new_task_placeholder">
-                <select id="task-cycles-select" class="task-cycles-select" data-i18n-title="tasks.cycles_title" title="Ciclos Pomodoro">
-                    <option value="1">1 🍅</option>
-                    <option value="2">2 🍅</option>
-                    <option value="3">3 🍅</option>
-                    <option value="4">4 🍅</option>
-                </select>
                 <button id="add-task-btn" class="task-add-btn"><i class="ph ph-plus"></i></button>
             </div>
             <div class="task-intention-row">
@@ -803,6 +858,7 @@
     </div>
 
     <script src="scripts/utils.js" defer></script>
+    <script src="scripts/shared/blocker-core.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
     <script src="scripts/modules/prayers.js" defer></script>
     <script src="scripts/modules/blocker.js" defer></script>
@@ -814,6 +870,7 @@
     <script src="scripts/modules/focus.js" defer></script>
     <script src="scripts/modules/tasks.js" defer></script>
     <script src="scripts/modules/settings.js" defer></script>
+    <script src="scripts/modules/sync.js" defer></script>
     <script src="scripts/main.js" defer></script>
     <script src="scripts/sw-init.js" defer></script>
 </body>
