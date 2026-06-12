@@ -1,3 +1,7 @@
+// Shared logic (BlockerCore / PomodoroCore) — single source of truth
+// also used by the extension pages and the test suite.
+importScripts('scripts/shared/blocker-core.js', 'scripts/shared/pomodoro-core.js');
+
 const CACHE_NAME = 'ora-cache-v1';
 
 // Only precache external assets if needed. 
@@ -136,23 +140,40 @@ function getDefaultState() {
         pomodoroCount: 0,
         totalFocusSeconds: 0,
         todayKey: getTodayKey(),
-        settings: { 
-            focus: 25, 
-            pause: 5, 
-            longPause: 15,
-            sound: true,
-            autoNext: false,
-            continuousAlarm: false,
-            wakeLock: false
-        }
+        settings: PomodoroCore.getDefaultSettings()
     };
 }
 
-function getPhaseDuration(phase, settings) {
-    if (phase === 'focus') return settings.focus * 60;
-    if (phase === 'pause') return settings.pause * 60;
-    if (phase === 'longPause') return settings.longPause * 60;
-    return settings.focus * 60;
+const getPhaseDuration = PomodoroCore.getPhaseDuration;
+
+// ── Daily stats (ora_daily_stats) ──
+// Shared with tasks.js: { 'YYYY-MM-DD': { focusSeconds, tasksDone, cyclesDone } }
+// The SW records focusSeconds at day rollover; tasks.js records the task fields.
+const DAILY_STATS_KEY = 'ora_daily_stats';
+const DAILY_STATS_MAX_AGE_DAYS = 35;
+
+async function recordFocusStats(prevTodayKey, focusSeconds) {
+    try {
+        if (!focusSeconds || focusSeconds <= 0) return;
+        const dateStr = prevTodayKey.slice('ora_focus_total_'.length);
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return;
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+        const data = await chrome.storage.local.get([DAILY_STATS_KEY]);
+        const stats = data[DAILY_STATS_KEY] || {};
+        stats[iso] = Object.assign({}, stats[iso], { focusSeconds });
+
+        const cutoff = Date.now() - DAILY_STATS_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+        for (const k of Object.keys(stats)) {
+            const t = new Date(k + 'T00:00:00').getTime();
+            if (!isNaN(t) && t < cutoff) delete stats[k];
+        }
+
+        await chrome.storage.local.set({ [DAILY_STATS_KEY]: stats });
+    } catch (e) {
+        console.error('[SW Stats] Failed to record focus stats:', e);
+    }
 }
 
 async function loadState() {
@@ -162,24 +183,15 @@ async function loadState() {
         if (state) {
             // Ensure todayKey is current (handles day rollover)
             const currentKey = getTodayKey();
-            if (state.todayKey !== currentKey) {
-                // A session is only preserved across midnight if it is genuinely
-                // still running (expectedEndTime in the future). Anything else is
-                // residue from a previous day and must be fully reset.
-                const activeCrossMidnight = state.isRunning && state.expectedEndTime && state.expectedEndTime > Date.now();
+            const prevTodayKey = state.todayKey;
+            const prevFocusSeconds = state.totalFocusSeconds;
+            if (PomodoroCore.applyDayRollover(state, currentKey)) {
+                // Timer fields were reset (unless a session is genuinely running
+                // across midnight) — drop the stale wakeup alarm too.
+                if (!state.isRunning) chrome.alarms.clear(POMODORO_ALARM);
 
-                state.todayKey = currentKey;
-                state.totalFocusSeconds = 0;
-                state.pomodoroCount = 0; // Reset Pomodoro dots count
-
-                if (!activeCrossMidnight) {
-                    state.isRunning = false;
-                    state.expectedEndTime = null;
-                    state.phase = 'focus';
-                    state.timeRemaining = getPhaseDuration('focus', state.settings);
-                    state.totalDuration = state.timeRemaining;
-                    chrome.alarms.clear(POMODORO_ALARM);
-                }
+                // Record yesterday's focus total before it is lost
+                recordFocusStats(prevTodayKey, prevFocusSeconds);
 
                 // Try to load today's total from legacy key
                 const legacyTotal = await chrome.storage.local.get([currentKey]);
@@ -234,21 +246,7 @@ async function saveState(state) {
     }
 }
 
-function advancePhase(state) {
-    if (state.phase === 'focus') {
-        state.pomodoroCount++;
-        if (state.pomodoroCount % 4 === 0) {
-            state.phase = 'longPause';
-        } else {
-            state.phase = 'pause';
-        }
-    } else {
-        state.phase = 'focus';
-    }
-    state.timeRemaining = getPhaseDuration(state.phase, state.settings);
-    state.totalDuration = state.timeRemaining;
-    return state;
-}
+const advancePhase = PomodoroCore.advancePhase;
 
 async function startAlarm(state) {
     // Use chrome.alarms for background wakeup
@@ -289,6 +287,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const url = tabId ? originalUrls.get(tabId) : null;
         sendResponse({ url });
         return true; 
+    }
+
+    // ── Bloqueador: desativação temporizada (reativação automática) ──
+    if (message && message.action === 'blocker_schedule_reenable') {
+        const when = message.when;
+        const handle = async () => {
+            if (typeof when === 'number' && when > Date.now()) {
+                await chrome.alarms.create(BLOCKER_REENABLE_ALARM, { when });
+                console.log(`[Blocker] Re-enable scheduled for ${new Date(when).toLocaleString()}`);
+            }
+        };
+        handle().then(() => sendResponse({ success: true }));
+        return true;
+    }
+
+    if (message && message.action === 'blocker_cancel_reenable') {
+        chrome.alarms.clear(BLOCKER_REENABLE_ALARM).then(() => sendResponse({ success: true }));
+        return true;
     }
 
     // ── Bloqueador: configurar alarme de revogação de acesso temporário ──
@@ -496,10 +512,48 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // SITE BLOCKER BACKGROUND LOGIC
 // ============================================================
 
+const BLOCKER_REENABLE_ALARM = 'blocker_reenable';
+
+// Rebuild the dynamic block rules from a config object. Mirrors
+// Blocker.updateRules() in the page, but runs in the SW so the blocker can
+// be re-enabled even with no Ora tab open.
+async function applyBlockerRulesFromConfig(cfg) {
+    const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+    // Only remove block rules (IDs < 1000); allow rules are session grants.
+    const oldRuleIds = oldRules.filter(rule => rule.id < 1000).map(rule => rule.id);
+
+    const addRules = (cfg && cfg.enabled && Array.isArray(cfg.sites))
+        ? BlockerCore.buildBlockRules(cfg.sites, chrome.runtime.getURL('blocked.html'))
+        : [];
+
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: oldRuleIds,
+        addRules
+    });
+}
+
+async function reenableBlocker() {
+    const data = await chrome.storage.local.get(['blocker_config']);
+    const cfg = data.blocker_config;
+    if (!cfg || cfg.enabled) return;
+
+    cfg.enabled = true;
+    cfg.reenableAt = null;
+    await chrome.storage.local.set({ blocker_config: cfg });
+    await applyBlockerRulesFromConfig(cfg);
+    console.log('[Blocker] Pause period ended — blocker re-enabled');
+}
+
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     // Handle Gospel daily refresh
     if (alarm.name === GOSPEL_ALARM) {
         await refreshGospelCache();
+        return;
+    }
+
+    // Handle Blocker: timed disable expired — turn the blocker back on
+    if (alarm.name === BLOCKER_REENABLE_ALARM) {
+        await reenableBlocker();
         return;
     }
 
@@ -546,29 +600,7 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 // every committed navigation and redirects the tab if the URL matches
 // a blocked domain.
 
-const BLOCKER_ALIASES = {
-    'gmail.com':          ['mail.google.com'],
-    'mail.google.com':    ['gmail.com'],
-    'twitter.com':        ['x.com'],
-    'x.com':              ['twitter.com'],
-    'facebook.com':       ['fb.com', 'www.facebook.com'],
-    'fb.com':             ['facebook.com'],
-    'instagram.com':      ['www.instagram.com'],
-    'reddit.com':         ['old.reddit.com', 'www.reddit.com', 'new.reddit.com'],
-    'old.reddit.com':     ['reddit.com'],
-};
-
-// Global exceptions for Google OAuth (so it doesn't break when YouTube etc. is blocked)
-const AUTH_WHITELIST_REGEXES = [
-    /^https?:\/\/(www\.)?youtube\.com\/(signin|accounts|account_redirect)/i,
-    /^https?:\/\/accounts\.youtube\.com/i,
-    /^https?:\/\/(www\.)?google\.com\/(signin|accounts|account_redirect|ServiceLogin)/i,
-    /^https?:\/\/accounts\.google\.com/i
-];
-
-function isAuthWhitelist(url) {
-    return AUTH_WHITELIST_REGEXES.some(re => re.test(url));
-}
+// Aliases / OAuth whitelist now live in BlockerCore (scripts/shared/blocker-core.js)
 
 // ── In-memory cache of blocker config (avoids storage reads on every navigation)
 let _blockerCfg = null;
@@ -582,15 +614,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
         _blockerCfg = changes.blocker_config.newValue;
     }
 });
-
-// ── Helper: check if a hostname matches a site or its aliases ──
-function matchesSiteOrAlias(hostname, site) {
-    const candidates = [site.url, ...(BLOCKER_ALIASES[site.url] || [])];
-    for (const d of candidates) {
-        if (hostname === d || hostname.endsWith('.' + d)) return true;
-    }
-    return false;
-}
 
 // ── webNavigation.onBeforeNavigate — Rastreamento de URL original ──
 // Quando o DNR bloqueia um site, ele corta o path/query da URL.
@@ -613,7 +636,7 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
     if (!details.url.startsWith('http://') && !details.url.startsWith('https://')) return;
 
     // Check auth whitelist so we don't block OAuth redirects
-    if (isAuthWhitelist(details.url)) return;
+    if (BlockerCore.isAuthWhitelisted(details.url)) return;
 
     try {
         const cfg = _blockerCfg || (await chrome.storage.local.get(['blocker_config'])).blocker_config;
@@ -625,7 +648,7 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
         // Find matching blocked site
         let matchedSite = null;
         for (const site of cfg.sites) {
-            if (matchesSiteOrAlias(hostname, site)) {
+            if (BlockerCore.matchesSiteOrAlias(hostname, site)) {
                 matchedSite = site;
                 break;
             }
