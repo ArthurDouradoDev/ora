@@ -2,27 +2,15 @@
 // ============================================================
 // SITE BLOCKER — Advanced Tabbed Blocker
 // ============================================================
-
-// Known domain aliases — when a user blocks one domain, all its aliases
-// are also blocked. This handles sites that redirect to different domains
-// (e.g. gmail.com → mail.google.com, twitter.com → x.com).
-const DOMAIN_ALIASES = {
-    'gmail.com':          ['mail.google.com'],
-    'mail.google.com':    ['gmail.com'],
-    'twitter.com':        ['x.com'],
-    'x.com':              ['twitter.com'],
-    'facebook.com':       ['fb.com', 'www.facebook.com'],
-    'fb.com':             ['facebook.com'],
-    'instagram.com':      ['www.instagram.com'],
-    'reddit.com':         ['old.reddit.com', 'www.reddit.com', 'new.reddit.com'],
-    'old.reddit.com':     ['reddit.com'],
-};
+// Domain aliases and schedule/rule helpers live in BlockerCore
+// (scripts/shared/blocker-core.js), shared with sw.js and blocked.js.
 
 const Blocker = {
     state: {
         enabled: false,
         sites: [], // Array of site objects
         lock: { enabled: false, verseIndex: 0, writeUnlockEnabled: false },
+        reenableAt: null, // timestamp — when a timed disable expires
         verses: [],
         updateInProgress: false,
         lockUnlocked: false, // true after user types verse this session
@@ -38,6 +26,7 @@ const Blocker = {
         this.setupTabListeners();
         this.setupSitesListeners();
         this.setupLockListeners();
+        this.setupFrictionListeners();
         this.renderCurrentTab();
         this.updateSwitchUI();
         // Re-apply DNR rules on init — rules are cleared on extension reload/reinstall
@@ -45,6 +34,28 @@ const Blocker = {
         if (this.state.enabled) {
             await this.updateRules();
         }
+
+        // React to external config changes: SW auto re-enable, sync from
+        // another device, or another open tab. Skip when the stored value
+        // matches what we already have in memory (our own writes).
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area !== 'local' || !changes.blocker_config) return;
+            const cfg = changes.blocker_config.newValue;
+            if (!cfg) return;
+            const inMemory = { enabled: this.state.enabled, sites: this.state.sites, lock: this.state.lock, reenableAt: this.state.reenableAt };
+            if (JSON.stringify(cfg) === JSON.stringify(inMemory)) return;
+
+            this.state.enabled = cfg.enabled || false;
+            this.state.sites = cfg.sites || [];
+            this.state.lock = cfg.lock || { enabled: false, verseIndex: 0, writeUnlockEnabled: false };
+            this.state.reenableAt = cfg.reenableAt || null;
+            this.updateSwitchUI();
+            this.renderCurrentTab();
+            // Keep DNR rules in line with the new config (e.g. site list
+            // changed via sync). updateRules() doesn't write storage, so
+            // this cannot loop.
+            this.updateRules();
+        });
     },
 
     async loadVerses() {
@@ -62,7 +73,16 @@ const Blocker = {
         if (data.blocker_config) {
             const config = data.blocker_config;
             this.state.enabled = config.enabled || false;
+            this.state.reenableAt = config.reenableAt || null;
             this.state.lock = config.lock || { enabled: false, verseIndex: 0, writeUnlockEnabled: false };
+
+            // Self-heal: if a timed disable expired while the SW alarm didn't
+            // fire (e.g. browser closed), re-enable on load.
+            if (!this.state.enabled && this.state.reenableAt && this.state.reenableAt <= Date.now()) {
+                this.state.enabled = true;
+                this.state.reenableAt = null;
+                await this.saveState();
+            }
             if (this.state.lock.writeUnlockEnabled === undefined) {
                 this.state.lock.writeUnlockEnabled = false;
             }
@@ -171,7 +191,8 @@ const Blocker = {
             blocker_config: {
                 enabled: this.state.enabled,
                 sites: this.state.sites,
-                lock: this.state.lock
+                lock: this.state.lock,
+                reenableAt: this.state.reenableAt
             }
         });
     },
@@ -213,7 +234,14 @@ const Blocker = {
             lockVerseDisplay: document.getElementById('lock-verse-display'),
             lockVerseInput: document.getElementById('lock-verse-input'),
             lockProgressFill: document.getElementById('lock-progress-fill'),
-            lockCancelBtn: document.getElementById('lock-cancel-btn')
+            lockCancelBtn: document.getElementById('lock-cancel-btn'),
+            // Friction overlay (shown before a timed disable)
+            frictionOverlay: document.getElementById('blocker-friction-overlay'),
+            frictionVerseText: document.getElementById('friction-verse-text'),
+            frictionVerseRef: document.getElementById('friction-verse-ref'),
+            frictionDurationBtns: document.querySelectorAll('.friction-duration-btn'),
+            frictionKeepBtn: document.getElementById('friction-keep-btn'),
+            frictionConfirmBtn: document.getElementById('friction-confirm-btn')
         };
     },
 
@@ -258,19 +286,40 @@ const Blocker = {
         }
     },
 
+    // ── Focus Session Lock ────────────────────────────
+    // While a focus (pomodoro) session is running, the blocker config is
+    // immutable: no disabling, no removing sites, no loosening limits.
+
+    isFocusSessionActive() {
+        return !!(window.FocusSystem && window.FocusSystem.isTimerRunning && window.FocusSystem.phase === 'focus');
+    },
+
+    // Returns true (and warns the user) when the change must be refused.
+    guardFocusSession() {
+        if (!this.isFocusSessionActive()) return false;
+        showToast(t('toast.blocker_focus_locked'), 'warning');
+        return true;
+    },
+
     // ── Global Toggle ─────────────────────────────────
 
     async toggleBlocker() {
-        this.state.enabled = !this.state.enabled;
+        if (this.state.enabled) {
+            // Turning OFF — never direct: friction overlay + timed disable.
+            this.dom.toggle.checked = true; // keep checked until confirmed
+            if (this.guardFocusSession()) return;
+            this.showFrictionOverlay();
+            return;
+        }
+
+        // Turning ON manually — cancel any pending auto re-enable.
+        this.state.enabled = true;
+        this.state.reenableAt = null;
         await this.saveState();
         await this.updateRules();
         this.updateSwitchUI();
-
-        if (this.state.enabled) {
-            showToast(t('toast.blocker_activated'), 'success');
-        } else {
-            showToast(t('toast.blocker_deactivated'), 'info');
-        }
+        chrome.runtime.sendMessage({ action: 'blocker_cancel_reenable' }, () => chrome.runtime.lastError);
+        showToast(t('toast.blocker_activated'), 'success');
     },
 
     updateSwitchUI() {
@@ -278,9 +327,139 @@ const Blocker = {
             this.dom.toggle.checked = this.state.enabled;
         }
         if (this.dom.statusText) {
-            this.dom.statusText.textContent = this.state.enabled ? t('blocker.status_active') : t('blocker.status_inactive');
-            this.dom.statusText.style.color = this.state.enabled ? 'var(--accent-color)' : 'var(--text-muted)';
+            if (this.state.enabled) {
+                this.dom.statusText.textContent = t('blocker.status_active');
+                this.dom.statusText.style.color = 'var(--accent-color)';
+            } else if (this.state.reenableAt) {
+                const d = new Date(this.state.reenableAt);
+                const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                this.dom.statusText.textContent = t('blocker.status_paused_until', { time });
+                this.dom.statusText.style.color = 'var(--text-muted)';
+            } else {
+                this.dom.statusText.textContent = t('blocker.status_inactive');
+                this.dom.statusText.style.color = 'var(--text-muted)';
+            }
         }
+    },
+
+    // ── Friction Overlay (timed disable) ──────────────
+    // Disabling the blocker is intentional friction: a contemplative pause
+    // with the verse of the moment, a short countdown, and an explicit
+    // choice of HOW LONG the blocker stays off. It always comes back.
+
+    FRICTION_COUNTDOWN_SECONDS: 10,
+
+    setupFrictionListeners() {
+        if (!this.dom.frictionOverlay) return;
+
+        this.dom.frictionDurationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.dom.frictionDurationBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                this._frictionDuration = btn.dataset.minutes; // '15' | '30' | '60' | 'eod'
+                this.updateFrictionConfirmBtn();
+            });
+        });
+
+        this.dom.frictionKeepBtn.addEventListener('click', () => {
+            this.hideFrictionOverlay();
+            showToast(t('toast.blocker_kept'), 'success');
+        });
+
+        this.dom.frictionConfirmBtn.addEventListener('click', () => {
+            if (this._frictionCountdown > 0 || !this._frictionDuration) return;
+            this.confirmTimedDisable(this._frictionDuration);
+        });
+    },
+
+    showFrictionOverlay() {
+        if (!this.dom.frictionOverlay) return;
+
+        // Random verse for the pause (do not advance the lock verse index)
+        if (this.state.verses.length > 0) {
+            const verse = this.state.verses[Math.floor(Math.random() * this.state.verses.length)];
+            const locale = window._i18nLocale || 'pt';
+            const text = (typeof verse.text === 'object') ? (verse.text[locale] || verse.text.pt || '') : verse.text;
+            if (this.dom.frictionVerseText) this.dom.frictionVerseText.textContent = `"${text}"`;
+            if (this.dom.frictionVerseRef) this.dom.frictionVerseRef.textContent = verse.ref;
+        }
+
+        this._frictionDuration = null;
+        this.dom.frictionDurationBtns.forEach(b => b.classList.remove('selected'));
+
+        this._frictionCountdown = this.FRICTION_COUNTDOWN_SECONDS;
+        this.updateFrictionConfirmBtn();
+        // Grow the modal while the friction flow is visible so it fits
+        // without scrolling (reverted on hide).
+        if (this.dom.modal) this.dom.modal.classList.add('friction-open');
+        this.dom.frictionOverlay.style.display = 'flex';
+
+        clearInterval(this._frictionInterval);
+        this._frictionInterval = setInterval(() => {
+            this._frictionCountdown--;
+            this.updateFrictionConfirmBtn();
+            if (this._frictionCountdown <= 0) {
+                clearInterval(this._frictionInterval);
+                this._frictionInterval = null;
+            }
+        }, 1000);
+    },
+
+    hideFrictionOverlay() {
+        if (this.dom.frictionOverlay) this.dom.frictionOverlay.style.display = 'none';
+        if (this.dom.modal) this.dom.modal.classList.remove('friction-open');
+        clearInterval(this._frictionInterval);
+        this._frictionInterval = null;
+        this.updateSwitchUI(); // restore the toggle to the real state
+    },
+
+    frictionDurationLabel(duration) {
+        if (duration === 'eod') return t('blocker.friction_eod');
+        if (duration === '60') return t('blocker.friction_1h');
+        return t('blocker.friction_minutes', { min: duration });
+    },
+
+    updateFrictionConfirmBtn() {
+        const btn = this.dom.frictionConfirmBtn;
+        if (!btn) return;
+        if (this._frictionCountdown > 0) {
+            btn.disabled = true;
+            btn.textContent = t('blocker.friction_breathe', { s: this._frictionCountdown });
+        } else if (!this._frictionDuration) {
+            btn.disabled = true;
+            btn.textContent = t('blocker.friction_pick_duration');
+        } else {
+            btn.disabled = false;
+            btn.textContent = t('blocker.friction_disable_for', { duration: this.frictionDurationLabel(this._frictionDuration) });
+        }
+    },
+
+    async confirmTimedDisable(duration) {
+        let reenableAt;
+        if (duration === 'eod') {
+            const midnight = new Date();
+            midnight.setHours(24, 0, 0, 0); // next midnight
+            reenableAt = midnight.getTime();
+        } else {
+            reenableAt = Date.now() + (parseInt(duration, 10) * 60 * 1000);
+        }
+
+        this.state.enabled = false;
+        this.state.reenableAt = reenableAt;
+        await this.saveState();
+        await this.updateRules();
+        this.hideFrictionOverlay();
+        this.updateSwitchUI();
+
+        // SW alarm guarantees re-enable even with no Ora tab open
+        chrome.runtime.sendMessage(
+            { action: 'blocker_schedule_reenable', when: reenableAt },
+            () => chrome.runtime.lastError
+        );
+
+        const d = new Date(reenableAt);
+        const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        showToast(t('toast.blocker_paused_until', { time }), 'info');
     },
 
     // ── Lock System ───────────────────────────────────
@@ -329,6 +508,10 @@ const Blocker = {
             this.renderLockTab();
             showToast(t('toast.blocker_lock_activated'), 'success');
         } else {
+            if (this.guardFocusSession()) {
+                this.dom.lockToggle.checked = true;
+                return;
+            }
             if (this.state.lockUnlocked) {
                 // Already typed verse this session — allow direct disable
                 this.state.lock.enabled = false;
@@ -518,6 +701,7 @@ const Blocker = {
     },
 
     async removeSite(id) {
+        if (this.guardFocusSession()) return;
         this.state.sites = this.state.sites.filter(site => site.id !== id);
         await this.saveState();
         await this.updateRules();
@@ -528,6 +712,9 @@ const Blocker = {
     async toggleSiteMode(id) {
         const site = this.state.sites.find(s => s.id === id);
         if (!site) return;
+
+        // Loosening (always → limited) is refused during a focus session
+        if (site.mode === 'always' && this.guardFocusSession()) return;
 
         site.mode = site.mode === 'always' ? 'limited' : 'always';
         await this.saveState();
@@ -572,13 +759,13 @@ const Blocker = {
             const modeBtn = document.createElement('button');
             modeBtn.className = 'mode-toggle-btn';
             modeBtn.textContent = site.mode === 'always' ? t('blocker.btn_limit') : t('blocker.btn_block');
-            modeBtn.title = site.mode === 'always' ? 'Alternar para modo limitado' : 'Alternar para sempre bloqueado';
+            modeBtn.title = site.mode === 'always' ? t('blocker.mode_to_limited_title') : t('blocker.mode_to_always_title');
             modeBtn.addEventListener('click', () => this.toggleSiteMode(site.id));
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'icon-btn-sm text-danger';
             deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
-            deleteBtn.title = 'Remover site';
+            deleteBtn.title = t('blocker.remove_site_title');
             deleteBtn.addEventListener('click', () => this.removeSite(site.id));
 
 
@@ -616,7 +803,7 @@ const Blocker = {
             header.className = 'config-card-header';
             header.innerHTML = `
                 <span class="config-card-url">${this.escapeHTML(site.url)}</span>
-                <span class="config-card-badge mode-limited">Limitado</span>
+                <span class="config-card-badge mode-limited">${this.escapeHTML(t('blocker.mode_limited'))}</span>
             `;
 
             // Toggle row
@@ -629,6 +816,7 @@ const Blocker = {
             chk.type = 'checkbox';
             chk.checked = site.accessLimit.enabled;
             chk.addEventListener('change', () => {
+                if (this.guardFocusSession()) { this.renderLimitsTab(); return; }
                 site.accessLimit.enabled = chk.checked;
                 if (site.accessLimit.enabled && !site.accessLimit.count) {
                     site.accessLimit.count = 5;
@@ -657,6 +845,7 @@ const Blocker = {
             countInput.max = '100';
             countInput.value = site.accessLimit.count || 5;
             countInput.addEventListener('change', () => {
+                if (this.guardFocusSession()) { this.renderLimitsTab(); return; }
                 site.accessLimit.count = Math.max(1, parseInt(countInput.value) || 5);
                 this.saveState();
                 this.updateRules();
@@ -665,10 +854,11 @@ const Blocker = {
 
             const periodSelect = document.createElement('select');
             periodSelect.innerHTML = `
-                <option value="day" ${site.accessLimit.period === 'day' ? 'selected' : ''}>por dia</option>
-                <option value="hour" ${site.accessLimit.period === 'hour' ? 'selected' : ''}>por hora</option>
+                <option value="day" ${site.accessLimit.period === 'day' ? 'selected' : ''}>${this.escapeHTML(t('blocker.per_day'))}</option>
+                <option value="hour" ${site.accessLimit.period === 'hour' ? 'selected' : ''}>${this.escapeHTML(t('blocker.per_hour'))}</option>
             `;
             periodSelect.addEventListener('change', () => {
+                if (this.guardFocusSession()) { this.renderLimitsTab(); return; }
                 site.accessLimit.period = periodSelect.value;
                 this.saveState();
                 this.updateRules();
@@ -690,7 +880,7 @@ const Blocker = {
                 const cls = pct >= 100 ? 'danger' : pct >= 70 ? 'warning' : '';
                 usage.innerHTML = `
                     <div class="usage-bar"><div class="usage-bar-fill ${cls}" style="width: ${pct}%"></div></div>
-                    <span class="usage-text">${site.todayAccesses} / ${site.accessLimit.count} acessos</span>
+                    <span class="usage-text">${site.todayAccesses} / ${site.accessLimit.count} ${this.escapeHTML(t('blocker.accesses_label'))}</span>
                 `;
                 card.appendChild(usage);
             }
@@ -704,11 +894,12 @@ const Blocker = {
             gospelChk.type = 'checkbox';
             gospelChk.checked = !!site.writeUnlockEnabled;
             gospelChk.addEventListener('change', () => {
+                if (this.guardFocusSession()) { this.renderLimitsTab(); return; }
                 site.writeUnlockEnabled = gospelChk.checked;
                 this.saveState();
             });
             const gospelSpan = document.createElement('span');
-            gospelSpan.textContent = 'Permitir acesso digitando o evangelho';
+            gospelSpan.textContent = t('blocker.gospel_unlock_label');
             gospelLabel.appendChild(gospelChk);
             gospelLabel.appendChild(gospelSpan);
             gospelRow.appendChild(gospelLabel);
@@ -744,7 +935,7 @@ const Blocker = {
             header.className = 'config-card-header';
             header.innerHTML = `
                 <span class="config-card-url">${this.escapeHTML(site.url)}</span>
-                <span class="config-card-badge mode-limited">Limitado</span>
+                <span class="config-card-badge mode-limited">${this.escapeHTML(t('blocker.mode_limited'))}</span>
             `;
 
             // Toggle row
@@ -757,6 +948,7 @@ const Blocker = {
             chk.type = 'checkbox';
             chk.checked = site.scheduleLimit.enabled;
             chk.addEventListener('change', () => {
+                if (this.guardFocusSession()) { this.renderScheduleTab(); return; }
                 site.scheduleLimit.enabled = chk.checked;
                 this.saveState();
                 this.renderScheduleTab();
@@ -787,6 +979,7 @@ const Blocker = {
                     fromInput.type = 'time';
                     fromInput.value = `${pad(schedule.fromHour)}:${pad(schedule.fromMinute)}`;
                     fromInput.addEventListener('change', () => {
+                        if (this.guardFocusSession()) { this.renderScheduleTab(); return; }
                         const [h, m] = fromInput.value.split(':').map(Number);
                         schedule.fromHour = h;
                         schedule.fromMinute = m;
@@ -802,6 +995,7 @@ const Blocker = {
                     toInput.type = 'time';
                     toInput.value = `${pad(schedule.toHour)}:${pad(schedule.toMinute)}`;
                     toInput.addEventListener('change', () => {
+                        if (this.guardFocusSession()) { this.renderScheduleTab(); return; }
                         const [h, m] = toInput.value.split(':').map(Number);
                         schedule.toHour = h;
                         schedule.toMinute = m;
@@ -812,10 +1006,11 @@ const Blocker = {
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'icon-btn-sm text-danger';
                     deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
-                    deleteBtn.title = 'Remover horário';
+                    deleteBtn.title = t('blocker.remove_schedule');
                     deleteBtn.style.marginLeft = 'auto';
                     deleteBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        if (this.guardFocusSession()) return;
                         site.scheduleLimit.schedules.splice(index, 1);
                         this.saveState();
                         this.renderScheduleTab();
@@ -839,7 +1034,7 @@ const Blocker = {
                 addBtn.className = 'mode-toggle-btn';
                 addBtn.style.padding = '6px 14px';
                 addBtn.style.marginTop = '4px';
-                addBtn.innerHTML = '<i class="ph ph-plus"></i> Adicionar horário';
+                addBtn.innerHTML = `<i class="ph ph-plus"></i> ${this.escapeHTML(t('blocker.add_schedule'))}`;
                 addBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     site.scheduleLimit.schedules.push({ fromHour: 22, fromMinute: 0, toHour: 8, toMinute: 0 });
@@ -865,9 +1060,9 @@ const Blocker = {
                 const blocked = this.isWithinBlockedSchedule(site.scheduleLimit);
                 
                 if (blocked) {
-                    status.innerHTML = `<span class="usage-text" style="color:#f87171;">⛔ Bloqueado agora</span>`;
+                    status.innerHTML = `<span class="usage-text" style="color:#f87171;">⛔ ${this.escapeHTML(t('blocker.blocked_now'))}</span>`;
                 } else {
-                    status.innerHTML = `<span class="usage-text" style="color:#4ade80;">✓ Permitido agora</span>`;
+                    status.innerHTML = `<span class="usage-text" style="color:#4ade80;">✓ ${this.escapeHTML(t('blocker.allowed_now'))}</span>`;
                 }
                 card.appendChild(status);
             }
@@ -900,26 +1095,7 @@ const Blocker = {
     // ── Rules (declarativeNetRequest) ─────────────────
 
     extractDomain(url) {
-        try {
-            if (!url.startsWith('http')) url = 'https://' + url;
-            const hostname = new URL(url).hostname;
-            return hostname.replace(/^www\./, '');
-        } catch (e) {
-            return null;
-        }
-    },
-
-    escapeRegex(str) {
-        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    },
-
-    hashCode(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = (hash << 5) - hash + str.charCodeAt(i);
-            hash |= 0;
-        }
-        return Math.abs(hash);
+        return BlockerCore.extractDomain(url);
     },
 
     async updateRules() {
@@ -946,69 +1122,12 @@ const Blocker = {
                 return;
             }
 
-            const blockedPageUrl = chrome.runtime.getURL('blocked.html');
-            const newRules = [];
-            let ruleId = 1;
-
-            // Add global unblock rules for Google OAuth endpoints (so YouTube block doesn't break sign-ins)
-            const OAUTH_EXCEPTIONS = [
-                '||youtube.com/signin*',
-                '||youtube.com/accounts*',
-                '||youtube.com/account_redirect*',
-                '||accounts.youtube.com/*',
-                '||google.com/signin*',
-                '||google.com/accounts*',
-                '||google.com/account_redirect*',
-                '||google.com/ServiceLogin*',
-                '||accounts.google.com/*'
-            ];
-
-            OAUTH_EXCEPTIONS.forEach(filter => {
-                newRules.push({
-                    id: ruleId++,
-                    priority: 3,
-                    action: { type: 'allow' },
-                    condition: {
-                        urlFilter: filter,
-                        resourceTypes: ['main_frame', 'sub_frame']
-                    }
-                });
-            });
-
-            // ALL sites (always + limited) get redirected to blocked.html?domain=X
-            // blocked.html reads the query param to determine which site was blocked,
-            // checks config, and shows appropriate UI (blocked vs continue).
-            //
-            // We use requestDomains (explicit domain list) for maximum reliability
-            // across all Chromium browsers. Each site also includes its known aliases
-            // so that e.g. blocking gmail.com also blocks mail.google.com.
-            // Domain is passed as a query parameter (not hash) since DNR may strip
-            // fragment identifiers.
-            this.state.sites.forEach(site => {
-                // Collect all domains: primary + aliases (skip aliases that are separate entries)
-                const allDomains = [site.url];
-                const aliases = DOMAIN_ALIASES[site.url] || [];
-                aliases.forEach(alias => {
-                    if (!this.state.sites.some(s => s.url === alias)) {
-                        allDomains.push(alias);
-                    }
-                });
-
-                newRules.push({
-                    id: ruleId++,
-                    priority: 1,
-                    action: {
-                        type: 'redirect',
-                        redirect: {
-                            url: blockedPageUrl + '?domain=' + encodeURIComponent(site.url)
-                        }
-                    },
-                    condition: {
-                        requestDomains: allDomains,
-                        resourceTypes: ['main_frame']
-                    }
-                });
-            });
+            // Rule construction (OAuth exceptions + per-site redirects with
+            // aliases) is shared with sw.js via BlockerCore.
+            const newRules = BlockerCore.buildBlockRules(
+                this.state.sites,
+                chrome.runtime.getURL('blocked.html')
+            );
 
             await chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: oldRuleIds,
@@ -1022,7 +1141,7 @@ const Blocker = {
                 .filter(s => s.mode === 'limited'
                     && s.scheduleLimit?.enabled
                     && this.isWithinBlockedSchedule(s.scheduleLimit))
-                .map(s => 1000 + (this.hashCode(s.url) % 9000));
+                .map(s => BlockerCore.allowRuleIdFor(s.url));
 
             if (staleAllowIds.length > 0) {
                 await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: staleAllowIds });
@@ -1036,32 +1155,11 @@ const Blocker = {
     },
 
     isWithinBlockedSchedule(scheduleLimit) {
-        if (!scheduleLimit || !Array.isArray(scheduleLimit.schedules)) return false;
-        const now = new Date();
-        const cur = now.getHours() * 60 + now.getMinutes();
-        
-        for (const schedule of scheduleLimit.schedules) {
-            const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
-            const to = (schedule.toHour || 0) * 60 + (schedule.toMinute || 0);
-            if (from === to) continue;
-            const isBlocked = from < to ? (cur >= from && cur < to) : (cur >= from || cur < to);
-            if (isBlocked) return true;
-        }
-        return false;
+        return BlockerCore.isWithinBlockedSchedule(scheduleLimit);
     },
 
     minutesUntilBlockedWindow(scheduleLimit) {
-        if (!scheduleLimit || !Array.isArray(scheduleLimit.schedules) || scheduleLimit.schedules.length === 0) return 0;
-        const now = new Date();
-        const cur = now.getHours() * 60 + now.getMinutes();
-        
-        let minMinutes = 24 * 60;
-        for (const schedule of scheduleLimit.schedules) {
-            const from = (schedule.fromHour || 0) * 60 + (schedule.fromMinute || 0);
-            const diff = cur < from ? from - cur : (24 * 60) - cur + from;
-            if (diff < minMinutes) minMinutes = diff;
-        }
-        return minMinutes === 24 * 60 ? 0 : minMinutes;
+        return BlockerCore.minutesUntilBlockedWindow(scheduleLimit);
     },
 
     isSiteOverLimit(site) {
