@@ -35,19 +35,34 @@ Acesse **[oratime.com.br](https://oratime.com.br)** para fazer o download oficia
     *   **Modo Imersivo (Tela Cheia):** Para foco total, minimizando distrações.
     *   **Mini Player:** Timer compacto que permanece visível.
     *   Estatísticas de tempo focado no dia.
+    *   Estado totalmente zerado na virada do dia — sem resíduos de sessões anteriores.
 *   **Bloqueador de Sites:**
     *   Bloqueie sites distrativos (ex: redes sociais) durante o trabalho.
-    *   Gerenciamento fácil da lista de bloqueios via menu de configurações.
+    *   **Fricção emocional:** desativar o bloqueador exige uma pausa contemplativa com versículo bíblico e escolha consciente de duração (15 min, 30 min, 1 hora ou resto do dia).
+    *   **Desativação temporizada:** o bloqueador reativa automaticamente no período definido, mesmo sem nenhuma aba do Ora aberta.
+    *   **Modo sessão de foco:** o bloqueador fica imutável enquanto o Pomodoro estiver em fase de foco.
+    *   Limites de acesso por dia ou por hora, janelas de horário bloqueado e trava de segurança (versículo).
     *   Utiliza a API nativa `declarativeNetRequest` para bloqueio eficiente e seguro.
+*   **Tarefas:**
+    *   **Widget na home:** painel lateral retrátil mostrando as 3 primeiras tarefas do dia com checkbox e botão de iniciar foco.
+    *   **Ritual matinal:** na primeira aba do dia, um modal guia o planejamento — resumo de ontem, rotina com streaks e 3 campos de prioridade.
+    *   **Streaks de recorrentes:** tarefas da rotina acumulam uma sequência de dias consecutivos com badge 🔥.
+    *   **Estatísticas diárias:** ciclos concluídos e tempo de foco registrados por dia (base para histórico futuro).
 *   **Links Rápidos:**
     *   Acesso rápido aos seus sites favoritos (até 6 links) com ícones automáticos.
     *   Modal dedicado para adicionar, remover e organizar seus atalhos.
+
+### 🔄 Sincronização
+*   **Sincronização entre dispositivos** via `chrome.storage.sync`: configurações, lista de sites bloqueados e tarefas recorrentes são sincronizados automaticamente em navegadores logados na mesma conta Google.
 
 ### 🎵 Música e Ambiente
 *   **Player de Música Integrado:**
     *   Suporte a playlists do **Spotify** e vídeos/playlists do **YouTube**.
     *   Adicione suas próprias músicas colando o link.
-    *   Mini-player que continua tocando executando em segundo plano (via relay).
+    *   Mini-player que continua tocando em segundo plano (via relay).
+
+### 🌐 Internacionalização
+*   Interface disponível em **Português**, **Inglês** e **Espanhol**.
 
 ### 🎨 Design e Experiência
 *   **Estética Glassmorphism:** Design moderno com transparências e desfoque.
@@ -84,35 +99,46 @@ Caso você queira utilizar a versão de desenvolvimento mais recente deste repos
 *   **Personalização:**
     *   Clique no ícone de engrenagem no Timer de Foco para ajustar os tempos de Pomodoro.
     *   No player de música, cole links do YouTube ou Spotify para criar sua biblioteca pessoal.
-    *   Adicione sites ao bloqueador através do menu no canto inferior esquerdo.
+    *   Adicione sites ao bloqueador através do menu de configurações.
 
 ## 💻 Tecnologias Utilizadas
 
-*   **HTML5, CSS3, JavaScript (Vanilla ES6+):** Arquitetura modular para melhor organização e manutenção.
+*   **HTML5, CSS3, JavaScript (Vanilla ES6+):** Arquitetura modular sem dependências externas de build.
 *   **Chrome Extension Manifest V3:** Padrão mais recente e seguro para extensões.
-*   **Web Storage API:** Para salvar dados localmente (playlists, histórico de foco, preferências).
+*   **Web Storage API / chrome.storage:** Dados locais e sincronização entre dispositivos.
+*   **Declarative Net Request API:** Bloqueio de sites nativo e eficiente.
 *   **Phosphor Icons:** Biblioteca de ícones moderna e limpa.
 
 ## 📁 Estrutura do Projeto
 
 *   `manifest.json`: Configurações da extensão.
 *   `ora.html`: Interface principal (Nova Aba).
+*   `blocked.html`: Página exibida ao acessar um site bloqueado.
+*   `sw.js`: Service Worker — alarmes, cache do evangelho, reativação do bloqueador.
 *   `assets/`: Imagens e ícones.
-*   `data/`: Arquivos JSON com base de dados (orações, citações, etc).
+*   `data/`: Arquivos JSON (orações, citações, i18n).
 *   `scripts/`:
     *   `main.js`: Ponto de entrada, inicialização dos módulos.
-    *   `utils.js`: Funções utilitárias compartilhadas.
+    *   `utils.js`: Funções utilitárias compartilhadas (i18n, storage, UI).
+    *   `blocked.js`: Lógica da página de bloqueio.
+    *   `shared/`: Módulos puros sem dependências de DOM ou chrome.* — fonte única de verdade usada pelo SW, pela extensão e pelos testes.
+        *   `blocker-core.js`: Regras DNR, aliases de domínio, janelas de horário.
+        *   `pomodoro-core.js`: Fases, avanço de estado, virada de dia.
     *   `modules/`:
-        *   `auth.js` / `user.js`: (Futuro) Gerenciamento de usuário.
-        *   `background.js`: Gerenciamento do papel de parede diário.
-        *   `blocker.js`: Lógica de bloqueio de sites.
-        *   `exam.js`: Exame de consciência e lembretes noturnos.
-        *   `focus.js`: Lógica do Pomodoro Timer.
-        *   `links.js`: Gerenciamento dos Links Rápidos.
-        *   `music.js`: Player de música e integração com YouTube/Spotify.
-        *   `prayers.js`: Sistema de orações, busca e liturgia.
-        *   `reminders.js`: Agendamento de notificações (Angelus, Terço).
-        *   `rosary.js`: Motor do Santo Terço.
+        *   `blocker.js`: UI e lógica do bloqueador (fricção, desativação temporizada).
+        *   `focus.js`: Pomodoro Timer.
+        *   `tasks.js`: Tarefas, widget, ritual matinal, streaks.
+        *   `sync.js`: Sincronização entre dispositivos via chrome.storage.sync.
+        *   `exam.js`: Exame de consciência.
+        *   `rosary.js`: Santo Terço interativo.
+        *   `prayers.js`: Biblioteca de orações e liturgia.
+        *   `reminders.js`: Notificações agendadas.
+        *   `music.js`: Player de música.
+        *   `links.js`: Links rápidos.
+        *   `background.js`: Papel de parede diário.
+        *   `settings.js`: Preferências do usuário.
+*   `styles/`: CSS organizado por camadas (`base/`, `components/`, `layout/`, `modules/`, `utils/`).
+*   `tests/`: Suite de testes das funções puras (`tests.html` + `tests.js` — 72 asserções).
 
 ---
 *Desenvolvido com o propósito de santificar o tempo de trabalho.* 🙏
