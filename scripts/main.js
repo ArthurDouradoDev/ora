@@ -383,6 +383,14 @@ async function initApp() {
         });
     }
 
+    // ============================================================
+    // 10. CROSS-DEVICE SYNC (after all modules, so merges land on
+    //     fully-migrated data)
+    // ============================================================
+    if (window.SyncSystem) {
+        await window.SyncSystem.init();
+    }
+
     console.log('[Ora] App fully initialized');
 }
 
