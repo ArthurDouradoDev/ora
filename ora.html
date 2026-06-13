@@ -40,6 +40,7 @@
     <link rel="stylesheet" href="styles/modules/links.css">
     <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/modules/tasks.css">
+    <link rel="stylesheet" href="styles/modules/onboarding.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
 </head>
@@ -776,6 +777,177 @@
                 </label>
             </div>
         </div>
+
+        <!-- Replay Onboarding -->
+        <div class="settings-section">
+            <button id="settings-replay-onboarding" class="settings-replay-btn">
+                <i class="ph ph-presentation"></i>
+                <span data-i18n="onboarding.settings_replay">Rever apresentação inicial</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Onboarding (first run) -->
+    <div id="onboarding-overlay">
+        <div class="onboarding-card">
+            <button id="onboarding-skip" class="onboarding-skip" data-i18n="onboarding.btn_skip">Pular apresentação</button>
+
+            <!-- Step 1: Language -->
+            <div class="onboarding-step active" data-step="0">
+                <img src="assets/icon.png" alt="Ora" class="onboarding-logo">
+                <h2 class="onboarding-title" data-i18n="onboarding.language_title">Bem-vindo ao Ora</h2>
+                <p class="onboarding-subtitle" data-i18n="onboarding.language_subtitle">Em qual idioma você prefere usar o Ora?</p>
+                <div class="onboarding-step-body">
+                    <div class="onboarding-lang-grid">
+                        <button class="onboarding-lang-card selected" data-locale="pt"><span class="onboarding-lang-flag">🇧🇷</span> Português</button>
+                        <button class="onboarding-lang-card" data-locale="en"><span class="onboarding-lang-flag">🇺🇸</span> English</button>
+                        <button class="onboarding-lang-card" data-locale="es"><span class="onboarding-lang-flag">🇪🇸</span> Español</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Name -->
+            <div class="onboarding-step" data-step="1">
+                <h2 class="onboarding-title" data-i18n="onboarding.name_title">Como podemos te chamar?</h2>
+                <p class="onboarding-subtitle" data-i18n="onboarding.name_subtitle">Seu nome aparecerá nas saudações diárias. Você pode deixar em branco, se preferir.</p>
+                <div class="onboarding-step-body">
+                    <i class="ph ph-hand-waving onboarding-name-icon"></i>
+                    <input type="text" id="onboarding-name-input" class="onboarding-name-input" maxlength="30" placeholder="Seu nome..." data-i18n-placeholder="onboarding.name_placeholder">
+                    <p id="onboarding-name-preview" class="onboarding-name-preview"></p>
+                </div>
+            </div>
+
+            <!-- Step 3: Features tour -->
+            <div class="onboarding-step" data-step="2">
+                <h2 class="onboarding-title" data-i18n="onboarding.features_title">O que o Ora oferece</h2>
+                <p class="onboarding-subtitle" data-i18n="onboarding.features_subtitle">Cada nova aba é um convite à oração e ao foco.</p>
+                <div class="onboarding-step-body">
+                <div class="onboarding-features-grid">
+                    <div class="onboarding-feature">
+                        <i class="ph ph-timer"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_focus_title">Pomodoro</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_focus_desc">Ciclos de foco e pausa, com sons ambiente e ofertas de intenção.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-shield-slash"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_blocker_title">Bloqueador de Sites</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_blocker_desc">Bloqueie distrações, com modo foco e fricção para desbloquear.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-cross"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_rosary_title">Terço Interativo</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_rosary_desc">Reze o terço conta a conta, com os mistérios de cada dia.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-hands-praying"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_prayers_title">Orações</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_prayers_desc">Biblioteca de orações com busca, em português e latim.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-heart"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_exam_title">Exame de Consciência</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_exam_desc">Exames guiados para o meio-dia e o fim do dia.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-book-open-text"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_liturgy_title">Liturgia Diária</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_liturgy_desc">Evangelho do dia e acesso rápido à Bíblia.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-music-notes"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_music_title">Música</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_music_desc">Playlists de YouTube e Spotify para acompanhar o estudo.</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-feature">
+                        <i class="ph ph-check-square"></i>
+                        <div>
+                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_tasks_title">Tarefas</p>
+                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_tasks_desc">Planeje o dia com ritual matinal, rotinas e sequências.</p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Preferences -->
+            <div class="onboarding-step" data-step="3">
+                <h2 class="onboarding-title" data-i18n="onboarding.prefs_title">Ajuste sua experiência</h2>
+                <p class="onboarding-subtitle" data-i18n="onboarding.prefs_subtitle">Tudo isso pode ser alterado depois nas configurações.</p>
+                <div class="onboarding-step-body">
+                <div class="onboarding-prefs">
+                    <div class="settings-section">
+                        <h4 class="settings-section-title" data-i18n="onboarding.prefs_prayer_lang">Idioma das orações</h4>
+                        <div class="settings-row">
+                            <div class="lang-toggle">
+                                <button class="lang-btn active" data-ob-prayer-lang="pt" data-i18n="prayers.lang_portuguese">Português</button>
+                                <button class="lang-btn" data-ob-prayer-lang="la" data-i18n="prayers.lang_latin">Latim</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h4 class="settings-section-title" data-i18n="onboarding.prefs_reminders">Lembretes</h4>
+                        <div class="settings-row settings-toggle-row">
+                            <span data-i18n="settings.reminder_carlo">Oração ao abrir (Carlo Acutis)</span>
+                            <label class="switch"><input type="checkbox" id="ob-reminder-carlo" checked><span class="slider round"></span></label>
+                        </div>
+                        <div class="settings-row settings-toggle-row">
+                            <span data-i18n="settings.reminder_angelus">Angelus</span>
+                            <label class="switch"><input type="checkbox" id="ob-reminder-angelus" checked><span class="slider round"></span></label>
+                        </div>
+                        <div class="settings-row settings-toggle-row">
+                            <span data-i18n="settings.reminder_mercy">Hora da Misericórdia</span>
+                            <label class="switch"><input type="checkbox" id="ob-reminder-mercy" checked><span class="slider round"></span></label>
+                        </div>
+                        <div class="settings-row settings-toggle-row">
+                            <span data-i18n="settings.reminder_midday">Exame Meridiano</span>
+                            <label class="switch"><input type="checkbox" id="ob-reminder-midday" checked><span class="slider round"></span></label>
+                        </div>
+                        <div class="settings-row settings-toggle-row">
+                            <span data-i18n="settings.reminder_evening">Exame Noturno</span>
+                            <label class="switch"><input type="checkbox" id="ob-reminder-evening" checked><span class="slider round"></span></label>
+                        </div>
+                        <div class="settings-row settings-toggle-row">
+                            <span data-i18n="settings.reminder_rosary">Sugestão de terço (após Pomodoro)</span>
+                            <label class="switch"><input type="checkbox" id="ob-reminder-rosary" checked><span class="slider round"></span></label>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Done -->
+            <div class="onboarding-step" data-step="4">
+                <div class="onboarding-step-body">
+                    <i class="ph ph-hands-praying onboarding-done-icon"></i>
+                    <h2 class="onboarding-title" data-i18n="onboarding.done_title">Tudo pronto!</h2>
+                    <p class="onboarding-subtitle" data-i18n="onboarding.done_subtitle">Que cada nova aba seja uma oportunidade de rezar e focar no que importa.</p>
+                    <p class="onboarding-done-quote" data-i18n="onboarding.done_quote">"Ora et labora." — São Bento</p>
+                </div>
+            </div>
+
+            <!-- Footer: progress dots + navigation -->
+            <div class="onboarding-footer">
+                <div class="onboarding-dots" id="onboarding-dots"></div>
+                <div class="onboarding-nav">
+                    <button id="onboarding-back" class="onboarding-btn onboarding-btn-ghost" style="display: none;" data-i18n="onboarding.btn_back">Voltar</button>
+                    <button id="onboarding-next" class="onboarding-btn onboarding-btn-primary">Continuar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Container -->
@@ -870,6 +1042,7 @@
     <script src="scripts/modules/focus.js" defer></script>
     <script src="scripts/modules/tasks.js" defer></script>
     <script src="scripts/modules/settings.js" defer></script>
+    <script src="scripts/modules/onboarding.js" defer></script>
     <script src="scripts/modules/sync.js" defer></script>
     <script src="scripts/main.js" defer></script>
     <script src="scripts/sw-init.js" defer></script>

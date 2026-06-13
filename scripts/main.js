@@ -391,6 +391,13 @@ async function initApp() {
         await window.SyncSystem.init();
     }
 
+    // ============================================================
+    // 11. ONBOARDING (first run — shows the welcome wizard)
+    // ============================================================
+    if (window.OnboardingSystem) {
+        await window.OnboardingSystem.init();
+    }
+
     console.log('[Ora] App fully initialized');
 }
 

@@ -273,6 +273,10 @@ const ReminderSystem = {
     checkCarloAcutisReminder: async function() {
         if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('carlo')) return;
         if (!chrome.storage || !chrome.storage.session) return;
+        // Don't compete with the first-run onboarding wizard (not marked as
+        // shown, so it appears on the next tab after onboarding finishes)
+        const onboardingDone = await AsyncStorage.get('ora_onboarding_done', false);
+        if (!onboardingDone) return;
         
         try {
             const data = await chrome.storage.session.get(['carlo_acutis_shown']);

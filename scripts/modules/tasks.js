@@ -419,6 +419,10 @@ const TaskSystem = {
 
     maybeShowMorningRitual: async function() {
         if (!this.elements.ritualModal) return;
+        // Don't compete with the first-run onboarding wizard — the ritual
+        // will show on the next tab instead (key is not marked yet).
+        const onboardingDone = await AsyncStorage.get('ora_onboarding_done', false);
+        if (!onboardingDone) return;
         const today = new Date().toDateString();
         const lastShown = await AsyncStorage.get(this.RITUAL_SHOWN_KEY);
         if (lastShown === today) return;
