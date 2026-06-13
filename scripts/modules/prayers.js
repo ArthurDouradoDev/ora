@@ -118,13 +118,23 @@ const PrayerSystem = {
         this.currentPrayer = prayer;
         this.currentLang = window.SettingsSystem ? window.SettingsSystem.getPrayerLang() : 'pt';
         this.updateReader();
-        
+        this.elements.readerText.scrollTop = 0;
+        this.elements.readerModal.scrollTop = 0;
+
         animateModal(this.elements.listModal, false);
         animateModal(this.elements.readerModal, true);
     },
 
     closeReader: function() {
-        animateModal(this.elements.readerModal, false);
+        const modal = this.elements.readerModal;
+        const text = this.elements.readerText;
+        const resetOnClose = (e) => {
+            if (e.target !== modal) return;
+            text.scrollTop = 0;
+            modal.removeEventListener('animationend', resetOnClose);
+        };
+        modal.addEventListener('animationend', resetOnClose);
+        animateModal(modal, false);
         this.currentPrayer = null;
     },
 
