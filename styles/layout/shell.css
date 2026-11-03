@@ -12,6 +12,12 @@
     z-index: 10;
     flex: none;
 }
+/* Rezar shares one continuous reading surface with its header. */
+html[data-view="rezar"] .topbar {
+    background: var(--bg);
+    box-shadow: inset 0 -1px 0 var(--line);
+}
+
 .topbar .brand { justify-self: start; }
 .topbar .nav { padding: 0.25rem; border-radius: 999px; }
 .topbar .nav.surface-glass {
