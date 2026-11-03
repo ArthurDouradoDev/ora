@@ -121,6 +121,13 @@ async function initApp() {
     }
 
     // ============================================================
+    // SHELL: destinos (Hoje · Rezar · Frutos) e diálogos
+    // ============================================================
+    if (window.DialogSystem) DialogSystem.init();
+    if (window.RouterSystem) RouterSystem.init();
+    bindShellHelpers();
+
+    // ============================================================
     // SETTINGS SYSTEM (before other modules)
     // ============================================================
     if (window.SettingsSystem) {
@@ -408,6 +415,29 @@ async function initApp() {
     }
 
     console.log('[Ora] App fully initialized');
+}
+
+// Atalhos provisórios do shell enquanto as telas da V0 convivem com as novas
+function bindShellHelpers() {
+    // Botões de Rezar/Frutos que abrem os módulos antigos (terço, orações, exame, tempo de tela)
+    document.querySelectorAll('[data-legacy-open]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Sem propagar: os módulos antigos fecham seus painéis em qualquer clique fora do próprio botão
+            e.stopPropagation();
+            const legacy = document.getElementById(btn.dataset.legacyOpen);
+            if (legacy) legacy.click();
+        });
+    });
+
+    // Botões antigos feitos de <div role="button">: Enter e Espaço acionam o clique
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const el = e.target;
+        if (!(el instanceof HTMLElement) || el.getAttribute('role') !== 'button') return;
+        if (el.tagName === 'BUTTON' || el.tagName === 'A') return;
+        e.preventDefault();
+        el.click();
+    });
 }
 
 // Start the app

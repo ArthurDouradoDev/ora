@@ -18,8 +18,8 @@
     transition: all 0.3s ease;
 }
 
-/* Hover effect padrão */
-.glass-panel:hover {
+/* Hover só em superfícies interativas (leitura e modais não reagem como botão) */
+.glass-panel:is(a, button, [role="button"], .action-btn):hover {
     background: rgba(60, 60, 60, 0.5);
     transform: translateY(-2px);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);

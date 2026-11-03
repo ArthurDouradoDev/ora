@@ -98,10 +98,6 @@
     flex-direction: column;
 }
 
-#prayer-reader:hover {
-    transform: -50%, -50%;
-}
-
 #prayer-reader .modal-header h3 {
     flex: 1;
     text-align: center;

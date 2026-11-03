@@ -338,5 +338,21 @@
       "Where did time slip away without you noticing?",
       "What would you do differently tomorrow to become the person you want to be?"
     ]
+  },
+  "nav": {
+    "label": "Main",
+    "today": "Today",
+    "pray": "Pray",
+    "fruits": "Fruits"
+  },
+  "views": {
+    "pray_title": "A space to pray",
+    "pray_desc": "The new prayer panel is being prepared. Meanwhile, the rosary, prayers and examination are still here.",
+    "fruits_title": "What remained of your time",
+    "fruits_desc": "Your focus, prayer and examination records will appear here. For now, the screen time summary is still available.",
+    "open_rosary": "Rosary",
+    "open_prayers": "Prayers",
+    "open_exam": "Examination",
+    "open_screentime": "Screen time"
   }
 }

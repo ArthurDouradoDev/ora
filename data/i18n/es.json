@@ -338,5 +338,21 @@
       "¿Dónde se te escapó el tiempo sin darte cuenta?",
       "¿Qué harías diferente mañana para acercarte a la persona que quieres ser?"
     ]
+  },
+  "nav": {
+    "label": "Principal",
+    "today": "Hoy",
+    "pray": "Rezar",
+    "fruits": "Frutos"
+  },
+  "views": {
+    "pray_title": "Un espacio para rezar",
+    "pray_desc": "El nuevo panel de oración se está preparando. Mientras tanto, el rosario, las oraciones y el examen siguen aquí.",
+    "fruits_title": "Lo que quedó de tu tiempo",
+    "fruits_desc": "Aquí aparecerán tus registros de enfoque, oración y examen. Por ahora, el resumen de tiempo de pantalla sigue disponible.",
+    "open_rosary": "Rosario",
+    "open_prayers": "Oraciones",
+    "open_exam": "Examen",
+    "open_screentime": "Tiempo de pantalla"
   }
 }

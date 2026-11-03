@@ -265,8 +265,33 @@
     assertEq('mergeBlocker: site novo começa com contador zerado', xcom.todayAccesses, 0);
 
     // ========================================================
+    group('RouteCore — rotas');
+    // ========================================================
+
+    assertEq('vazio cai em Hoje', RouteCore.parseRoute(''), { view: 'hoje', path: [] });
+    assertEq('hash simples', RouteCore.parseRoute('#rezar'), { view: 'rezar', path: [] });
+    assertEq('subtela', RouteCore.parseRoute('#rezar/biblioteca'), { view: 'rezar', path: ['biblioteca'] });
+    assertEq('barras extras são ignoradas', RouteCore.parseRoute('#/frutos//'), { view: 'frutos', path: [] });
+    assertEq('maiúsculas no destino', RouteCore.parseRoute('#Rezar'), { view: 'rezar', path: [] });
+    assertEq('destino desconhecido cai em Hoje', RouteCore.parseRoute('#novena/dia-5'), { view: 'hoje', path: [] });
+    assertEq('subtela com espaço e acento', RouteCore.parseRoute('#rezar/leitor/S%C3%A3o%20Jos%C3%A9'), { view: 'rezar', path: ['leitor', 'São José'] });
+    assertEq('percent-encoding inválido não quebra', RouteCore.parseRoute('#rezar/%E0%A4%A'), { view: 'rezar', path: [] });
+    assertEq('lista própria de destinos', RouteCore.parseRoute('#protecao', ['hoje', 'protecao']), { view: 'protecao', path: [] });
+    assertEq('serializa com subtela', RouteCore.serializeRoute({ view: 'rezar', path: ['leitor', 'São José'] }), '#rezar/leitor/S%C3%A3o%20Jos%C3%A9');
+    assertEq('serializa rota vazia como Hoje', RouteCore.serializeRoute(null), '#hoje');
+    const roundTrip = { view: 'rezar', path: ['terco'] };
+    assertEq('ida e volta', RouteCore.parseRoute(RouteCore.serializeRoute(roundTrip)), roundTrip);
+    assert('mesma rota', RouteCore.sameRoute({ view: 'rezar', path: [] }, RouteCore.parseRoute('#rezar')));
+    assert('rotas diferentes', !RouteCore.sameRoute({ view: 'rezar', path: [] }, { view: 'rezar', path: ['terco'] }));
+    assertEq('estado antigo inválido vira Hoje', RouteCore.sanitizeRoute({ foo: 1 }), { view: 'hoje', path: [] });
+    assertEq('estado de outra versão com destino válido', RouteCore.sanitizeRoute({ view: 'frutos', path: 'x' }), { view: 'frutos', path: [] });
+
+    // ========================================================
     // Render
     // ========================================================
+
+    // Exposto para o runner em Node (tests/run.js)
+    (typeof window !== 'undefined' ? window : globalThis).__oraTestResults = results;
 
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;

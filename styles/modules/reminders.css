@@ -9,7 +9,6 @@
 #rosary-reminder,
 #carlo-reminder {
     position: fixed;
-    top: 90px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 900;
@@ -19,6 +18,9 @@
     gap: 20px;
     padding: 12px 20px;
     
+    /* Abaixo do cabeçalho; em tela estreita a navegação ocupa uma segunda linha */
+    top: max(90px, 5.5rem);
+
     /* Ensure it doesn't stretch */
     width: auto;
     min-width: 300px;
@@ -72,4 +74,15 @@
 #evening-reminder .angelus-content i {
     color: #a78bfa;
     animation: none;
+}
+
+@media (max-width: 54rem) {
+    #angelus-reminder,
+    #mercy-reminder,
+    #midday-reminder,
+    #evening-reminder,
+    #rosary-reminder,
+    #carlo-reminder {
+        top: 9rem;
+    }
 }

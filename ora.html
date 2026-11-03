@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ora - Nova Aba</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://images.unsplash.com">
     <link rel="dns-prefetch" href="https://noembed.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <!-- Phosphor Icons CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/duotone/style.css">
@@ -18,6 +15,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/thin/style.css">
     <link rel="stylesheet" href="styles/base/reset.css">
+    <link rel="stylesheet" href="styles/base/fonts.css">
     <link rel="stylesheet" href="styles/base/variables.css">
     <link rel="stylesheet" href="styles/utils/animations.css">
     <link rel="stylesheet" href="styles/utils/helpers.css">
@@ -25,10 +23,12 @@
     <link rel="stylesheet" href="styles/components/buttons.css">
     <link rel="stylesheet" href="styles/components/inputs.css">
     <link rel="stylesheet" href="styles/components/modals.css">
+    <link rel="stylesheet" href="styles/components/ui.css">
     <link rel="stylesheet" href="styles/layout/main.css">
     <link rel="stylesheet" href="styles/layout/header.css">
     <link rel="stylesheet" href="styles/layout/footer.css">
     <link rel="stylesheet" href="styles/layout/grid.css">
+    <link rel="stylesheet" href="styles/layout/shell.css">
     <link rel="stylesheet" href="styles/modules/dashboard.css">
     <link rel="stylesheet" href="styles/modules/blocker.css">
     <link rel="stylesheet" href="styles/modules/music.css">
@@ -54,20 +54,16 @@
 
     <div class="overlay"></div>
 
-    <header>
-        <div class="links-container">
-            <a id="link-liturgy" href="https://padrepauloricardo.org/liturgia/" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.liturgy" data-i18n-href="header.liturgy_url">
-                <i class="ph ph-book-open-text"></i> Liturgia
-            </a>
-            
-            <div class="glass-panel action-btn" id="btn-music" data-i18n-html="header.music"><i class="ph ph-music-notes"></i> Música</div>
-        </div>
-        <div class="links-container">
-            <a id="link-bible" href="https://padrepauloricardo.org/biblia/gn?cap=1&edition=matos-soares" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.bible" data-i18n-href="header.bible_url">
-                <i class="ph ph-book-bookmark"></i> Bíblia
-            </a>
-            <div class="glass-panel action-btn" id="btn-blocker" data-i18n-html="blocker.modal_title"><i class="ph ph-shield-slash"></i> Bloqueador</div>
-            <div class="glass-panel action-btn action-btn-icon" id="btn-settings" data-i18n-title="settings.title" title="Configurações">
+    <header class="topbar">
+        <span class="brand">ORA</span>
+        <nav class="nav surface-glass" aria-label="Principal" data-i18n-aria-label="nav.label">
+            <a href="#hoje" data-route="hoje"><i class="ph ph-sun-horizon" aria-hidden="true"></i><span data-i18n="nav.today">Hoje</span></a>
+            <a href="#rezar" data-route="rezar"><i class="ph ph-hands-praying" aria-hidden="true"></i><span data-i18n="nav.pray">Rezar</span></a>
+            <a href="#frutos" data-route="frutos"><i class="ph ph-plant" aria-hidden="true"></i><span data-i18n="nav.fruits">Frutos</span></a>
+        </nav>
+        <div class="right">
+            <div class="glass-panel action-btn" id="btn-blocker" role="button" tabindex="0" data-i18n-html="blocker.modal_title"><i class="ph ph-shield-slash"></i> Bloqueador</div>
+            <div class="glass-panel action-btn action-btn-icon" id="btn-settings" role="button" tabindex="0" data-i18n-title="settings.title" title="Configurações">
                 <i class="ph ph-gear"></i>
             </div>
         </div>
@@ -161,7 +157,23 @@
         </div>
     </div>
 
-    <main>
+    <main class="view view-hoje" id="view-hoje" data-view="hoje">
+        <!-- Hoje provisório (V0): substituído na fase 2 -->
+        <div class="legacy-header">
+            <div class="links-container">
+                <a id="link-liturgy" href="https://padrepauloricardo.org/liturgia/" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.liturgy" data-i18n-href="header.liturgy_url">
+                    <i class="ph ph-book-open-text"></i> Liturgia
+                </a>
+                <div class="glass-panel action-btn" id="btn-music" role="button" tabindex="0" data-i18n-html="header.music"><i class="ph ph-music-notes"></i> Música</div>
+            </div>
+            <div class="links-container">
+                <a id="link-bible" href="https://padrepauloricardo.org/biblia/gn?cap=1&edition=matos-soares" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.bible" data-i18n-href="header.bible_url">
+                    <i class="ph ph-book-bookmark"></i> Bíblia
+                </a>
+            </div>
+        </div>
+
+        <div class="legacy-main">
 
 
         <div class="clock" id="clock">00:00</div>
@@ -174,7 +186,7 @@
         <div id="quick-links-container" class="links-grid">
             <!-- Links will be injected here by links.js -->
         </div>
-    </main>
+        </div>
 
     <footer>
         <div class="footer-left">
@@ -218,6 +230,34 @@
     </div>
 
     <!-- Morning Ritual Modal (first tab of the day) -->
+    </main>
+
+    <!-- Rezar provisório: substituído na fase 3 -->
+    <main class="view view-placeholder" id="view-rezar" data-view="rezar" hidden>
+        <section class="placeholder-card surface-light">
+            <p class="label" data-i18n="nav.pray">Rezar</p>
+            <h1 data-route-focus data-i18n="views.pray_title">Um espaço para rezar</h1>
+            <p data-i18n="views.pray_desc">O novo painel de oração está sendo preparado. Enquanto isso, o terço, as orações e o exame continuam aqui.</p>
+            <div class="row">
+                <button type="button" class="btn btn-aux" data-legacy-open="btn-rosary"><i class="ph ph-cross" aria-hidden="true"></i><span data-i18n="views.open_rosary">Terço</span></button>
+                <button type="button" class="btn btn-aux" data-legacy-open="btn-prayers"><i class="ph ph-book-open" aria-hidden="true"></i><span data-i18n="views.open_prayers">Orações</span></button>
+                <button type="button" class="btn btn-aux" data-legacy-open="btn-exam"><i class="ph ph-heart" aria-hidden="true"></i><span data-i18n="views.open_exam">Exame</span></button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Frutos provisório: substituído na fase 5 -->
+    <main class="view view-placeholder" id="view-frutos" data-view="frutos" hidden>
+        <section class="placeholder-card surface-light">
+            <p class="label" data-i18n="nav.fruits">Frutos</p>
+            <h1 data-route-focus data-i18n="views.fruits_title">O que ficou do seu tempo</h1>
+            <p data-i18n="views.fruits_desc">Aqui vão aparecer seus registros de foco, oração e exame. Por enquanto, o resumo de tempo de tela continua disponível.</p>
+            <div class="row">
+                <button type="button" class="btn btn-aux" data-legacy-open="btn-screentime"><i class="ph ph-chart-bar" aria-hidden="true"></i><span data-i18n="views.open_screentime">Tempo de tela</span></button>
+            </div>
+        </section>
+    </main>
+
     <div id="morning-ritual-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
             <h3 data-i18n="tasks.ritual_title">Planeje seu dia</h3>
@@ -1079,6 +1119,9 @@
 
     <script src="scripts/utils.js" defer></script>
     <script src="scripts/shared/blocker-core.js" defer></script>
+    <script src="scripts/shared/route-core.js" defer></script>
+    <script src="scripts/ui/router.js" defer></script>
+    <script src="scripts/ui/dialog.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
     <script src="scripts/modules/prayers.js" defer></script>
     <script src="scripts/modules/blocker.js" defer></script>

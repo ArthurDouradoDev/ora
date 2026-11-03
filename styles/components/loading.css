@@ -46,17 +46,15 @@
 }
 
 /* Hide main content while loading */
-body.app-loading > header,
-body.app-loading > main,
-body.app-loading > footer,
+body.app-loading > .topbar,
+body.app-loading > .view,
 body.app-loading > .overlay {
     opacity: 0;
 }
 
 /* Reveal content when ready */
-body.app-ready > header,
-body.app-ready > main,
-body.app-ready > footer,
+body.app-ready > .topbar,
+body.app-ready > .view,
 body.app-ready > .overlay {
     opacity: 1;
     transition: opacity 0.5s ease-in 0.1s;

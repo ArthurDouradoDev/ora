@@ -80,3 +80,25 @@
     0%, 100% { box-shadow: 0 0 4px rgba(238, 187, 85, 0.3); }
     50% { box-shadow: 0 0 12px rgba(238, 187, 85, 0.6); }
 }
+
+/* --- MOVIMENTO REDUZIDO (E10) ---
+   Sistema operacional pede menos movimento, ou a pessoa escolheu nas
+   Configurações (html[data-motion="reduce"]): transições viram corte
+   simples e nada pulsa continuamente. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+}

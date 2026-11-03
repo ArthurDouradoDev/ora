@@ -79,6 +79,10 @@ function applyI18n() {
             }
         }
     });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+        const key = el.getAttribute('data-i18n-aria-label');
+        if (key) el.setAttribute('aria-label', t(key));
+    });
     document.querySelectorAll('[data-i18n-href]').forEach(el => {
         const key = el.getAttribute('data-i18n-href');
         if (key) el.href = t(key);

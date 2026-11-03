@@ -1,13 +1,94 @@
 :root {
-    --glass-bg: rgba(20, 20, 20, 0.4); /* Um pouco mais escuro para contraste */
+    /* ============================================================
+       SISTEMA VISUAL V1 (prototypes/00-sistema.html)
+       ============================================================ */
+
+    /* Superfícies (escuro quente, coerente com a fotografia de igreja) */
+    --bg: #12100d;
+    --surface-1: #1a1713;
+    --surface-2: #231f1a;
+    --surface-3: #2d2822;
+    --line: rgba(255, 244, 225, 0.12);
+    --line-strong: rgba(255, 244, 225, 0.22);
+
+    /* Texto: discrição por hierarquia, não por opacidade baixa */
+    --text: #f5f0e6;
+    --text-2: #d8d0c2;
+    --text-3: #ada392;
+
+    /* Papel 1 — marca */
+    --gold: #d8b061;
+    --gold-hover: #e6c47f;
+    --on-gold: #1c1508;
+    --gold-soft: rgba(216, 176, 97, 0.14);
+
+    /* Papel 2 — contexto litúrgico (sempre com texto ao lado) */
+    --lit-verde: #5aa875;
+    --lit-roxo: #9a7bc6;
+    --lit-vermelho: #d0625a;
+    --lit-rosa: #e09ab7;
+    --lit-branco: #ece5d3;
+
+    /* Papel 3 — estado funcional */
+    --info: #9cc3ee;
+    --ok: #9fd3a8;
+    --warn: #ecc77a;
+    --err: #f2a398;
+    --info-bg: rgba(156, 195, 238, 0.12);
+    --warn-bg: rgba(236, 199, 122, 0.12);
+    --err-bg: rgba(242, 163, 152, 0.13);
+    --ok-bg: rgba(159, 211, 168, 0.12);
+
+    /* Leitura */
+    --paper: #f5efe3;
+    --paper-ink: #2b251d;
+    --paper-ink-2: #5f5547;
+    --read-size: 1.1875rem; /* 19px, ajustável pelo leitor */
+    --read-lh: 1.68;
+
+    /* Tipografia */
+    --f-brand: 'Cinzel', 'Times New Roman', serif;
+    --f-ui: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --f-read: 'Literata', Georgia, 'Times New Roman', serif;
+
+    /* Raios e movimento */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --r-xl: 26px;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+    --dur: 220ms;
+
+    /* Fundo local de reserva: não depende de rede */
+    --photo-fallback:
+        radial-gradient(120% 80% at 50% 110%, #3a2a18 0%, transparent 60%),
+        radial-gradient(60% 50% at 50% 30%, #2a2219 0%, transparent 70%),
+        linear-gradient(180deg, #1b1611 0%, #0f0c09 100%);
+
+    /* ============================================================
+       LEGADO (V0) — usado pelos módulos ainda não migrados.
+       Remover cada variável quando a última tela que a usa sair.
+       ============================================================ */
+    --glass-bg: rgba(20, 20, 20, 0.4);
     --glass-border: rgba(255, 255, 255, 0.1);
     --glass-blur: 12px;
     --text-primary: #ffffff;
-    
-    /* ESPAÇAMENTO */
+
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
     --spacing-xl: 32px;
+}
+
+/* Aparência noturna (ritual da noite): mais suave, sem perder contraste */
+[data-theme="noite"] {
+    --bg: #0e0d12;
+    --surface-1: #15141b;
+    --surface-2: #1d1b24;
+    --surface-3: #26232f;
+    --gold: #d6b271;
+    --text: #ece8f2;
+    --text-2: #cdc7d8;
+    --text-3: #a59fb2;
 }

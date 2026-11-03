@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project memory & known issues
+
+Before starting work, consult these files (and keep them updated):
+- [MEMORY.md](MEMORY.md) — product decisions, user preferences, roadmap and open questions from the improvement analyses (Oct 2026).
+- [ERRORS.md](ERRORS.md) — known bugs, risks and environment pitfalls. Check it before touching tasks, focus, blocker, prayers/reader, rosary or styles; move items to "Resolvidos" when fixed, and add new ones as they are found.
+- Detailed analyses: `RELATORIO_MELHORIAS_ORA.md`, `ANALISE_PLANO_ORA.md`, `ANALISE_INTERFACE_ORA.md`, `REVISAO_UX_UI_REZAR_BIBLIOTECA.md`, `RESUMO_ORA.md`. These are proposals, not approved decisions — confirm with the user before implementing.
+
 ## Project Overview
 
 **Ora - Nova Aba Católica** is a Chrome/Edge/Brave extension (Manifest V3) that overrides the new tab page with a Catholic spiritual + productivity interface combining Pomodoro timers, a website blocker, prayer library, interactive rosary, and daily liturgy readings.
@@ -22,7 +29,7 @@ There is no build process. This is pure vanilla JS/HTML/CSS — no npm, no bundl
 - Check console in the new tab with `Ctrl+Shift+J`
 - View SW logs: Extensions > Details > "Service Worker" link
 
-**No test suite exists** — test manually by exercising each module's flows.
+**Tests:** pure functions in `scripts/shared/` are covered by `tests/tests.js`. Run `node tests/run.js` from the project root (exits 1 on failure), or open `tests/tests.html` in a browser. UI flows are still tested manually by exercising each module.
 
 ## Architecture
 
@@ -33,6 +40,9 @@ There is no build process. This is pure vanilla JS/HTML/CSS — no npm, no bundl
 
 ### Initialization flow
 `ora.html` → `scripts/main.js` loads all JSON data from `/data/`, registers the SW, calls `init()` on each module, applies i18n, then reveals the UI from behind a loading screen.
+
+### Shell and navigation (V1)
+`ora.html` has a fixed `.topbar` (brand, nav Hoje · Rezar · Frutos, utilities) and one `<main class="view" data-view="…">` per destination. `scripts/ui/router.js` switches views; the route lives in `history.state` (URL stays clean, browser Back works, new tabs start at Hoje) and is parsed by the pure `scripts/shared/route-core.js`. New dialogs use `scripts/ui/dialog.js` (focus trap, inert background, Esc, focus return); legacy V0 modals still use `animateModal()` until each screen is migrated. The migration plan is in `PLANO_V1_ORA.md`.
 
 ### Module Pattern
 Every feature in `scripts/modules/` is a singleton object:
@@ -75,4 +85,4 @@ Use the global `t(key, params?)` function from `utils.js`. Keys use dot-notation
 - **Note:** YouTube embeds use a relay iframe hosted on GitHub Pages to work around CORS
 
 ### Styling
-CSS is organized under `styles/` into `base/`, `components/`, `layout/`, `modules/`, and `utils/`. Uses CSS custom properties defined in `styles/base/variables.css`. Design language: glassmorphism (transparency + blur).
+CSS is organized under `styles/` into `base/`, `components/`, `layout/`, `modules/`, and `utils/`. Design tokens (from `prototypes/00-sistema.html`) live in `styles/base/variables.css`; V1 components in `styles/components/ui.css`; shell layout in `styles/layout/shell.css`. Fonts are bundled locally (`assets/fonts/`, declared in `styles/base/fonts.css`): Cinzel for brand/clock, Montserrat for UI, Literata for reading. Design language: glassmorphism with delimited roles (glass for navigation over the photo, solid for organizing, read surfaces for long text). Legacy class names that collide with V1 components keep the legacy meaning until that screen is replaced (the V1 switch is `.toggle`).

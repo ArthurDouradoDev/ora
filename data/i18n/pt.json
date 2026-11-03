@@ -338,5 +338,21 @@
       "Onde o tempo escapou sem você perceber?",
       "O que você faria diferente amanhã para se aproximar da pessoa que quer ser?"
     ]
+  },
+  "nav": {
+    "label": "Principal",
+    "today": "Hoje",
+    "pray": "Rezar",
+    "fruits": "Frutos"
+  },
+  "views": {
+    "pray_title": "Um espaço para rezar",
+    "pray_desc": "O novo painel de oração está sendo preparado. Enquanto isso, o terço, as orações e o exame continuam aqui.",
+    "fruits_title": "O que ficou do seu tempo",
+    "fruits_desc": "Aqui vão aparecer seus registros de foco, oração e exame. Por enquanto, o resumo de tempo de tela continua disponível.",
+    "open_rosary": "Terço",
+    "open_prayers": "Orações",
+    "open_exam": "Exame",
+    "open_screentime": "Tempo de tela"
   }
 }

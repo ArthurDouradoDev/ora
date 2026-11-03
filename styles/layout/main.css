@@ -15,10 +15,9 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     
-    /* Layout */
+    /* Layout: cabeçalho fixo + um destino visível */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     
     /* Transition */
     transition: background-image 0.5s ease-in-out;
@@ -33,14 +32,13 @@ body {
     pointer-events: none;
 }
 
-/* --- MAIN CONTAINER --- */
-main {
+/* --- MAIN CONTAINER (Hoje provisório, V0) --- */
+.legacy-main {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding-top: 60px;
     z-index: 1;
     position: relative;
     flex: 1;

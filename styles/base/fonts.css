@@ -1,0 +1,37 @@
+/* ============================================================
+   FONTES LOCAIS (latin, variáveis) — funcionam offline
+   Cinzel: marca e relógio · Montserrat: interface · Literata: leitura
+   Licença: SIL Open Font License 1.1 (Google Fonts)
+   ============================================================ */
+
+@font-face {
+    font-family: 'Cinzel';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../../assets/fonts/cinzel-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    src: url('../../assets/fonts/montserrat-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Literata';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('../../assets/fonts/literata-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Literata';
+    font-style: italic;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('../../assets/fonts/literata-italic-latin.woff2') format('woff2');
+}
