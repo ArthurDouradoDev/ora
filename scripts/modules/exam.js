@@ -1,559 +1,125 @@
-
 const ExamSystem = {
-    EXAM_LOGS_MAX: 1000,
-    data: null,
-    config: {},
-    state: {
-        currentExamType: null,
-        currentExamStep: 0,
-        examAnswers: []
-    },
-
-    data: null,
-    // config: removed, dependencies are global
-
-    init: async function(data) {
+    EXAM_LOGS_MAX:1000, draft:null, busy:false,
+    async init(data) {
         this.data = data;
-        // Global dependencies: SafeStorage, animateModal, isModalVisible, showToast
-        
-        console.log('[Ora] ExamSystem initializing...');
-
-        this.cacheDOM();
-        this.bindEvents();
-        this.updateExamButtonTheme();
-        
-        // Start theme update interval
-        setInterval(() => this.updateExamButtonTheme(), 60000);
-        
-        // Listen for external start exam events
-        window.addEventListener('ora:start-exam', (e) => {
-            if (e.detail && e.detail.type) {
-                this.startExam(e.detail.type);
-            }
-        });
-
-        // Initialize UI with async data
-        await this.updateStreakDisplay();
-
-        console.log('[Ora] ExamSystem initialized');
+        this.draft = await AsyncStorage.get('ora_exam_draft');
+        this.cacheDOM(); this.bindEvents();
     },
-
-    cacheDOM() {
-        this.dom = {
-            btnExam: document.getElementById('btn-exam'),
-            examTypeModal: document.getElementById('exam-type-modal'),
-            closeExamTypeBtn: document.getElementById('close-exam-type-btn'),
-            examTypeGrid: document.getElementById('exam-type-grid'),
-            examSuggestion: document.querySelector('.exam-suggestion'),
-            examStreakText: document.getElementById('exam-streak-text'),
-            openVirtuesBtn: document.getElementById('open-virtues-btn'),
-
-            examFlowModal: document.getElementById('exam-flow-modal'),
-            examFlowTitle: document.getElementById('exam-flow-title'),
-            closeExamFlowBtn: document.getElementById('close-exam-flow-btn'),
-            examFlowBackBtn: document.getElementById('exam-flow-back-btn'),
-            examProgressFill: document.querySelector('.exam-progress-fill'),
-            examQuestionText: document.querySelector('.exam-question-text'),
-            examInputArea: document.querySelector('.exam-input-area'),
-            examPrevBtn: document.getElementById('exam-prev-btn'),
-            examNextBtn: document.getElementById('exam-next-btn'),
-            examStepCounter: document.querySelector('.exam-step-counter'),
-
-
-            microPrayerModal: document.getElementById('micro-prayer-modal'),
-            closeMicroPrayerBtn: document.getElementById('close-micro-prayer-btn'),
-            microPrayerBackBtn: document.getElementById('micro-prayer-back-btn'),
-            microPrayerOptionsEl: document.getElementById('micro-prayer-options'),
-            microPrayerTextEl: document.getElementById('micro-prayer-text'),
-
-            virtuesModal: document.getElementById('virtues-modal'),
-            closeVirtuesBtn: document.getElementById('close-virtues-btn'),
-            virtuesBackBtn: document.getElementById('virtues-back-btn'),
-            virtuesList: document.getElementById('virtues-list'),
-            virtuesSummaryText: document.getElementById('virtues-summary-text'),
-            editVirtuesBtn: document.getElementById('edit-virtues-btn'),
-
-            virtuesEditor: document.getElementById('virtues-editor'),
-            closeVirtuesEditorBtn: document.getElementById('close-virtues-editor-btn'),
-            virtuesEditorBackBtn: document.getElementById('virtues-editor-back-btn'),
-            virtuesEditorList: document.getElementById('virtues-editor-list'),
-            newVirtueInput: document.getElementById('new-virtue-input'),
-            addVirtueBtn: document.getElementById('add-virtue-btn')
-        };
-    },
-
+    cacheDOM() {},
     bindEvents() {
-        const d = this.dom;
-
-        if (d.btnExam) {
-            d.btnExam.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!isModalVisible(d.examTypeModal)) {
-                    this.openExamTypeModal();
-                } else {
-                    this.closeExamTypeModal();
-                }
-            });
-        }
-
-        if (d.closeExamTypeBtn) d.closeExamTypeBtn.addEventListener('click', () => this.closeExamTypeModal());
-        if (d.closeExamFlowBtn) d.closeExamFlowBtn.addEventListener('click', () => this.closeExamFlow());
-        
-        if (d.examFlowBackBtn) {
-            d.examFlowBackBtn.addEventListener('click', () => {
-                this.closeExamFlow();
-                setTimeout(() => this.openExamTypeModal(), 300);
-            });
-        }
-
-        if (d.examNextBtn) d.examNextBtn.addEventListener('click', () => this.nextExamStep());
-        if (d.examPrevBtn) d.examPrevBtn.addEventListener('click', () => this.prevExamStep());
-
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            if (isModalVisible(d.examTypeModal) &&
-                !d.examTypeModal.contains(e.target) &&
-                !d.btnExam.contains(e.target)) {
-                this.closeExamTypeModal();
-            }
-        });
-
-        if (d.closeMicroPrayerBtn) d.closeMicroPrayerBtn.addEventListener('click', () => animateModal(d.microPrayerModal, false));
-        if (d.microPrayerBackBtn) d.microPrayerBackBtn.addEventListener('click', () => {
-            d.microPrayerTextEl.style.display = 'none';
-            d.microPrayerOptionsEl.style.display = 'grid';
-        });
-
-        // Virtues
-        if (d.openVirtuesBtn) d.openVirtuesBtn.addEventListener('click', () => this.openVirtuesModal());
-        if (d.closeVirtuesBtn) d.closeVirtuesBtn.addEventListener('click', () => this.closeVirtuesModal());
-        if (d.virtuesBackBtn) {
-            d.virtuesBackBtn.addEventListener('click', () => {
-                this.closeVirtuesModal();
-                setTimeout(() => this.openExamTypeModal(), 300);
-            });
-        }
-
-        if (d.editVirtuesBtn) d.editVirtuesBtn.addEventListener('click', () => this.openVirtuesEditor());
-        if (d.closeVirtuesEditorBtn) d.closeVirtuesEditorBtn.addEventListener('click', () => this.closeVirtuesEditor());
-        if (d.virtuesEditorBackBtn) {
-            d.virtuesEditorBackBtn.addEventListener('click', () => {
-                this.closeVirtuesEditor();
-                setTimeout(() => this.openVirtuesModal(), 300);
-            });
-        }
-        if (d.addVirtueBtn) d.addVirtueBtn.addEventListener('click', () => this.addNewVirtue());
-        if (d.newVirtueInput) {
-            d.newVirtueInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') this.addNewVirtue();
-            });
-        }
+        document.getElementById('btn-exam')?.addEventListener('click', () => this.openExamTypeModal());
+        window.addEventListener('ora:start-exam',e => { if (e.detail?.type) this.startExam(e.detail.type); });
     },
-
-    // --- Logic ---
-
-    getExamType() {
-        const h = new Date().getHours();
-        if (h >= 6 && h < 11) return 'morning';
-        if (h >= 11 && h < 14) return 'midday';
-        if (h >= 14 && h < 18) return 'quick';
-        return 'night';
-    },
-
-    updateExamButtonTheme() {
-        if (!this.dom.btnExam) return;
-        const type = this.getExamType();
-        this.dom.btnExam.classList.remove('exam-morning', 'exam-midday', 'exam-evening');
-        if (type === 'morning') this.dom.btnExam.classList.add('exam-morning');
-        else if (type === 'midday') this.dom.btnExam.classList.add('exam-midday');
-        else this.dom.btnExam.classList.add('exam-evening');
-    },
-
-    getWeeklyExamCount: async function() {
-        let count = 0;
-        const now = new Date();
-        const dayOfWeek = now.getDay();
-        for (let i = 0; i <= dayOfWeek; i++) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const key = 'ora_exam_done_' + d.toDateString();
-            if (await AsyncStorage.get(key)) count++;
-        }
-        return count;
-    },
-
-    updateStreakDisplay: async function() {
-        if (!this.dom.examStreakText) return;
-        const weekCount = await this.getWeeklyExamCount();
-        this.dom.examStreakText.textContent = t('exam.streak_text', { count: weekCount });
-    },
-
-    openExamTypeModal: async function() {
-        const { examTypeGrid, examSuggestion, examTypeModal } = this.dom;
-        const { exam } = this.data;
-        
-        examTypeGrid.innerHTML = '';
-        const suggested = this.getExamType();
-
-        if (examSuggestion) examSuggestion.textContent = `${t('exam.suggestion_prefix')}: ${exam.types[suggested].icon} ${l(exam.types[suggested].label)}`;
-
-        Object.keys(exam.types).forEach(key => {
-            const type = exam.types[key];
-            const card = document.createElement('div');
-            card.className = 'exam-type-card' + (key === suggested ? ' suggested' : '');
-            card.innerHTML = `
-                <span class="exam-type-icon">${type.icon}</span>
-                <span class="exam-type-label">${l(type.label)}</span>
-                <span class="exam-type-count">${type.questions.length} ${type.questions.length === 1 ? t('exam.question_singular') : t('exam.question_plural')}</span>
-            `;
-            card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.startExam(key);
-            });
-            examTypeGrid.appendChild(card);
-        });
-
-        await this.updateStreakDisplay();
-        animateModal(examTypeModal, true);
-    },
-
-    closeExamTypeModal() {
-        animateModal(this.dom.examTypeModal, false);
-    },
-
-    startExam: async function(type) {
-        this.state.currentExamType = type;
-        this.state.currentExamStep = 0;
-        this.state.examAnswers = new Array(this.data.exam.types[type].questions.length).fill('');
-        this.closeExamTypeModal();
-
-        await this.updateStreakDisplay();
-        animateModal(this.dom.examFlowModal, true);
-        this.renderExamStep();
-    },
-
-    renderExamStep() {
-        const { currentExamType, currentExamStep, examAnswers } = this.state;
-        const questions = this.data.exam.types[currentExamType].questions;
-        const q = questions[currentExamStep];
-        const total = questions.length;
-
-        // Progress bar
-        this.dom.examProgressFill.style.width = `${((currentExamStep + 1) / total) * 100}%`;
-
-        // Counter
-        this.dom.examStepCounter.textContent = `${currentExamStep + 1} / ${total}`;
-
-        // Question
-        this.dom.examQuestionText.textContent = l(q.text);
-
-        // Input area
-        this.dom.examInputArea.innerHTML = '';
-
-        if (q.type === 'text') {
-            const textarea = document.createElement('textarea');
-            textarea.className = 'exam-textarea';
-            textarea.placeholder = 'Escreva aqui...';
-            textarea.value = examAnswers[currentExamStep] || '';
-            
-            // Limit characters to prevent issues
-            const MAX_CHARS = 5000;
-            
-            textarea.addEventListener('input', (e) => {
-                let val = e.target.value;
-                if (val.length > MAX_CHARS) {
-                    val = val.substring(0, MAX_CHARS);
-                    e.target.value = val;
-                    showToast(t('toast.exam_char_limit', { max: MAX_CHARS }), 'info');
-                }
-                examAnswers[currentExamStep] = val;
-            });
-            this.dom.examInputArea.appendChild(textarea);
-            setTimeout(() => textarea.focus(), 100);
-        } else if (q.type === 'thumbs') {
-            const container = document.createElement('div');
-            container.className = 'exam-thumbs';
-            ['👍', '👎'].forEach(emoji => {
-                const btn = document.createElement('button');
-                btn.className = 'exam-emoji-btn' + (examAnswers[currentExamStep] === emoji ? ' active' : '');
-                btn.textContent = emoji;
-                btn.addEventListener('click', () => {
-                    examAnswers[currentExamStep] = emoji;
-                    this.renderExamStep();
-                });
-                container.appendChild(btn);
-            });
-            this.dom.examInputArea.appendChild(container);
-        } else if (q.type === 'emoji') {
-            const container = document.createElement('div');
-            container.className = 'exam-emoji-row';
-            (q.options || []).forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'exam-emoji-btn' + (examAnswers[currentExamStep] === opt ? ' active' : '');
-                btn.textContent = l(opt);
-                btn.addEventListener('click', () => {
-                    examAnswers[currentExamStep] = opt;
-                    this.renderExamStep();
-                });
-                container.appendChild(btn);
-            });
-            this.dom.examInputArea.appendChild(container);
-        }
-
-        // Nav button states
-        this.dom.examPrevBtn.style.visibility = currentExamStep > 0 ? 'visible' : 'hidden';
-        // Last step: show check icon instead of arrow
-        if (currentExamStep === total - 1) {
-            this.dom.examNextBtn.innerHTML = '<i class="ph ph-check"></i>';
-            this.dom.examNextBtn.title = 'Concluir';
-        } else {
-            this.dom.examNextBtn.innerHTML = '<i class="ph ph-caret-right"></i>';
-            this.dom.examNextBtn.title = 'Próximo';
-        }
-    },
-
-    nextExamStep() {
-        const questions = this.data.exam.types[this.state.currentExamType].questions;
-        if (this.state.currentExamStep < questions.length - 1) {
-            this.state.currentExamStep++;
-            this.renderExamStep();
-        } else {
-            this.finishExam();
-        }
-    },
-
-    prevExamStep() {
-        if (this.state.currentExamStep > 0) {
-            this.state.currentExamStep--;
-            this.renderExamStep();
-        }
-    },
-
-    finishExam: async function() {
-        const { currentExamType, examAnswers } = this.state;
-        
-        // Save as done today
-        const todayStr = new Date().toDateString();
-        await AsyncStorage.set('ora_exam_done_' + todayStr, 'true');
-
-        // The matching invite on Hoje is done for this time window
-        if (window.ReminderSystem) {
-            if (currentExamType === 'night') await ReminderSystem.markDoneById('closeDay');
-            else if (currentExamType === 'midday') await ReminderSystem.markDoneById('midday');
-        }
-
-        // Save exam log
-        // Exam records feed Frutos: kept as an array (schema 2), not a JSON string
-        const now = new Date();
-        const log = {
-            id: 'exam-' + now.getTime(),
-            type: currentExamType,
-            date: now.toISOString(),
-            answers: examAnswers
+    openExamTypeModal() { RouterSystem.navigate('rezar/exame'); },
+    getExamType() { const h = new Date().getHours(); return h >= 6 && h < 11 ? 'morning' : h < 14 && h >= 11 ? 'midday' : h >= 14 && h < 18 ? 'quick' : 'night'; },
+    async startExam(type) {
+        if (!this.data.exam.types[type]) return;
+        const begin = async () => {
+            await this.draftQueue;
+            const draft = { id:'exam-' + Date.now(),type,step:0,answers:[] };
+            if (!await PrayUI.save('ora_exam_draft',draft)) return false;
+            this.draft = draft; RouterSystem.navigate('rezar/exame/' + type); return true;
         };
-        try {
-            const existingLogs = await AsyncStorage.get('ora_exam_logs');
-            let logs = MigrateCore.normalizeExamLogs(existingLogs || []) || [];
-            logs.push(log);
-            if (logs.length > this.EXAM_LOGS_MAX) logs = logs.slice(-this.EXAM_LOGS_MAX);
-            await AsyncStorage.set('ora_exam_logs', logs);
-        } catch (e) {
-            console.error('[Exam] Failed to save exam log:', e);
+        if (this.draft?.answers?.some(Boolean)) PrayUI.confirm('exam_restart_title','exam_restart_body',begin);
+        else await begin();
+    },
+    async render(path = [], token = RezarSystem.renderId) {
+        if (path[0] === 'virtudes') return this.renderVirtues(path[1] === 'editar',token);
+        if (this.data.exam.types[path[0]]) {
+            if (!this.draft || this.draft.type !== path[0]) {
+                this.draft = { id:'exam-' + Date.now(),type:path[0],step:0,answers:[] };
+            }
+            return this.renderStep();
         }
-
-        animateModal(this.dom.examFlowModal, false);
-        showToast(t('toast.exam_done'), 'success');
-        this.state.currentExamType = null;
+        const u = PrayUI;
+        u.mount(`<div class="pray-wrap pray-narrow">${u.heading(u.text('exam'))}<div class="exam-types">${Object.entries(this.data.exam.types).map(([id,type]) => `<button class="exam-type" data-exam-type="${id}"><span aria-hidden="true">${u.e(type.icon)}</span><b>${u.e(l(type.label))}</b><small>${u.text('stage',{n:1,total:type.questions.length})}</small></button>`).join('')}</div>${this.draft && this.data.exam.types[this.draft.type] ? `<div class="banner info"><p>${u.e(l(this.data.exam.types[this.draft.type].label))}</p>${u.button('exam-resume','resume','btn-aux')}</div>` : ''}<button class="btn btn-aux" data-pray-route="rezar/exame/virtudes">${u.text('virtues')}</button></div>`);
+        u.back();
+        u.root.querySelectorAll('[data-exam-type]').forEach(button => button.addEventListener('click', () => this.startExam(button.dataset.examType)));
+        u.on('exam-resume','click', () => RouterSystem.navigate('rezar/exame/' + this.draft.type));
     },
-
-    closeExamFlow() {
-        animateModal(this.dom.examFlowModal, false);
-        this.state.currentExamType = null;
+    renderStep() {
+        const u = PrayUI, draft = this.draft, questions = this.data.exam.types[draft.type].questions;
+        draft.step = Math.max(0,Math.min(questions.length - 1,Number(draft.step) || 0));
+        const q = questions[draft.step], value = draft.answers[draft.step], final = draft.step === questions.length - 1;
+        const options = q.type === 'thumbs' ? [{value:'👍',text:t('pray.positive')},{value:'👎',text:t('pray.negative')}] : (q.options || []).map((opt,i) => ({value:i,text:l(opt)}));
+        u.mount(`<div class="pray-wrap pray-narrow exam-flow">${u.heading(u.e(l(this.data.exam.types[draft.type].label)),'rezar/exame')}<p class="label">${u.text('stage',{n:draft.step + 1,total:questions.length})}</p><div class="reading-progress" aria-hidden="true"><span style="width:${(draft.step + 1) / questions.length * 100}%"></span></div><h2 id="exam-question" class="reflect">${u.e(l(q.text))}</h2>${q.type === 'text' ? `<label class="field"><span class="sr-only">${u.text('exam_answer')}</span><textarea class="textarea" id="exam-answer" maxlength="5000" aria-describedby="exam-question" placeholder="${u.text('note')}">${u.e(value || '')}</textarea></label>` : `<div class="seg" role="group" aria-labelledby="exam-question">${options.map((opt,i) => `<button data-exam-choice="${i}" aria-pressed="${value === opt.value}">${u.e(opt.text)}</button>`).join('')}</div>`}<p role="status" class="meta" id="exam-status"></p><div class="row">${u.button('exam-previous','previous','btn-quiet',draft.step === 0 ? 'disabled' : '')}${u.button('exam-next',final ? 'finish' : 'next_stage','btn-primary')}</div></div>`);
+        u.back('rezar/exame');
+        u.on('exam-answer','input',e => { this.draft.answers[draft.step] = e.target.value; return this.saveDraft(); });
+        u.root.querySelectorAll('[data-exam-choice]').forEach(button => button.addEventListener('click',async () => {
+            this.draft.answers[draft.step] = options[Number(button.dataset.examChoice)].value;
+            if (await this.saveDraft()) {
+                u.root.querySelectorAll('[data-exam-choice]').forEach(b => b.setAttribute('aria-pressed',b === button));
+            }
+        }));
+        u.on('exam-previous','click',async () => { if (await this.saveDraft(draft.step - 1)) { this.renderStep(); document.getElementById('exam-question').tabIndex = -1; document.getElementById('exam-question').focus(); } });
+        u.on('exam-next','click',async () => {
+            if (final) await this.finishExam();
+            else if (await this.saveDraft(draft.step + 1)) { this.renderStep(); document.getElementById('exam-question').tabIndex = -1; document.getElementById('exam-question').focus(); }
+        });
     },
-
-    // --- Respiro provisório (Oração rápida) até a fase 3 ---
-
-    showMicroPrayerOptions() {
-        const { microPrayerOptionsEl, microPrayerTextEl, microPrayerModal } = this.dom;
-        
-        microPrayerOptionsEl.innerHTML = '';
-        microPrayerTextEl.style.display = 'none';
-        microPrayerOptionsEl.style.display = 'grid';
-
-        this.data.exam.pomodoroCheckin.microPrayers.forEach(mp => {
-            const card = document.createElement('button');
-            card.type = 'button';
-            card.className = 'micro-prayer-card';
-            card.innerHTML = `
-                <i class="ph ${mp.icon}"></i>
-                <span>${l(mp.label)}</span>
-            `;
-            card.addEventListener('click', () => {
-                let text = l(mp.text);
-                // Resolve prayer reference
-                if (text.startsWith('prayer:')) {
-                    const prayerId = text.split(':')[1];
-                    const prayer = this.data.prayers.find(p => p.id === prayerId);
-                    const locale = window._i18nLocale || 'pt';
-                    text = prayer ? (prayer.text[locale] || prayer.text.pt) : '';
+    saveDraft(step = this.draft.step) {
+        const snapshot = { ...this.draft,step,answers:[...this.draft.answers] };
+        this.draftQueue = (this.draftQueue || Promise.resolve()).then(async () => {
+            const ok = await PrayUI.save('ora_exam_draft',snapshot,document.getElementById('exam-status'));
+            if (ok && this.draft?.id === snapshot.id) this.draft.step = step;
+            return ok;
+        });
+        return this.draftQueue;
+    },
+    async finishExam() {
+        if (this.busy) return;
+        this.busy = true;
+        try {
+            if (!await this.saveDraft()) return;
+            const now = new Date(), stored = await AsyncStorage.get('ora_exam_logs',[]);
+            let logs = typeof stored === 'string' ? JSON.parse(stored) : stored;
+            if (!Array.isArray(logs)) logs = [];
+            const log = {id:this.draft.id,type:this.draft.type,date:now.toISOString(),answers:[...this.draft.answers]};
+            if (!logs.some(x => x.id === log.id)) logs.push(log);
+            // One confirmed transaction: no completion flag unless the log is also saved.
+            await chrome.storage.local.set({ora_exam_logs:logs.slice(-this.EXAM_LOGS_MAX),['ora_exam_done_' + now.toDateString()]:'true',ora_exam_draft:null});
+            const type = this.draft.type; this.draft = null;
+            if (window.ReminderSystem && ['night','midday'].includes(type)) await ReminderSystem.markDoneById(type === 'night' ? 'closeDay' : 'midday');
+            RouterSystem.navigate('rezar'); showToast(t('pray.exam_done'));
+        } catch (err) { console.error(err); PrayUI.error(); }
+        finally { this.busy = false; }
+    },
+    async loadVirtues() {
+        const saved = await AsyncStorage.get('ora_virtues_list');
+        try { return saved ? (typeof saved === 'string' ? JSON.parse(saved) : saved) : this.data.exam.defaultVirtues.map(v => ({...v})); }
+        catch (_) { return this.data.exam.defaultVirtues.map(v => ({...v})); }
+    },
+    async renderVirtues(editing,token = RezarSystem.renderId) {
+        const u = PrayUI, virtues = await this.loadVirtues(), logKey = 'ora_virtues_log_' + new Date().toDateString();
+        let log = await AsyncStorage.get(logKey,{});
+        try { if (typeof log === 'string') log = JSON.parse(log); } catch (_) { log = {}; }
+        if (token !== RezarSystem.renderId) return;
+        u.mount(`<div class="pray-wrap pray-narrow">${u.heading(u.text(editing ? 'edit_virtues' : 'virtues'))}<ul class="virtue-list">${virtues.map((v,index) => `<li><span>${u.e(l(v.name))}</span>${editing ? `<button class="btn btn-quiet" data-remove-virtue="${index}" aria-label="${u.text('remove',{name:l(v.name)})}">×</button>` : `<div class="seg" role="group" aria-label="${u.e(l(v.name))}">${['success','fail'].map(status => `<button data-virtue="${index}" data-status="${status}" aria-pressed="${log[v.id] === status}">${u.text(status === 'success' ? 'practiced' : 'struggled')}</button>`).join('')}</div>`}</li>`).join('')}</ul>${editing ? `<form id="virtue-add" class="row"><label class="field"><span>${u.text('new_virtue')}</span><input class="input" required id="virtue-name" maxlength="80"></label><button class="btn btn-primary" type="submit">${u.text('add')}</button></form>` : `<button class="btn btn-aux" data-pray-route="rezar/exame/virtudes/editar">${u.text('edit_virtues')}</button>`}<p id="virtue-status" class="meta" role="status"></p></div>`);
+        u.back(editing ? 'rezar/exame/virtudes' : 'rezar/exame');
+        u.root.querySelectorAll('[data-virtue]').forEach(button => button.addEventListener('click',async () => {
+            if (this.busy) return; this.busy = true;
+            try {
+                const v = virtues[Number(button.dataset.virtue)], status = button.dataset.status;
+                const next = { ...log }; if (next[v.id] === status) delete next[v.id]; else next[v.id] = status;
+                if (await u.save(logKey,JSON.stringify(next),document.getElementById('virtue-status'))) {
+                    log = next;
+                    u.root.querySelectorAll(`[data-virtue="${button.dataset.virtue}"]`).forEach(b => b.setAttribute('aria-pressed',log[v.id] === b.dataset.status));
                 }
-                microPrayerOptionsEl.style.display = 'none';
-                microPrayerTextEl.textContent = text;
-                microPrayerTextEl.style.display = 'block';
-                if (this.dom.microPrayerBackBtn) this.dom.microPrayerBackBtn.focus();
+            } finally { this.busy = false; }
+        }));
+        u.root.querySelectorAll('[data-remove-virtue]').forEach(button => button.addEventListener('click', () => {
+            const index = Number(button.dataset.removeVirtue);
+            u.confirm('remove_title','remove_body',async () => {
+                if (!await u.save('ora_virtues_list',JSON.stringify(virtues.filter((_,i) => i !== index)))) return false;
+                await this.renderVirtues(true); return true;
             });
-            microPrayerOptionsEl.appendChild(card);
+        }));
+        u.on('virtue-add','submit',async e => {
+            e.preventDefault();
+            const name = document.getElementById('virtue-name').value.trim(); if (!name) return;
+            const next = [...virtues,{id:'custom-' + Date.now(),name,icon:'ph-star'}];
+            if (await u.save('ora_virtues_list',JSON.stringify(next),document.getElementById('virtue-status'))) { await this.renderVirtues(true); document.getElementById('virtue-name').focus(); }
         });
-
-        animateModal(microPrayerModal, true);
-        const first = microPrayerOptionsEl.querySelector('button');
-        if (first) setTimeout(() => first.focus(), 50);
-    },
-
-    // --- Virtues Checklist ---
-
-    loadVirtues: async function() {
-        try {
-            const saved = await AsyncStorage.get('ora_virtues_list');
-            if (saved) return (typeof saved === 'string') ? JSON.parse(saved) : saved;
-        } catch (e) { /* use defaults */ }
-        return this.data.exam.defaultVirtues.map(v => ({ ...v }));
-    },
-
-    saveVirtues: async function(virtues) {
-        await AsyncStorage.set('ora_virtues_list', JSON.stringify(virtues));
-    },
-
-    getVirtueLog: async function() {
-        const todayStr = new Date().toDateString();
-        try {
-            const saved = await AsyncStorage.get('ora_virtues_log_' + todayStr);
-            if (saved) return (typeof saved === 'string') ? JSON.parse(saved) : saved;
-        } catch (e) { /* ignore */ }
-        return {};
-    },
-
-    saveVirtueLog: async function(log) {
-        const todayStr = new Date().toDateString();
-        await AsyncStorage.set('ora_virtues_log_' + todayStr, JSON.stringify(log));
-    },
-
-    openVirtuesModal: async function() {
-        this.closeExamTypeModal();
-        await this.renderVirtuesList();
-        animateModal(this.dom.virtuesModal, true);
-    },
-
-    closeVirtuesModal() {
-        animateModal(this.dom.virtuesModal, false);
-    },
-
-    renderVirtuesList: async function() {
-        const virtues = await this.loadVirtues();
-        const log = await this.getVirtueLog();
-        const { virtuesList, virtuesSummaryText } = this.dom;
-        
-        virtuesList.innerHTML = '';
-
-        let practiced = 0;
-        let total = virtues.length;
-
-        virtues.forEach(v => {
-            const status = log[v.id]; // 'success', 'fail', or undefined
-            const card = document.createElement('div');
-            card.className = 'virtue-card' + (status ? ` virtue-${status}` : '');
-            card.innerHTML = `
-                <div class="virtue-info">
-                    <i class="ph ${v.icon}"></i>
-                    <span>${l(v.name)}</span>
-                </div>
-                <div class="virtue-actions">
-                    <button class="virtue-btn virtue-success-btn ${status === 'success' ? 'active' : ''}" title="Pratiquei"><i class="ph ph-check"></i></button>
-                    <button class="virtue-btn virtue-fail-btn ${status === 'fail' ? 'active' : ''}" title="Falhei"><i class="ph ph-x"></i></button>
-                </div>
-            `;
-
-            const successBtn = card.querySelector('.virtue-success-btn');
-            const failBtn = card.querySelector('.virtue-fail-btn');
-
-            successBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                // need to reload log to ensure consistency or carry local state?
-                // simple optmistic update
-                const currentLog = await this.getVirtueLog();
-                currentLog[v.id] = currentLog[v.id] === 'success' ? undefined : 'success';
-                if (currentLog[v.id] === undefined) delete currentLog[v.id];
-                await this.saveVirtueLog(currentLog);
-                await this.renderVirtuesList();
-            });
-
-            failBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const currentLog = await this.getVirtueLog();
-                currentLog[v.id] = currentLog[v.id] === 'fail' ? undefined : 'fail';
-                if (currentLog[v.id] === undefined) delete currentLog[v.id];
-                await this.saveVirtueLog(currentLog);
-                await this.renderVirtuesList();
-            });
-
-            if (status === 'success') practiced++;
-            virtuesList.appendChild(card);
-        });
-
-        if (virtuesSummaryText) virtuesSummaryText.textContent = `${practiced}/${total} ${t('exam.virtues_practiced')}`;
-    },
-
-    // --- Virtues Editor ---
-
-    openVirtuesEditor: async function() {
-        animateModal(this.dom.virtuesModal, false);
-        await this.renderVirtuesEditor();
-        animateModal(this.dom.virtuesEditor, true);
-    },
-
-    closeVirtuesEditor() {
-        animateModal(this.dom.virtuesEditor, false);
-    },
-
-    renderVirtuesEditor: async function() {
-        const virtues = await this.loadVirtues();
-        const { virtuesEditorList } = this.dom;
-        virtuesEditorList.innerHTML = '';
-
-        virtues.forEach(v => {
-            const item = document.createElement('div');
-            item.className = 'virtues-editor-item';
-            item.innerHTML = `
-                <i class="ph ${v.icon}"></i>
-                <span>${l(v.name)}</span>
-                <button class="icon-btn-sm virtue-remove-btn" title="Remover"><i class="ph ph-trash"></i></button>
-            `;
-            item.querySelector('.virtue-remove-btn').addEventListener('click', async () => {
-                const current = await this.loadVirtues(); // reload to be safe
-                const updated = current.filter(vv => vv.id !== v.id);
-                await this.saveVirtues(updated);
-                await this.renderVirtuesEditor();
-            });
-            virtuesEditorList.appendChild(item);
-        });
-    },
-
-    addNewVirtue: async function() {
-        const { newVirtueInput } = this.dom;
-        const name = newVirtueInput.value.trim();
-        if (!name) return;
-
-        const virtues = await this.loadVirtues();
-        virtues.push({
-            id: 'custom-' + Date.now(),
-            name: name,
-            icon: 'ph-star'
-        });
-        await this.saveVirtues(virtues);
-        newVirtueInput.value = '';
-        await this.renderVirtuesEditor();
-        showToast(t('toast.exam_virtue_added', { name }), 'success');
     }
 };
-
 window.ExamSystem = ExamSystem;

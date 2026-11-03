@@ -62,11 +62,14 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 | `scripts/modules/protection.js` | "Proteção" pill in the header (real state) and summary popover |
 | `scripts/modules/reminders.js` | The single invite space on Hoje (Angelus, Chaplet, midday exam, "Encerrar o dia", internet prayer), chosen by `RemindersCore` |
 | `scripts/modules/links.js` | "Seus atalhos" on Hoje + manage dialog (`ora_quick_links`) |
-| `scripts/modules/rosary.js` | Interactive rosary with bead visualization |
-| `scripts/modules/exam.js` | Guided conscience examination |
+| `scripts/modules/rosary.js` | Rosary preparation and prayer subroutes, weekday mysteries, real saved position; also Divine Mercy Chaplet |
+| `scripts/modules/exam.js` | Examination subroutes, draft, confirmed logs and virtue checklist |
 | `scripts/modules/music.js` | YouTube/Spotify player with relay iframe workaround |
 | `scripts/modules/tasks.js` | Tasks side panel "Tarefas (n)": Hoje (ordered) and Depois, weekday recurrence, completed of the day |
-| `scripts/modules/prayers.js` | Prayer library with full-text search |
+| `scripts/modules/rezar.js` | Rezar entry, saints, Gospel sources, Bible chapter selection and subroutes |
+| `scripts/modules/prayers.js` | Accent-insensitive library search, category and favorites scopes |
+| `scripts/modules/reader.js` | Reading position, Dark/Paper, text size and four-step Lectio with local notes |
+| `scripts/modules/respiro.js` | Untimed pause, remembered form and return to its origin |
 | `scripts/modules/settings.js` | User preferences UI |
 | `scripts/utils.js` | Shared utilities: i18n, storage helpers, UI helpers |
 
@@ -94,3 +97,13 @@ Use the global `t(key, params?)` function from `utils.js`. Keys use dot-notation
 
 ### Styling
 CSS is organized under `styles/` into `base/`, `components/`, `layout/`, `modules/`, and `utils/`. Design tokens (from `prototypes/00-sistema.html`) live in `styles/base/variables.css`; V1 components in `styles/components/ui.css`; shell layout in `styles/layout/shell.css`. Fonts are bundled locally (`assets/fonts/`, declared in `styles/base/fonts.css`): Cinzel for brand/clock, Montserrat for UI, Literata for reading. Design language: glassmorphism with delimited roles (glass for navigation over the photo, solid for organizing, read surfaces for long text). Legacy class names that collide with V1 components keep the legacy meaning until that screen is replaced (the V1 switch is `.toggle`).
+
+### Rezar (phase 3)
+`rezar` → `biblioteca`, `leitor/:id`, `evangelho`, `lectio`, `terco`, `terco/oracao`, `respiro`, `exame`, `exame/virtudes`, `biblia`. These replace the V0 prayer/rosary/exam modals. `styles/modules/rezar.css` owns the screens; `PrayUI` reuses the existing controls and `DialogSystem` for destructive confirmations.
+
+- Pure logic: `search-core`, `reader-core`, `rosary-core`, `liturgy-core`, `saints-core`, `bible-core`.
+- `liturgy_gospel_cache` version 2 contains `days[YYYY-MM-DD].pt/en` for today plus six days, preserving legacy top-level Portuguese fields. The SW fills it on installation/startup, hourly, and on `liturgy:refresh`. Portuguese text remains complete; English/Spanish readers link to their sources.
+- Prayer categories/essential flags and localized titles: `data/prayers.json`; fixed-date principal saints: `data/saints.json`; 73 Bible books: `data/bible-books.json`. Saint quotations require `verified: true` and an HTTPS source.
+- Storage: `ora_prayer_favorites`, `ora_reader_preferences`, `ora_reader_position_<id>_<lang>`, `ora_lectio_<date>`, `ora_rosary_progress`, `ora_respiro_form`, `ora_exam_draft`, `ora_bible_last`. Existing `ora_exam_logs` and virtue keys are preserved.
+- Optional approved artwork is selected by pericope from `ora_acervo_url` on the already-permitted jsDelivr origin. No image means no reserved blank area. The 20 rosary image slots remain null until artwork is approved (phase 10).
+- Browser acceptance runner (preinstalled Playwright, isolated Chromium profile): `tests/phase3-browser.cjs`. Setup and evidence: `tests/FASE_3.md`. No new extension dependencies.

@@ -24,6 +24,12 @@ const FILES = [
     'scripts/shared/migrate-core.js',
     'scripts/shared/today-core.js',
     'scripts/shared/reminders-core.js',
+    'scripts/shared/search-core.js',
+    'scripts/shared/reader-core.js',
+    'scripts/shared/rosary-core.js',
+    'scripts/shared/liturgy-core.js',
+    'scripts/shared/saints-core.js',
+    'scripts/shared/bible-core.js',
     'scripts/modules/sync.js',
     'tests/tests.js'
 ];

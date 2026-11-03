@@ -1,435 +1,137 @@
 const RosarySystem = {
-    // State
-    currentBead: 0,
-    mystery: 'gozosos',
-    chapletType: 'terco', // 'terco' or 'misericordia'
-    lang: 'pt',
-    
-    // Data
-    structure: [],
-    mysteries: {},
-    extraPrayers: {},
-    basePrayers: [], // from injected data (prayers)
-
-    // Dependencies (Global)
-    // animateModal, isModalVisible, SafeStorage, showToast
-
-    // DOM Elements
-    elements: {
-        modal: null,
-        modalTitle: null,
-        closeBtn: null,
-        container: null,
-        mysteryName: null,
-        prayerTitle: null,
-        prayerText: null,
-        counter: null,
-        prevBtn: null,
-        nextBtn: null,
-        mysteryBtns: null,
-        chapletBtns: null,
-        langBtns: null,
-        resetBtn: null,
-        btnRosary: null
+    state: null, saved: null, structure: [], data: null, busy: false,
+    async init(data) {
+        this.data = data; this.structure = data.rosary.structure;
+        const stored = await AsyncStorage.get('ora_rosary_progress');
+        this.state = RosaryCore.restore(stored,this.structure);
+        this.saved = stored ? { ...this.state } : null;
+        this.cacheDOM(); this.bindEvents();
     },
-
-    init: async function(data) {
-        // Unpack data
-        this.structure = data.rosary.structure;
-        this.mysteries = data.rosary.mysteries;
-        this.extraPrayers = data.rosary.extraPrayers;
-        this.basePrayers = data.prayers;
-
-        this.cacheDOM();
-        await this.loadProgress();
-        this.bindEvents();
-        
-        console.log('[Ora] Rosary System Initialized');
-    },
-
-    cacheDOM: function() {
-        this.elements.modal = document.getElementById('rosary-modal');
-        this.elements.modalTitle = document.getElementById('rosary-modal-title');
-        this.elements.closeBtn = document.getElementById('close-rosary-btn');
-        this.elements.container = this.elements.modal.querySelector('.rosary-beads-container');
-        this.elements.mysteryName = this.elements.modal.querySelector('.rosary-mystery-name');
-        this.elements.prayerTitle = this.elements.modal.querySelector('.rosary-prayer-title');
-        this.elements.prayerText = this.elements.modal.querySelector('.rosary-prayer-text');
-        this.elements.counter = this.elements.modal.querySelector('.rosary-counter');
-        this.elements.prevBtn = document.getElementById('rosary-prev');
-        this.elements.nextBtn = document.getElementById('rosary-next');
-        this.elements.mysteryBtns = this.elements.modal.querySelectorAll('.rosary-mystery-btn');
-        this.elements.chapletBtns = this.elements.modal.querySelectorAll('.rosary-chaplet-btn');
-        this.elements.langBtns = this.elements.modal.querySelectorAll('.lang-toggle-rosary .lang-btn');
-        this.elements.resetBtn = document.getElementById('reset-rosary-btn');
-        this.elements.btnRosary = document.getElementById('btn-rosary');
-
-        if (!this.elements.container) console.error('[Rosary] Container not found!');
-    },
-
-    loadProgress: async function() {
-        try {
-            const saved = await AsyncStorage.get('ora_rosary_progress');
-            if (saved) {
-                const parsed = (typeof saved === 'string') ? JSON.parse(saved) : saved;
-                this.currentBead = parsed.bead || 0;
-                this.mystery = parsed.mystery || 'gozosos';
-                this.chapletType = parsed.chapletType || 'terco';
-                this.lang = parsed.lang || 'pt';
-            }
-        } catch (e) { console.error(e); }
-    },
-
-    saveProgress: async function() {
-        await AsyncStorage.set('ora_rosary_progress', {
-            bead: this.currentBead,
-            mystery: this.mystery,
-            chapletType: this.chapletType,
-            lang: this.lang
+    cacheDOM() {},
+    bindEvents() {
+        document.getElementById('btn-rosary')?.addEventListener('click', () => this.open());
+        window.addEventListener('keydown', e => {
+            const route = RouterSystem.current();
+            if (route.view !== 'rezar' || route.path.join('/') !== 'terco/oracao' || this.state.completed || DialogSystem.top()) return;
+            if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+            if (e.key === ' ' && e.target.closest('button,a,[role="button"]')) return;
+            if (!['ArrowLeft','ArrowRight',' '].includes(e.key) || e.repeat) return;
+            e.preventDefault(); this.advance(e.key === 'ArrowLeft' ? -1 : 1);
+        });
+        chrome.storage.onChanged.addListener((changes,area) => {
+            if (area !== 'local' || !changes.ora_rosary_progress || this.busy) return;
+            this.saved = RosaryCore.restore(changes.ora_rosary_progress.newValue,this.structure);
+            const route = RouterSystem.current();
+            if (route.view === 'rezar' && route.path.join('/') === 'terco/oracao') { this.state = { ...this.saved }; this.renderPrayer(); }
         });
     },
-
-    // --- Core Logic ---
-
-    isBeadDisabled: function(index) {
-        if (this.chapletType !== 'misericordia') return false;
-        const bead = this.structure[index];
-        // Intro unused beads (indices 4, 5, 6)
-        if (bead.decade === 0 && (index === 4 || index === 5 || index === 6)) return true;
-        // Gloria and Fatima in decades 1-5
-        if (bead.decade >= 1 && bead.decade <= 5 && (bead.type === 'gloria' || bead.type === 'fatima')) return true;
-        return false;
+    open() { RouterSystem.navigate('rezar/terco'); },
+    async startChaplet(type) {
+        this.prep = { ...this.state, chapletType: type, bead: 0, completed: false };
+        if (await this.persist(this.prep)) RouterSystem.navigate('rezar/terco/oracao');
     },
-
-    getPrayerText: function(bead, index) {
-        // Misericordia
-        if (this.chapletType === 'misericordia') {
-            if (bead.decade === 0) {
-                if (index === 0) return { title: 'Sinal da Cruz', text: this.extraPrayers['sinal-cruz'][this.lang] || this.extraPrayers['sinal-cruz'].pt }; // Misericordia starts with sign of cross usually? Or keep default
-                if (index === 1) {
-                    const p = this.basePrayers.find(pr => pr.id === 'pai-nosso');
-                    return { title: 'Pai Nosso', text: p ? p.text.pt : '' };
-                }
-                if (index === 2) {
-                    const p = this.basePrayers.find(pr => pr.id === 'ave-maria');
-                    return { title: 'Ave Maria', text: p ? p.text.pt : '' };
-                }
-                if (index === 3) {
-                    const p = this.basePrayers.find(pr => pr.id === 'credo');
-                    return { title: 'Credo', text: p ? p.text.pt : '' };
-                }
-                if (bead.type === 'salve-rainha') {
-                    return { title: 'Deus Santo (×3)', text: this.extraPrayers['santo-deus'][this.lang] };
-                }
-            }
-            if (bead.decade >= 1 && bead.decade <= 5) {
-                if (bead.type === 'pai-nosso') {
-                    return { title: 'Eterno Pai', text: this.extraPrayers['pai-eterno'][this.lang] };
-                }
-                if (bead.type === 'ave-maria') {
-                    const title = this.lang === 'pt' ? bead.label.replace('Ave Maria', 'Pela Sua Dolorosa Paixão') : 'Pro dolorosa Eius Passione';
-                    return { title: title, text: this.extraPrayers['dolorosa-paixao'][this.lang] };
-                }
-            }
-            if (bead.type === 'salve-rainha') {
-                return { title: 'Santo Deus (×3)', text: this.extraPrayers['santo-deus'][this.lang] };
-            }
-            return { title: bead.label, text: '' };
-        }
-
-        // Santo Terço
-        if (this.extraPrayers[bead.type] && (bead.type === 'sinal-cruz' || bead.type === 'fatima')) {
-            return {
-                title: bead.label,
-                text: this.extraPrayers[bead.type][this.lang]
-            };
-        }
-
-        const typeToId = {
-            'pai-nosso': 'pai-nosso',
-            'ave-maria': 'ave-maria',
-            'gloria': 'gloria',
-            'credo': 'credo',
-            'salve-rainha': 'salve-rainha'
+    render(praying) {
+        if (!this.structure.length) { PrayUI.mount(`<div class="pray-wrap">${PrayUI.heading(PrayUI.text('rosary'))}</div>`); PrayUI.back(); return; }
+        if (praying) this.renderPrayer(); else this.renderPreparation();
+    },
+    renderPreparation() {
+        const u = PrayUI;
+        this.prep = { ...this.state, mystery: RosaryCore.mysteryForDay(new Date()), chapletType: 'terco', completed: false };
+        const resumable = this.saved && !this.saved.completed && this.saved.bead > 0;
+        const position = resumable ? this.describe(this.saved) : null;
+        u.mount(`<div class="pray-wrap pray-narrow rosary-preparation">${u.heading(u.text('prepare'))}<p class="meta">${u.text('suggested',{mystery:t('pray.' + this.prep.mystery)})}</p>
+            <div class="seg" role="group" aria-label="${u.text('rosary')}"><button id="rosary-type-terco" aria-pressed="true">${u.text('rosary')}</button><button id="rosary-type-misericordia" aria-pressed="false">${u.text('mercy')}</button></div>
+            <div id="rosary-mystery-fields"><div class="seg" role="group" aria-label="${u.text('mysteries')}">${RosaryCore.MYSTERIES.map(m => `<button data-mystery="${m}" aria-pressed="${m === this.prep.mystery}">${u.text(m)}</button>`).join('')}</div><ol id="rosary-mystery-list"></ol></div>
+            <label class="field"><span>${u.text('intention')}</span><input class="input" id="rosary-intention" maxlength="240" value="${u.e(this.prep.intention)}" autocomplete="off"></label>
+            <div class="field"><span>${u.text('prayer_text')}</span><div class="seg" role="group" aria-label="${u.text('prayer_text')}">${['full','name'].map(mode => `<button data-text-mode="${mode}" aria-pressed="${this.prep.textMode === mode}">${u.text(mode)}</button>`).join('')}</div></div>
+            <label class="field"><span>${u.text('language')}</span><select class="input" id="rosary-language">${['pt','en','es','la'].map(lang => `<option value="${lang}" ${this.prep.lang === lang ? 'selected' : ''}>${u.text(lang)}</option>`).join('')}</select></label>
+            ${resumable ? `<div class="banner info"><p>${u.text('resume_position',{mystery:this.saved.chapletType === 'misericordia' ? t('pray.mercy') : t('pray.' + this.saved.mystery),decade:position.decade,prayer:position.title})}</p>${u.button('rosary-resume','resume','btn-aux')}</div>` : ''}
+            <div class="row">${u.button('rosary-start','start','btn-primary btn-lg')}</div><p class="meta" id="rosary-status" role="status"></p></div>`);
+        u.back(); this.renderMysteries();
+        for (const type of ['terco','misericordia']) u.on('rosary-type-' + type,'click', () => {
+            this.prep.chapletType = type;
+            for (const option of ['terco','misericordia']) document.getElementById('rosary-type-' + option).setAttribute('aria-pressed',option === type);
+            document.getElementById('rosary-mystery-fields').hidden = type === 'misericordia';
+        });
+        PrayUI.root.querySelectorAll('[data-mystery]').forEach(button => button.addEventListener('click', () => {
+            this.prep.mystery = button.dataset.mystery;
+            PrayUI.root.querySelectorAll('[data-mystery]').forEach(b => b.setAttribute('aria-pressed',b === button)); this.renderMysteries();
+        }));
+        PrayUI.root.querySelectorAll('[data-text-mode]').forEach(button => button.addEventListener('click', () => { this.prep.textMode = button.dataset.textMode; PrayUI.root.querySelectorAll('[data-text-mode]').forEach(b => b.setAttribute('aria-pressed',b === button)); }));
+        u.on('rosary-language','change', e => this.prep.lang = e.target.value);
+        u.on('rosary-resume','click', () => { this.state = { ...this.saved }; RouterSystem.navigate('rezar/terco/oracao'); });
+        const begin = async () => {
+            this.prep.intention = document.getElementById('rosary-intention').value.trim();
+            const ok = await this.persist({ ...this.prep, bead: 0, completed: false });
+            if (ok) RouterSystem.navigate('rezar/terco/oracao');
+            return ok;
         };
-
-        const prayerId = typeToId[bead.type];
-        if (prayerId) {
-            const prayer = this.basePrayers.find(p => p.id === prayerId);
-            if (prayer) {
-                return {
-                    title: bead.label,
-                    text: prayer.text[this.lang]
-                };
-            }
+        u.on('rosary-start','click', () => resumable ? u.confirm('restart_title','restart_body',begin) : begin());
+    },
+    renderMysteries() {
+        const locale = window._i18nLocale || 'pt', mysteries = this.data.rosary.mysteries[this.prep.mystery];
+        document.getElementById('rosary-mystery-list').innerHTML = (mysteries[locale] || []).map(name => `<li>${PrayUI.e(name)}</li>`).join('');
+    },
+    prayerInfo(state = this.state) {
+        const bead = this.structure[state.bead]; if (!bead) return { title:'', text:'' };
+        let type = bead.type;
+        if (state.chapletType === 'misericordia') {
+            if (state.bead === 1) type = 'pai-nosso';
+            else if (state.bead === 2) type = 'ave-maria';
+            else if (state.bead === 3) type = 'credo';
+            else if (bead.type === 'salve-rainha') type = 'santo-deus';
+            else if (bead.decade > 0) type = bead.type === 'pai-nosso' ? 'pai-eterno' : 'dolorosa-paixao';
         }
-
-        return { title: bead.label, text: '' };
+        const prayer = this.data.prayers.find(p => p.id === type), extra = this.data.rosary.extraPrayers[type];
+        const title = prayer ? PrayUI.title(prayer) : t('pray.' + type);
+        const text = prayer ? prayer.text[state.lang] : extra?.[state.lang];
+        return { title, text: text || t('pray.translation_missing') };
     },
-
-    // --- Rendering ---
-
-    renderBeads: function() {
-        // Full Re-render of beads DOM - Only called on init or mode change
-        this.elements.container.innerHTML = '';
-        let lastDecade = -1;
-
-        this.structure.forEach((bead, index) => {
-            if (bead.decade !== lastDecade && lastDecade !== -1) {
-                const sep = document.createElement('div');
-                sep.className = 'rosary-bead-separator';
-                this.elements.container.appendChild(sep);
-            }
-            lastDecade = bead.decade;
-
-            const beadEl = document.createElement('div');
-            beadEl.className = 'rosary-bead';
-            beadEl.dataset.index = index; // Useful for efficient updates
-
-            const disabled = this.isBeadDisabled(index);
-
-            if (['pai-nosso', 'credo', 'salve-rainha', 'sinal-cruz'].includes(bead.type)) {
-                beadEl.classList.add('bead-large');
-            }
-
-            if (disabled) {
-                beadEl.classList.add('disabled');
-            } else {
-                beadEl.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.goTo(index);
-                });
-            }
-
-            beadEl.title = disabled ? '' : bead.label;
-            this.elements.container.appendChild(beadEl);
-        });
-        
-        // Initial class application
-        this.updateBeadClasses();
+    describe(state) {
+        const p = RosaryCore.position(state,this.structure), info = this.prayerInfo(state);
+        return { ...p, title: p.hail ? t('pray.hail_n',{prayer:info.title,n:p.hail,total:p.decade ? 10 : 3}) : info.title };
     },
-
-    updateBeadClasses: function() {
-        // Optimized update - NO DOM rebuilding
-        const beads = this.elements.container.querySelectorAll('.rosary-bead');
-        
-        beads.forEach(beadEl => {
-            const index = parseInt(beadEl.dataset.index);
-            const disabled = this.isBeadDisabled(index); // Re-check disabled status (dynamic based on mode)
-            
-            // Reset base classes (keep 'rosary-bead' and 'bead-large' if present)
-            beadEl.classList.remove('active', 'visited', 'disabled');
-
-            if (disabled) {
-                beadEl.classList.add('disabled');
-            } else {
-                if (index < this.currentBead) {
-                    beadEl.classList.add('visited');
-                }
-                if (index === this.currentBead) {
-                    beadEl.classList.add('active');
-                }
-            }
-        });
-        
-        this.scrollToActive();
+    renderPrayer() {
+        const u = PrayUI, s = this.state, bead = this.structure[s.bead], pos = this.describe(s), info = this.prayerInfo();
+        const locale = window._i18nLocale || 'pt', names = this.data.rosary.mysteries[s.mystery];
+        const mysteryName = bead.decade > 0 ? names[locale]?.[bead.decade - 1] : '';
+        const allowed = RosaryCore.indices(this.structure,s.chapletType), last = s.bead === allowed[allowed.length - 1];
+        const title = s.chapletType === 'misericordia' ? t('pray.mercy') : t('pray.rosary');
+        const art = bead.type === 'pai-nosso' && s.chapletType === 'terco' ? names.images?.[bead.decade - 1] : null;
+        u.mount(`<div class="rosary-screen"><header class="rosary-top">${u.button('rosary-exit','close')}<span>${u.e(title)}</span><span class="meta">${u.e(s.intention)}</span></header><div class="rosary-main">
+            <nav class="mystery-bar" aria-label="${u.text('mysteries')}">${[1,2,3,4,5].map(n => `<button data-decade="${n}" ${bead.decade === n ? 'aria-current="step"' : ''} aria-label="${(s.chapletType === 'misericordia' ? u.text('stage',{n,total:5}) : u.text('mystery_n',{n,mystery:t('pray.' + s.mystery)}))}"><span>${n}</span></button>`).join('')}</nav>
+            ${s.completed ? `<h1 tabindex="-1" data-route-focus>${u.text('completed_rosary')}</h1>${u.button('rosary-done','return','btn-primary')}` : `<div class="mystery-heading"><p class="label">${u.e(bead.decade ? (s.chapletType === 'misericordia' ? t('pray.stage',{n:bead.decade,total:5}) : t('pray.mystery_n',{n:bead.decade,mystery:t('pray.' + s.mystery)})) : t('pray.' + (bead.type === 'salve-rainha' ? 'closing_rosary' : 'intro_rosary')))}</p><h1 tabindex="-1" data-route-focus>${u.e(s.chapletType === 'terco' ? mysteryName : title)}</h1></div>
+            ${art?.url && /^(https:\/\/|assets\/)/.test(art.url) ? `<figure class="mystery-art"><img src="${u.e(art.url)}" alt="${u.e(mysteryName)}">${art.caption ? `<figcaption>${u.e(l(art.caption))}</figcaption>` : ''}</figure>` : ''}
+            <div class="rosary-beads" role="group" aria-label="${u.text('prayer_text')}">${allowed.filter(i => this.structure[i].decade === bead.decade).map(i => `<button data-bead="${i}" class="rosary-bead-control ${i < s.bead ? 'visited' : ''}" ${i === s.bead ? 'aria-current="step"' : ''} aria-label="${u.e(this.describe({...s,bead:i}).title)}"><span></span></button>`).join('')}</div>
+            <div class="rosary-prayer" aria-live="polite" aria-atomic="true"><h2>${u.e(pos.title)}</h2>${s.textMode === 'full' ? `<p class="prayer-prose" lang="${u.e(s.lang)}">${u.e(info.text)}</p>` : ''}</div><div class="row rosary-controls">${u.button('rosary-previous','previous','btn-aux btn-lg',s.bead === allowed[0] ? 'disabled' : '')}${u.button('rosary-next',last ? 'finish' : 'next','btn-primary btn-lg')}</div><p class="meta">${u.text('keyboard')}</p>`}
+            <p class="meta" id="rosary-status" role="status"></p></div></div>`,'praying');
+        u.on('rosary-exit','click', () => RouterSystem.navigate('rezar'));
+        u.on('rosary-done','click', () => RouterSystem.navigate('rezar'));
+        u.on('rosary-previous','click', () => this.advance(-1));
+        u.on('rosary-next','click', () => this.advance(1));
+        this.rootButtons('[data-decade]',b => this.goTo(this.structure.findIndex(be => be.decade === Number(b.dataset.decade) && be.type === 'pai-nosso')));
+        this.rootButtons('[data-bead]',b => this.goTo(Number(b.dataset.bead)));
+        u.root.querySelectorAll('img').forEach(img => img.addEventListener('error', () => img.closest('figure').remove(),{once:true}));
     },
-
-    scrollToActive: function() {
-        const activeBead = this.elements.container.querySelector('.rosary-bead.active');
-        if (activeBead) {
-            const containerRect = this.elements.container.getBoundingClientRect();
-            const beadRect = activeBead.getBoundingClientRect();
-            const scrollLeft = this.elements.container.scrollLeft;
-            
-            // Center the bead
-            const targetScroll = scrollLeft + (beadRect.left - containerRect.left) - (containerRect.width / 2) + (beadRect.width / 2);
-            this.elements.container.scrollTo({ left: targetScroll, behavior: 'smooth' });
+    rootButtons(selector, action) { PrayUI.root.querySelectorAll(selector).forEach(b => b.addEventListener('click', () => action(b))); },
+    async persist(next) {
+        if (this.busy) return false;
+        this.busy = true;
+        try {
+            const clean = RosaryCore.restore(next,this.structure);
+            if (!await PrayUI.save('ora_rosary_progress',clean,document.getElementById('rosary-status'))) return false;
+            this.state = clean; this.saved = { ...clean }; return true;
+        } finally { this.busy = false; }
+    },
+    async advance(delta) {
+        const allowed = RosaryCore.indices(this.structure,this.state.chapletType);
+        const last = this.state.bead === allowed[allowed.length - 1];
+        const next = delta > 0 && last ? { ...this.state, completed:true } : RosaryCore.move(this.state,delta,this.structure);
+        if (await this.persist(next)) {
+            this.renderPrayer();
+            document.getElementById(delta > 0 ? 'rosary-next' : 'rosary-previous')?.focus({ preventScroll:true });
         }
     },
-
-    updateTextAndUI: function() {
-        const bead = this.structure[this.currentBead];
-        if (!bead) return;
-
-        // Text
-        const info = this.getPrayerText(bead, this.currentBead);
-        this.elements.prayerTitle.textContent = info.title;
-        this.elements.prayerText.textContent = info.text;
-
-        // Mystery Name (Decades 1-5 only for Terço)
-        if (this.chapletType === 'terco' && bead.decade >= 1 && bead.decade <= 5) {
-            const mysteries = this.mysteries[this.mystery];
-            const locale = window._i18nLocale || 'pt';
-            const mysteryList = (typeof mysteries === 'object' && !Array.isArray(mysteries)) ? (mysteries[locale] || mysteries.pt || []) : mysteries;
-            this.elements.mysteryName.textContent = `${bead.decade}º ${t('rosary.mystery_label')}: ${mysteryList[bead.decade - 1]}`;
-        } else if (this.chapletType === 'misericordia' && bead.decade >= 1 && bead.decade <= 5) {
-            this.elements.mysteryName.textContent = `${bead.decade}ª ${t('rosary.decade_label')}`;
-        } else {
-            this.elements.mysteryName.textContent = '';
-        }
-
-        // Counter
-        this.elements.counter.textContent = `${this.currentBead + 1} / ${this.structure.length}`;
-
-        // Language Buttons Active State
-        this.elements.langBtns.forEach(btn => {
-            if (btn.dataset.lang === this.lang) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-
-        // Mystery Buttons Active State
-        this.elements.mysteryBtns.forEach(btn => {
-            if (btn.dataset.mystery === this.mystery) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-
-        // Chaplet Buttons Active State
-        this.elements.chapletBtns.forEach(btn => {
-            if (btn.dataset.chaplet === this.chapletType) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-
-        // Modal Title & Theme
-        if (this.chapletType === 'misericordia') {
-            this.elements.modal.classList.add('mode-misericordia');
-            this.elements.modalTitle.textContent = 'Terço da Misericórdia';
-        } else {
-            this.elements.modal.classList.remove('mode-misericordia');
-            this.elements.modalTitle.textContent = 'Santo Terço';
-        }
-
-        this.saveProgress();
-    },
-
-    refreshDisplay: function() {
-         // Full update wrapper
-         this.updateBeadClasses();
-         this.updateTextAndUI();
-    },
-
-    // --- Navigation ---
-    goTo: function(index) {
-        if (index < 0) index = 0;
-        if (index >= this.structure.length) index = this.structure.length - 1;
-        this.currentBead = index;
-        this.refreshDisplay();
-    },
-
-    findNextActive: function(from, dir) {
-        let i = from + dir;
-        while (i >= 0 && i < this.structure.length) {
-            if (!this.isBeadDisabled(i)) return i;
-            i += dir;
-        }
-        return from;
-    },
-
-    next: function() {
-        const nextIdx = this.findNextActive(this.currentBead, 1);
-        if (nextIdx !== this.currentBead) this.goTo(nextIdx);
-    },
-
-    prev: function() {
-        const prevIdx = this.findNextActive(this.currentBead, -1);
-        if (prevIdx !== this.currentBead) this.goTo(prevIdx);
-    },
-
-    open: function() {
-        // If first time or structure changed (not really expected at runtime but safe)
-        if (this.elements.container.children.length === 0) {
-            this.renderBeads();
-        }
-        
-        animateModal(this.elements.modal, true);
-        
-        // Ensure UI is synced (beads classes, text, scroll)
-        // We call renderBeads above if empty, but we might need to just update classes if already rendered.
-        // However, if we change modes while closed, we might need a re-render.
-        // Safest is:
-        this.renderBeads(); // Re-render to ensure correct disabled beads for current mode
-        this.refreshDisplay();
-    },
-
-    close: function() {
-        animateModal(this.elements.modal, false);
-    },
-
-    bindEvents: function() {
-        // Open
-        if (this.elements.btnRosary) {
-            this.elements.btnRosary.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!isModalVisible(this.elements.modal)) this.open();
-                else this.close();
-            });
-        }
-        
-        // Close
-        if (this.elements.closeBtn) this.elements.closeBtn.addEventListener('click', () => this.close());
-        
-        // Reset
-        if (this.elements.resetBtn) {
-            this.elements.resetBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.currentBead = 0;
-                this.refreshDisplay();
-                showToast(t('toast.rosary_reset'), 'success');
-            });
-        }
-
-        // Nav Buttons
-        if (this.elements.prevBtn) this.elements.prevBtn.addEventListener('click', () => this.prev());
-        if (this.elements.nextBtn) this.elements.nextBtn.addEventListener('click', () => this.next());
-
-        // Keyboard
-        document.addEventListener('keydown', (e) => {
-            if (!isModalVisible(this.elements.modal)) return;
-            
-            if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                this.next();
-            } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                this.prev();
-            }
-        });
-
-        // Mystery Selectors
-        this.elements.mysteryBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.mystery = btn.dataset.mystery;
-                this.refreshDisplay();
-            });
-        });
-
-        // Chaplet Selectors
-        this.elements.chapletBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.chapletType = btn.dataset.chaplet;
-                this.currentBead = 0;
-                this.renderBeads(); // Re-render because disabled beads change
-                this.refreshDisplay();
-            });
-        });
-
-        // JS Language Selectors
-        this.elements.langBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.lang = btn.dataset.lang;
-                this.refreshDisplay();
-            });
-        });
-
-        // Click Outside
-        document.addEventListener('click', (e) => {
-            if (isModalVisible(this.elements.modal) &&
-                !this.elements.modal.contains(e.target) &&
-                !this.elements.btnRosary.contains(e.target)) {
-                this.close();
-            }
-        });
-    }
+    async goTo(bead) { if (bead >= 0 && await this.persist({ ...this.state, bead, completed:false })) { this.renderPrayer(); document.getElementById('rosary-next')?.focus({ preventScroll:true }); } }
 };
-
 window.RosarySystem = RosarySystem;

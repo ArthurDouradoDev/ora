@@ -5,7 +5,16 @@
     "icon": "ph-hands-praying",
     "text": {
       "pt": "Pai nosso, que estais nos céus,\nsantificado seja o Vosso nome;\nvenha a nós o Vosso reino,\nseja feita a Vossa vontade,\nassim na terra como no céu.\n\nO pão nosso de cada dia nos dai hoje;\nperdoai-nos as nossas ofensas,\nassim como nós perdoamos\na quem nos tem ofendido;\ne não nos deixeis cair em tentação,\nmas livrai-nos do mal. Amém.",
-      "la": "Pater noster, qui es in caelis,\nsanctificetur nomen tuum.\nAdveniat regnum tuum.\nFiat voluntas tua,\nsicut in caelo et in terra.\n\nPanem nostrum quotidianum da nobis hodie,\net dimitte nobis debita nostra,\nsicut et nos dimittimus debitoribus nostris.\nEt ne nos inducas in tentationem,\nsed libera nos a malo. Amen."
+      "la": "Pater noster, qui es in caelis,\nsanctificetur nomen tuum.\nAdveniat regnum tuum.\nFiat voluntas tua,\nsicut in caelo et in terra.\n\nPanem nostrum quotidianum da nobis hodie,\net dimitte nobis debita nostra,\nsicut et nos dimittimus debitoribus nostris.\nEt ne nos inducas in tentationem,\nsed libera nos a malo. Amen.",
+      "en": "Our Father, who art in heaven, hallowed be thy name; thy kingdom come; thy will be done on earth as it is in heaven.\n\nGive us this day our daily bread; and forgive us our trespasses, as we forgive those who trespass against us; and lead us not into temptation, but deliver us from evil. Amen.",
+      "es": "Padre nuestro, que estás en el cielo, santificado sea tu Nombre; venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo.\n\nDanos hoy nuestro pan de cada día; perdona nuestras ofensas, como también nosotros perdonamos a los que nos ofenden; no nos dejes caer en la tentación, y líbranos del mal. Amén."
+    },
+    "category": "basic",
+    "essential": true,
+    "titles": {
+      "pt": "Pai Nosso",
+      "en": "Our Father",
+      "es": "Padre Nuestro"
     }
   },
   {
@@ -14,7 +23,16 @@
     "icon": "ph-heart",
     "text": {
       "pt": "Ave Maria, cheia de graça,\no Senhor é convosco,\nbendita sois vós entre as mulheres\ne bendito é o fruto do vosso ventre, Jesus.\n\nSanta Maria, Mãe de Deus,\nrogai por nós, pecadores,\nagora e na hora da nossa morte. Amém.",
-      "la": "Ave Maria, gratia plena,\nDominus tecum.\nBenedicta tu in mulieribus,\net benedictus fructus ventris tui, Iesus.\n\nSancta Maria, Mater Dei,\nora pro nobis peccatoribus,\nnunc, et in hora mortis nostrae. Amen."
+      "la": "Ave Maria, gratia plena,\nDominus tecum.\nBenedicta tu in mulieribus,\net benedictus fructus ventris tui, Iesus.\n\nSancta Maria, Mater Dei,\nora pro nobis peccatoribus,\nnunc, et in hora mortis nostrae. Amen.",
+      "en": "Hail Mary, full of grace, the Lord is with thee. Blessed art thou among women, and blessed is the fruit of thy womb, Jesus.\n\nHoly Mary, Mother of God, pray for us sinners, now and at the hour of our death. Amen.",
+      "es": "Dios te salve, María, llena eres de gracia; el Señor es contigo. Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús.\n\nSanta María, Madre de Dios, ruega por nosotros, pecadores, ahora y en la hora de nuestra muerte. Amén."
+    },
+    "category": "marian",
+    "essential": true,
+    "titles": {
+      "pt": "Ave Maria",
+      "en": "Hail Mary",
+      "es": "Ave María"
     }
   },
   {
@@ -23,7 +41,16 @@
     "icon": "ph-star",
     "text": {
       "pt": "Glória ao Pai, e ao Filho e ao Espírito Santo.\nComo era no princípio, agora e sempre. Amém.",
-      "la": "Gloria Patri, et Filio, et Spiritui Sancto.\nSicut erat in principio, et nunc, et semper,\net in saecula saeculorum. Amen."
+      "la": "Gloria Patri, et Filio, et Spiritui Sancto.\nSicut erat in principio, et nunc, et semper,\net in saecula saeculorum. Amen.",
+      "en": "Glory be to the Father, and to the Son, and to the Holy Spirit. As it was in the beginning, is now, and ever shall be, world without end. Amen.",
+      "es": "Gloria al Padre, y al Hijo, y al Espíritu Santo. Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén."
+    },
+    "category": "basic",
+    "essential": false,
+    "titles": {
+      "pt": "Glória ao Pai",
+      "en": "Glory Be",
+      "es": "Gloria al Padre"
     }
   },
   {
@@ -32,7 +59,16 @@
     "icon": "ph-crown",
     "text": {
       "pt": "Salve, Rainha, Mãe de misericórdia,\nvida, doçura e esperança nossa, salve!\nA vós bradamos, os degredados filhos de Eva;\na vós suspiramos, gemendo e chorando\nneste vale de lágrimas.\n\nEia, pois, advogada nossa,\nesses vossos olhos misericordiosos a nós volvei;\ne depois deste desterro nos mostrai Jesus,\nbendito fruto do vosso ventre,\nó clemente, ó piedosa,\nó doce sempre Virgem Maria.\n\nV. Rogai por nós, santa Mãe de Deus.\nR. Para que sejamos dignos das promessas de Cristo.",
-      "la": "Salve, Regina, Mater misericordiae,\nvita, dulcedo, et spes nostra, salve.\nAd te clamamus, exsules filii Hevae,\nad te suspiramus, gementes et flentes\nin hac lacrimarum valle.\n\nEia, ergo, advocata nostra,\nillos tuos misericordes oculos ad nos converte;\net Iesum, benedictum fructum ventris tui,\nnobis post hoc exsilium ostende.\nO clemens, O pia,\nO dulcis Virgo Maria.\n\nV. Ora pro nobis, sancta Dei Genetrix.\nR. Ut digni efficiamur promissionibus Christi."
+      "la": "Salve, Regina, Mater misericordiae,\nvita, dulcedo, et spes nostra, salve.\nAd te clamamus, exsules filii Hevae,\nad te suspiramus, gementes et flentes\nin hac lacrimarum valle.\n\nEia, ergo, advocata nostra,\nillos tuos misericordes oculos ad nos converte;\net Iesum, benedictum fructum ventris tui,\nnobis post hoc exsilium ostende.\nO clemens, O pia,\nO dulcis Virgo Maria.\n\nV. Ora pro nobis, sancta Dei Genetrix.\nR. Ut digni efficiamur promissionibus Christi.",
+      "en": "Hail, holy Queen, Mother of mercy, our life, our sweetness and our hope. To thee do we cry, poor banished children of Eve; to thee do we send up our sighs, mourning and weeping in this valley of tears.\n\nTurn then, most gracious advocate, thine eyes of mercy toward us; and after this our exile, show unto us the blessed fruit of thy womb, Jesus. O clement, O loving, O sweet Virgin Mary.\n\nPray for us, O holy Mother of God, that we may be made worthy of the promises of Christ.",
+      "es": "Dios te salve, Reina y Madre de misericordia, vida, dulzura y esperanza nuestra; Dios te salve. A ti llamamos los desterrados hijos de Eva; a ti suspiramos, gimiendo y llorando en este valle de lágrimas.\n\nEa, pues, Señora, abogada nuestra, vuelve a nosotros esos tus ojos misericordiosos; y después de este destierro muéstranos a Jesús, fruto bendito de tu vientre. ¡Oh clementísima, oh piadosa, oh dulce Virgen María!\n\nRuega por nosotros, santa Madre de Dios, para que seamos dignos de alcanzar las promesas de nuestro Señor Jesucristo."
+    },
+    "category": "marian",
+    "essential": false,
+    "titles": {
+      "pt": "Salve Rainha",
+      "en": "Hail Holy Queen",
+      "es": "Salve Regina"
     }
   },
   {
@@ -41,7 +77,16 @@
     "icon": "ph-shield-check",
     "text": {
       "pt": "Creio em Deus Pai Todo-Poderoso,\nCriador do céu e da terra;\ne em Jesus Cristo, seu único Filho, nosso Senhor;\nque foi concebido pelo poder do Espírito Santo;\nnasceu da Virgem Maria,\npadeceu sob Pôncio Pilatos,\nfoi crucificado, morto e sepultado;\ndesceu à mansão dos mortos;\nressuscitou ao terceiro dia;\nsubiu aos céus,\nestá sentado à direita de Deus Pai Todo-Poderoso,\ndonde há de vir a julgar os vivos e os mortos.\n\nCreio no Espírito Santo,\nna Santa Igreja Católica,\nna comunhão dos Santos,\nna remissão dos pecados,\nna ressurreição da carne,\nna vida eterna. Amém.",
-      "la": "Credo in Deum Patrem omnipotentem,\nCreatorem caeli et terrae.\nEt in Iesum Christum, Filium eius unicum, Dominum nostrum,\nqui conceptus est de Spiritu Sancto,\nnatus ex Maria Virgine,\npassus sub Pontio Pilato,\ncrucifixus, mortuus, et sepultus,\ndescendit ad inferos,\ntertia die resurrexit a mortuis,\nascendit ad caelos,\nsedet ad dexteram Dei Patris omnipotentis,\ninde venturus est iudicare vivos et mortuos.\n\nCredo in Spiritum Sanctum,\nsanctam Ecclesiam catholicam,\nsanctorum communionem,\nremissionem peccatorum,\ncarnis resurrectionem,\nvitam aeternam. Amen."
+      "la": "Credo in Deum Patrem omnipotentem,\nCreatorem caeli et terrae.\nEt in Iesum Christum, Filium eius unicum, Dominum nostrum,\nqui conceptus est de Spiritu Sancto,\nnatus ex Maria Virgine,\npassus sub Pontio Pilato,\ncrucifixus, mortuus, et sepultus,\ndescendit ad inferos,\ntertia die resurrexit a mortuis,\nascendit ad caelos,\nsedet ad dexteram Dei Patris omnipotentis,\ninde venturus est iudicare vivos et mortuos.\n\nCredo in Spiritum Sanctum,\nsanctam Ecclesiam catholicam,\nsanctorum communionem,\nremissionem peccatorum,\ncarnis resurrectionem,\nvitam aeternam. Amen.",
+      "en": "I believe in God, the Father almighty, Creator of heaven and earth, and in Jesus Christ, his only Son, our Lord, who was conceived by the Holy Spirit, born of the Virgin Mary, suffered under Pontius Pilate, was crucified, died and was buried; he descended into hell; on the third day he rose again from the dead; he ascended into heaven, and is seated at the right hand of God the Father almighty; from there he will come to judge the living and the dead.\n\nI believe in the Holy Spirit, the holy catholic Church, the communion of saints, the forgiveness of sins, the resurrection of the body, and life everlasting. Amen.",
+      "es": "Creo en Dios, Padre todopoderoso, Creador del cielo y de la tierra. Creo en Jesucristo, su único Hijo, nuestro Señor, que fue concebido por obra y gracia del Espíritu Santo, nació de santa María Virgen, padeció bajo el poder de Poncio Pilato, fue crucificado, muerto y sepultado, descendió a los infiernos, al tercer día resucitó de entre los muertos, subió a los cielos y está sentado a la derecha de Dios, Padre todopoderoso. Desde allí ha de venir a juzgar a vivos y muertos.\n\nCreo en el Espíritu Santo, la santa Iglesia católica, la comunión de los santos, el perdón de los pecados, la resurrección de la carne y la vida eterna. Amén."
+    },
+    "category": "basic",
+    "essential": true,
+    "titles": {
+      "pt": "Credo",
+      "en": "Apostles’ Creed",
+      "es": "Credo"
     }
   },
   {
@@ -51,6 +96,13 @@
     "text": {
       "pt": "Meu Deus, eu me arrependo de todo o coração de vos ter ofendido,\nporque sois tão bom e amável.\nPrometo, com a vossa graça,\nesforçar-me para não mais pecar.\nMeu Jesus, misericórdia!",
       "la": "Deus meus, ex toto corde paenitet me omnium meorum peccatorum,\neaque detestor, quia peccando,\nnon solum poenas a Te iuste statutas promeritus sum,\nsed praesertim quia Te summum bonum,\nac Te dignum qui super omnia ametur, offendi.\nIdeo firmiter propono,\nadiuvante gratia Tua,\nde cetero me non peccaturum peccandique occasiones proximas fugiturum. Amen."
+    },
+    "category": "basic",
+    "essential": false,
+    "titles": {
+      "pt": "Ato de Contrição",
+      "en": "Act of Contrition",
+      "es": "Acto de Contrición"
     }
   },
   {
@@ -60,6 +112,13 @@
     "text": {
       "pt": "São Miguel Arcanjo, defendei-nos no combate,\nsede o nosso refúgio contra as maldades e ciladas do demônio.\nOrdene-lhe Deus, instantemente o pedimos,\ne vós, príncipe da milícia celeste,\npela virtude divina,\nprecipitai no inferno a satanás e a todos os espíritos malignos,\nque andam pelo mundo para perder as almas. Amém.",
       "la": "Sancte Michael Archangele, defende nos in proelio,\ncontra nequitiam et insidias diaboli esto praesidium.\nImperet illi Deus, supplices deprecamur:\ntuque, Princeps militiae caelestis,\nSatanam aliosque spiritus malignos,\nqui ad perditionem animarum pervagantur in mundo,\ndivina virtute, in infernum detrude. Amen."
+    },
+    "category": "saints",
+    "essential": false,
+    "titles": {
+      "pt": "São Miguel Arcanjo",
+      "en": "Saint Michael the Archangel",
+      "es": "San Miguel Arcángel"
     }
   },
   {
@@ -69,6 +128,13 @@
     "text": {
       "pt": "V. O Anjo do Senhor anunciou a Maria.\nR. E ela concebeu do Espírito Santo.\nAve Maria...\n\nV. Eis a escrava do Senhor.\nR. Faça-se em mim segundo a vossa palavra.\nAve Maria...\n\nV. E o Verbo se fez carne.\nR. E habitou entre nós.\nAve Maria...\n\nV. Rogai por nós, santa Mãe de Deus.\nR. Para que sejamos dignos das promessas de Cristo.\n\nOremos: Infundi, Senhor, nós Vos pedimos,\na Vossa graça em nossas almas,\npara que nós, que pela anunciação do Anjo\nconhecemos a Encarnação de Jesus Cristo, Vosso Filho,\npela Sua paixão e cruz,\nsejamos conduzidos à glória da ressurreição.\nPelo mesmo Cristo, Senhor nosso. Amém.",
       "la": "V. Angelus Domini nuntiavit Mariae.\nR. Et concepit de Spiritu Sancto.\nAve Maria...\n\nV. Ecce Ancilla Domini.\nR. Fiat mihi secundum Verbum tuum.\nAve Maria...\n\nV. Et Verbum caro factum est.\nR. Et habitavit in nobis.\nAve Maria...\n\nV. Ora pro nobis, Sancta Dei Genetrix.\nR. Ut digni efficiamur promissionibus Christi.\n\nOremus: Gratiam tuam, quaesumus, Domine,\nmentibus nostris infunde;\nut qui, Angelo nuntiante,\nChristi Filii tui incarnationem cognovimus,\nper passionem eius et crucem,\nad resurrectionis gloriam perducamur.\nPer eundem Christum Dominum nostrum. Amen."
+    },
+    "category": "day",
+    "essential": true,
+    "titles": {
+      "pt": "Angelus",
+      "en": "Angelus",
+      "es": "Ángelus"
     }
   },
   {
@@ -78,6 +144,13 @@
     "text": {
       "pt": "Deus eterno e todo-poderoso, que nos criou à Sua imagem\ne nos mandou buscar tudo o que é bom, verdadeiro e belo,\nespecialmente na pessoa divina do Teu Filho unigênito,\nNosso Senhor Jesus Cristo,\nconcedei que, através da intercessão do Bem-Aventurado Carlo Acutis\ndurante nossas viagens pela internet,\ndirijamos nossas mãos e nossos olhos somente àquilo que é agradável a Vós\ne tratemos com caridade e paciência todas aquelas almas que encontrarmos.\nPor Cristo, Nosso Senhor. Amém.",
       "la": ""
+    },
+    "category": "saints",
+    "essential": false,
+    "titles": {
+      "pt": "São Carlo Acutis",
+      "en": "Saint Carlo Acutis",
+      "es": "San Carlo Acutis"
     }
   },
   {
@@ -87,6 +160,13 @@
     "text": {
       "pt": "Vinde, Espírito Santo,\nenchei os corações dos vossos fiéis\ne acendei neles o fogo do Vosso amor.\n\nEnviai o Vosso Espírito e tudo será criado,\ne renovareis a face da terra.\n\nOremos: Ó Deus, que instruístes os corações dos vossos fiéis\ncom a luz do Espírito Santo,\nfazei que apreciemos retamente todas as coisas\nsegundo o mesmo Espírito\ne gozemos sempre da Sua consolação.\nPor Cristo Senhor Nosso. Amém.",
       "la": "Veni, Sancte Spiritus,\nreple tuorum corda fidelium,\net tui amoris in eis ignem accende.\n\nEmitte Spiritum tuum et creabuntur;\net renovabis faciem terrae.\n\nOremus: Deus, qui corda fidelium\nSancti Spiritus illustratione docuisti,\nda nobis in eodem Spiritu recta sapere,\net de eius semper consolatione gaudere.\nPer Christum Dominum nostrum. Amen."
+    },
+    "category": "basic",
+    "essential": false,
+    "titles": {
+      "pt": "Vinde Espírito Santo",
+      "en": "Come, Holy Spirit",
+      "es": "Ven, Espíritu Santo"
     }
   },
   {
@@ -96,6 +176,13 @@
     "text": {
       "pt": "Ofereço-vos, ó meu Deus, em união com o Santíssimo Coração de Jesus,\npelas mãos de Maria Imaculada,\nas orações, obras, sofrimentos e alegrias deste dia,\nem reparação de nossas ofensas\ne por todas as intenções pelas quais o mesmo Divino Coração\nestá continuamente intercedendo e sacrificando-se em nossos altares.\nEu vo-las ofereço de modo particular pelas intenções do Santo Padre, o Papa,\nneste mês e neste dia. Amém.",
       "la": "Domine Iesu Christe, in unione illius divinae intentionis,\nqua in terris laudes Deo persolvisti\net nunc in Eucharistiae Sacramento ubique terrarum persolvis,\nofferro tibi per manus sanctissimae Matris tuae Mariae Immaculatae,\nomnes orationes, actiones, laetitias et passiones meas huius diei,\nin reparationem peccatorum et ad omnium hominum salutem,\nin gratiam Spiritus Sancti, ad gloriam Divini Patris. Amen."
+    },
+    "category": "thanks",
+    "essential": false,
+    "titles": {
+      "pt": "Oferecimento das Obras",
+      "en": "Morning Offering",
+      "es": "Ofrecimiento de Obras"
     }
   },
   {
@@ -105,6 +192,13 @@
     "text": {
       "pt": "Criador Inefável, Vós que sois a verdadeira fonte da luz e da sabedoria,\ndignai-vos infundir sobre as trevas da minha inteligência\num raio da vossa claridade,\nafastando de mim a dupla escuridão em que nasci:\no pecado e a ignorância.\n\nVós, que tornais eloquente a língua das crianças,\nmodelai a minha palavra e derramai nos meus lábios a graça da vossa bênção.\nDai-me agudeza para entender, capacidade para reter,\nmétodo e facilidade para aprender,\nsutileza para interpretar e graça abundante para falar.\n\nInspirai o começo, dirigi o meio e coroai o fim.\nVós que sois verdadeiro Deus e verdadeiro Homem,\ne que viveis e reinais pelos séculos dos séculos. Amém.",
       "la": "Creator ineffabilis, qui verus fons luminis et sapientiae diceris,\ninfundere digneris super intellectus mei tenebras\ntuae radium claritatis,\nduplice, in qua natus sum, a me removens caliginem,\npeccatum scilicet et ignorantiam.\n\nTu, qui linguas infantium facis disertas,\nlinguan meam erudias atque in labiis meis gratiam tuae benedictionis infundas.\nDa mihi intelligendi acumen, retinendi capacitatem,\naddiscendi modum et facilitatem,\ninterpretandi subtilitatem, loquendi gratiam copiosam.\n\nIngressum instruas, progressum dirigas, egressum compleas.\nTu qui es verus Deus et verus homo,\nqui vivis et regnas in saecula saeculorum. Amen."
+    },
+    "category": "day",
+    "essential": false,
+    "titles": {
+      "pt": "Oração para o Estudo",
+      "en": "Prayer before Study",
+      "es": "Oración para el Estudio"
     }
   },
   {
@@ -114,6 +208,13 @@
     "text": {
       "pt": "Glorioso São José, modelo de todos os que se dedicam ao trabalho,\nobtende-me a graça de trabalhar com espírito de penitência,\npara expiação de meus numerosos pecados;\nde trabalhar com consciência, pondo o culto do dever acima de minhas inclinações;\nde trabalhar com recolhimento e alegria,\nolhando como uma honra empregar e desenvolver pelo trabalho\nos dons recebidos de Deus.\n\nTrabalhar com ordem, paz, moderação e paciência,\nsem nunca recuar perante o cansaço e as dificuldades;\ntrabalhar sobretudo com pureza de intenção e com desapego de mim mesmo,\ntendo sempre diante dos olhos a morte e a conta que deverei dar do tempo perdido,\ndos talentos inutilizados, do bem omitido\ne da vã complacência nos sucessos, tão funesta à obra de Deus.\nTudo por Jesus, tudo por Maria, tudo à vossa imitação, ó Patriarca São José!\nTal será a minha divisa na vida e na morte. Amém.",
       "la": "Gloriose Sancte Ioseph, exemplar omnium qui labori addicti sunt,\nimpetra mihi gratiam laborandi in spiritu paenitentiae,\nin expiationem peccatorum meorum innumerorum;\nlaborandi cum conscientia, praeponendo officii religionem inclinationibus meis;\nlaborandi cum gratitudine et gaudio,\nhonorem reputando impendere et evolvere per laborem\ndona a Deo recepta.\n\nLaborandi cum ordine, pace, moderatione et patientia,\nnumquam recedendo coram defatigatione et difficultatibus;\nlaborandi praesertim cum puritate intentionis et a meipso distractione,\nhabendo semper prae oculis mortem et rationem reddendam de tempore perdito,\nde talentis inutilitatis, de bono omisso\net de vana in successibus complacentia, tam funesta operi Dei.\nOmnia pro Iesu, omnia pro Maria, omnia ad imitationem tuam, o Patriarcha Sancte Ioseph!\nHaec erit sententia mea in vita et in morte. Amen."
+    },
+    "category": "thanks",
+    "essential": false,
+    "titles": {
+      "pt": "Oferecimento do Trabalho",
+      "en": "Offering of Work to Saint Joseph",
+      "es": "Ofrecimiento del Trabajo a San José"
     }
   },
   {
@@ -123,6 +224,13 @@
     "text": {
       "pt": "Fica Senhor comigo, pois preciso da tua presença para não te esquecer.\nSabes quão facilmente posso te abandonar.\nFica Senhor comigo, porque sou fraco e preciso da tua força para não cair.\nFica Senhor comigo, porque és minha vida, e sem ti perco o fervor.\nFica Senhor comigo, porque és minha luz, e sem ti reina a escuridão.\nFica Senhor comigo, para me mostrar tua vontade.\n\nFica Senhor comigo, para que ouça tua voz e te siga.\nFica Senhor comigo, pois desejo amar-te e permanecer sempre em tua companhia.\nFica Senhor comigo, se queres que te seja fiel.\nFica Senhor comigo, porque, por mais pobre que seja minha alma, quero que se transforme num lugar de consolação para ti, um ninho de amor.\n\nFica comigo, Jesus, pois se faz tarde e o dia chega ao fim; a vida passa, e a morte, o julgamento e a eternidade se aproximam. Preciso de ti para renovar minhas energias e não parar no caminho. Está ficando tarde, a morte avança e eu tenho medo da escuridão, das tentações, da falta de fé, da cruz, das tristezas. Oh, quanto preciso de ti, meu Jesus, nesta noite de exílio.\n\nFica comigo nesta noite, Jesus, pois ao longo da vida, com todos os seus perigos, eu preciso de ti. Faze, Senhor, que te reconheça como te reconheceram teus discípulos ao partir do pão, a fim de que a Comunhão Eucarística seja a luz a dissipar a escuridão, a força a me sustentar, a única alegria do meu coração.\n\nFica comigo, Senhor, porque na hora da morte quero estar unido a ti, se não pela Comunhão, ao menos pela graça e pelo amor.\n\nFica comigo, Jesus. Não peço consolações divinas, porque não as mereço, mas apenas o presente da tua presença, ah, isso sim te suplico!\n\nFica Senhor comigo, pois é só a ti que procuro, teu amor, tua graça, tua vontade, teu coração, teu Espírito, porque te amo, e a única recompensa que te peço é poder amar-te sempre mais. Com este amor resoluto desejo amar-te de todo o coração enquanto estiver na terra, para continuar a te amar perfeitamente por toda a eternidade. Amém.\n\nSão Padre Pio, rogai por nós!",
       "la": "Mane mecum, Domine, quia te praesentem habere necesse est ut tui non obliviscar. Scis quam facile te deseram.\nMane mecum, Domine, quia infirmus sum et egeo viribus tuis, ne toties incidam.\nMane mecum, Domine, quia vita mea es, et sine te, sine fervore sum.\nMane mecum, Domine, quia lux mea es, et sine te in tenebris sum.\nMane mecum, Domine, ad demonstrandam mihi voluntatem tuam.\n\nMane mecum, Domine, ut vocem tuam audiam et sequam te.\nMane mecum, Domine, quia te valde amare cupio, et semper in tua societate esse.\nMane mecum, Domine, si vis me tibi fidelem esse.\nMane mecum, Domine, quia sicut pauper est anima mea, volo tibi esse locus consolationis tibi, nidus amoris.\n\nMane mecum, Iesu, quia sero fit et dies concluditur, vita transit, mors, iudicium, aeternitas appropinquat. Vires meas renovare necesse est, ut in via non desinam, eoque te requiro. Sero incipit et mors appropinquat. Timeo tenebras, tentationes, ariditatem, crucem, dolores. O quam indigeo te, mi Jesu, in hac nocte exilii!\n\nMane mecum hac nocte, Iesus, in vita cum omnibus periculis suis, te requiro. Agnosco te uti discipuli tui in fractione panis, ut Communio eucharistica lux sit quae tenebras discutit, vim quae me sustentat, unicum cordis mei gaudium.\n\nMane mecum, Domine, quia in hora mortis meae Tibi, si non Communione, saltem gratia et amore, volo unitus manere.\n\nMane mecum, Jesu, consolationem divinam non peto, quia non mereor, sed dono praesentiae tuae, immo a te hoc rogo;\n\nMane mecum, Domine, quia tu solus exspecto. Amorem tuum, Gratiam tuam, Voluntatem tuam, Cor tuum, Spiritum tuum, quia amo te, et nullum aliud praemium peto, nisi ut te magis ac magis diligas. Firma caritate, ex toto corde meo te amabo in terra, et perfecte te amem in aeternitate. Amen."
+    },
+    "category": "thanks",
+    "essential": false,
+    "titles": {
+      "pt": "Fica Senhor Comigo",
+      "en": "Stay with Me, Lord",
+      "es": "Quédate Conmigo, Señor"
     }
   },
   {
@@ -132,6 +240,13 @@
     "text": {
       "pt": "Deus uno e trino, onipotente e eterno! Antes de suplicarmos aos vossos servos, os Santos Anjos, prostramo-nos diante de vós e vos adoramos, Pai, Filho e Espírito Santo! Bendito e louvado sejais por toda a eternidade! E que todos os anjos e homens, por vós criados, vos adorem, vos amem e vos sirvam, ó Deus santo, Deus forte, Deus imortal!\n— E vós, Maria, Rainha de todos os anjos, aceitai benigna as súplicas dirigidas aos vossos servos e apresentai-as junto do trono do Altíssimo — vós que sois a onipotência suplicante e medianeira das graças — a fim de obtermos graça, salvação e auxílio. Amém. \n\nPoderosos Santos Anjos, que por Deus nos fostes concedidos para nossa proteção e auxílio, em nome da Santíssima Trindade nós vos suplicamos:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome do Preciosíssimo Sangue de Nosso Senhor Jesus Cristo:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos pelo poderosíssimo nome de Jesus:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos por todas as chagas de Nosso Senhor Jesus Cristo:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos por todos os martírios de Nosso Senhor Jesus Cristo:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos pela Palavra santa de Deus:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos pelo Coração de Nosso Senhor Jesus Cristo:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome do amor que Deus tem por nós, pobres:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome da fidelidade de Deus por nós, pobres:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome da misericórdia de Deus por nós, pobres:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome de Maria, Mãe de Deus e nossa Mãe:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome de Maria, Rainha do Céu e da terra:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos em nome de Maria, vossa Rainha e Senhora:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos pela vossa própria bem-aventurança:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos pela vossa própria fidelidade:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos pela vossa luta na defesa do Reino de Deus:\n— Vinde depressa, socorrei-nos! \n\nNós vos suplicamos:\n— Protegei-nos com o vosso escudo! \n\nNós vos suplicamos:\n— Defendei-nos com a vossa espada! \n\nNós vos suplicamos:\n— Iluminai-nos com a vossa luz! \n\nNós vos suplicamos:\n— Salvai-nos sob o manto protetor de Maria! \n\nNós vos suplicamos:\n— Guardai-nos no Coração de Maria! \n\nNós vos suplicamos:\n— Confiai-nos às mãos de Maria! \n\nNós vos suplicamos:\n— Mostrai-nos o caminho que conduz à Porta da Vida: o Coração aberto de Nosso Senhor! \n\nNós vos suplicamos:\n— Guiai-nos com segurança à Casa do Pai celestial! \n\nTodos vós, nove coros dos espíritos bem-aventurados:\n— Vinde depressa, socorrei-nos! \n\nVós, nossos companheiros especiais, a nós dados por Deus:\n— Vinde depressa, socorrei-nos! \n\nInsistentemente vos suplicamos:\n— Vinde depressa, socorrei-nos! \n\nO Sangue Preciosíssimo de Nosso Senhor e Rei foi derramado por nós, pobres.\n— Insistentemente vos suplicamos: vinde depressa, socorrei-nos! \n\nO Coração de Nosso Senhor e Rei bate por amor de nós, pobres.\n— Insistentemente vos  suplicamos: vinde depressa, socorrei-nos! \n\nO Coração Imaculado de Maria, Virgem puríssima e vossa Rainha, bate por amor de nós pobres.\n— Insistentemente vos suplicamos: vinde depressa, socorrei-nos! \n\nSão Miguel Arcanjo, vós, príncipe dos exércitos celestes, vencedor do dragão infernal, recebestes de Deus força e poder para aniquilar, pela humildade, a soberba dos poderes das trevas.\n— Nós vos suplicamos que nos ajudeis a ter uma verdadeira humildade de coração, uma fidelidade inabalável no cumprimento contínuo da vontade de Deus e a fortaleza no sofrimento e na penúria. Socorrei-nos para subsistirmos perante o tribunal de Deus! \n\nSão Gabriel Arcanjo, vós, Anjo da Encarnação, mensageiro fiel de Deus, abri os nossos ouvidos também às suaves exortações e chamadas do Coração amoroso de Nosso Senhor.\n— Nós vos suplicamos que fiqueis sempre diante do nosso olhar para compreendermos bem a palavra de Deus, a seguirmos e lhe obedecermos e, assim, realizarmos aquilo que Deus quer de nós. Ajudai-nos a estar sempre disponíveis e vigilantes, de modo a que o Senhor, quando vier, não nos encontre dormindo! \n\nSão Rafael Arcanjo, vós, flecha de amor e remédio do amor de Deus,\n— nós vos suplicamos, feri o nosso coração com o amor ardente de Deus e nunca deixeis que esta ferida sare, para que, também no dia a dia, permaneçamos sempre no caminho do amor e tudo vençamos através do amor!\n\nSocorrei-nos, vós, nossos irmãos grandes e santos, que conosco servis diante de Deus!\n— Defendei-nos de nós próprios, da nossa covardia e tibieza, do nosso egoísmo e avareza, da nossa inveja e desconfiança, da nossa avidez de fartura, bem-estar e estima pública. \n\nDesatai em nós as algemas do pecado e do apego às coisas terrenas. Tirai dos nossos olhos as vendas que nós mesmos nos pusemos para não precisarmos ver a miséria ao nosso redor e permanecermos, assim, sossegados numa contemplação e compaixão de nós mesmos.\n— Cravai no nosso coração o aguilhão da santa inquietude por Deus, para que não cessemos de procurá-lo com ânsia, contrição e amor.\n\nContemplai o Sangue de Nosso Senhor, derramado por nossa causa!\n— Contemplai as lágrimas da vossa Rainha, choradas por nossa causa! \n\nContemplai em nós a imagem de Deus, que Ele por amor imprimiu na nossa alma e agora está desfigurada por nossos pecados!\n— Auxiliai-nos a conhecer Deus, adorá-lo, amá-lo e servi-lo! \n\nAuxiliai-nos na luta contra os poderes das trevas que disfarçadamente nos envolvem e afligem.\n— Auxiliai-nos para que nenhum de nós se perca e, um dia, nos reunamos todos, jubilosos, na eterna bem-aventurança. Amém. \n\nComo complemento a essas súplicas, pode-se invocar durante o dia, muitas vezes, os Santos Anjos: \n\nSão Miguel, assisti-nos com os vossos Anjos, ajudai-nos e rogai por nós! \nSão Gabriel, assisti-nos com os vossos Anjos, ajudai-nos e rogai por nós! \nSão Rafael, assisti-nos com os vossos Anjos, ajudai-nos e rogai por nós!",
       "la": ""
+    },
+    "category": "saints",
+    "essential": false,
+    "titles": {
+      "pt": "Súplica aos Santos Anjos",
+      "en": "Supplication to the Holy Angels",
+      "es": "Súplica a los Santos Ángeles"
     }
   },
   {
@@ -141,6 +256,13 @@
     "text": {
       "pt": "A Cruz Sagrada seja a minha luz,\nnão seja o dragão o meu guia.\nAfastate-te, satanás!\nNão me aconselhes coisas vãs.\nÉ mau o que tu me ofereces,\nbebe tu mesmo os teus venenos!",
       "la": "Crux Sacra Sit Mihi Lux.\nNon Draco Sit Mihi Dux.\nVade Retro Satana.\nNumquam Suade Mihi Vana.\nSunt Mala Quae Libas.\nIpse Venena Bibas."
+    },
+    "category": "saints",
+    "essential": false,
+    "titles": {
+      "pt": "São Bento",
+      "en": "Saint Benedict",
+      "es": "San Benito"
     }
   }
 ]

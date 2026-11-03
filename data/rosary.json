@@ -1,21 +1,25 @@
 {
   "mysteries": {
     "gozosos": {
+      "images": [null, null, null, null, null],
       "pt": ["A Anunciação do Anjo a Nossa Senhora", "A Visitação de Nossa Senhora a Santa Isabel", "O Nascimento de Jesus", "A Apresentação de Jesus no Templo", "A Perda e o Encontro de Jesus no Templo"],
       "en": ["The Annunciation", "The Visitation", "The Nativity", "The Presentation", "The Finding in the Temple"],
       "es": ["La Anunciación del Ángel a Nuestra Señora", "La Visitación de Nuestra Señora a Santa Isabel", "El Nacimiento de Jesús", "La Presentación de Jesús en el Templo", "La Pérdida y el Hallazgo de Jesús en el Templo"]
     },
     "dolorosos": {
+      "images": [null, null, null, null, null],
       "pt": ["A Agonia de Jesus no Horto", "A Flagelação de Jesus", "A Coroação de Espinhos", "Jesus carrega a Cruz", "A Crucificação e Morte de Jesus"],
       "en": ["The Agony in the Garden", "The Scourging at the Pillar", "The Crowning with Thorns", "The Carrying of the Cross", "The Crucifixion and Death of Jesus"],
       "es": ["La Agonía de Jesús en el Huerto", "La Flagelación de Jesús", "La Coronación de Espinas", "Jesús carga la Cruz", "La Crucifixión y Muerte de Jesús"]
     },
     "gloriosos": {
+      "images": [null, null, null, null, null],
       "pt": ["A Ressurreição de Jesus", "A Ascensão de Jesus ao Céu", "A Vinda do Espírito Santo", "A Assunção de Nossa Senhora", "A Coroação de Nossa Senhora"],
       "en": ["The Resurrection", "The Ascension", "The Descent of the Holy Spirit", "The Assumption of Mary", "The Coronation of Mary"],
       "es": ["La Resurrección de Jesús", "La Ascensión de Jesús al Cielo", "La Venida del Espíritu Santo", "La Asunción de Nuestra Señora", "La Coronación de Nuestra Señora"]
     },
     "luminosos": {
+      "images": [null, null, null, null, null],
       "pt": ["O Batismo de Jesus no Jordão", "A Auto-revelação de Jesus nas Bodas de Caná", "O Anúncio do Reino de Deus", "A Transfiguração de Jesus", "A Instituição da Eucaristia"],
       "en": ["The Baptism of Jesus", "The Wedding at Cana", "The Proclamation of the Kingdom", "The Transfiguration", "The Institution of the Eucharist"],
       "es": ["El Bautismo de Jesús en el Jordán", "La Auto-revelación de Jesús en las Bodas de Caná", "El Anuncio del Reino de Dios", "La Transfiguración de Jesús", "La Institución de la Eucaristía"]

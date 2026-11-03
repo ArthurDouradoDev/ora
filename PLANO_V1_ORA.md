@@ -320,6 +320,8 @@ O tema do Advento e a migração **não** entram no corte.
 
 ## Fase 3 — Rezar
 
+**Implementada em 03/11/2026.** Evidências e instruções de verificação em `tests/FASE_3.md`.
+
 **Em resumo:** o painel Rezar do `03c-rezar-prioridades`. As orações da pessoa (favoritas) vêm primeiro, depois o Evangelho do dia com ações claras (ler, Lectio), as práticas (terço, Respiro, exame, Bíblia) e os santos do dia em destaque secundário. A Biblioteca, o leitor e o terço são refeitos com o estilo aprovado e com retomada real.
 
 ### Escopo

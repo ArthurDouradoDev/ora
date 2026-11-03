@@ -24,14 +24,12 @@
     <link rel="stylesheet" href="styles/components/inputs.css">
     <link rel="stylesheet" href="styles/components/modals.css">
     <link rel="stylesheet" href="styles/components/ui.css">
+    <link rel="stylesheet" href="styles/modules/rezar.css">
     <link rel="stylesheet" href="styles/layout/main.css">
     <link rel="stylesheet" href="styles/layout/grid.css">
     <link rel="stylesheet" href="styles/layout/shell.css">
     <link rel="stylesheet" href="styles/modules/blocker.css">
     <link rel="stylesheet" href="styles/modules/music.css">
-    <link rel="stylesheet" href="styles/modules/rosary.css">
-    <link rel="stylesheet" href="styles/modules/prayers.css">
-    <link rel="stylesheet" href="styles/modules/exam.css">
     <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/modules/onboarding.css">
     <link rel="stylesheet" href="styles/modules/today.css">
@@ -336,20 +334,8 @@
         </aside>
     </main>
 
-    <!-- Rezar provisório: substituído na fase 3 -->
-    <main class="view view-placeholder" id="view-rezar" data-view="rezar" hidden>
-        <section class="placeholder-card surface-light">
-            <p class="label" data-i18n="nav.pray">Rezar</p>
-            <h1 data-route-focus data-i18n="views.pray_title">Um espaço para rezar</h1>
-            <p data-i18n="views.pray_desc">O novo painel de oração está sendo preparado. Enquanto isso, o terço, as orações e o exame continuam aqui.</p>
-            <div class="row">
-                <button type="button" class="btn btn-aux" data-legacy-open="btn-rosary"><i class="ph ph-cross" aria-hidden="true"></i><span data-i18n="views.open_rosary">Terço</span></button>
-                <button type="button" class="btn btn-aux" data-legacy-open="btn-prayers"><i class="ph ph-book-open" aria-hidden="true"></i><span data-i18n="views.open_prayers">Orações</span></button>
-                <button type="button" class="btn btn-aux" data-legacy-open="btn-exam"><i class="ph ph-heart" aria-hidden="true"></i><span data-i18n="views.open_exam">Exame</span></button>
-                <a class="btn btn-aux ext" id="link-bible" href="https://padrepauloricardo.org/biblia/gn?cap=1&amp;edition=matos-soares" target="_blank" rel="noopener" data-i18n-href="header.bible_url"><i class="ph ph-book-bookmark" aria-hidden="true"></i><span data-i18n="header.bible">Bíblia</span></a>
-            </div>
-        </section>
-    </main>
+    <!-- Rezar: entrada e subtelas renderizadas pelos módulos da fase 3 -->
+    <main class="view view-rezar" id="view-rezar" data-view="rezar" hidden></main>
 
     <!-- Frutos provisório: substituído na fase 5 -->
     <main class="view view-placeholder" id="view-frutos" data-view="frutos" hidden>
@@ -373,144 +359,11 @@
         <button type="button" id="btn-screentime" tabindex="-1"></button>
     </div>
 
-    <!-- Prayer List Modal -->
-    <div id="prayer-list" class="glass-panel modal modal-corner-bottom-right modal-fade" style="display: none;">
-        <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 data-i18n="prayers.list_title">Orações</h3>
-                <button id="close-prayer-list-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-            </div>
-            <div class="prayer-search-container">
-                <i class="ph ph-magnifying-glass search-icon"></i>
-                <input type="text" id="prayer-search-input" placeholder="Buscar oração..." data-i18n-placeholder="prayers.search_placeholder">
-            </div>
-        </div>
-        <div id="prayer-grid" class="prayer-grid"></div>
-    </div>
-
-    <!-- Prayer Reader Modal -->
-    <div id="prayer-reader" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <button id="back-to-list-btn" class="icon-btn" data-i18n-title="prayers.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 id="prayer-reader-title" data-i18n="prayers.reader_title">Oração</h3>
-            <button id="close-prayer-reader-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="lang-toggle">
-            <button class="lang-btn active" data-lang="pt" data-i18n="prayers.lang_portuguese">Português</button>
-            <button class="lang-btn" data-lang="la" data-i18n="prayers.lang_latin">Latim</button>
-        </div>
-        <div id="prayer-text" class="prayer-text"></div>
-    </div>
-
-    <!-- Rosary (Terço) Modal -->
-    <div id="rosary-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 id="rosary-modal-title" data-i18n="rosary.modal_title">Santo Terço</h3>
-            <div class="lang-toggle-rosary" style="display: flex; gap: 8px; margin-right: 16px;">
-                <button class="lang-btn active" data-lang="pt">PT</button>
-                <button class="lang-btn" data-lang="la">LA</button>
-            </div>
-            <button id="reset-rosary-btn" class="icon-btn" data-i18n-title="rosary.btn_restart" title="Recomeçar"><i class="ph ph-arrow-counter-clockwise"></i></button>
-            <button id="close-rosary-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="rosary-chaplet-selector">
-            <button class="rosary-chaplet-btn active" data-chaplet="terco" data-i18n-html="rosary.chaplet_terco"><i class="ph ph-cross"></i> Santo Terço</button>
-            <button class="rosary-chaplet-btn" data-chaplet="misericordia" data-i18n-html="rosary.chaplet_mercy"><i class="ph ph-heart"></i> Misericórdia</button>
-        </div>
-        <div class="rosary-mystery-selector">
-            <button class="rosary-mystery-btn active" data-mystery="gozosos" data-i18n="rosary.mystery_joyful">Gozosos</button>
-            <button class="rosary-mystery-btn" data-mystery="dolorosos" data-i18n="rosary.mystery_sorrowful">Dolorosos</button>
-            <button class="rosary-mystery-btn" data-mystery="gloriosos" data-i18n="rosary.mystery_glorious">Gloriosos</button>
-            <button class="rosary-mystery-btn" data-mystery="luminosos" data-i18n="rosary.mystery_luminous">Luminosos</button>
-        </div>
-        <div class="rosary-mystery-name"></div>
-        <div class="rosary-beads-container"></div>
-        <div class="rosary-prayer-display">
-            <div class="rosary-prayer-title"></div>
-            <div class="rosary-prayer-text"></div>
-        </div>
-        <div class="rosary-nav">
-            <button id="rosary-prev" class="icon-btn"><i class="ph ph-caret-left"></i></button>
-            <span class="rosary-counter">1 / 72</span>
-            <button id="rosary-next" class="icon-btn"><i class="ph ph-caret-right"></i></button>
-        </div>
-    </div>
-
-    <!-- Exam Type Selector Modal -->
-    <div id="exam-type-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 data-i18n="exam.type_title">Examinar</h3>
-            <button id="close-exam-type-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="exam-suggestion"></div>
-        <div id="exam-type-grid" class="exam-type-grid grid grid-2 gap-sm"></div>
-        <div class="exam-virtues-link">
-            <button id="open-virtues-btn" class="glass-panel-sm exam-virtues-btn" data-i18n-html="exam.virtues_checklist"><i class="ph ph-list-checks"></i> Checklist de Virtudes</button>
-        </div>
-        <div class="exam-streak">
-            <i class="ph ph-fire"></i>
-            <span id="exam-streak-text">0 exames esta semana</span>
-        </div>
-    </div>
-
-    <!-- Exam Flow Modal -->
-    <div id="exam-flow-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <button id="exam-flow-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 id="exam-flow-title" data-i18n="exam.flow_title">Exame</h3>
-            <button id="close-exam-flow-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="exam-progress-bar"><div class="exam-progress-fill"></div></div>
-        <div class="exam-question-container">
-            <div class="exam-question-text"></div>
-            <div class="exam-input-area"></div>
-        </div>
-        <div class="exam-flow-nav">
-            <button id="exam-prev-btn" class="icon-btn" data-i18n-title="exam.btn_prev" title="Anterior"><i class="ph ph-caret-left"></i></button>
-            <span class="exam-step-counter">1 / 3</span>
-            <button id="exam-next-btn" class="icon-btn" data-i18n-title="exam.btn_next" title="Próximo"><i class="ph ph-caret-right"></i></button>
-        </div>
-    </div>
-
-    <!-- Micro-Prayer Suggestion -->
-    <div id="micro-prayer-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <button id="micro-prayer-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 data-i18n="exam.micro_prayer_title">Oração Rápida</h3>
-            <button id="close-micro-prayer-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div id="micro-prayer-options" class="micro-prayer-grid grid grid-3 gap-sm"></div>
-        <div id="micro-prayer-text" class="prayer-text" style="display: none;"></div>
-    </div>
-
-    <!-- Virtues Checklist Modal -->
-    <div id="virtues-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <button id="virtues-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 data-i18n="exam.virtues_title">Virtudes do Dia</h3>
-            <button id="close-virtues-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div id="virtues-list" class="virtues-list"></div>
-        <div class="virtues-summary">
-            <span id="virtues-summary-text"></span>
-        </div>
-        <div class="virtues-edit-section">
-            <button id="edit-virtues-btn" class="glass-panel-sm exam-virtues-btn" data-i18n-html="exam.virtues_edit"><i class="ph ph-pencil"></i> Editar Virtudes</button>
-        </div>
-    </div>
-
-    <!-- Virtues Editor Modal -->
-    <div id="virtues-editor" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <button id="virtues-editor-back-btn" class="icon-btn" data-i18n-title="exam.btn_back" title="Voltar"><i class="ph ph-arrow-left"></i></button>
-            <h3 data-i18n="exam.virtues_editor_title">Editar Virtudes</h3>
-            <button id="close-virtues-editor-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <div id="virtues-editor-list" class="virtues-editor-list"></div>
-        <div class="add-virtue-section">
-            <input type="text" id="new-virtue-input" placeholder="Nova virtude..." data-i18n-placeholder="exam.new_virtue_placeholder">
-            <button id="add-virtue-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
-        </div>
+    <div class="scrim" id="pray-confirm" hidden>
+        <section class="dialog surface-solid" role="alertdialog" aria-modal="true" aria-labelledby="pray-confirm-title" aria-describedby="pray-confirm-body">
+            <h2 id="pray-confirm-title"></h2><p id="pray-confirm-body"></p>
+            <div class="row"><button class="btn btn-primary" id="pray-confirm-yes" type="button"></button><button class="btn btn-quiet" type="button" data-dialog-close data-i18n="pray.cancel">Cancelar</button></div>
+        </section>
     </div>
 
     <!-- Site Blocker Modal -->
@@ -1035,10 +888,20 @@
     <script src="scripts/shared/migrate-core.js" defer></script>
     <script src="scripts/shared/today-core.js" defer></script>
     <script src="scripts/shared/reminders-core.js" defer></script>
+    <script src="scripts/shared/search-core.js" defer></script>
+    <script src="scripts/shared/reader-core.js" defer></script>
+    <script src="scripts/shared/rosary-core.js" defer></script>
+    <script src="scripts/shared/liturgy-core.js" defer></script>
+    <script src="scripts/shared/saints-core.js" defer></script>
+    <script src="scripts/shared/bible-core.js" defer></script>
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
+    <script src="scripts/ui/prayer-ui.js" defer></script>
     <script src="scripts/modules/prayers.js" defer></script>
+    <script src="scripts/modules/reader.js" defer></script>
+    <script src="scripts/modules/respiro.js" defer></script>
+    <script src="scripts/modules/rezar.js" defer></script>
     <script src="scripts/modules/blocker.js" defer></script>
     <script src="scripts/modules/rosary.js" defer></script>
     <script src="scripts/modules/reminders.js" defer></script>

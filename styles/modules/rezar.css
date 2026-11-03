@@ -1,0 +1,194 @@
+/* Rezar V1 — editorial composition from 03c, shared Ora tokens. */
+.view-rezar { overflow-y:auto; background:var(--bg); color:var(--text); }
+.view-rezar button, .view-rezar input, .view-rezar select, .view-rezar textarea { font:inherit; }
+.view-rezar button { cursor:pointer; }
+.view-rezar .btn { white-space:normal; text-align:center; }
+.view-rezar .seg { flex-wrap:wrap; }
+.view-rezar .seg button { white-space:normal; min-width:2rem; min-height:2.5rem; }
+.view-rezar .row { flex-wrap:wrap; gap:.75rem; }
+.view-rezar .text-link { display:inline-flex; align-items:center; min-height:2rem; color:var(--text-2); background:none; border:0; font:inherit; text-decoration:none; cursor:pointer; }
+.view-rezar .text-link:hover { color:var(--gold); }
+.view-rezar .stack { display:grid; gap:1.25rem; }
+.view-rezar h1, .view-rezar h2, .view-rezar h3 { overflow-wrap:anywhere; }
+.view-rezar h1 { font-family:var(--f-read); font-size:2rem; font-weight:400; line-height:1.35; }
+.view-rezar h2 { font-size:1.125rem; font-weight:500; line-height:1.5; }
+.view-rezar h3 { font-family:var(--f-read); font-size:1.25rem; font-weight:400; }
+.view-rezar p { line-height:1.7; }
+.pray-wrap { width:min(72rem,100%); margin:0 auto; padding:2rem 3rem 3rem; }
+.pray-narrow { max-width:43rem; display:grid; gap:1.5rem; }
+.pray-heading { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; }
+.pray-heading>.btn { margin-left:-.75rem; }
+.pray-home-heading { display:flex; align-items:center; justify-content:space-between; gap:2rem; margin-bottom:2rem; }
+.pray-home-heading h1 { margin:.3rem 0 .6rem; }
+.pray-home-heading form { display:flex; align-items:center; max-width:24rem; }
+.pray-home-heading form button { margin-left:-3rem; flex:none; }
+.pray-home-heading input { padding-right:3rem; }
+.view-rezar .section-head { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:.75rem; margin-bottom:.75rem; }
+.pray-personal { border-bottom:1px solid var(--line); padding-bottom:1.2rem; margin-bottom:1.6rem; }
+.pray-personal .section-head h2 { font-size:1rem; }
+.pray-personal .text-link { font-size:.8125rem; }
+.personal-prayers { display:flex; flex-wrap:wrap; gap:.4rem 2rem; }
+.personal-prayer { display:flex; align-items:center; gap:.65rem; padding:.4rem 0; min-height:2.75rem; background:none; border:0; color:var(--text); font-size:.9375rem; text-align:left; }
+.personal-prayer i:first-child { color:var(--gold); font-size:1.25rem; }
+.personal-prayer i:last-child { color:var(--text-3); font-size:.875rem; }
+.personal-prayer:hover { color:var(--gold); }
+.pray-gospel { margin-bottom:1.8rem; }
+.gospel-story { display:flex; align-items:center; gap:2.5rem; }
+.gospel-story>div { min-width:0; flex:1; }
+.gospel-story h2 { font-family:var(--f-read); font-size:1.85rem; font-weight:400; margin:.5rem 0; }
+.gospel-story .row { margin:1rem 0 .6rem; display:flex; }
+.gospel-story .text-link { font-size:.8125rem; }
+.gospel-art { margin:0; max-width:50%; min-width:0; }
+.gospel-art img { display:block; width:100%; height:auto; object-fit:contain; border-radius:var(--r-sm); }
+.gospel-art figcaption { margin-top:.5rem; font-size:.75rem; color:var(--text-3); }
+.pray-practices { border-top:1px solid var(--line); padding-top:1.2rem; }
+.pray-practices>h2 { font-size:.9375rem; margin-bottom:.5rem; }
+.practice-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 2.5rem; }
+.practice-link { display:flex; align-items:center; gap:.9rem; padding:1.1rem 0; min-width:0; border:0; border-bottom:1px solid var(--line); background:none; color:var(--text); text-align:left; }
+.practice-link>i:first-child { color:var(--gold); font-size:1.5rem; }
+.practice-link>i:last-child { margin-left:auto; color:var(--text-3); }
+.practice-link span { display:grid; gap:.35rem; min-width:0; }
+.practice-link b { font-size:.9375rem; font-weight:500; }
+.practice-link small { color:var(--text-3); font-size:.75rem; line-height:1.6; }
+.practice-link:hover b { color:var(--gold); }
+.pray-saints { margin-top:1.6rem; padding-top:1.3rem; border-top:1px solid var(--line); }
+.pray-saints article { margin-top:.75rem; }
+.pray-saints blockquote { font-family:var(--f-read); margin:1rem 0; max-width:40rem; }
+.pray-saints .text-link { font-size:.8125rem; margin-top:.5rem; }
+.pray-footer { margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--line); font-size:.875rem; }
+.library-wrap { max-width:62rem; }
+.library-wrap .pray-heading { margin-bottom:1.5rem; }
+.library-search { display:flex; align-items:center; position:relative; }
+.library-search>i { position:absolute; left:1rem; color:var(--text-3); }
+.library-search .input { padding-left:2.75rem; }
+.results-head { display:flex; justify-content:space-between; align-items:center; gap:.75rem; margin:1rem 0; }
+.results-head p { font-size:.875rem; }
+#prayer-filter-toggle { display:none; }
+.prayer-filters { display:flex; align-items:center; flex-wrap:wrap; gap:1rem 2rem; margin-bottom:.75rem; }
+.prayer-filters .field { flex:1; min-width:10rem; }
+.prayer-filters .toggle { flex:none; }
+#search-scope { font-size:.75rem; margin:.75rem 0 1rem; }
+.prayer-results { list-style:none; padding:0; margin:0; }
+.prayer-row { display:flex; align-items:center; border-bottom:1px solid var(--line); min-width:0; }
+.prayer-open { display:flex; align-items:center; flex:1; min-width:0; gap:1rem; padding:1rem 0; background:none; color:var(--text); border:0; text-align:left; }
+.prayer-open>i:first-child { color:var(--gold); font-size:1.25rem; }
+.prayer-open>i:last-child { color:var(--text-3); margin-left:auto; }
+.prayer-open span { display:grid; gap:.35rem; overflow-wrap:anywhere; }
+.prayer-open b { font-weight:500; }
+.prayer-open small { color:var(--text-3); font-size:.75rem; }
+.prayer-open:hover b { color:var(--gold); }
+.prayer-star { display:grid; place-items:center; width:2.75rem; min-width:2.75rem; min-height:2.75rem; background:none; border:0; border-radius:50%; color:var(--text-3); font-size:1.25rem; }
+.prayer-star[aria-pressed="true"] { color:var(--gold); }
+.prayer-star:hover { background:var(--gold-soft); }
+.prayer-empty { display:grid; justify-items:start; gap:1rem; padding:2rem 0; }
+html[data-prayer-mode="reading"] .topbar, html[data-prayer-mode="praying"] .topbar, html[data-prayer-mode="resting"] .topbar { display:none; }
+.view-rezar[data-mode="reading"] { overflow:hidden; }
+.prayer-reader { display:flex; flex-direction:column; min-height:0; height:100%; background:var(--bg); color:var(--text); }
+.reading-bar { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem 1rem; padding:.75rem 1.25rem; border-bottom:1px solid var(--line); flex:none; }
+.reading-context { font-size:.875rem; margin-right:auto; }
+.reading-options { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; }
+.reading-options output { align-self:center; padding:.3rem; font-variant-numeric:tabular-nums; font-size:.8125rem; }
+.reader-language { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.75rem; padding:.5rem 1rem; font-size:.8125rem; flex:none; }
+.reader-language .input { width:auto; max-width:15rem; padding:.4rem .75rem; min-height:2rem; }
+.reading-progress { height:3px; background:var(--line); flex:none; }
+.reading-progress span { display:block; height:100%; background:var(--gold); }
+.reading-layout { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.reading-inner { width:min(43rem,100%); margin:0 auto; padding:2.5rem 2rem 4rem; font-family:var(--f-read); font-size:var(--read-size); line-height:var(--read-lh); text-align:left; }
+.reading-inner h1 { font-size:1.7em; margin:.4em 0 1.2em; }
+.reading-inner>.meta { margin-bottom:1.5rem; font-family:var(--f-ui); }
+.reading-inner .prayer-prose { font-size:inherit; line-height:var(--read-lh); }
+.prayer-prose { font-family:var(--f-read); font-size:var(--read-size); line-height:var(--read-lh); white-space:pre-line; text-align:left; overflow-wrap:anywhere; }
+.reading-inner .gospel-art { max-width:100%; margin:0 0 2rem; }
+.reading-inner .text-link { font-family:var(--f-ui); font-size:.875rem; }
+.reading-status { margin:0; padding:0 1rem; font-size:.75rem; flex:none; }
+.reading-status:empty { display:none; }
+.prayer-reader[data-appearance="papel"] { --bg:var(--paper); --text:var(--paper-ink); --text-2:var(--paper-ink-2); --text-3:var(--paper-ink-2); --surface-1:#eee5d6; --surface-2:#e7ddcc; --line:#2b251d24; --line-strong:#2b251d55; --gold:#805f24; }
+.prayer-reader[data-appearance="papel"] .gospel-art { max-width:14rem; }
+.prayer-reader[data-appearance="papel"] .btn-primary { background:#805f24; color:#fff9ee; }
+.lectio-access { display:flex; flex-wrap:wrap; padding:0 .5rem; border-bottom:1px solid var(--line); }
+.lectio-access .btn { font-size:.75rem; }
+.with-lectio { display:grid; grid-template-columns:minmax(0,1fr) minmax(18rem,25rem); align-items:start; }
+.with-lectio .reading-inner { width:100%; }
+.lectio-guide { position:sticky; top:0; display:grid; gap:1rem; padding:2rem 1.5rem; border-left:1px solid var(--line); background:var(--surface-1); }
+.lectio-guide h2 { font-family:var(--f-read); font-size:1.5rem; }
+.lectio-guide .reflect { font-size:1.125rem; }
+.lectio-guide .field { font-size:.8125rem; }
+.lectio-guide textarea { min-height:7rem; }
+.lectio-steps { display:flex; gap:.4rem; }
+.lectio-steps span { flex:1; height:3px; background:var(--line); }
+.lectio-steps .filled { background:var(--gold); }
+.rosary-preparation ol { padding-left:1.5rem; color:var(--text-2); line-height:2; }
+.rosary-preparation #rosary-mystery-fields { display:grid; gap:1rem; }
+.rosary-screen { min-height:100%; }
+.rosary-top { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:1rem; padding:1rem 1.5rem; border-bottom:1px solid var(--line); }
+.rosary-top .meta { max-width:20rem; overflow-wrap:anywhere; }
+.rosary-main { max-width:50rem; margin:auto; padding:2rem 1.5rem 3rem; display:grid; justify-items:center; gap:1.5rem; text-align:center; }
+.mystery-bar { display:flex; width:min(25rem,100%); gap:.5rem; }
+.mystery-bar button { flex:1; display:grid; place-items:center; min-height:2.75rem; border:0; background:none; border-bottom:3px solid var(--line); color:var(--text-3); }
+.mystery-bar [aria-current] { color:var(--gold); border-color:var(--gold); }
+.mystery-heading h1 { margin-top:.75rem; font-size:1.75rem; }
+.rosary-beads { display:flex; justify-content:center; flex-wrap:wrap; gap:.15rem; }
+.rosary-bead-control { display:grid; place-items:center; width:2rem; min-width:2rem; height:2.75rem; border:0; background:none; border-radius:var(--r-sm); }
+.rosary-bead-control span { width:.5rem; height:.5rem; border-radius:50%; background:var(--text-3); }
+.rosary-bead-control.visited span { background:var(--gold); }
+.rosary-bead-control[aria-current] { outline:1px solid var(--gold); }
+.rosary-bead-control[aria-current] span { background:var(--gold); transform:scale(1.5); }
+.rosary-prayer { width:100%; max-width:34rem; }
+.rosary-prayer h2 { margin-bottom:1.2rem; }
+.rosary-prayer .prayer-prose { text-align:center; }
+.rosary-controls { display:flex; justify-content:center; }
+.mystery-art { margin:0; max-width:26rem; }
+.mystery-art img { display:block; max-width:100%; max-height:18rem; object-fit:contain; }
+.respiro-screen { min-height:100%; display:grid; place-items:center; padding:2rem 1rem; background:var(--photo-fallback); }
+.respiro-panel { width:min(36rem,100%); padding:2rem; display:grid; gap:1.5rem; border-radius:var(--r-xl); }
+.respiro-panel .section-head { margin:0; }
+.respiro-choices { border:0; padding:0; display:grid; gap:.65rem; }
+.respiro-choices label { display:flex; align-items:center; gap:.75rem; padding:.65rem .75rem; min-height:2.75rem; border:1px solid var(--line); border-radius:var(--r-sm); cursor:pointer; }
+.respiro-choices input { width:1.2rem; height:1.2rem; accent-color:var(--gold); }
+.respiro-choices label:has(:checked) { border-color:var(--gold); background:var(--gold-soft); }
+.respiro-practice h1 { font-size:1.375rem; margin-bottom:1.5rem; }
+.exam-types { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.exam-type { display:grid; justify-items:start; gap:.75rem; padding:1.25rem; text-align:left; color:var(--text); background:var(--surface-1); border:1px solid var(--line); border-radius:var(--r-md); }
+.exam-type:hover { border-color:var(--gold); }
+.exam-type b { font-weight:500; }
+.exam-type small { color:var(--text-3); }
+.exam-flow .textarea { min-height:12rem; }
+.virtue-list { list-style:none; margin:0; padding:0; }
+.virtue-list li { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.75rem; padding:1rem 0; border-bottom:1px solid var(--line); }
+#virtue-add { align-items:end; }
+#virtue-add .field { flex:1; }
+@media (max-width:60rem) { .pray-wrap { padding:1.5rem 2rem 3rem; } .pray-home-heading { align-items:start; flex-direction:column; gap:1rem; } .pray-home-heading form { width:100%; } .with-lectio { grid-template-columns:minmax(0,1fr) minmax(16rem,22rem); } }
+@media (max-width:45rem) {
+    .pray-wrap { padding:1rem 1rem 2rem; } .practice-grid { grid-template-columns:1fr; } .gospel-story { flex-direction:column; align-items:stretch; gap:1rem; }
+    .gospel-art { max-width:100%; } .gospel-story>div { order:-1; } .pray-home-heading h1 { font-size:1.75rem; }
+    #prayer-filter-toggle { display:inline-flex; } .prayer-filters { display:none; } .prayer-filters.expanded { display:flex; } .prayer-filters .toggle { flex-wrap:wrap; }
+    .reading-bar { padding:.5rem; gap:.5rem; } .reading-context { flex:1; } .reading-options { flex-basis:100%; order:3; } .reading-inner { padding:1.5rem 1.25rem 3rem; }
+    .with-lectio { display:block; } .lectio-guide { position:static; border-left:0; border-top:1px solid var(--line); padding:1.25rem; }
+    .gospel-art { max-width:14rem; } .rosary-top { padding:.75rem; } .rosary-main { padding:1.25rem .75rem 2rem; gap:1.25rem; }
+    .respiro-panel { padding:1.25rem; } .respiro-screen { padding:1rem; } .exam-types { grid-template-columns:1fr; } .personal-prayers { gap:.4rem 1.5rem; }
+}
+@media (max-height:35rem) { .lectio-guide { position:static; } .reading-inner .gospel-art { max-width:12rem; } }
+
+@media (max-height: 22rem), (max-width: 45rem) {
+    .library-wrap { padding-top: .5rem; }
+    .library-wrap .pray-heading { margin-bottom: .5rem; gap: .4rem; }
+    .library-wrap .pray-heading h1 { font-size: 1.25rem; }
+    .library-wrap .results-head { margin: .5rem 0; }
+}
+.view-rezar input, .view-rezar select, .view-rezar textarea { min-width: 0; max-width: 100%; }
+.view-rezar .toggle { min-height: 2.75rem; }
+.pray-saint-portrait { float: left; width: 5rem; height: auto; margin: .5rem 1rem .5rem 0; }
+
+@media (max-width: 54rem) {
+    .library-wrap .pray-heading { gap:.5rem; margin-bottom:.75rem; }
+    .library-wrap .pray-heading h1 { font-size:1.25rem; }
+    #prayer-filter-toggle { display:inline-flex; }
+    .prayer-filters { display:none; }
+    .prayer-filters.expanded { display:flex; }
+    #library-search { position:sticky; top:0; z-index:3; padding:.25rem 0 .5rem; background:var(--bg); }
+    .library-wrap .results-head { position:sticky; top:3.5rem; z-index:2; margin:.5rem 0; background:var(--bg); }
+}
+
+.prayer-reader[data-appearance="papel"] .seg { background:#e7ddcc; }
+.prayer-reader[data-appearance="papel"] .seg button { color:var(--paper-ink); }
+.prayer-reader[data-appearance="papel"] .seg [aria-pressed="true"] { background:#805f24; color:#fff9ee; }

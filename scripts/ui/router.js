@@ -24,7 +24,7 @@ const RouterSystem = {
             ? RouteCore.sanitizeRoute(fromState)
             : RouteCore.parseRoute(location.hash);
 
-        history.replaceState({ oraRoute: route }, '', location.pathname + location.search);
+        history.replaceState({ ...history.state, oraRoute: route }, '', location.pathname + location.search);
         this.render(route, { focus: false });
     },
 

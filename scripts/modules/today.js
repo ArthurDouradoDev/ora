@@ -274,8 +274,7 @@ const TodaySystem = {
         });
         el.respiro.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Respiro provisório (Oração rápida) até a fase 3; a tela concluída continua por baixo
-            if (window.ExamSystem) ExamSystem.showMicroPrayerOptions();
+            if (window.RespiroSystem) RespiroSystem.open({ view: 'hoje', path: [] });
         });
         el.more.addEventListener('click', () => {
             const c = this.view && this.view.completed;
@@ -341,6 +340,7 @@ const TodaySystem = {
             }
             if (changes[this.GOSPEL_KEY]) {
                 this.gospel = changes[this.GOSPEL_KEY].newValue || null;
+                if (window.RezarSystem) RezarSystem.cache = this.gospel;
                 this.renderGospel();
                 this.renderDay();
             }
@@ -479,10 +479,10 @@ const TodaySystem = {
         const date = new Intl.DateTimeFormat(this.localeTag(), { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
         this.elements.date.textContent = this.capitalize(date);
 
-        // Celebração do dia: vem da liturgia em português (en/es só na fase 3)
-        const g = this.gospel;
+        // Celebration and reference follow the current interface language.
+        const g = window.RezarSystem ? RezarSystem.gospel() : LiturgyCore.read(this.gospel, LiturgyCore.dateKey(), window._i18nLocale || 'pt');
         const isToday = g && g.date === TasksCore.isoDate(now);
-        const show = isToday && g.liturgia && (window._i18nLocale || 'pt') === 'pt';
+        const show = isToday && g.liturgia;
         this.elements.celebration.hidden = !show;
         this.elements.celebrationSep.hidden = !show;
         if (show) {
@@ -947,10 +947,10 @@ const TodaySystem = {
 
     renderGospel: function() {
         const el = this.elements;
-        const g = this.gospel;
+        const g = window.RezarSystem ? RezarSystem.gospel() : LiturgyCore.read(this.gospel, LiturgyCore.dateKey(), window._i18nLocale || 'pt');
         const today = TasksCore.isoDate(new Date());
         const locale = window._i18nLocale || 'pt';
-        el.gospelFull.href = t('header.liturgy_url');
+        el.gospelFull.href = LiturgyCore.source(locale,today).external;
 
         if (g && g.ref && g.date === today) {
             el.gospelRef.textContent = t('today.gospel_ref', { ref: g.ref });
@@ -960,18 +960,12 @@ const TodaySystem = {
         } else {
             el.gospelRef.textContent = t('today.gospel_none');
         }
-        // O texto em cache é a tradução em português: em en/es, só a liturgia externa
-        el.gospelRead.hidden = !(g && g.text && locale === 'pt');
+        // The reader chooses its source by interface language.
+        el.gospelRead.hidden = false;
     },
 
     readGospel: function() {
-        const g = this.gospel;
-        if (!g || !g.text || !window.PrayerSystem) return;
-        PrayerSystem.openReader({
-            id: 'evangelho-' + g.date,
-            title: t('today.gospel_ref', { ref: g.ref }),
-            text: { pt: g.titulo ? `${g.titulo}\n\n${g.text}` : g.text }
-        });
+        RouterSystem.navigate('rezar/evangelho');
     }
 };
 

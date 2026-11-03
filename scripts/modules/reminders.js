@@ -127,11 +127,7 @@ const ReminderSystem = {
                 break;
             case 'mercy':
                 if (window.RosarySystem) {
-                    RosarySystem.chapletType = 'misericordia';
-                    RosarySystem.currentBead = 0;
-                    RosarySystem.renderBeads();
-                    RosarySystem.refreshDisplay();
-                    RosarySystem.open();
+                    await RosarySystem.startChaplet('misericordia');
                 }
                 break;
             case 'midday':

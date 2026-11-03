@@ -1,0 +1,884 @@
+[
+  {
+    "id": "gn",
+    "name": {
+      "pt": "Gênesis",
+      "en": "Genesis",
+      "es": "Génesis"
+    },
+    "ptSlug": "genesis",
+    "enSlug": "genesis",
+    "esSlug": "genesis",
+    "chapters": 50
+  },
+  {
+    "id": "ex",
+    "name": {
+      "pt": "Êxodo",
+      "en": "Exodus",
+      "es": "Éxodo"
+    },
+    "ptSlug": "exodo",
+    "enSlug": "exodus",
+    "esSlug": "exodo",
+    "chapters": 40
+  },
+  {
+    "id": "lv",
+    "name": {
+      "pt": "Levítico",
+      "en": "Leviticus",
+      "es": "Levítico"
+    },
+    "ptSlug": "levitico",
+    "enSlug": "leviticus",
+    "esSlug": "levitico",
+    "chapters": 27
+  },
+  {
+    "id": "nm",
+    "name": {
+      "pt": "Números",
+      "en": "Numbers",
+      "es": "Números"
+    },
+    "ptSlug": "numeros",
+    "enSlug": "numbers",
+    "esSlug": "numeros",
+    "chapters": 36
+  },
+  {
+    "id": "dt",
+    "name": {
+      "pt": "Deuteronômio",
+      "en": "Deuteronomy",
+      "es": "Deuteronomio"
+    },
+    "ptSlug": "deuteronomio",
+    "enSlug": "deuteronomy",
+    "esSlug": "deuteronomio",
+    "chapters": 34
+  },
+  {
+    "id": "js",
+    "name": {
+      "pt": "Josué",
+      "en": "Joshua",
+      "es": "Josué"
+    },
+    "ptSlug": "josue",
+    "enSlug": "joshua",
+    "esSlug": "josue",
+    "chapters": 24
+  },
+  {
+    "id": "jz",
+    "name": {
+      "pt": "Juízes",
+      "en": "Judges",
+      "es": "Jueces"
+    },
+    "ptSlug": "juizes",
+    "enSlug": "judges",
+    "esSlug": "jueces",
+    "chapters": 21
+  },
+  {
+    "id": "rt",
+    "name": {
+      "pt": "Rute",
+      "en": "Ruth",
+      "es": "Rut"
+    },
+    "ptSlug": "rute",
+    "enSlug": "ruth",
+    "esSlug": "rut",
+    "chapters": 4
+  },
+  {
+    "id": "1sm",
+    "name": {
+      "pt": "1 Samuel",
+      "en": "1 Samuel",
+      "es": "1 Samuel"
+    },
+    "ptSlug": "i-samuel",
+    "enSlug": "1samuel",
+    "esSlug": "1-samuel",
+    "chapters": 31
+  },
+  {
+    "id": "2sm",
+    "name": {
+      "pt": "2 Samuel",
+      "en": "2 Samuel",
+      "es": "2 Samuel"
+    },
+    "ptSlug": "ii-samuel",
+    "enSlug": "2samuel",
+    "esSlug": "2-samuel",
+    "chapters": 24
+  },
+  {
+    "id": "1rs",
+    "name": {
+      "pt": "1 Reis",
+      "en": "1 Kings",
+      "es": "1 Reyes"
+    },
+    "ptSlug": "i-reis",
+    "enSlug": "1kings",
+    "esSlug": "1-reyes",
+    "chapters": 22
+  },
+  {
+    "id": "2rs",
+    "name": {
+      "pt": "2 Reis",
+      "en": "2 Kings",
+      "es": "2 Reyes"
+    },
+    "ptSlug": "ii-reis",
+    "enSlug": "2kings",
+    "esSlug": "2-reyes",
+    "chapters": 25
+  },
+  {
+    "id": "1cr",
+    "name": {
+      "pt": "1 Crônicas",
+      "en": "1 Chronicles",
+      "es": "1 Crónicas"
+    },
+    "ptSlug": "i-cronicas",
+    "enSlug": "1chronicles",
+    "esSlug": "1-cronicas",
+    "chapters": 29
+  },
+  {
+    "id": "2cr",
+    "name": {
+      "pt": "2 Crônicas",
+      "en": "2 Chronicles",
+      "es": "2 Crónicas"
+    },
+    "ptSlug": "ii-cronicas",
+    "enSlug": "2chronicles",
+    "esSlug": "2-cronicas",
+    "chapters": 36
+  },
+  {
+    "id": "esd",
+    "name": {
+      "pt": "Esdras",
+      "en": "Ezra",
+      "es": "Esdras"
+    },
+    "ptSlug": "esdras",
+    "enSlug": "ezra",
+    "esSlug": "esdras",
+    "chapters": 10
+  },
+  {
+    "id": "ne",
+    "name": {
+      "pt": "Neemias",
+      "en": "Nehemiah",
+      "es": "Nehemías"
+    },
+    "ptSlug": "neemias",
+    "enSlug": "nehemiah",
+    "esSlug": "nehemias",
+    "chapters": 13
+  },
+  {
+    "id": "tb",
+    "name": {
+      "pt": "Tobias",
+      "en": "Tobit",
+      "es": "Tobías"
+    },
+    "ptSlug": "tobias",
+    "enSlug": "tobit",
+    "esSlug": "tobias",
+    "chapters": 14
+  },
+  {
+    "id": "jt",
+    "name": {
+      "pt": "Judite",
+      "en": "Judith",
+      "es": "Judit"
+    },
+    "ptSlug": "judite",
+    "enSlug": "judith",
+    "esSlug": "judit",
+    "chapters": 16
+  },
+  {
+    "id": "est",
+    "name": {
+      "pt": "Ester",
+      "en": "Esther",
+      "es": "Ester"
+    },
+    "ptSlug": "ester",
+    "enSlug": "esther",
+    "esSlug": "ester",
+    "chapters": 16,
+    "chaptersByLocale": {
+      "en": 10
+    }
+  },
+  {
+    "id": "1mc",
+    "name": {
+      "pt": "1 Macabeus",
+      "en": "1 Maccabees",
+      "es": "1 Macabeos"
+    },
+    "ptSlug": "i-macabeus",
+    "enSlug": "1maccabees",
+    "esSlug": "1-macabeos",
+    "chapters": 16
+  },
+  {
+    "id": "2mc",
+    "name": {
+      "pt": "2 Macabeus",
+      "en": "2 Maccabees",
+      "es": "2 Macabeos"
+    },
+    "ptSlug": "ii-macabeus",
+    "enSlug": "2maccabees",
+    "esSlug": "2-macabeos",
+    "chapters": 15
+  },
+  {
+    "id": "jo-job",
+    "name": {
+      "pt": "Jó",
+      "en": "Job",
+      "es": "Job"
+    },
+    "ptSlug": "jo",
+    "enSlug": "job",
+    "esSlug": "job",
+    "chapters": 42
+  },
+  {
+    "id": "sl",
+    "name": {
+      "pt": "Salmos",
+      "en": "Psalms",
+      "es": "Salmos"
+    },
+    "ptSlug": "salmos",
+    "enSlug": "psalms",
+    "esSlug": "salmos",
+    "chapters": 150
+  },
+  {
+    "id": "pr",
+    "name": {
+      "pt": "Provérbios",
+      "en": "Proverbs",
+      "es": "Proverbios"
+    },
+    "ptSlug": "proverbios",
+    "enSlug": "proverbs",
+    "esSlug": "proverbios",
+    "chapters": 31
+  },
+  {
+    "id": "ecl",
+    "name": {
+      "pt": "Eclesiastes",
+      "en": "Ecclesiastes",
+      "es": "Eclesiastés"
+    },
+    "ptSlug": "eclesiastes",
+    "enSlug": "ecclesiastes",
+    "esSlug": "eclesiastes-qohelet",
+    "chapters": 12
+  },
+  {
+    "id": "ct",
+    "name": {
+      "pt": "Cântico dos Cânticos",
+      "en": "Song of Songs",
+      "es": "Cantar de los Cantares"
+    },
+    "ptSlug": "cantico-dos-canticos",
+    "enSlug": "songofsongs",
+    "esSlug": "cantar",
+    "chapters": 8
+  },
+  {
+    "id": "sb",
+    "name": {
+      "pt": "Sabedoria",
+      "en": "Wisdom",
+      "es": "Sabiduría"
+    },
+    "ptSlug": "sabedoria",
+    "enSlug": "wisdom",
+    "esSlug": "sabiduria",
+    "chapters": 19
+  },
+  {
+    "id": "eclo",
+    "name": {
+      "pt": "Eclesiástico",
+      "en": "Sirach",
+      "es": "Eclesiástico"
+    },
+    "ptSlug": "eclesiastico",
+    "enSlug": "sirach",
+    "esSlug": "siracides-eclesiastico",
+    "chapters": 51
+  },
+  {
+    "id": "is",
+    "name": {
+      "pt": "Isaías",
+      "en": "Isaiah",
+      "es": "Isaías"
+    },
+    "ptSlug": "isaias",
+    "enSlug": "isaiah",
+    "esSlug": "isaias",
+    "chapters": 66
+  },
+  {
+    "id": "jr",
+    "name": {
+      "pt": "Jeremias",
+      "en": "Jeremiah",
+      "es": "Jeremías"
+    },
+    "ptSlug": "jeremias",
+    "enSlug": "jeremiah",
+    "esSlug": "jeremias",
+    "chapters": 52
+  },
+  {
+    "id": "lm",
+    "name": {
+      "pt": "Lamentações",
+      "en": "Lamentations",
+      "es": "Lamentaciones"
+    },
+    "ptSlug": "lamentacoes",
+    "enSlug": "lamentations",
+    "esSlug": "lamentaciones",
+    "chapters": 5
+  },
+  {
+    "id": "br",
+    "name": {
+      "pt": "Baruc",
+      "en": "Baruch",
+      "es": "Baruc"
+    },
+    "ptSlug": "baruc",
+    "enSlug": "baruch",
+    "esSlug": "baruc",
+    "chapters": 6
+  },
+  {
+    "id": "ez",
+    "name": {
+      "pt": "Ezequiel",
+      "en": "Ezekiel",
+      "es": "Ezequiel"
+    },
+    "ptSlug": "ezequiel",
+    "enSlug": "ezekiel",
+    "esSlug": "ezequiel",
+    "chapters": 48
+  },
+  {
+    "id": "dn",
+    "name": {
+      "pt": "Daniel",
+      "en": "Daniel",
+      "es": "Daniel"
+    },
+    "ptSlug": "daniel",
+    "enSlug": "daniel",
+    "esSlug": "daniel",
+    "chapters": 14
+  },
+  {
+    "id": "os",
+    "name": {
+      "pt": "Oséias",
+      "en": "Hosea",
+      "es": "Oseas"
+    },
+    "ptSlug": "oseias",
+    "enSlug": "hosea",
+    "esSlug": "oseas",
+    "chapters": 14
+  },
+  {
+    "id": "jl",
+    "name": {
+      "pt": "Joel",
+      "en": "Joel",
+      "es": "Joel"
+    },
+    "ptSlug": "joel",
+    "enSlug": "joel",
+    "esSlug": "joel",
+    "chapters": 4
+  },
+  {
+    "id": "am",
+    "name": {
+      "pt": "Amós",
+      "en": "Amos",
+      "es": "Amós"
+    },
+    "ptSlug": "amos",
+    "enSlug": "amos",
+    "esSlug": "amos",
+    "chapters": 9
+  },
+  {
+    "id": "ab",
+    "name": {
+      "pt": "Abdias",
+      "en": "Obadiah",
+      "es": "Abdías"
+    },
+    "ptSlug": "abdias",
+    "enSlug": "obadiah",
+    "esSlug": "abdias",
+    "chapters": 1
+  },
+  {
+    "id": "jn",
+    "name": {
+      "pt": "Jonas",
+      "en": "Jonah",
+      "es": "Jonás"
+    },
+    "ptSlug": "jonas",
+    "enSlug": "jonah",
+    "esSlug": "jonas",
+    "chapters": 4
+  },
+  {
+    "id": "mq",
+    "name": {
+      "pt": "Miquéias",
+      "en": "Micah",
+      "es": "Miqueas"
+    },
+    "ptSlug": "miqueias",
+    "enSlug": "micah",
+    "esSlug": "miqueas",
+    "chapters": 7
+  },
+  {
+    "id": "na",
+    "name": {
+      "pt": "Naum",
+      "en": "Nahum",
+      "es": "Nahún"
+    },
+    "ptSlug": "naum",
+    "enSlug": "nahum",
+    "esSlug": "nahun",
+    "chapters": 3
+  },
+  {
+    "id": "hab",
+    "name": {
+      "pt": "Habacuc",
+      "en": "Habakkuk",
+      "es": "Habacuc"
+    },
+    "ptSlug": "habacuc",
+    "enSlug": "habakkuk",
+    "esSlug": "habacuc",
+    "chapters": 3
+  },
+  {
+    "id": "sf",
+    "name": {
+      "pt": "Sofonias",
+      "en": "Zephaniah",
+      "es": "Sofonías"
+    },
+    "ptSlug": "sofonias",
+    "enSlug": "zephaniah",
+    "esSlug": "sofonias",
+    "chapters": 3
+  },
+  {
+    "id": "ag",
+    "name": {
+      "pt": "Ageu",
+      "en": "Haggai",
+      "es": "Ageo"
+    },
+    "ptSlug": "ageu",
+    "enSlug": "haggai",
+    "esSlug": "ageo",
+    "chapters": 2
+  },
+  {
+    "id": "zc",
+    "name": {
+      "pt": "Zacarias",
+      "en": "Zechariah",
+      "es": "Zacarías"
+    },
+    "ptSlug": "zacarias",
+    "enSlug": "zechariah",
+    "esSlug": "zacarias",
+    "chapters": 14
+  },
+  {
+    "id": "ml",
+    "name": {
+      "pt": "Malaquias",
+      "en": "Malachi",
+      "es": "Malaquías"
+    },
+    "ptSlug": "malaquias",
+    "enSlug": "malachi",
+    "esSlug": "malaquias",
+    "chapters": 4,
+    "chaptersByLocale": {
+      "en": 3
+    }
+  },
+  {
+    "id": "mt",
+    "name": {
+      "pt": "Mateus",
+      "en": "Matthew",
+      "es": "Mateo"
+    },
+    "ptSlug": "sao-mateus",
+    "enSlug": "matthew",
+    "esSlug": "evangelio-segun-san-mateo",
+    "chapters": 28
+  },
+  {
+    "id": "mc",
+    "name": {
+      "pt": "Marcos",
+      "en": "Mark",
+      "es": "Marcos"
+    },
+    "ptSlug": "sao-marcos",
+    "enSlug": "mark",
+    "esSlug": "evangelio-segun-san-marcos",
+    "chapters": 16
+  },
+  {
+    "id": "lc",
+    "name": {
+      "pt": "Lucas",
+      "en": "Luke",
+      "es": "Lucas"
+    },
+    "ptSlug": "sao-lucas",
+    "enSlug": "luke",
+    "esSlug": "evangelio-segun-san-lucas",
+    "chapters": 24
+  },
+  {
+    "id": "jo",
+    "name": {
+      "pt": "João",
+      "en": "John",
+      "es": "Juan"
+    },
+    "ptSlug": "sao-joao",
+    "enSlug": "john",
+    "esSlug": "evangelio-segun-san-juan",
+    "chapters": 21
+  },
+  {
+    "id": "at",
+    "name": {
+      "pt": "Atos dos Apóstolos",
+      "en": "Acts",
+      "es": "Hechos de los Apóstoles"
+    },
+    "ptSlug": "atos-dos-apostolos",
+    "enSlug": "acts",
+    "esSlug": "hecho-de-los-apostoles",
+    "chapters": 28
+  },
+  {
+    "id": "rm",
+    "name": {
+      "pt": "Romanos",
+      "en": "Romans",
+      "es": "Romanos"
+    },
+    "ptSlug": "romanos",
+    "enSlug": "romans",
+    "esSlug": "carta-a-los-romanos",
+    "chapters": 16
+  },
+  {
+    "id": "1cor",
+    "name": {
+      "pt": "1 Coríntios",
+      "en": "1 Corinthians",
+      "es": "1 Corintios"
+    },
+    "ptSlug": "i-corintios",
+    "enSlug": "1corinthians",
+    "esSlug": "1-carta-a-los-corintios",
+    "chapters": 16
+  },
+  {
+    "id": "2cor",
+    "name": {
+      "pt": "2 Coríntios",
+      "en": "2 Corinthians",
+      "es": "2 Corintios"
+    },
+    "ptSlug": "ii-corintios",
+    "enSlug": "2corinthians",
+    "esSlug": "2-carta-a-los-corintios",
+    "chapters": 13
+  },
+  {
+    "id": "gl",
+    "name": {
+      "pt": "Gálatas",
+      "en": "Galatians",
+      "es": "Gálatas"
+    },
+    "ptSlug": "galatas",
+    "enSlug": "galatians",
+    "esSlug": "carta-a-los-galatas",
+    "chapters": 6
+  },
+  {
+    "id": "ef",
+    "name": {
+      "pt": "Efésios",
+      "en": "Ephesians",
+      "es": "Efesios"
+    },
+    "ptSlug": "efesios",
+    "enSlug": "ephesians",
+    "esSlug": "carta-a-los-efesios",
+    "chapters": 6
+  },
+  {
+    "id": "fl",
+    "name": {
+      "pt": "Filipenses",
+      "en": "Philippians",
+      "es": "Filipenses"
+    },
+    "ptSlug": "filipenses",
+    "enSlug": "philippians",
+    "esSlug": "carta-a-los-filipenses",
+    "chapters": 4
+  },
+  {
+    "id": "cl",
+    "name": {
+      "pt": "Colossenses",
+      "en": "Colossians",
+      "es": "Colosenses"
+    },
+    "ptSlug": "colossenses",
+    "enSlug": "colossians",
+    "esSlug": "carta-a-los-colosenses",
+    "chapters": 4
+  },
+  {
+    "id": "1ts",
+    "name": {
+      "pt": "1 Tessalonicenses",
+      "en": "1 Thessalonians",
+      "es": "1 Tesalonicenses"
+    },
+    "ptSlug": "i-tessalonicenses",
+    "enSlug": "1thessalonians",
+    "esSlug": "1-carta-a-los-tesalonicenses",
+    "chapters": 5
+  },
+  {
+    "id": "2ts",
+    "name": {
+      "pt": "2 Tessalonicenses",
+      "en": "2 Thessalonians",
+      "es": "2 Tesalonicenses"
+    },
+    "ptSlug": "ii-tessalonicenses",
+    "enSlug": "2thessalonians",
+    "esSlug": "2-carta-a-los-tesalonicenses",
+    "chapters": 3
+  },
+  {
+    "id": "1tm",
+    "name": {
+      "pt": "1 Timóteo",
+      "en": "1 Timothy",
+      "es": "1 Timoteo"
+    },
+    "ptSlug": "i-timoteo",
+    "enSlug": "1timothy",
+    "esSlug": "1-carta-a-timoteo",
+    "chapters": 6
+  },
+  {
+    "id": "2tm",
+    "name": {
+      "pt": "2 Timóteo",
+      "en": "2 Timothy",
+      "es": "2 Timoteo"
+    },
+    "ptSlug": "ii-timoteo",
+    "enSlug": "2timothy",
+    "esSlug": "2-carta-a-timoteo",
+    "chapters": 4
+  },
+  {
+    "id": "tt",
+    "name": {
+      "pt": "Tito",
+      "en": "Titus",
+      "es": "Tito"
+    },
+    "ptSlug": "tito",
+    "enSlug": "titus",
+    "esSlug": "carta-a-tito",
+    "chapters": 3
+  },
+  {
+    "id": "fm",
+    "name": {
+      "pt": "Filêmon",
+      "en": "Philemon",
+      "es": "Filemón"
+    },
+    "ptSlug": "filemon",
+    "enSlug": "philemon",
+    "esSlug": "carta-a-filemon",
+    "chapters": 1
+  },
+  {
+    "id": "hb",
+    "name": {
+      "pt": "Hebreus",
+      "en": "Hebrews",
+      "es": "Hebreos"
+    },
+    "ptSlug": "hebreus",
+    "enSlug": "hebrews",
+    "esSlug": "carta-a-los-hebreos",
+    "chapters": 13
+  },
+  {
+    "id": "tg",
+    "name": {
+      "pt": "Tiago",
+      "en": "James",
+      "es": "Santiago"
+    },
+    "ptSlug": "sao-tiago",
+    "enSlug": "james",
+    "esSlug": "carta-de-santiago",
+    "chapters": 5
+  },
+  {
+    "id": "1pd",
+    "name": {
+      "pt": "1 Pedro",
+      "en": "1 Peter",
+      "es": "1 Pedro"
+    },
+    "ptSlug": "i-sao-pedro",
+    "enSlug": "1peter",
+    "esSlug": "1-carta-de-pedro",
+    "chapters": 5
+  },
+  {
+    "id": "2pd",
+    "name": {
+      "pt": "2 Pedro",
+      "en": "2 Peter",
+      "es": "2 Pedro"
+    },
+    "ptSlug": "ii-sao-pedro",
+    "enSlug": "2peter",
+    "esSlug": "2-carta-de-pedro",
+    "chapters": 3
+  },
+  {
+    "id": "1jo",
+    "name": {
+      "pt": "1 João",
+      "en": "1 John",
+      "es": "1 Juan"
+    },
+    "ptSlug": "i-sao-joao",
+    "enSlug": "1john",
+    "esSlug": "1-carta-de-juan",
+    "chapters": 5
+  },
+  {
+    "id": "2jo",
+    "name": {
+      "pt": "2 João",
+      "en": "2 John",
+      "es": "2 Juan"
+    },
+    "ptSlug": "ii-sao-joao",
+    "enSlug": "2john",
+    "esSlug": "2-carta-de-juan",
+    "chapters": 1
+  },
+  {
+    "id": "3jo",
+    "name": {
+      "pt": "3 João",
+      "en": "3 John",
+      "es": "3 Juan"
+    },
+    "ptSlug": "iii-sao-joao",
+    "enSlug": "3john",
+    "esSlug": "3-carta-de-juan",
+    "chapters": 1
+  },
+  {
+    "id": "jd",
+    "name": {
+      "pt": "Judas",
+      "en": "Jude",
+      "es": "Judas"
+    },
+    "ptSlug": "sao-judas",
+    "enSlug": "jude",
+    "esSlug": "carta-de-judas",
+    "chapters": 1
+  },
+  {
+    "id": "ap",
+    "name": {
+      "pt": "Apocalipse",
+      "en": "Revelation",
+      "es": "Apocalipsis"
+    },
+    "ptSlug": "apocalipse",
+    "enSlug": "revelation",
+    "esSlug": "apocalipsis",
+    "chapters": 22
+  }
+]

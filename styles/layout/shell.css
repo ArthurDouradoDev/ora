@@ -113,3 +113,13 @@
 }
 .placeholder-card p { color: var(--text-2); max-width: 26rem; }
 .placeholder-card .row { justify-content: center; flex-wrap: wrap; margin-top: 0.25rem; }
+
+/* Keep Rezar usable with text enlargement and narrow windows. */
+@media (max-width: 30rem) {
+    .topbar { gap: .5rem; padding: .65rem .75rem; grid-template-columns: auto minmax(0, 1fr); }
+    .topbar .right { min-width: 0; gap: .35rem; }
+    .topbar .chip { white-space: normal; padding: .4rem .55rem; gap: .3rem; }
+    .topbar .nav { gap: 0; max-width: 100%; }
+    .topbar .nav a { padding: .5rem .65rem; gap: .3rem; }
+    .topbar #tasks-chip > [data-i18n] { display: none; }
+}

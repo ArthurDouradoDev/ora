@@ -1,0 +1,1024 @@
+{
+  "01-01": [
+    {
+      "name": {
+        "pt": "Santa Maria, Mãe de Deus",
+        "en": "Mary, Mother of God",
+        "es": "Santa María, Madre de Dios"
+      },
+      "identity": {
+        "pt": "Solenidade",
+        "en": "Solemnity",
+        "es": "Solemnidad"
+      }
+    }
+  ],
+  "01-17": [
+    {
+      "name": {
+        "pt": "Santo Antão",
+        "en": "Saint Anthony the Abbot",
+        "es": "San Antonio Abad"
+      },
+      "identity": {
+        "pt": "Abade",
+        "en": "Abbot",
+        "es": "Abad"
+      }
+    }
+  ],
+  "01-25": [
+    {
+      "name": {
+        "pt": "Conversão de São Paulo",
+        "en": "Conversion of Saint Paul",
+        "es": "Conversión de San Pablo"
+      },
+      "identity": {
+        "pt": "Apóstolo",
+        "en": "Apostle",
+        "es": "Apóstol"
+      }
+    }
+  ],
+  "01-28": [
+    {
+      "name": {
+        "pt": "São Tomás de Aquino",
+        "en": "Saint Thomas Aquinas",
+        "es": "Santo Tomás de Aquino"
+      },
+      "identity": {
+        "pt": "Presbítero e doutor da Igreja",
+        "en": "Priest and Doctor of the Church",
+        "es": "Presbítero y doctor de la Iglesia"
+      }
+    }
+  ],
+  "01-31": [
+    {
+      "name": {
+        "pt": "São João Bosco",
+        "en": "Saint John Bosco",
+        "es": "San Juan Bosco"
+      },
+      "identity": {
+        "pt": "Presbítero, educador dos jovens",
+        "en": "Priest and educator of the young",
+        "es": "Presbítero, educador de los jóvenes"
+      }
+    }
+  ],
+  "02-02": [
+    {
+      "name": {
+        "pt": "Apresentação do Senhor",
+        "en": "Presentation of the Lord",
+        "es": "Presentación del Señor"
+      },
+      "identity": {
+        "pt": "Festa",
+        "en": "Feast",
+        "es": "Fiesta"
+      }
+    }
+  ],
+  "02-11": [
+    {
+      "name": {
+        "pt": "Nossa Senhora de Lourdes",
+        "en": "Our Lady of Lourdes",
+        "es": "Nuestra Señora de Lourdes"
+      },
+      "identity": {
+        "pt": "Memória mariana",
+        "en": "Marian memorial",
+        "es": "Memoria mariana"
+      }
+    }
+  ],
+  "02-22": [
+    {
+      "name": {
+        "pt": "Cátedra de São Pedro",
+        "en": "Chair of Saint Peter",
+        "es": "Cátedra de San Pedro"
+      },
+      "identity": {
+        "pt": "Festa",
+        "en": "Feast",
+        "es": "Fiesta"
+      }
+    }
+  ],
+  "03-17": [
+    {
+      "name": {
+        "pt": "São Patrício",
+        "en": "Saint Patrick",
+        "es": "San Patricio"
+      },
+      "identity": {
+        "pt": "Bispo e missionário",
+        "en": "Bishop and missionary",
+        "es": "Obispo y misionero"
+      }
+    }
+  ],
+  "03-19": [
+    {
+      "name": {
+        "pt": "São José",
+        "en": "Saint Joseph",
+        "es": "San José"
+      },
+      "identity": {
+        "pt": "Esposo da Virgem Maria",
+        "en": "Spouse of the Virgin Mary",
+        "es": "Esposo de la Virgen María"
+      }
+    }
+  ],
+  "03-25": [
+    {
+      "name": {
+        "pt": "Anunciação do Senhor",
+        "en": "Annunciation of the Lord",
+        "es": "Anunciación del Señor"
+      },
+      "identity": {
+        "pt": "Solenidade",
+        "en": "Solemnity",
+        "es": "Solemnidad"
+      }
+    }
+  ],
+  "04-23": [
+    {
+      "name": {
+        "pt": "São Jorge",
+        "en": "Saint George",
+        "es": "San Jorge"
+      },
+      "identity": {
+        "pt": "Mártir",
+        "en": "Martyr",
+        "es": "Mártir"
+      }
+    }
+  ],
+  "04-25": [
+    {
+      "name": {
+        "pt": "São Marcos",
+        "en": "Saint Mark",
+        "es": "San Marcos"
+      },
+      "identity": {
+        "pt": "Evangelista",
+        "en": "Evangelist",
+        "es": "Evangelista"
+      }
+    }
+  ],
+  "04-29": [
+    {
+      "name": {
+        "pt": "Santa Catarina de Sena",
+        "en": "Saint Catherine of Siena",
+        "es": "Santa Catalina de Siena"
+      },
+      "identity": {
+        "pt": "Virgem e doutora da Igreja",
+        "en": "Virgin and Doctor of the Church",
+        "es": "Virgen y doctora de la Iglesia"
+      }
+    }
+  ],
+  "05-01": [
+    {
+      "name": {
+        "pt": "São José Operário",
+        "en": "Saint Joseph the Worker",
+        "es": "San José Obrero"
+      },
+      "identity": {
+        "pt": "Esposo da Virgem Maria",
+        "en": "Spouse of the Virgin Mary",
+        "es": "Esposo de la Virgen María"
+      }
+    }
+  ],
+  "05-13": [
+    {
+      "name": {
+        "pt": "Nossa Senhora de Fátima",
+        "en": "Our Lady of Fatima",
+        "es": "Nuestra Señora de Fátima"
+      },
+      "identity": {
+        "pt": "Memória mariana",
+        "en": "Marian memorial",
+        "es": "Memoria mariana"
+      }
+    }
+  ],
+  "05-26": [
+    {
+      "name": {
+        "pt": "São Filipe Néri",
+        "en": "Saint Philip Neri",
+        "es": "San Felipe Neri"
+      },
+      "identity": {
+        "pt": "Presbítero",
+        "en": "Priest",
+        "es": "Presbítero"
+      }
+    }
+  ],
+  "05-31": [
+    {
+      "name": {
+        "pt": "Visitação de Nossa Senhora",
+        "en": "Visitation of Mary",
+        "es": "Visitación de María"
+      },
+      "identity": {
+        "pt": "Festa mariana",
+        "en": "Marian feast",
+        "es": "Fiesta mariana"
+      }
+    }
+  ],
+  "06-13": [
+    {
+      "name": {
+        "pt": "Santo Antônio de Pádua",
+        "en": "Saint Anthony of Padua",
+        "es": "San Antonio de Padua"
+      },
+      "identity": {
+        "pt": "Presbítero e doutor da Igreja",
+        "en": "Priest and Doctor of the Church",
+        "es": "Presbítero y doctor de la Iglesia"
+      }
+    }
+  ],
+  "06-24": [
+    {
+      "name": {
+        "pt": "Natividade de São João Batista",
+        "en": "Nativity of Saint John the Baptist",
+        "es": "Natividad de San Juan Bautista"
+      },
+      "identity": {
+        "pt": "Solenidade",
+        "en": "Solemnity",
+        "es": "Solemnidad"
+      }
+    }
+  ],
+  "06-29": [
+    {
+      "name": {
+        "pt": "São Pedro e São Paulo",
+        "en": "Saints Peter and Paul",
+        "es": "Santos Pedro y Pablo"
+      },
+      "identity": {
+        "pt": "Apóstolos",
+        "en": "Apostles",
+        "es": "Apóstoles"
+      }
+    }
+  ],
+  "07-03": [
+    {
+      "name": {
+        "pt": "São Tomé",
+        "en": "Saint Thomas",
+        "es": "Santo Tomás"
+      },
+      "identity": {
+        "pt": "Apóstolo",
+        "en": "Apostle",
+        "es": "Apóstol"
+      }
+    }
+  ],
+  "07-11": [
+    {
+      "name": {
+        "pt": "São Bento",
+        "en": "Saint Benedict",
+        "es": "San Benito"
+      },
+      "identity": {
+        "pt": "Abade",
+        "en": "Abbot",
+        "es": "Abad"
+      }
+    }
+  ],
+  "07-16": [
+    {
+      "name": {
+        "pt": "Nossa Senhora do Carmo",
+        "en": "Our Lady of Mount Carmel",
+        "es": "Nuestra Señora del Carmen"
+      },
+      "identity": {
+        "pt": "Memória mariana",
+        "en": "Marian memorial",
+        "es": "Memoria mariana"
+      }
+    }
+  ],
+  "07-22": [
+    {
+      "name": {
+        "pt": "Santa Maria Madalena",
+        "en": "Saint Mary Magdalene",
+        "es": "Santa María Magdalena"
+      },
+      "identity": {
+        "pt": "Discípula de Jesus",
+        "en": "Disciple of Jesus",
+        "es": "Discípula de Jesús"
+      }
+    }
+  ],
+  "07-26": [
+    {
+      "name": {
+        "pt": "São Joaquim e Santa Ana",
+        "en": "Saints Joachim and Anne",
+        "es": "Santos Joaquín y Ana"
+      },
+      "identity": {
+        "pt": "Pais da Virgem Maria",
+        "en": "Parents of the Virgin Mary",
+        "es": "Padres de la Virgen María"
+      }
+    }
+  ],
+  "08-06": [
+    {
+      "name": {
+        "pt": "Transfiguração do Senhor",
+        "en": "Transfiguration of the Lord",
+        "es": "Transfiguración del Señor"
+      },
+      "identity": {
+        "pt": "Festa",
+        "en": "Feast",
+        "es": "Fiesta"
+      }
+    }
+  ],
+  "08-14": [
+    {
+      "name": {
+        "pt": "São Maximiliano Kolbe",
+        "en": "Saint Maximilian Kolbe",
+        "es": "San Maximiliano Kolbe"
+      },
+      "identity": {
+        "pt": "Presbítero e mártir",
+        "en": "Priest and martyr",
+        "es": "Presbítero y mártir"
+      }
+    }
+  ],
+  "08-15": [
+    {
+      "name": {
+        "pt": "Assunção de Nossa Senhora",
+        "en": "Assumption of Mary",
+        "es": "Asunción de María"
+      },
+      "identity": {
+        "pt": "Solenidade mariana",
+        "en": "Marian solemnity",
+        "es": "Solemnidad mariana"
+      }
+    }
+  ],
+  "08-20": [
+    {
+      "name": {
+        "pt": "São Bernardo",
+        "en": "Saint Bernard",
+        "es": "San Bernardo"
+      },
+      "identity": {
+        "pt": "Abade e doutor da Igreja",
+        "en": "Abbot and Doctor of the Church",
+        "es": "Abad y doctor de la Iglesia"
+      }
+    }
+  ],
+  "08-27": [
+    {
+      "name": {
+        "pt": "Santa Mônica",
+        "en": "Saint Monica",
+        "es": "Santa Mónica"
+      },
+      "identity": {
+        "pt": "Mãe de Santo Agostinho",
+        "en": "Mother of Saint Augustine",
+        "es": "Madre de San Agustín"
+      }
+    }
+  ],
+  "08-28": [
+    {
+      "name": {
+        "pt": "Santo Agostinho",
+        "en": "Saint Augustine",
+        "es": "San Agustín"
+      },
+      "identity": {
+        "pt": "Bispo e doutor da Igreja",
+        "en": "Bishop and Doctor of the Church",
+        "es": "Obispo y doctor de la Iglesia"
+      }
+    }
+  ],
+  "09-03": [
+    {
+      "name": {
+        "pt": "São Gregório Magno",
+        "en": "Saint Gregory the Great",
+        "es": "San Gregorio Magno"
+      },
+      "identity": {
+        "pt": "Papa e doutor da Igreja",
+        "en": "Pope and Doctor of the Church",
+        "es": "Papa y doctor de la Iglesia"
+      }
+    }
+  ],
+  "09-08": [
+    {
+      "name": {
+        "pt": "Natividade de Nossa Senhora",
+        "en": "Nativity of Mary",
+        "es": "Natividad de María"
+      },
+      "identity": {
+        "pt": "Festa mariana",
+        "en": "Marian feast",
+        "es": "Fiesta mariana"
+      }
+    }
+  ],
+  "09-14": [
+    {
+      "name": {
+        "pt": "Exaltação da Santa Cruz",
+        "en": "Exaltation of the Holy Cross",
+        "es": "Exaltación de la Santa Cruz"
+      },
+      "identity": {
+        "pt": "Festa",
+        "en": "Feast",
+        "es": "Fiesta"
+      }
+    }
+  ],
+  "09-15": [
+    {
+      "name": {
+        "pt": "Nossa Senhora das Dores",
+        "en": "Our Lady of Sorrows",
+        "es": "Nuestra Señora de los Dolores"
+      },
+      "identity": {
+        "pt": "Memória mariana",
+        "en": "Marian memorial",
+        "es": "Memoria mariana"
+      }
+    }
+  ],
+  "09-21": [
+    {
+      "name": {
+        "pt": "São Mateus",
+        "en": "Saint Matthew",
+        "es": "San Mateo"
+      },
+      "identity": {
+        "pt": "Apóstolo e evangelista",
+        "en": "Apostle and evangelist",
+        "es": "Apóstol y evangelista"
+      }
+    }
+  ],
+  "09-23": [
+    {
+      "name": {
+        "pt": "São Pio de Pietrelcina",
+        "en": "Saint Pio of Pietrelcina",
+        "es": "San Pío de Pietrelcina"
+      },
+      "identity": {
+        "pt": "Presbítero",
+        "en": "Priest",
+        "es": "Presbítero"
+      }
+    }
+  ],
+  "09-29": [
+    {
+      "name": {
+        "pt": "São Miguel, São Gabriel e São Rafael",
+        "en": "Saints Michael, Gabriel and Raphael",
+        "es": "Santos Miguel, Gabriel y Rafael"
+      },
+      "identity": {
+        "pt": "Arcanjos",
+        "en": "Archangels",
+        "es": "Arcángeles"
+      }
+    }
+  ],
+  "09-30": [
+    {
+      "name": {
+        "pt": "São Jerônimo",
+        "en": "Saint Jerome",
+        "es": "San Jerónimo"
+      },
+      "identity": {
+        "pt": "Presbítero e doutor da Igreja",
+        "en": "Priest and Doctor of the Church",
+        "es": "Presbítero y doctor de la Iglesia"
+      }
+    }
+  ],
+  "10-01": [
+    {
+      "name": {
+        "pt": "Santa Teresinha do Menino Jesus",
+        "en": "Saint Thérèse of the Child Jesus",
+        "es": "Santa Teresa del Niño Jesús"
+      },
+      "identity": {
+        "pt": "Virgem e doutora da Igreja",
+        "en": "Virgin and Doctor of the Church",
+        "es": "Virgen y doctora de la Iglesia"
+      }
+    }
+  ],
+  "10-02": [
+    {
+      "name": {
+        "pt": "Santos Anjos da Guarda",
+        "en": "Holy Guardian Angels",
+        "es": "Santos Ángeles Custodios"
+      },
+      "identity": {
+        "pt": "Memória",
+        "en": "Memorial",
+        "es": "Memoria"
+      }
+    }
+  ],
+  "10-04": [
+    {
+      "name": {
+        "pt": "São Francisco de Assis",
+        "en": "Saint Francis of Assisi",
+        "es": "San Francisco de Asís"
+      },
+      "identity": {
+        "pt": "Religioso, fundador dos franciscanos",
+        "en": "Religious, founder of the Franciscans",
+        "es": "Religioso, fundador de los franciscanos"
+      }
+    }
+  ],
+  "10-07": [
+    {
+      "name": {
+        "pt": "Nossa Senhora do Rosário",
+        "en": "Our Lady of the Rosary",
+        "es": "Nuestra Señora del Rosario"
+      },
+      "identity": {
+        "pt": "Memória mariana",
+        "en": "Marian memorial",
+        "es": "Memoria mariana"
+      }
+    }
+  ],
+  "10-12": [
+    {
+      "name": {
+        "pt": "Nossa Senhora Aparecida",
+        "en": "Our Lady of Aparecida",
+        "es": "Nuestra Señora de Aparecida"
+      },
+      "identity": {
+        "pt": "Padroeira do Brasil",
+        "en": "Patroness of Brazil",
+        "es": "Patrona de Brasil"
+      }
+    }
+  ],
+  "10-15": [
+    {
+      "name": {
+        "pt": "Santa Teresa de Jesus",
+        "en": "Saint Teresa of Jesus",
+        "es": "Santa Teresa de Jesús"
+      },
+      "identity": {
+        "pt": "Virgem e doutora da Igreja",
+        "en": "Virgin and Doctor of the Church",
+        "es": "Virgen y doctora de la Iglesia"
+      }
+    }
+  ],
+  "10-18": [
+    {
+      "name": {
+        "pt": "São Lucas",
+        "en": "Saint Luke",
+        "es": "San Lucas"
+      },
+      "identity": {
+        "pt": "Evangelista",
+        "en": "Evangelist",
+        "es": "Evangelista"
+      }
+    }
+  ],
+  "10-22": [
+    {
+      "name": {
+        "pt": "São João Paulo II",
+        "en": "Saint John Paul II",
+        "es": "San Juan Pablo II"
+      },
+      "identity": {
+        "pt": "Papa",
+        "en": "Pope",
+        "es": "Papa"
+      }
+    }
+  ],
+  "10-28": [
+    {
+      "name": {
+        "pt": "São Simão e São Judas Tadeu",
+        "en": "Saints Simon and Jude",
+        "es": "Santos Simón y Judas Tadeo"
+      },
+      "identity": {
+        "pt": "Apóstolos",
+        "en": "Apostles",
+        "es": "Apóstoles"
+      }
+    }
+  ],
+  "11-01": [
+    {
+      "name": {
+        "pt": "Todos os Santos",
+        "en": "All Saints",
+        "es": "Todos los Santos"
+      },
+      "identity": {
+        "pt": "Solenidade",
+        "en": "Solemnity",
+        "es": "Solemnidad"
+      }
+    }
+  ],
+  "11-03": [
+    {
+      "name": {
+        "pt": "São Martinho de Porres",
+        "en": "Saint Martin de Porres",
+        "es": "San Martín de Porres"
+      },
+      "identity": {
+        "pt": "Religioso dominicano, servidor dos pobres",
+        "en": "Dominican religious who served the poor",
+        "es": "Religioso dominico, servidor de los pobres"
+      }
+    }
+  ],
+  "11-04": [
+    {
+      "name": {
+        "pt": "São Carlos Borromeu",
+        "en": "Saint Charles Borromeo",
+        "es": "San Carlos Borromeo"
+      },
+      "identity": {
+        "pt": "Bispo de Milão",
+        "en": "Bishop of Milan",
+        "es": "Obispo de Milán"
+      }
+    }
+  ],
+  "11-09": [
+    {
+      "name": {
+        "pt": "Dedicação da Basílica do Latrão",
+        "en": "Dedication of the Lateran Basilica",
+        "es": "Dedicación de la Basílica de Letrán"
+      },
+      "identity": {
+        "pt": "Festa",
+        "en": "Feast",
+        "es": "Fiesta"
+      }
+    }
+  ],
+  "11-10": [
+    {
+      "name": {
+        "pt": "São Leão Magno",
+        "en": "Saint Leo the Great",
+        "es": "San León Magno"
+      },
+      "identity": {
+        "pt": "Papa e doutor da Igreja",
+        "en": "Pope and Doctor of the Church",
+        "es": "Papa y doctor de la Iglesia"
+      }
+    }
+  ],
+  "11-11": [
+    {
+      "name": {
+        "pt": "São Martinho de Tours",
+        "en": "Saint Martin of Tours",
+        "es": "San Martín de Tours"
+      },
+      "identity": {
+        "pt": "Bispo",
+        "en": "Bishop",
+        "es": "Obispo"
+      }
+    }
+  ],
+  "11-12": [
+    {
+      "name": {
+        "pt": "São Josafá",
+        "en": "Saint Josaphat",
+        "es": "San Josafat"
+      },
+      "identity": {
+        "pt": "Bispo e mártir",
+        "en": "Bishop and martyr",
+        "es": "Obispo y mártir"
+      }
+    }
+  ],
+  "11-13": [
+    {
+      "name": {
+        "pt": "Santo Estanislau Kostka",
+        "en": "Saint Stanislaus Kostka",
+        "es": "San Estanislao de Kostka"
+      },
+      "identity": {
+        "pt": "Religioso jesuíta",
+        "en": "Jesuit religious",
+        "es": "Religioso jesuita"
+      }
+    }
+  ],
+  "11-15": [
+    {
+      "name": {
+        "pt": "Santo Alberto Magno",
+        "en": "Saint Albert the Great",
+        "es": "San Alberto Magno"
+      },
+      "identity": {
+        "pt": "Bispo e doutor da Igreja",
+        "en": "Bishop and Doctor of the Church",
+        "es": "Obispo y doctor de la Iglesia"
+      }
+    }
+  ],
+  "11-16": [
+    {
+      "name": {
+        "pt": "Santa Gertrudes",
+        "en": "Saint Gertrude",
+        "es": "Santa Gertrudis"
+      },
+      "identity": {
+        "pt": "Virgem e mística",
+        "en": "Virgin and mystic",
+        "es": "Virgen y mística"
+      }
+    }
+  ],
+  "11-17": [
+    {
+      "name": {
+        "pt": "Santa Isabel da Hungria",
+        "en": "Saint Elizabeth of Hungary",
+        "es": "Santa Isabel de Hungría"
+      },
+      "identity": {
+        "pt": "Religiosa, dedicada aos pobres",
+        "en": "Religious, devoted to the poor",
+        "es": "Religiosa, dedicada a los pobres"
+      }
+    }
+  ],
+  "11-21": [
+    {
+      "name": {
+        "pt": "Apresentação de Nossa Senhora",
+        "en": "Presentation of Mary",
+        "es": "Presentación de María"
+      },
+      "identity": {
+        "pt": "Memória mariana",
+        "en": "Marian memorial",
+        "es": "Memoria mariana"
+      }
+    }
+  ],
+  "11-22": [
+    {
+      "name": {
+        "pt": "Santa Cecília",
+        "en": "Saint Cecilia",
+        "es": "Santa Cecilia"
+      },
+      "identity": {
+        "pt": "Virgem e mártir",
+        "en": "Virgin and martyr",
+        "es": "Virgen y mártir"
+      }
+    }
+  ],
+  "11-24": [
+    {
+      "name": {
+        "pt": "Santo André Dung-Lac e companheiros",
+        "en": "Saint Andrew Dung-Lac and companions",
+        "es": "San Andrés Dung-Lac y compañeros"
+      },
+      "identity": {
+        "pt": "Mártires do Vietnã",
+        "en": "Martyrs of Vietnam",
+        "es": "Mártires de Vietnam"
+      }
+    }
+  ],
+  "11-30": [
+    {
+      "name": {
+        "pt": "Santo André",
+        "en": "Saint Andrew",
+        "es": "San Andrés"
+      },
+      "identity": {
+        "pt": "Apóstolo",
+        "en": "Apostle",
+        "es": "Apóstol"
+      }
+    }
+  ],
+  "12-03": [
+    {
+      "name": {
+        "pt": "São Francisco Xavier",
+        "en": "Saint Francis Xavier",
+        "es": "San Francisco Javier"
+      },
+      "identity": {
+        "pt": "Presbítero e missionário",
+        "en": "Priest and missionary",
+        "es": "Presbítero y misionero"
+      }
+    }
+  ],
+  "12-06": [
+    {
+      "name": {
+        "pt": "São Nicolau",
+        "en": "Saint Nicholas",
+        "es": "San Nicolás"
+      },
+      "identity": {
+        "pt": "Bispo de Mira",
+        "en": "Bishop of Myra",
+        "es": "Obispo de Mira"
+      }
+    }
+  ],
+  "12-08": [
+    {
+      "name": {
+        "pt": "Imaculada Conceição de Nossa Senhora",
+        "en": "Immaculate Conception of Mary",
+        "es": "Inmaculada Concepción de María"
+      },
+      "identity": {
+        "pt": "Solenidade mariana",
+        "en": "Marian solemnity",
+        "es": "Solemnidad mariana"
+      }
+    }
+  ],
+  "12-12": [
+    {
+      "name": {
+        "pt": "Nossa Senhora de Guadalupe",
+        "en": "Our Lady of Guadalupe",
+        "es": "Nuestra Señora de Guadalupe"
+      },
+      "identity": {
+        "pt": "Padroeira da América Latina",
+        "en": "Patroness of Latin America",
+        "es": "Patrona de América Latina"
+      }
+    }
+  ],
+  "12-13": [
+    {
+      "name": {
+        "pt": "Santa Luzia",
+        "en": "Saint Lucy",
+        "es": "Santa Lucía"
+      },
+      "identity": {
+        "pt": "Virgem e mártir",
+        "en": "Virgin and martyr",
+        "es": "Virgen y mártir"
+      }
+    }
+  ],
+  "12-14": [
+    {
+      "name": {
+        "pt": "São João da Cruz",
+        "en": "Saint John of the Cross",
+        "es": "San Juan de la Cruz"
+      },
+      "identity": {
+        "pt": "Presbítero e doutor da Igreja",
+        "en": "Priest and Doctor of the Church",
+        "es": "Presbítero y doctor de la Iglesia"
+      }
+    }
+  ],
+  "12-26": [
+    {
+      "name": {
+        "pt": "Santo Estêvão",
+        "en": "Saint Stephen",
+        "es": "San Esteban"
+      },
+      "identity": {
+        "pt": "Primeiro mártir",
+        "en": "First martyr",
+        "es": "Primer mártir"
+      }
+    }
+  ],
+  "12-27": [
+    {
+      "name": {
+        "pt": "São João",
+        "en": "Saint John",
+        "es": "San Juan"
+      },
+      "identity": {
+        "pt": "Apóstolo e evangelista",
+        "en": "Apostle and evangelist",
+        "es": "Apóstol y evangelista"
+      }
+    }
+  ],
+  "12-28": [
+    {
+      "name": {
+        "pt": "Santos Inocentes",
+        "en": "Holy Innocents",
+        "es": "Santos Inocentes"
+      },
+      "identity": {
+        "pt": "Mártires",
+        "en": "Martyrs",
+        "es": "Mártires"
+      }
+    }
+  ]
+}

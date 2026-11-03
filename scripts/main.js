@@ -10,14 +10,16 @@ const toastContainer = document.getElementById('toast-container');
 
 async function loadAppData() {
     try {
-        const [backgrounds, playlists, prayers, quotes, greetings, rosary, exam] = await Promise.all([
+        const [backgrounds, playlists, prayers, quotes, greetings, rosary, exam, saints, bibleBooks] = await Promise.all([
             loadJSON('data/backgrounds.json'),
             loadJSON('data/playlists.json'),
             loadJSON('data/prayers.json'),
             loadJSON('data/quotes.json'),
             loadJSON('data/greetings.json'),
             loadJSON('data/rosary.json'),
-            loadJSON('data/exam.json')
+            loadJSON('data/exam.json'),
+            loadJSON('data/saints.json'),
+            loadJSON('data/bible-books.json')
         ]);
 
         return {
@@ -27,7 +29,9 @@ async function loadAppData() {
             quotes: quotes,
             greetings: greetings,
             rosary: rosary,
-            exam: exam
+            exam: exam,
+            saints: saints,
+            bibleBooks: bibleBooks
         };
     } catch (e) {
         console.error('Failed to load data modules:', e);
@@ -159,7 +163,9 @@ async function initApp() {
 
     // Initialize Prayer System
     if (window.PrayerSystem) {
-        window.PrayerSystem.init(data.prayers);
+        await window.PrayerSystem.init(data.prayers);
+        await ReaderSystem.init();
+        await RespiroSystem.init(data);
         console.log('[Ora] Prayer System initialized');
     }
 
@@ -169,7 +175,7 @@ async function initApp() {
 
     // Initialize New Rosary System
     if (window.RosarySystem) {
-        window.RosarySystem.init(data);
+        await window.RosarySystem.init(data);
 
         console.log('[Ora] Rosary (Terço) initialized');
     } else {
@@ -207,7 +213,7 @@ async function initApp() {
     // 8. EXAME DE CONSCIÊNCIA & VIRTUDES
     // ============================================================
     if (window.ExamSystem) {
-        window.ExamSystem.init(data);
+        await window.ExamSystem.init(data);
     } else {
         console.error('[Ora] ExamSystem not found!');
     }
@@ -236,6 +242,9 @@ async function initApp() {
     }
 
     // ============================================================
+    // Rezar renders the restored route after all its modules are ready.
+    await RezarSystem.init(data);
+
     // 11. CROSS-DEVICE SYNC (after all modules, so merges land on
     //     fully-migrated data)
     // ============================================================

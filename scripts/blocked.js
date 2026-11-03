@@ -241,7 +241,8 @@ async function getGospelOfDay() {
 
     const data = await chrome.storage.local.get([GOSPEL_CACHE_KEY]);
     const cached = data[GOSPEL_CACHE_KEY];
-    if (cached && cached.date === todayStr) return cached;
+    const entry = LiturgyCore.read(cached,todayStr,'pt');
+    if (entry) return entry;
 
     try {
         const controller = new AbortController();
@@ -259,7 +260,8 @@ async function getGospelOfDay() {
                 titulo: gospelEntry.titulo || '',
                 liturgia: json.liturgia || ''
             };
-            await chrome.storage.local.set({ [GOSPEL_CACHE_KEY]: gospel });
+            const latest = (await chrome.storage.local.get(GOSPEL_CACHE_KEY))[GOSPEL_CACHE_KEY];
+            await chrome.storage.local.set({ [GOSPEL_CACHE_KEY]: LiturgyCore.merge(latest,{[todayStr]:{pt:gospel}}) });
             return gospel;
         }
     } catch (e) {
@@ -411,3 +413,14 @@ async function showGospelUnlock(onSuccess) {
     progressFill.style.width = '0%';
     setTimeout(() => input.focus(), 100);
 }
+
+// Rezar owns the pause; the origin is an extension-local blocked page.
+(async () => {
+    const link = document.getElementById('blocked-respiro');
+    if (!link) return;
+    const { ora_locale: locale = 'pt' } = await chrome.storage.local.get('ora_locale');
+    const messages = await fetch(chrome.runtime.getURL(`data/i18n/${['pt','en','es'].includes(locale) ? locale : 'pt'}.json`)).then(r => r.json());
+    link.textContent = messages.pray.breath;
+    const domain = new URLSearchParams(location.search).get('domain') || location.hash.slice(1);
+    link.href = chrome.runtime.getURL('ora.html') + '?from=blocked&domain=' + encodeURIComponent(domain) + '#rezar/respiro';
+})().catch(console.warn);

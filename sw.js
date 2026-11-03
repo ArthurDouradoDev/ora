@@ -5,7 +5,8 @@ importScripts(
     'scripts/shared/pomodoro-core.js',
     'scripts/shared/tasks-core.js',
     'scripts/shared/sessions-core.js',
-    'scripts/shared/migrate-core.js'
+    'scripts/shared/migrate-core.js',
+    'scripts/shared/liturgy-core.js'
 );
 
 const CACHE_NAME = 'ora-cache-v1';
@@ -24,43 +25,76 @@ const GOSPEL_CACHE_KEY = 'liturgy_gospel_cache';
 const LITURGY_API = 'https://liturgia.up.railway.app/v2/';
 const GOSPEL_ALARM = 'gospel_daily_refresh';
 
-async function refreshGospelCache() {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-    // Check if cache is already up-to-date
-    try {
-        const data = await chrome.storage.local.get([GOSPEL_CACHE_KEY]);
-        const cached = data[GOSPEL_CACHE_KEY];
-        if (cached && cached.date === todayStr && 'cor' in cached) {
-            console.log('[SW Gospel] Cache already up-to-date for', todayStr);
-            return;
-        }
-    } catch (e) { /* proceed to fetch */ }
-
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const resp = await fetch(LITURGY_API, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const json = await resp.json();
-        const gospelEntry = json.leituras?.evangelho?.[0];
-        if (gospelEntry) {
-            const gospel = {
-                date: todayStr,
-                text: (gospelEntry.texto || '').replace(/\n+/g, ' ').trim(),
-                ref: gospelEntry.referencia || '',
-                titulo: gospelEntry.titulo || '',
-                liturgia: json.liturgia || '',
-                cor: json.cor || ''
-            };
-            await chrome.storage.local.set({ [GOSPEL_CACHE_KEY]: gospel });
-            console.log('[SW Gospel] Cache refreshed for', todayStr, '—', gospel.ref);
-        }
-    } catch (e) {
-        console.error('[SW Gospel] Failed to refresh cache:', e);
-    }
+let gospelRefresh = null;
+async function fetchLiturgyJSON(url) {
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error(`Liturgy HTTP ${response.status}`);
+    return response.json();
 }
+function refreshGospelCache() {
+    if (gospelRefresh) return gospelRefresh;
+    gospelRefresh = (async () => {
+        const now = new Date(), dates = LiturgyCore.days(now), updates = {};
+        const stored = await chrome.storage.local.get(GOSPEL_CACHE_KEY), cache = stored[GOSPEL_CACHE_KEY];
+        const missingPT = dates.filter(date => !LiturgyCore.read(cache,date,'pt')?.text);
+        if (missingPT.length) {
+            try {
+                const json = await fetchLiturgyJSON(LITURGY_API + '?periodo=7');
+                const entries = Array.isArray(json) ? json : [json];
+                for (const entry of entries) {
+                    const date = String(entry.data || '').split('/').reverse().join('-');
+                    if (!dates.includes(date)) continue;
+                    const pt = LiturgyCore.normalizePT(entry,date);
+                    if (pt) updates[date] = { pt };
+                }
+            } catch (err) { console.warn('[SW Gospel] Seven-day feed unavailable:',err.message); }
+            // A partial feed must not leave holes. Fetch missing dates individually.
+            for (const date of missingPT) {
+                if (updates[date]?.pt) continue;
+                try {
+                    const pt = LiturgyCore.normalizePT(await fetchLiturgyJSON(LiturgyCore.source('pt',date).api),date);
+                    if (pt) updates[date] = { ...updates[date],pt };
+                } catch (err) { console.warn('[SW Gospel]',date,err.message); }
+            }
+        }
+        // References only; no English/Spanish copyrighted Gospel text is copied.
+        // Requests are bounded in batches so this refresh coexists with timer alarms.
+        for (let i = 0; i < dates.length; i += 3) {
+            await Promise.all(dates.slice(i,i + 3).map(async date => {
+                if (LiturgyCore.read(cache,date,'en')?.liturgia) return;
+                try {
+                    const source = LiturgyCore.source('en',date);
+                    const [readings,calendar] = await Promise.all([
+                        fetchLiturgyJSON(source.api),fetchLiturgyJSON(source.calendar).catch(() => null)
+                    ]);
+                    const en = LiturgyCore.normalizeEN(readings,calendar,date);
+                    if (en) updates[date] = { ...updates[date],en };
+                } catch (err) { console.warn('[SW Gospel EN]',date,err.message); }
+            }));
+        }
+        if (Object.keys(updates).length) {
+            // Merge with the latest snapshot, preserving successful entries on partial/network failure.
+            const latest = (await chrome.storage.local.get(GOSPEL_CACHE_KEY))[GOSPEL_CACHE_KEY];
+            await chrome.storage.local.set({ [GOSPEL_CACHE_KEY]:LiturgyCore.merge(latest,updates,now) });
+        }
+        return { success:true };
+    })().finally(() => { gospelRefresh = null; });
+    return gospelRefresh;
+}
+
+chrome.runtime.onStartup.addListener(() => {
+    chrome.alarms.create(GOSPEL_ALARM,{ periodInMinutes:60 });
+    refreshGospelCache().catch(err => console.warn('[SW Gospel]',err));
+});
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.alarms.create(GOSPEL_ALARM,{ periodInMinutes:60 });
+    refreshGospelCache().catch(err => console.warn('[SW Gospel]',err));
+});
+chrome.runtime.onMessage.addListener((message,sender,sendResponse) => {
+    if (message?.type !== 'liturgy:refresh') return;
+    refreshGospelCache().then(sendResponse).catch(err => sendResponse({error:err.message}));
+    return true;
+});
 
 // ============================================================
 // DATA MIGRATION (1.1.5 / 1.2.0 → schema 2)

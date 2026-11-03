@@ -703,6 +703,103 @@
     // Exposto para o runner em Node (tests/run.js)
     (typeof window !== 'undefined' ? window : globalThis).__oraTestResults = results;
 
+
+    group('SearchCore — títulos, textos e escopos');
+    const prayerSamples = [
+        {id:'jose',title:'São José',category:'saints',text:{pt:'Ofereço meu trabalho',la:'Sancte Ioseph'}},
+        {id:'ave',title:'Ave Maria',category:'marian',text:{pt:'cheia de graça'}}
+    ];
+    assertEq('sao jose encontra São José', SearchCore.search(prayerSamples,{query:'sao jose'}).map(p => p.id),['jose']);
+    assertEq('busca texto sem acentos', SearchCore.search(prayerSamples,{query:'graca'}).map(p => p.id),['ave']);
+    assertEq('categoria restringe a busca', SearchCore.search(prayerSamples,{query:'jose',category:'marian'}),[]);
+    assertEq('favoritas restringem a busca', SearchCore.search(prayerSamples,{favoritesOnly:true,favorites:['ave']}).map(p => p.id),['ave']);
+    assertEq('categoria e favoritas combinam', SearchCore.search(prayerSamples,{category:'saints',favoritesOnly:true,favorites:['ave']}),[]);
+    assertEq('busca também em latim', SearchCore.search(prayerSamples,{query:'ioseph'}).length,1);
+    assertEq('favoritas vazias não exibem todas',SearchCore.search(prayerSamples,{favoritesOnly:true}).length,0);
+
+    group('ReaderCore — proporção e restauração');
+    assertEq('metade de uma leitura longa',ReaderCore.proportion(600,1600,400),0.5);
+    assertEq('retoma metade em outra altura de tela',ReaderCore.restore(0.5,2400,600),900);
+    assertEq('texto sem rolagem não gera NaN',ReaderCore.proportion(0,300,600),0);
+    assertEq('texto curto restaura no topo',ReaderCore.restore(0.9,300,600),0);
+    assertEq('limita overscroll',ReaderCore.proportion(2000,1600,400),1);
+    assertEq('proporção inválida restaura topo',ReaderCore.restore(NaN,2000,400),0);
+    assertEq('tamanho persistido é limitado',ReaderCore.preferences({size:200,appearance:'papel'}),{size:38,appearance:'papel'});
+    assertEq('tema desconhecido volta a escuro',ReaderCore.preferences({appearance:'unknown'}).appearance,'escuro');
+
+    group('RosaryCore — mistérios, navegação e retomada');
+    const expectedMysteries = ['gloriosos','gozosos','dolorosos','gloriosos','luminosos','dolorosos','gozosos'];
+    for (let day = 0;day < 7;day++) assertEq('mistério por dia ' + day,RosaryCore.mysteryForDay(new Date(2026,10,1 + day)),expectedMysteries[day]);
+    const rosStructure = [{type:'sinal-cruz',decade:0}];
+    for (let decade = 1;decade <= 5;decade++) {
+        rosStructure.push({type:'pai-nosso',decade});
+        for (let n = 1;n <= 10;n++) rosStructure.push({type:'ave-maria',decade});
+        rosStructure.push({type:'gloria',decade},{type:'fatima',decade});
+    }
+    rosStructure.push({type:'salve-rainha',decade:0});
+    let rosState = RosaryCore.restore({bead:11,mystery:'gloriosos',intention:'pela família',textMode:'name',lang:'es'},rosStructure);
+    assertEq('identifica Ave-Maria 10',RosaryCore.position(rosState,rosStructure),{decade:1,hail:10});
+    for (let n = 0;n < 3;n++) rosState = RosaryCore.move(rosState,1,rosStructure);
+    assertEq('avança ao próximo mistério após Glória e Fátima',RosaryCore.position(rosState,rosStructure),{decade:2,hail:0});
+    for (let n = 0;n < 3;n++) rosState = RosaryCore.move(rosState,-1,rosStructure);
+    assertEq('volta à Ave-Maria 10',RosaryCore.position(rosState,rosStructure),{decade:1,hail:10});
+    const thirdSixth = rosStructure.findIndex((bead,index) => bead.decade === 3 && bead.type === 'ave-maria' && rosStructure.slice(0,index + 1).filter(b => b.decade === 3 && b.type === 'ave-maria').length === 6);
+    const resumeState = {...rosState,bead:thirdSixth};
+    assertEq('serializa/restaura 6ª Ave-Maria do 3º mistério',RosaryCore.position(RosaryCore.restore(RosaryCore.serialize(resumeState,rosStructure),rosStructure),rosStructure),{decade:3,hail:6});
+    assertEq('preserva intenção, idioma e texto',RosaryCore.restore(RosaryCore.serialize(resumeState,rosStructure),rosStructure),resumeState);
+    assertEq('JSON legado inválido usa posição inicial',RosaryCore.restore('{bad',rosStructure).bead,0);
+    assertEq('posição fora da estrutura usa início',RosaryCore.restore({bead:900},rosStructure).bead,0);
+    assertEq('anterior não ultrapassa início',RosaryCore.move(RosaryCore.restore({},rosStructure),-1,rosStructure).bead,0);
+    assert('Misericórdia não usa Glória/Fátima nas dezenas',RosaryCore.indices(rosStructure,'misericordia').every(index => !(rosStructure[index].decade > 0 && ['gloria','fatima'].includes(rosStructure[index].type))));
+
+    group('LiturgyCore — APIs, idioma, datas e cache');
+    const litDate = '2026-11-03';
+    const ptEntry = LiturgyCore.normalizePT({data:'03/11/2026',liturgia:'Celebração de teste',cor:'Verde',leituras:{evangelho:[{referencia:'Lc 14,15-24',texto:'Texto de teste.\nSegundo parágrafo.',titulo:'Evangelho'}]}},litDate);
+    assertEq('normaliza referência pt',ptEntry.ref,'Lc 14,15-24');
+    assert('preserva parágrafos',ptEntry.text.includes('\n'));
+    assertEq('rejeita data errada da API',LiturgyCore.normalizePT({data:'02/11/2026',leituras:{evangelho:[{referencia:'Lc 1',texto:'teste'}]}},litDate),null);
+    assertEq('resposta pt vazia não é Evangelho',LiturgyCore.normalizePT({},litDate),null);
+    const enEntry = LiturgyCore.normalizeEN({date:litDate,readings:{gospel:'Luke 14:15-24'}},{date:litDate,celebration:{name:'Saint Martin de Porres'}},litDate);
+    assertEq('referência en sem texto copiado',enEntry.text,'');
+    assertEq('celebração en',enEntry.liturgia,'Saint Martin de Porres');
+    assertEq('rejeita leitura de outro dia',LiturgyCore.normalizeEN({date:'2026-11-02',readings:{gospel:'Luke 1'}},null,litDate),null);
+    assert('pt usa API atual',LiturgyCore.source('pt',litDate).api.includes('liturgia.up.railway.app'));
+    assert('en usa cpbjr',LiturgyCore.source('en',litDate).api.includes('cpbjr.github.io'));
+    assert('en abre USCCB',LiturgyCore.source('en',litDate).external.endsWith('110326.cfm'));
+    assert('es abre Evangelizo',LiturgyCore.source('es',litDate).external.includes('evangeliodeldia.org/ES/'));
+    const mergedGospel = LiturgyCore.merge(ptEntry,{[litDate]:{en:enEntry}},new Date(2026,10,3));
+    assertEq('migra cache legado sem perder pt',LiturgyCore.read(mergedGospel,litDate,'pt'),ptEntry);
+    assertEq('seleciona idioma por data',LiturgyCore.read(mergedGospel,litDate,'en'),enEntry);
+    assertEq('não usa Evangelho antigo como hoje',LiturgyCore.read(mergedGospel,'2026-11-04','pt'),null);
+    assertEq('exatamente sete datas inclusive hoje',Object.keys(mergedGospel.days).length,7);
+    assertEq('sete dias cruzam o ano',LiturgyCore.days(new Date(2026,11,29)),['2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03','2027-01-04']);
+    assertEq('atualização parcial preserva cache offline',LiturgyCore.read(LiturgyCore.merge(mergedGospel,{},new Date(2026,10,3)),litDate,'pt'),ptEntry);
+    assertEq('perícope funciona em pt/en',LiturgyCore.pericope('Lucas 14,15-24'),LiturgyCore.pericope('Luke 14:15-24'));
+    const artRecord = {pericope:'lc-14-15-24',url:'https://example.org/art.png',status:'draft',caption:'Origem',source:'https://example.org/source'};
+    assertEq('arte não aprovada nunca aparece',LiturgyCore.artwork([artRecord],'Lc 14,15-24'),null);
+    assert('arte aprovada tem origem',!!LiturgyCore.artwork([{...artRecord,status:'approved'}],'Lc 14,15-24'));
+    assertEq('sem acervo não reserva imagem',LiturgyCore.artwork(null,'Lc 14,15-24'),null);
+
+    group('SaintsCore — frases verificadas');
+    const sampleSaint = {name:{pt:'Santo de teste'},identity:{pt:'Identidade'},quote:{text:'Frase',verified:true,source:'https://example.org/original'}};
+    assert('frase verificada com fonte https permanece',!!SaintsCore.sanitize(sampleSaint).quote);
+    assertEq('frase sem verificação é descartada',SaintsCore.sanitize({...sampleSaint,quote:{...sampleSaint.quote,verified:false}}).quote,undefined);
+    assertEq('frase sem fonte é descartada',SaintsCore.sanitize({...sampleSaint,quote:{...sampleSaint.quote,source:''}}).quote,undefined);
+    assertEq('frase http é descartada',SaintsCore.sanitize({...sampleSaint,quote:{...sampleSaint.quote,source:'http://example.org'}}).quote,undefined);
+    assertEq('santo sem frase continua visível',SaintsCore.forDate({'11-03':[{name:'Martinho'}]},new Date(2026,10,3)).length,1);
+    assertEq('dia sem registro não inventa santo',SaintsCore.forDate({},new Date(2026,10,3)),[]);
+
+
+    group('BibleCore — capítulos e fontes católicas');
+    const bibleBook = {ptSlug:'sao-joao',enSlug:'john',esSlug:'evangelio-segun-san-juan',chapters:21};
+    assertEq('capítulo inexistente não abre',BibleCore.chapterURL(bibleBook,22,'pt'),null);
+    assertEq('capítulo zero não abre',BibleCore.chapterURL(bibleBook,0,'pt'),null);
+    assertEq('capítulo fracionário não abre',BibleCore.chapterURL(bibleBook,1.5,'pt'),null);
+    assert('fonte pt é católica',BibleCore.chapterURL(bibleBook,3,'pt').includes('biblia-ave-maria/sao-joao/3/'));
+    assertEq('fonte en é USCCB',BibleCore.chapterURL(bibleBook,3,'en'),'https://bible.usccb.org/bible/john/3');
+    assert('fonte es é Latinoamericana',BibleCore.chapterURL(bibleBook,3,'es').includes('es/biblia-latinoamericana/evangelio-segun-san-juan/3/'));
+    assertEq('limites próprios da edição',BibleCore.chapterURL({...bibleBook,chaptersByLocale:{en:2}},3,'en'),null);
+
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;
 
