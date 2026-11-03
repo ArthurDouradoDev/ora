@@ -26,7 +26,25 @@
     <script src="../scripts/shared/blocker-core.js"></script>
     <script src="../scripts/shared/pomodoro-core.js"></script>
     <script src="../scripts/shared/route-core.js"></script>
+    <script src="../scripts/shared/tasks-core.js"></script>
+    <script src="../scripts/shared/sessions-core.js"></script>
+    <script src="../scripts/shared/counter-core.js"></script>
+    <script src="../scripts/shared/migrate-core.js"></script>
     <script src="../scripts/modules/sync.js"></script>
-    <script src="tests.js"></script>
+    <script>
+        // Fixtures em JSON, carregadas por fetch. Em file:// o fetch falha e os
+        // testes que dependem delas aparecem como ignorados (use node tests/run.js).
+        window.__oraFixtures = {};
+        Promise.all(['storage-1.1.5'].map(name =>
+            fetch('fixtures/' + name + '.json')
+                .then(r => (r.ok ? r.json() : null))
+                .then(json => { if (json) window.__oraFixtures[name] = json; })
+                .catch(() => {})
+        )).then(() => {
+            const script = document.createElement('script');
+            script.src = 'tests.js';
+            document.body.appendChild(script);
+        });
+    </script>
 </body>
 </html>

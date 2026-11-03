@@ -1,0 +1,67 @@
+{
+  "_comment": "Snapshot de chrome.storage.local no formato gravado pela 1.1.5 (commit 1ca2ccb). Montado a partir do código da 1.1.5; substituir por uma exportação real (chrome.storage.local.get(null, console.log)) quando disponível. Chaves com _ são ignoradas pelos testes.",
+  "blocker_config": {
+    "enabled": true,
+    "lock": { "enabled": true, "verseIndex": 3 },
+    "sites": [
+      {
+        "id": 1772730000000,
+        "url": "instagram.com",
+        "mode": "always",
+        "accessLimit": { "enabled": false, "count": 5, "period": "day" },
+        "scheduleLimit": { "enabled": false, "fromHour": 22, "fromMinute": 0, "toHour": 8, "toMinute": 0 },
+        "todayAccesses": 0,
+        "lastAccessDate": "2026-11-02"
+      },
+      {
+        "id": 1772730060000,
+        "url": "youtube.com",
+        "mode": "limited",
+        "accessLimit": { "enabled": true, "count": 3, "period": "day" },
+        "scheduleLimit": { "enabled": true, "fromHour": 22, "fromMinute": 0, "toHour": 7, "toMinute": 30 },
+        "todayAccesses": 2,
+        "lastAccessDate": "2026-11-02"
+      }
+    ]
+  },
+  "catholic_dash_date": "Mon Nov 02 2026",
+  "catholic_dash_image": "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920",
+  "liturgy_gospel_cache": { "date": "2026-11-02", "data": { "liturgia": "Comemoração de todos os fiéis defuntos" } },
+  "ora_quick_links": [
+    { "name": "Google", "url": "https://google.com" },
+    { "name": "ChatGPT", "url": "https://chatgpt.com" },
+    { "name": "Liturgia das Horas", "url": "https://www.paulus.com.br/portal/liturgia-diaria-das-horas/" },
+    { "name": "Vatican News", "url": "https://www.vaticannews.va/pt.html" }
+  ],
+  "ora_user_playlists": "[{\"id\":\"user-1772731000000\",\"title\":\"YouTube Playlist\",\"source\":\"youtube\",\"idType\":\"playlist\",\"externalId\":\"PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG\",\"icon\":\"ph-youtube-logo\"},{\"id\":\"user-1772731100000\",\"title\":\"Spotify Playlist\",\"source\":\"spotify\",\"idType\":\"playlist\",\"externalId\":\"37i9dQZF1DX6R7QUWePReA\",\"icon\":\"ph-spotify-logo\"}]",
+  "ora_deleted_default_playlists": "[\"lofi-girl\"]",
+  "ora_focus_settings": "{\"focus\":50,\"pause\":10,\"longPause\":20}",
+  "ora_pomodoro_state": {
+    "isRunning": false,
+    "phase": "focus",
+    "expectedEndTime": null,
+    "timeRemaining": 3000,
+    "totalDuration": 3000,
+    "pomodoroCount": 2,
+    "totalFocusSeconds": 6000,
+    "todayKey": "ora_focus_total_Mon Nov 02 2026",
+    "settings": { "focus": 50, "pause": 10, "longPause": 20, "sound": true, "autoNext": false, "continuousAlarm": false, "wakeLock": false }
+  },
+  "ora_focus_total_Fri Oct 30 2026": "4500",
+  "ora_focus_total_Sat Oct 31 2026": "20",
+  "ora_focus_total_Mon Nov 02 2026": "6000",
+  "ora_focus_total_Tue Nov 03 2026": "1500",
+  "ora_intention": "Pela saúde da minha mãe",
+  "ora_exam_logs": "[{\"type\":\"night\",\"date\":\"2026-10-31T23:10:00.000Z\",\"answers\":{\"gratidao\":\"A missa de domingo\",\"virtudes\":[\"paciencia\"]}},{\"type\":\"midday\",\"date\":\"2026-11-02T15:30:00.000Z\",\"answers\":{\"intencao\":\"Trabalhar com retidão\"}}]",
+  "ora_exam_done_Sat Oct 31 2026": "true",
+  "ora_evening_done_Sat Oct 31 2026": "true",
+  "ora_exam_done_Mon Nov 02 2026": "true",
+  "ora_midday_done_Mon Nov 02 2026": "true",
+  "ora_virtues_list": "[\"Paciência\",\"Humildade\",\"Caridade\"]",
+  "ora_virtues_log_Mon Nov 02 2026": "{\"Paciência\":true}",
+  "ora_rosary_progress": "{\"bead\":27,\"mystery\":\"gloriosos\",\"chapletType\":\"terco\",\"lang\":\"pt\"}",
+  "ora_quote_date": "Mon Nov 02 2026",
+  "ora_quote_index": "12",
+  "ora_greeting_date": "Mon Nov 02 2026",
+  "ora_greeting_index": "3"
+}

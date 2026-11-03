@@ -83,12 +83,12 @@ const RosarySystem = {
     },
 
     saveProgress: async function() {
-        await AsyncStorage.set('ora_rosary_progress', JSON.stringify({
+        await AsyncStorage.set('ora_rosary_progress', {
             bead: this.currentBead,
             mystery: this.mystery,
             chapletType: this.chapletType,
             lang: this.lang
-        }));
+        });
     },
 
     // --- Core Logic ---

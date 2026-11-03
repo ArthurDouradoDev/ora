@@ -901,12 +901,6 @@
     text-overflow: ellipsis;
 }
 
-.home-task-streak {
-    font-size: 0.7rem;
-    color: rgba(238, 187, 85, 0.9);
-    flex-shrink: 0;
-}
-
 .home-task-cycles {
     flex-shrink: 0;
 }
@@ -977,8 +971,9 @@
 
 .ritual-stats {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     font-size: 0.82rem;
     color: rgba(255, 255, 255, 0.7);
     background: rgba(255, 255, 255, 0.05);
@@ -989,6 +984,12 @@
 .ritual-stats i {
     color: rgba(238, 187, 85, 0.85);
     font-size: 1rem;
+}
+
+.ritual-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .ritual-section h4 {
@@ -1024,12 +1025,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.ritual-streak {
-    font-size: 0.72rem;
-    color: rgba(238, 187, 85, 0.9);
-    flex-shrink: 0;
 }
 
 .ritual-priority-inputs {

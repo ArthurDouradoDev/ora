@@ -1,6 +1,12 @@
-// Shared logic (BlockerCore / PomodoroCore) — single source of truth
+// Shared logic (scripts/shared/*-core.js) — single source of truth
 // also used by the extension pages and the test suite.
-importScripts('scripts/shared/blocker-core.js', 'scripts/shared/pomodoro-core.js');
+importScripts(
+    'scripts/shared/blocker-core.js',
+    'scripts/shared/pomodoro-core.js',
+    'scripts/shared/tasks-core.js',
+    'scripts/shared/sessions-core.js',
+    'scripts/shared/migrate-core.js'
+);
 
 const CACHE_NAME = 'ora-cache-v1';
 
@@ -54,6 +60,34 @@ async function refreshGospelCache() {
         console.error('[SW Gospel] Failed to refresh cache:', e);
     }
 }
+
+// ============================================================
+// DATA MIGRATION (1.1.5 / 1.2.0 → schema 2)
+// ============================================================
+// Runs here and in ora.html (main.js); both are idempotent. The SW must
+// migrate before the pomodoro day rollover purges old ora_focus_total_* keys.
+let migrationPromise = null;
+
+function ensureMigrated() {
+    if (!migrationPromise) {
+        migrationPromise = (async () => {
+            const snapshot = await chrome.storage.local.get(null);
+            if (!MigrateCore.needsMigration(snapshot)) return;
+            const result = MigrateCore.migrate(snapshot);
+            await chrome.storage.local.set(result.changes);
+            if (result.removals.length) await chrome.storage.local.remove(result.removals);
+            console.log('[SW Migrate] Schema', result.schemaVersion, '—', Object.keys(result.changes).length, 'keys written,', result.removals.length, 'removed');
+        })().catch(e => {
+            console.error('[SW Migrate] Failed:', e);
+            migrationPromise = null; // retry on the next call
+        });
+    }
+    return migrationPromise;
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+    ensureMigrated();
+});
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -127,71 +161,138 @@ const POMODORO_ALARM = 'ora-pomodoro-tick';
 const POMODORO_STATE_KEY = 'ora_pomodoro_state';
 
 function getTodayKey() {
-    return 'ora_focus_total_' + new Date().toDateString();
+    return PomodoroCore.todayKey(new Date());
 }
 
 function getDefaultState() {
-    return {
-        isRunning: false,
-        phase: 'focus',
-        expectedEndTime: null,
-        timeRemaining: 25 * 60,
-        totalDuration: 25 * 60,
-        pomodoroCount: 0,
-        totalFocusSeconds: 0,
-        todayKey: getTodayKey(),
-        settings: PomodoroCore.getDefaultSettings()
-    };
+    return PomodoroCore.createState(PomodoroCore.getDefaultSettings(), new Date());
 }
 
 const getPhaseDuration = PomodoroCore.getPhaseDuration;
 
-// ── Daily stats (ora_daily_stats) ──
-// Shared with tasks.js: { 'YYYY-MM-DD': { focusSeconds, tasksDone, cyclesDone } }
-// The SW records focusSeconds at day rollover; tasks.js records the task fields.
-const DAILY_STATS_KEY = 'ora_daily_stats';
-const DAILY_STATS_MAX_AGE_DAYS = 35;
+// ── Focus sessions (ora_sessions) ──
+// The SW owns the session record: it is the only place that sees a focus
+// phase start, pause, finish or end early, even with no Ora tab open.
+const SESSIONS_KEY = 'ora_sessions';
+const ACTIVE_TASK_KEY = 'ora_active_task_id';
+const TASKS_KEY = 'ora_tasks';
 
-async function recordFocusStats(prevTodayKey, focusSeconds) {
+async function recordSession(record) {
+    if (!record || !(record.focusedMin >= 1)) return;
     try {
-        if (!focusSeconds || focusSeconds <= 0) return;
-        const dateStr = prevTodayKey.slice('ora_focus_total_'.length);
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return;
-        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-        const data = await chrome.storage.local.get([DAILY_STATS_KEY]);
-        const stats = data[DAILY_STATS_KEY] || {};
-        stats[iso] = Object.assign({}, stats[iso], { focusSeconds });
-
-        const cutoff = Date.now() - DAILY_STATS_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
-        for (const k of Object.keys(stats)) {
-            const t = new Date(k + 'T00:00:00').getTime();
-            if (!isNaN(t) && t < cutoff) delete stats[k];
-        }
-
-        await chrome.storage.local.set({ [DAILY_STATS_KEY]: stats });
+        const data = await chrome.storage.local.get([SESSIONS_KEY]);
+        const sessions = SessionsCore.appendSession(data[SESSIONS_KEY] || [], record);
+        await chrome.storage.local.set({ [SESSIONS_KEY]: sessions });
+        console.log(`[SW Sessions] Recorded ${record.status} session: ${record.focusedMin} min`);
     } catch (e) {
-        console.error('[SW Stats] Failed to record focus stats:', e);
+        console.error('[SW Sessions] Failed to record session:', e);
     }
+}
+
+// Seconds of the current focus phase already elapsed (paused time excluded)
+function elapsedFocusSeconds(state, now) {
+    const remaining = state.isRunning && state.expectedEndTime
+        ? Math.max(0, Math.ceil((state.expectedEndTime - now) / 1000))
+        : state.timeRemaining;
+    return Math.max(0, state.totalDuration - remaining);
+}
+
+// Called right before a focus phase starts running. Resumes the paused
+// session or opens a new one linked to the active task (if any).
+async function beginOrResumeSession(state, message, now) {
+    if (state.phase !== 'focus') return;
+    if (state.session) {
+        state.session = SessionsCore.resume(state.session, now);
+        return;
+    }
+
+    const explicitTask = !!message && Object.prototype.hasOwnProperty.call(message, 'taskId');
+    let taskId = explicitTask ? message.taskId : null;
+    let intention = message && typeof message.intention === 'string' ? message.intention : undefined;
+    try {
+        const data = await chrome.storage.local.get([ACTIVE_TASK_KEY, TASKS_KEY]);
+        if (!explicitTask) taskId = data[ACTIVE_TASK_KEY] || null;
+        const task = taskId ? (data[TASKS_KEY] || []).find(t => t && t.id === taskId) : null;
+        if (!task) taskId = null;
+        // The task's suggested intention is copied, never linked
+        if (intention === undefined && task && task.intention) intention = task.intention;
+    } catch (e) { /* session without task */ }
+
+    state.session = SessionsCore.startSession({
+        id: 'session-' + now,
+        taskId,
+        intention,
+        plannedMin: Math.round(state.totalDuration / 60),
+        // A focus phase begun before this version has no session yet
+        alreadyFocusedMs: elapsedFocusSeconds(state, now) * 1000,
+        now
+    });
+}
+
+// The session of a focus phase begun before schema 2, rebuilt from the timer.
+function legacySession(state, now) {
+    const elapsed = elapsedFocusSeconds(state, now);
+    if (state.phase !== 'focus' || elapsed <= 0) return null;
+    return SessionsCore.startSession({
+        id: 'session-' + now,
+        plannedMin: Math.round(state.totalDuration / 60),
+        alreadyFocusedMs: elapsed * 1000,
+        paused: true,
+        now
+    });
+}
+
+function pauseSession(state, now) {
+    if (state.session) state.session = SessionsCore.pause(state.session, now);
+}
+
+// Ends the current focus session: 'completed' when the phase ran out,
+// 'interrupted' when the person stopped early (counts the minutes focused).
+// Must run before the timer fields are reset.
+async function endSession(state, kind, now) {
+    const session = state.session || legacySession(state, now);
+    state.session = null;
+    if (!session) return;
+    const record = kind === 'completed'
+        ? SessionsCore.finishSession(session, now)
+        : SessionsCore.interruptSession(session, now);
+    await recordSession(record);
+}
+
+function normalizeState(stored) {
+    const state = Object.assign(getDefaultState(), stored);
+    state.settings = PomodoroCore.sanitizeSettings(stored.settings);
+    if (!stored.phase) {
+        state.timeRemaining = getPhaseDuration('focus', state.settings);
+        state.totalDuration = state.timeRemaining;
+    }
+    if (!state.session || typeof state.session !== 'object') state.session = null;
+    return state;
 }
 
 async function loadState() {
     try {
+        await ensureMigrated();
         const data = await chrome.storage.local.get([POMODORO_STATE_KEY]);
-        const state = data[POMODORO_STATE_KEY];
-        if (state) {
+        const stored = data[POMODORO_STATE_KEY];
+        if (stored && typeof stored === 'object') {
+            const state = normalizeState(stored);
             // Ensure todayKey is current (handles day rollover)
             const currentKey = getTodayKey();
-            const prevTodayKey = state.todayKey;
-            const prevFocusSeconds = state.totalFocusSeconds;
-            if (PomodoroCore.applyDayRollover(state, currentKey)) {
+            const now = Date.now();
+            const before = Object.assign({}, state);
+            if (PomodoroCore.applyDayRollover(state, currentKey, now)) {
                 // Timer fields were reset (unless a session is genuinely running
                 // across midnight) — drop the stale wakeup alarm too.
-                if (!state.isRunning) chrome.alarms.clear(POMODORO_ALARM);
-
-                // Record yesterday's focus total before it is lost
-                recordFocusStats(prevTodayKey, prevFocusSeconds);
+                if (!state.isRunning) {
+                    chrome.alarms.clear(POMODORO_ALARM);
+                    // Yesterday's session is closed with what was really focused
+                    if (before.session) {
+                        const ranOut = before.isRunning && before.expectedEndTime && before.expectedEndTime <= now;
+                        await endSession(before, ranOut ? 'completed' : 'interrupted', ranOut ? before.expectedEndTime : now);
+                    }
+                    state.session = null;
+                }
 
                 // Try to load today's total from legacy key
                 const legacyTotal = await chrome.storage.local.get([currentKey]);
@@ -201,7 +302,8 @@ async function loadState() {
                 // Persist the rollover immediately so open tabs detect the change
                 chrome.storage.local.set({ [POMODORO_STATE_KEY]: state });
 
-                // Purge focus-total keys from previous days (they accumulate forever otherwise)
+                // Purge focus-total keys from previous days (already turned
+                // into ora_sessions by ensureMigrated above)
                 chrome.storage.local.get(null).then(all => {
                     const stale = Object.keys(all).filter(k => k.startsWith('ora_focus_total_') && k !== currentKey);
                     if (stale.length) chrome.storage.local.remove(stale);
@@ -209,26 +311,26 @@ async function loadState() {
             }
             return state;
         }
-        
+
         // First load — migrate old settings if they exist
         const defaultState = getDefaultState();
         const migration = await chrome.storage.local.get(['ora_focus_settings', defaultState.todayKey]);
-        
+
         if (migration['ora_focus_settings']) {
             try {
                 const oldSettings = typeof migration['ora_focus_settings'] === 'string'
                     ? JSON.parse(migration['ora_focus_settings'])
                     : migration['ora_focus_settings'];
-                defaultState.settings = { ...defaultState.settings, ...oldSettings };
-                defaultState.timeRemaining = getPhaseDuration(defaultState.phase, oldSettings);
+                defaultState.settings = PomodoroCore.sanitizeSettings(oldSettings);
+                defaultState.timeRemaining = getPhaseDuration(defaultState.phase, defaultState.settings);
                 defaultState.totalDuration = defaultState.timeRemaining;
             } catch (e) { /* use defaults */ }
         }
-        
+
         if (migration[defaultState.todayKey]) {
             defaultState.totalFocusSeconds = parseInt(migration[defaultState.todayKey]) || 0;
         }
-        
+
         return defaultState;
     } catch (e) {
         console.error('[SW Pomodoro] Error loading state:', e);
@@ -340,6 +442,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         switch (message.type) {
             case 'pomodoro:start': {
                 if (state.isRunning) return state;
+                await beginOrResumeSession(state, message, Date.now());
                 state.isRunning = true;
                 state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
                 await saveState(state);
@@ -349,6 +452,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             case 'pomodoro:pause': {
                 if (!state.isRunning) return state;
+                pauseSession(state, Date.now());
                 state.isRunning = false;
                 // Calculate accurate remaining time
                 const remaining = Math.max(0, Math.ceil((state.expectedEndTime - Date.now()) / 1000));
@@ -365,6 +469,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
 
             case 'pomodoro:reset': {
+                // Restarting the phase ends the session early (minutes count)
+                if (state.phase === 'focus') await endSession(state, 'interrupted', Date.now());
                 const wasRunning = state.isRunning;
                 if (wasRunning && state.phase === 'focus') {
                     // Save accumulated focus time before reset
@@ -382,6 +488,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
 
             case 'pomodoro:skip': {
+                if (state.phase === 'focus') await endSession(state, 'interrupted', Date.now());
                 const wasRunning = state.isRunning;
                 if (wasRunning && state.phase === 'focus') {
                     const remaining = Math.max(0, Math.ceil((state.expectedEndTime - Date.now()) / 1000));
@@ -399,17 +506,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             case 'pomodoro:updateSettings': {
                 const { settings } = message;
                 if (settings) {
-                    state.settings = {
-                        focus: Math.max(1, Math.min(120, settings.focus || 25)),
-                        pause: Math.max(1, Math.min(30, settings.pause || 5)),
-                        longPause: Math.max(1, Math.min(60, settings.longPause || 15)),
-                        sound: settings.sound !== undefined ? settings.sound : true,
-                        autoNext: settings.autoNext !== undefined ? settings.autoNext : false,
-                        continuousAlarm: settings.continuousAlarm !== undefined ? settings.continuousAlarm : false,
-                        wakeLock: settings.wakeLock !== undefined ? settings.wakeLock : false
-                    };
+                    state.settings = PomodoroCore.sanitizeSettings(Object.assign({}, state.settings, settings));
                     // If not running, update current phase duration
                     if (!state.isRunning) {
+                        // A paused focus session restarts with the new duration
+                        if (state.phase === 'focus' && state.session) await endSession(state, 'interrupted', Date.now());
                         state.timeRemaining = getPhaseDuration(state.phase, state.settings);
                         state.totalDuration = state.timeRemaining;
                     }
@@ -426,8 +527,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 return state;
             }
 
+            case 'pomodoro:setSessionTask': {
+                // The active task changed during a focus session
+                if (state.session) {
+                    state.session = Object.assign({}, state.session, { taskId: message.taskId || null });
+                    await saveState(state);
+                }
+                return state;
+            }
+
             case 'pomodoro:close': {
-                // Timer closed by user — pause and save
+                // Timer closed by user — pause and save (the session stays paused)
+                pauseSession(state, Date.now());
                 if (state.isRunning && state.phase === 'focus') {
                     const remaining = Math.max(0, Math.ceil((state.expectedEndTime - Date.now()) / 1000));
                     const elapsed = state.timeRemaining - remaining;
@@ -469,6 +580,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         // Accumulate focus seconds for the elapsed portion
         if (state.phase === 'focus') {
             state.totalFocusSeconds += state.timeRemaining; // full phase elapsed
+            await endSession(state, 'completed', state.expectedEndTime);
         }
 
         const completedPhase = state.phase;
@@ -476,6 +588,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
         if (state.settings.autoNext) {
             // Auto-start next phase
+            await beginOrResumeSession(state, null, Date.now());
             state.isRunning = true;
             state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
             await saveState(state);

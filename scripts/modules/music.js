@@ -42,7 +42,7 @@ const MusicSystem = {
     },
 
     saveUserPlaylists: async function() {
-        await AsyncStorage.set('ora_user_playlists', JSON.stringify(this.state.userPlaylists));
+        await AsyncStorage.set('ora_user_playlists', this.state.userPlaylists);
     },
 
     cacheDOM: function() {
@@ -364,7 +364,7 @@ const MusicSystem = {
             // It's a default playlist, add to deleted list
             if (!this.state.deletedDefaultPlaylists.includes(id)) {
                 this.state.deletedDefaultPlaylists.push(id);
-                AsyncStorage.set('ora_deleted_default_playlists', JSON.stringify(this.state.deletedDefaultPlaylists));
+                AsyncStorage.set('ora_deleted_default_playlists', this.state.deletedDefaultPlaylists);
             }
         } else {
             // It's a user playlist, remove from list

@@ -1,14 +1,24 @@
 const TaskSystem = {
-    // Dependencies: AsyncStorage, i18n (t), animateModal, isModalVisible, showToast
+    // Dependencies: AsyncStorage, i18n (t), animateModal, isModalVisible, showToast,
+    // TasksCore, SessionsCore, CounterCore.
+    // Tarefas (ora_tasks) não guardam ciclos: as sessões de foco são gravadas
+    // pelo SW em ora_sessions e só são lidas aqui para exibir o progresso.
+    // Concluir não cria sessões (E01) e completar sessões não conclui (E02).
+    // Interface antiga adaptada até a fase 2 (painel lateral).
 
-    STORAGE_KEY: 'ora_tasks_daily',
+    STORAGE_KEY: 'ora_tasks',
+    HISTORY_KEY: 'ora_tasks_history',
+    SESSIONS_KEY: 'ora_sessions',
     ACTIVE_TASK_KEY: 'ora_active_task_id',
-    DAILY_STATS_KEY: 'ora_daily_stats',
+    EXTRA_DAYS_KEY: 'ora_imported_active_days',
     RITUAL_SHOWN_KEY: 'ora_ritual_last_shown',
     WIDGET_COLLAPSED_KEY: 'ora_home_widget_collapsed',
-    HOME_WIDGET_MAX: 3,
+    HOME_WIDGET_MAX: TasksCore.HOME_MAX,
+    PLANNED_SESSIONS_MAX: 4,
 
-    tasks: [],
+    tasks: [],    // includes routine templates (hidden) — see TasksCore
+    history: [],
+    sessions: [],
     activeTaskId: null,
     editingTaskId: null,
     _userCollapsed: false, // user preference (persisted)
@@ -22,20 +32,35 @@ const TaskSystem = {
         await this.loadData();
         this._userCollapsed = (await AsyncStorage.get(this.WIDGET_COLLAPSED_KEY, false)) === true;
         this.applyWidgetCollapsed();
-        await this.checkDailyReset();
+        await this.applyDayRollover();
         this.render();
         this.updateActiveTaskUI();
         await this.maybeShowMorningRitual();
 
-        // Listen for storage changes from other tabs/windows
+        // A tab left open overnight rolls the day over when it comes back
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && this._day !== TasksCore.isoDate(new Date())) {
+                this.applyDayRollover().then(() => this.render());
+            }
+        });
+
+        // Listen for storage changes from other tabs/windows (and the SW)
         chrome.storage.onChanged.addListener((changes, area) => {
             if (area === 'local') {
                 if (changes[this.STORAGE_KEY]) {
-                    const newValue = changes[this.STORAGE_KEY].newValue || [];
+                    const newValue = TasksCore.normalizeTasks(changes[this.STORAGE_KEY].newValue);
                     if (JSON.stringify(this.tasks) !== JSON.stringify(newValue)) {
                         this.tasks = newValue;
                         this.render();
+                        this.updateActiveTaskUI();
                     }
+                }
+                if (changes[this.HISTORY_KEY]) {
+                    this.history = changes[this.HISTORY_KEY].newValue || [];
+                }
+                if (changes[this.SESSIONS_KEY]) {
+                    this.sessions = changes[this.SESSIONS_KEY].newValue || [];
+                    this.render();
                 }
                 if (changes[this.ACTIVE_TASK_KEY]) {
                     const newActiveId = changes[this.ACTIVE_TASK_KEY].newValue || null;
@@ -299,16 +324,6 @@ const TaskSystem = {
         return window.FocusSystem.phase === 'pause' || window.FocusSystem.phase === 'longPause';
     },
 
-    isoDate: function(d = new Date()) {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    },
-
-    isoDaysAgo: function(n) {
-        const d = new Date();
-        d.setDate(d.getDate() - n);
-        return this.isoDate(d);
-    },
-
     formatFocusTime: function(seconds) {
         if (!seconds || seconds < 60) return null;
         const h = Math.floor(seconds / 3600);
@@ -316,103 +331,90 @@ const TaskSystem = {
         return h > 0 ? `${h}h ${m}m` : `${m}m`;
     },
 
-    // --- Streaks (recurring tasks) ---
-    // streak counts consecutive days a task was completed. prevStreak /
-    // prevStreakDate allow undoing a completion made earlier the same day.
-
-    applyCompletionStreak: function(task) {
-        const today = this.isoDate();
-        if (task.lastStreakDate === today) return;
-        task.prevStreak = task.streak || 0;
-        task.prevStreakDate = task.lastStreakDate || null;
-        task.streak = (task.lastStreakDate === this.isoDaysAgo(1)) ? (task.streak || 0) + 1 : 1;
-        task.lastStreakDate = today;
+    taskById: function(id) {
+        return this.tasks.find(task => task.id === id) || null;
     },
 
-    revertCompletionStreak: function(task) {
-        if (task.lastStreakDate !== this.isoDate()) return;
-        task.streak = task.prevStreak || 0;
-        task.lastStreakDate = task.prevStreakDate || null;
+    visibleTasks: function() {
+        return TasksCore.visibleTasks(this.tasks);
+    },
+
+    focusMinutes: function() {
+        const focus = window.FocusSystem && window.FocusSystem.settings && window.FocusSystem.settings.focus;
+        return focus || 25;
+    },
+
+    // Sessões previstas = estimativa ÷ duração do foco (só exibição)
+    plannedSessions: function(task) {
+        if (!task.estimateMin) return 1;
+        return Math.max(1, Math.min(this.PLANNED_SESSIONS_MAX, Math.round(task.estimateMin / this.focusMinutes())));
+    },
+
+    sessionsDone: function(task) {
+        return TasksCore.sessionsDoneToday(this.sessions, task.id, new Date());
+    },
+
+    renderSessionDots: function(task) {
+        const done = this.sessionsDone(task);
+        const total = Math.max(this.plannedSessions(task), done);
+        let html = '';
+        for (let i = 0; i < total; i++) {
+            html += `<div class="focus-dot ${i < done ? 'completed' : ''}"></div>`;
+        }
+        return html;
     },
 
     // --- Data ---
 
     loadData: async function() {
-        const stored = await AsyncStorage.get(this.STORAGE_KEY);
-        this.tasks = stored || [];
+        this.tasks = TasksCore.normalizeTasks(await AsyncStorage.get(this.STORAGE_KEY, []));
+        this.history = (await AsyncStorage.get(this.HISTORY_KEY, [])) || [];
+        this.sessions = (await AsyncStorage.get(this.SESSIONS_KEY, [])) || [];
 
         const activeId = await AsyncStorage.get(this.ACTIVE_TASK_KEY);
         if (activeId) this.activeTaskId = activeId;
     },
 
     saveData: async function() {
-        await AsyncStorage.set(this.STORAGE_KEY, this.tasks);
+        const saved = await AsyncStorage.set(this.STORAGE_KEY, this.tasks);
         this.render();
         this.updateActiveTaskUI();
+        return saved;
     },
 
-    // Returns true when a new day started (first open of the day).
-    checkDailyReset: async function() {
-        const today = new Date().toDateString();
-        const lastResetDate = await AsyncStorage.get('ora_tasks_last_reset');
-        if (lastResetDate === today) return false;
+    // Virada do dia: concluídas vão para o histórico (E06) e as rotinas
+    // geram a tarefa de hoje nos dias da regra (E05). Idempotente.
+    applyDayRollover: async function() {
+        const now = new Date();
+        this._day = TasksCore.isoDate(now);
+        const rolled = TasksCore.rolloverDay(this.tasks, this.history, now);
+        const tasks = TasksCore.materializeRecurring(rolled.tasks, now);
 
-        // Record the previous day's task stats before clearing them
-        if (lastResetDate) {
-            await this.recordDailyStats(lastResetDate);
+        // History first: a completed task is never lost between the two writes
+        if (rolled.changed) {
+            this.history = rolled.history;
+            await AsyncStorage.set(this.HISTORY_KEY, this.history);
         }
-
-        let changed = false;
-        const remainingTasks = [];
-        const yesterdayIso = this.isoDaysAgo(1);
-
-        for (const task of this.tasks) {
-            if (task.recurring) {
-                task.done = false;
-                task.completedCycles = 0;
-                task.completedAt = null;
-                // Chain broken: last completion was before yesterday
-                if (task.streak && (!task.lastStreakDate || task.lastStreakDate < yesterdayIso)) {
-                    task.streak = 0;
-                }
-                remainingTasks.push(task);
-                changed = true;
-            } else {
-                if (!task.done) {
-                    remainingTasks.push(task);
-                } else {
-                    changed = true;
-                }
-            }
+        if (rolled.changed || tasks.length !== rolled.tasks.length) {
+            this.tasks = tasks;
+            await AsyncStorage.set(this.STORAGE_KEY, this.tasks);
         }
-
-        if (changed) {
-            this.tasks = remainingTasks;
-            await this.saveData();
+        if (this.activeTaskId && !this.taskById(this.activeTaskId)) {
+            await this.setActiveTask(null);
         }
-
-        await AsyncStorage.set('ora_tasks_last_reset', today);
-        return true;
     },
 
-    // --- Daily Stats (shared key with sw.js, which records focusSeconds) ---
+    startOfDay: function(daysAgo) {
+        const d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate() - daysAgo).getTime();
+    },
 
-    recordDailyStats: async function(lastResetDateString) {
-        try {
-            const d = new Date(lastResetDateString);
-            if (isNaN(d.getTime())) return;
-            const iso = this.isoDate(d);
-
-            const tasksDone = this.tasks.filter(t => t.done).length;
-            const cyclesDone = this.tasks.reduce((sum, t) => sum + (t.completedCycles || 0), 0);
-            if (tasksDone === 0 && cyclesDone === 0) return;
-
-            const stats = (await AsyncStorage.get(this.DAILY_STATS_KEY)) || {};
-            stats[iso] = Object.assign({}, stats[iso], { tasksDone, cyclesDone });
-            await AsyncStorage.set(this.DAILY_STATS_KEY, stats);
-        } catch (e) {
-            console.error('[Tasks] Failed to record daily stats:', e);
-        }
+    // Tarefas concluídas em [from, to) (histórico + lista atual)
+    countCompletedBetween: function(from, to) {
+        return this.history.concat(this.tasks).filter(task => {
+            const at = task && task.completedAt;
+            return at && at >= from && at < to;
+        }).length;
     },
 
     // --- Morning Ritual (first tab of the day) ---
@@ -439,31 +441,36 @@ const TaskSystem = {
         const namePart = userName ? `, ${userName}` : '';
         els.ritualGreeting.textContent = t('tasks.ritual_greeting', { name: namePart });
 
-        // Yesterday's summary
-        const stats = (await AsyncStorage.get(this.DAILY_STATS_KEY)) || {};
-        const yesterday = stats[this.isoDaysAgo(1)];
-        if (yesterday && ((yesterday.tasksDone || 0) > 0 || (yesterday.focusSeconds || 0) > 0)) {
-            const focusStr = this.formatFocusTime(yesterday.focusSeconds);
-            let text = `<i class="ph ph-chart-line-up"></i> ` + this.escapeHtml(t('tasks.ritual_yesterday', { tasks: yesterday.tasksDone || 0 }));
-            if (focusStr) text += ' ' + this.escapeHtml(t('tasks.ritual_yesterday_focus', { focus: focusStr }));
-            els.ritualStats.innerHTML = text;
-            els.ritualStats.style.display = 'flex';
-        } else {
-            els.ritualStats.style.display = 'none';
+        // Yesterday's summary (sessions + completed tasks) and "Dias com Ora"
+        const today0 = this.startOfDay(0);
+        const yesterday0 = this.startOfDay(1);
+        const yesterdayTasks = this.countCompletedBetween(yesterday0, today0);
+        const yesterdayFocus = this.formatFocusTime(SessionsCore.minutesInRange(this.sessions, yesterday0, today0) * 60);
+        const daysWithOra = CounterCore.daysWithOra({
+            sessions: this.sessions,
+            tasks: this.tasks,
+            taskHistory: this.history,
+            extraDays: await AsyncStorage.get(this.EXTRA_DAYS_KEY, [])
+        });
+        const statsParts = [];
+        if (yesterdayTasks > 0 || yesterdayFocus) {
+            let text = this.escapeHtml(t('tasks.ritual_yesterday', { tasks: yesterdayTasks }));
+            if (yesterdayFocus) text += ' ' + this.escapeHtml(t('tasks.ritual_yesterday_focus', { focus: yesterdayFocus }));
+            statsParts.push(`<span class="ritual-stat"><i class="ph ph-chart-line-up"></i> ${text}</span>`);
         }
+        if (daysWithOra > 0) {
+            statsParts.push(`<span class="ritual-stat"><i class="ph ph-sun-horizon"></i> ${this.escapeHtml(t('tasks.ritual_days_with_ora', { n: daysWithOra }))}</span>`);
+        }
+        els.ritualStats.innerHTML = statsParts.join('');
+        els.ritualStats.style.display = statsParts.length ? 'flex' : 'none';
 
         // Weekly summary on Mondays
         if (new Date().getDay() === 1) {
-            let weekTasks = 0, weekFocus = 0;
-            for (let i = 1; i <= 7; i++) {
-                const entry = stats[this.isoDaysAgo(i)];
-                if (entry) {
-                    weekTasks += entry.tasksDone || 0;
-                    weekFocus += entry.focusSeconds || 0;
-                }
-            }
-            if (weekTasks > 0 || weekFocus > 0) {
-                const focusStr = this.formatFocusTime(weekFocus) || '0m';
+            const week0 = this.startOfDay(7);
+            const weekTasks = this.countCompletedBetween(week0, today0);
+            const weekMinutes = SessionsCore.minutesInRange(this.sessions, week0, today0);
+            if (weekTasks > 0 || weekMinutes > 0) {
+                const focusStr = this.formatFocusTime(weekMinutes * 60) || '0m';
                 els.ritualWeek.innerHTML = `<i class="ph ph-calendar-check"></i> ` +
                     this.escapeHtml(t('tasks.ritual_week', { tasks: weekTasks, focus: focusStr }));
                 els.ritualWeek.style.display = 'flex';
@@ -474,17 +481,14 @@ const TaskSystem = {
             els.ritualWeek.style.display = 'none';
         }
 
-        // Today's routine (recurring tasks with streaks)
-        const recurring = this.tasks.filter(task => task.recurring);
-        if (recurring.length > 0) {
+        // Today's routine (templates due today)
+        const routine = this.tasks.filter(task => TasksCore.isDueOn(task, new Date()));
+        if (routine.length > 0) {
             els.ritualRoutineList.innerHTML = '';
-            recurring.forEach(task => {
+            routine.forEach(task => {
                 const row = document.createElement('div');
                 row.className = 'ritual-routine-item';
-                const streakBadge = (task.streak || 0) >= 2
-                    ? `<span class="ritual-streak" title="${this.escapeHtml(t('tasks.streak_title', { n: task.streak }))}">🔥 ${task.streak}</span>`
-                    : '';
-                row.innerHTML = `<i class="ph ph-repeat"></i><span class="ritual-routine-name">${this.escapeHtml(task.text)}</span>${streakBadge}`;
+                row.innerHTML = `<i class="ph ph-repeat"></i><span class="ritual-routine-name">${this.escapeHtml(task.title)}</span>`;
                 els.ritualRoutineList.appendChild(row);
             });
             els.ritualRoutineSection.style.display = 'block';
@@ -508,23 +512,18 @@ const TaskSystem = {
 
         if (priorities.length > 0) {
             const now = Date.now();
-            const newTasks = priorities.map((text, idx) => ({
-                id: (now + idx).toString(),
-                text,
-                intention: '',
-                totalCycles: 1,
-                completedCycles: 0,
-                done: false,
-                recurring: false,
-                createdAt: new Date().toISOString(),
-                completedAt: null
-            }));
-
-            // Priorities go to the top of the list, in the order typed
-            this.tasks = [...newTasks, ...this.tasks];
+            // Priorities go to the top of Hoje, in the order typed
+            let tasks = this.tasks;
+            const ids = [];
+            for (let i = priorities.length - 1; i >= 0; i--) {
+                const id = (now + i).toString();
+                tasks = TasksCore.createTask(tasks, { id, title: priorities[i], list: 'hoje', atTop: true, now });
+                ids.unshift(id);
+            }
+            this.tasks = tasks;
 
             if (!this.activeTaskId) {
-                await this.setActiveTask(newTasks[0].id);
+                await this.setActiveTask(ids[0]);
             }
             await this.saveData();
             showToast(t('tasks.ritual_started', { count: priorities.length }), 'success');
@@ -542,27 +541,27 @@ const TaskSystem = {
         const intentionStr = this.elements.inputIntention.value.trim();
         const isRecurring = this.elements.toggleRecurring.classList.contains('active');
 
-        if (this.tasks.length >= 8) {
+        if (this.visibleTasks().length >= 8) {
             showToast(t('tasks.toast_too_many'), "warning");
         }
 
-        const newTask = {
-            id: Date.now().toString(),
-            text: textStr,
+        const id = Date.now().toString();
+        const now = new Date();
+        this.tasks = TasksCore.createTask(this.tasks, {
+            id,
+            title: textStr,
+            list: 'hoje',
             intention: intentionStr,
-            totalCycles: 1, // default — editable later via the edit form
-            completedCycles: 0,
-            done: false,
-            recurring: isRecurring,
-            createdAt: new Date().toISOString(),
-            completedAt: null
-        };
-
-        this.tasks.push(newTask);
+            // A rotina repete todos os dias até a fase 2 trazer a escolha dos dias
+            recurrence: isRecurring ? { days: TasksCore.DAILY } : undefined,
+            now: now.getTime()
+        });
+        if (isRecurring) this.tasks = TasksCore.materializeRecurring(this.tasks, now);
+        const visibleId = isRecurring ? `${id}@${TasksCore.isoDate(now)}` : id;
 
         // Auto-select if no active task
-        if (!this.activeTaskId) {
-            await this.setActiveTask(newTask.id);
+        if (!this.activeTaskId && this.taskById(visibleId)) {
+            await this.setActiveTask(visibleId);
         }
 
         await this.saveData();
@@ -574,91 +573,67 @@ const TaskSystem = {
         this.elements.inputName.focus();
     },
 
+    // Concluir/reabrir só muda a tarefa: nenhuma sessão é criada (E01)
     toggleTaskStatus: async function(id) {
-        const task = this.tasks.find(t => t.id === id);
+        const task = this.taskById(id);
         if (!task) return;
 
-        task.done = !task.done;
-        if (task.done) {
-            task.completedAt = new Date().toISOString();
-            if (task.completedCycles < task.totalCycles) {
-                task.completedCycles = task.totalCycles;
-            }
-            this.applyCompletionStreak(task);
-        } else {
-            task.completedAt = null;
-            this.revertCompletionStreak(task);
-        }
+        this.tasks = TasksCore.isDone(task)
+            ? TasksCore.reopenTask(this.tasks, id)
+            : TasksCore.completeTask(this.tasks, id, Date.now());
 
         await this.saveData();
         this.checkAllDoneAnimation();
     },
 
+    // Excluir a tarefa de uma rotina exclui a rotina (como na interface antiga)
     deleteTask: async function(id) {
-        this.tasks = this.tasks.filter(t => t.id !== id);
+        const task = this.taskById(id);
+        this.tasks = TasksCore.removeTask(this.tasks, id);
+        if (task && task.fromRecurrence) {
+            this.tasks = TasksCore.removeTask(this.tasks, task.fromRecurrence);
+        }
         if (this.activeTaskId === id) {
             await this.setActiveTask(null);
         }
         await this.saveData();
     },
 
+    // "Tornar tarefa única": a rotina acaba e a tarefa de hoje fica
     toggleRecurrence: async function(id) {
-        const task = this.tasks.find(t => t.id === id);
+        const task = this.taskById(id);
         if (!task) return;
-        task.recurring = !task.recurring;
+        this.tasks = TasksCore.stopRecurrence(this.tasks, id);
         await this.saveData();
     },
 
     // --- Reorder Tasks ---
 
     moveTask: async function(id, direction) {
-        const idx = this.tasks.findIndex(t => t.id === id);
-        if (idx === -1) return;
-
-        const task = this.tasks[idx];
-        if (task.done) return; // completed tasks are not reorderable in the unified list
-
-        // Move among pending tasks regardless of recurring vs single
-        if (direction === 'up') {
-            for (let i = idx - 1; i >= 0; i--) {
-                if (!this.tasks[i].done) {
-                    this.tasks.splice(idx, 1);
-                    this.tasks.splice(i, 0, task);
-                    break;
-                }
-            }
-        } else {
-            for (let i = idx + 1; i < this.tasks.length; i++) {
-                if (!this.tasks[i].done) {
-                    this.tasks.splice(idx, 1);
-                    this.tasks.splice(i, 0, task);
-                    break;
-                }
-            }
-        }
-
+        this.tasks = TasksCore.moveTask(this.tasks, id, direction === 'up' ? -1 : 1);
         await this.saveData();
     },
 
     // --- Edit Task ---
 
     startEditTask: function(id) {
-        const task = this.tasks.find(t => t.id === id);
+        const task = this.taskById(id);
         if (!task) return;
         this.editingTaskId = id;
         this.render();
     },
 
     saveEditTask: async function(id, newText, newIntention, newCycles) {
-        const task = this.tasks.find(t => t.id === id);
+        const task = this.taskById(id);
         if (!task) return;
         const text = newText.trim();
         if (!text) return;
-        task.text = text;
-        task.intention = newIntention.trim();
-        const cycles = Math.max(1, Math.min(4, parseInt(newCycles) || task.totalCycles || 1));
-        task.totalCycles = cycles;
-        task.completedCycles = Math.min(task.completedCycles || 0, cycles);
+        const sessions = Math.max(1, Math.min(this.PLANNED_SESSIONS_MAX, parseInt(newCycles) || this.plannedSessions(task)));
+        this.tasks = TasksCore.updateTask(this.tasks, id, {
+            title: text,
+            intention: newIntention,
+            estimateMin: sessions * this.focusMinutes()
+        });
         this.editingTaskId = null;
         await this.saveData();
     },
@@ -671,8 +646,8 @@ const TaskSystem = {
     // --- Start Pomodoro from Task ---
 
     startPomodoroForTask: async function(id) {
-        const task = this.tasks.find(t => t.id === id);
-        if (!task || task.done) return;
+        const task = this.taskById(id);
+        if (!task || TasksCore.isDone(task)) return;
 
         // Set as active task
         await this.setActiveTask(id);
@@ -698,43 +673,39 @@ const TaskSystem = {
                     window.FocusSystem.sendCommand('pomodoro:start');
                 }
             }
-            showToast(t('tasks.toast_focus_started', { task: task.text }));
+            showToast(t('tasks.toast_focus_started', { task: task.title }));
         }
     },
 
     // --- Global Operations ---
 
+    // Concluídas saem da lista e ficam no histórico (contam em "Dias com Ora")
     clearDone: async function() {
-        const initialLen = this.tasks.length;
-        this.tasks = this.tasks.filter(t => !(t.done && !t.recurring));
-        if (this.tasks.length < initialLen) {
+        const result = TasksCore.archiveCompleted(this.tasks, this.history, { includeRecurring: false });
+        if (result.archived > 0) {
+            this.history = result.history;
+            await AsyncStorage.set(this.HISTORY_KEY, this.history);
+            this.tasks = result.tasks;
             showToast(t('tasks.toast_cleared'));
             await this.saveData();
-            if (!this.tasks.find(t => t.id === this.activeTaskId)) {
+            if (!this.taskById(this.activeTaskId)) {
                 await this.setActiveTask(null);
             }
         }
     },
 
+    // Reabre as tarefas concluídas (as sessões já feitas continuam registradas)
     resetAllToday: async function() {
-        this.tasks.forEach(t => {
-            t.done = false;
-            t.completedCycles = 0;
-            t.completedAt = null;
-            this.revertCompletionStreak(t);
+        this.visibleTasks().filter(task => TasksCore.isDone(task)).forEach(task => {
+            this.tasks = TasksCore.reopenTask(this.tasks, task.id);
         });
         showToast(t('tasks.toast_reset_today'));
         await this.saveData();
     },
 
     resetRecurring: async function() {
-        this.tasks.forEach(t => {
-            if (t.recurring) {
-                t.done = false;
-                t.completedCycles = 0;
-                t.completedAt = null;
-                this.revertCompletionStreak(t);
-            }
+        this.visibleTasks().filter(task => task.fromRecurrence && TasksCore.isDone(task)).forEach(task => {
+            this.tasks = TasksCore.reopenTask(this.tasks, task.id);
         });
         showToast(t('tasks.toast_reset_recurring'));
         await this.saveData();
@@ -754,43 +725,32 @@ const TaskSystem = {
     },
 
     setActiveTask: async function(id) {
-        if (this.tasks.find(t => t.id === id)) {
-            this.activeTaskId = id;
-        } else {
-            this.activeTaskId = null;
-        }
+        const task = this.taskById(id);
+        this.activeTaskId = task && !TasksCore.isTemplate(task) ? id : null;
         await AsyncStorage.set(this.ACTIVE_TASK_KEY, this.activeTaskId);
+        // A focus session already running follows the newly chosen task
+        if (window.FocusSystem && window.FocusSystem.sendCommand) {
+            window.FocusSystem.sendCommand('pomodoro:setSessionTask', { taskId: this.activeTaskId }).catch(() => {});
+        }
         this.updateActiveTaskUI();
         this.render();
     },
 
-    incrementActiveTaskCycle: async function() {
-        if (!this.activeTaskId) return;
-        const task = this.tasks.find(t => t.id === this.activeTaskId);
-        if (!task || task.done) return;
-
-        task.completedCycles += 1;
-
-        if (task.completedCycles >= task.totalCycles) {
-            task.completedCycles = task.totalCycles;
-            task.done = true;
-            task.completedAt = new Date().toISOString();
-            this.applyCompletionStreak(task);
-            showToast(t('tasks.toast_task_complete', { task: task.text }), "success");
-            this.checkAllDoneAnimation();
-            await this.setActiveTask(null);
-        } else {
-            showToast(t('tasks.toast_cycle_complete', { task: task.text }));
+    // Called by FocusSystem when a focus phase ends. The session itself is
+    // recorded by the SW; the task stays open (E02).
+    onFocusSessionCompleted: function() {
+        const task = this.taskById(this.activeTaskId);
+        if (task && !TasksCore.isDone(task)) {
+            showToast(t('tasks.toast_session_done', { task: task.title }));
         }
-
-        await this.saveData();
     },
 
     // --- Rendering ---
 
     render: function() {
-        const pending = this.tasks.filter(t => !t.done);
-        const completed = this.tasks.filter(t => t.done);
+        const visible = this.visibleTasks();
+        const pending = visible.filter(t => !TasksCore.isDone(t));
+        const completed = visible.filter(t => TasksCore.isDone(t));
 
         const pendingFragment = document.createDocumentFragment();
         const completedFragment = document.createDocumentFragment();
@@ -818,11 +778,11 @@ const TaskSystem = {
         }
 
         // Empty State
-        this.elements.emptyState.style.display = (this.tasks.length === 0) ? 'flex' : 'none';
+        this.elements.emptyState.style.display = (visible.length === 0) ? 'flex' : 'none';
 
         // Badge & Progress
         const pendingCount = pending.length;
-        const totalCount = this.tasks.length;
+        const totalCount = visible.length;
         const doneCount = completed.length;
 
         if (this.elements.badge) {
@@ -862,8 +822,9 @@ const TaskSystem = {
         const els = this.elements;
         if (!els.homeWidget) return;
 
-        const pending = this.tasks.filter(t => !t.done);
-        const total = this.tasks.length;
+        const visible = this.visibleTasks();
+        const pending = visible.filter(t => !TasksCore.isDone(t));
+        const total = visible.length;
 
         els.homeWidget.style.display = 'flex';
 
@@ -891,26 +852,17 @@ const TaskSystem = {
         els.homeList.style.display = 'flex';
         els.homeList.innerHTML = '';
 
-        pending.slice(0, this.HOME_WIDGET_MAX).forEach(task => {
+        // Hoje na ordem escolhida: a primeira é o próximo passo (E03)
+        TasksCore.listTasks(this.tasks, 'hoje').filter(t => !TasksCore.isDone(t)).slice(0, this.HOME_WIDGET_MAX).forEach(task => {
             const item = document.createElement('div');
             item.className = 'home-task-item';
             if (task.id === this.activeTaskId) item.classList.add('active-pomodoro');
 
-            let cyclesHtml = '';
-            for (let i = 0; i < task.totalCycles; i++) {
-                cyclesHtml += `<div class="focus-dot ${i < task.completedCycles ? 'completed' : ''}"></div>`;
-            }
-
-            const streakBadge = (task.recurring && (task.streak || 0) >= 2)
-                ? `<span class="home-task-streak" title="${this.escapeHtml(t('tasks.streak_title', { n: task.streak }))}">🔥${task.streak}</span>`
-                : '';
-
             item.innerHTML = `
                 <div class="task-checkbox home-task-checkbox" data-id="${task.id}"></div>
                 <div class="home-task-content">
-                    <span class="home-task-name">${this.escapeHtml(task.text)}</span>
-                    ${streakBadge}
-                    <div class="task-cycles home-task-cycles">${cyclesHtml}</div>
+                    <span class="home-task-name">${this.escapeHtml(task.title)}</span>
+                    <div class="task-cycles home-task-cycles">${this.renderSessionDots(task)}</div>
                 </div>
                 <button class="icon-btn-sm home-task-play" data-id="${task.id}" title="${this.escapeHtml(t('tasks.start_focus'))}"><i class="ph ph-play"></i></button>
             `;
@@ -930,20 +882,22 @@ const TaskSystem = {
 
     renderTaskItem: function(task, container) {
         const item = document.createElement('div');
+        const done = TasksCore.isDone(task);
         item.className = 'task-item';
-        if (task.done) item.classList.add('done');
-        if (task.id === this.activeTaskId && !task.done) item.classList.add('active-pomodoro');
+        if (done) item.classList.add('done');
+        if (task.id === this.activeTaskId && !done) item.classList.add('active-pomodoro');
 
         // Edit mode
         if (this.editingTaskId === task.id) {
             item.classList.add('editing');
+            const planned = this.plannedSessions(task);
             let cyclesOptions = '';
-            for (let i = 1; i <= 4; i++) {
-                cyclesOptions += `<option value="${i}" ${task.totalCycles === i ? 'selected' : ''}>${i} 🍅</option>`;
+            for (let i = 1; i <= this.PLANNED_SESSIONS_MAX; i++) {
+                cyclesOptions += `<option value="${i}" ${planned === i ? 'selected' : ''}>${i} 🍅</option>`;
             }
             item.innerHTML = `
                 <div class="task-edit-form">
-                    <input type="text" class="task-edit-input" value="${this.escapeHtml(task.text)}" placeholder="${this.escapeHtml(t('tasks.edit_name_placeholder'))}">
+                    <input type="text" class="task-edit-input" value="${this.escapeHtml(task.title)}" placeholder="${this.escapeHtml(t('tasks.edit_name_placeholder'))}">
                     <input type="text" class="task-edit-intention" value="${this.escapeHtml(task.intention || '')}" placeholder="${this.escapeHtml(t('tasks.intention_placeholder'))}">
                     <div class="task-edit-actions">
                         <select class="task-edit-cycles task-cycles-select" title="${this.escapeHtml(t('tasks.cycles_title'))}">${cyclesOptions}</select>
@@ -987,21 +941,13 @@ const TaskSystem = {
         }
 
         // Normal render
-        const isChecked = task.done ? 'checked' : '';
-        const checkIcon = task.done ? '<i class="ph ph-check"></i>' : '';
+        const isChecked = done ? 'checked' : '';
+        const checkIcon = done ? '<i class="ph ph-check"></i>' : '';
+        const recurring = !!task.fromRecurrence;
+        const cyclesHtml = this.renderSessionDots(task);
 
-        let cyclesHtml = '';
-        for (let i = 0; i < task.totalCycles; i++) {
-            const isCompletedCycle = i < task.completedCycles;
-            cyclesHtml += `<div class="focus-dot ${isCompletedCycle ? 'completed' : ''}"></div>`;
-        }
-
-        const recurringBadge = task.recurring
+        const recurringBadge = recurring
             ? `<span class="task-badge-recurring" title="${this.escapeHtml(t('tasks.recurring_badge'))}"><i class="ph ph-repeat"></i></span>`
-            : '';
-
-        const streakBadge = (task.recurring && (task.streak || 0) >= 2)
-            ? `<span class="task-streak-badge" title="${this.escapeHtml(t('tasks.streak_title', { n: task.streak }))}">🔥 ${task.streak}</span>`
             : '';
 
         const intentionChip = task.intention
@@ -1019,19 +965,18 @@ const TaskSystem = {
             <div class="task-content">
                 <div class="task-title-row">
                     ${recurringBadge}
-                    <span class="task-title">${this.escapeHtml(task.text)}</span>
-                    ${streakBadge}
-                    ${task.id === this.activeTaskId && !task.done ? `<i class="ph ph-play-circle task-active-indicator" title="${this.escapeHtml(t('tasks.active_label'))}"></i>` : ''}
+                    <span class="task-title">${this.escapeHtml(task.title)}</span>
+                    ${task.id === this.activeTaskId && !done ? `<i class="ph ph-play-circle task-active-indicator" title="${this.escapeHtml(t('tasks.active_label'))}"></i>` : ''}
                 </div>
                 ${intentionChip}
                 <div class="task-cycles">${cyclesHtml}</div>
             </div>
             <div class="task-actions">
-                ${!task.done ? `<button class="icon-btn-sm btn-move-up" data-id="${task.id}" title="${this.escapeHtml(t('tasks.move_up'))}"><i class="ph ph-caret-up"></i></button>` : ''}
-                ${!task.done ? `<button class="icon-btn-sm btn-move-down" data-id="${task.id}" title="${this.escapeHtml(t('tasks.move_down'))}"><i class="ph ph-caret-down"></i></button>` : ''}
-                ${!task.done && task.id !== this.activeTaskId ? `<button class="icon-btn-sm btn-start-pomodoro primary-action" data-id="${task.id}" title="${this.escapeHtml(t('tasks.start_focus'))}"><i class="ph ph-play"></i></button>` : ''}
+                ${!done ? `<button class="icon-btn-sm btn-move-up" data-id="${task.id}" title="${this.escapeHtml(t('tasks.move_up'))}"><i class="ph ph-caret-up"></i></button>` : ''}
+                ${!done ? `<button class="icon-btn-sm btn-move-down" data-id="${task.id}" title="${this.escapeHtml(t('tasks.move_down'))}"><i class="ph ph-caret-down"></i></button>` : ''}
+                ${!done && task.id !== this.activeTaskId ? `<button class="icon-btn-sm btn-start-pomodoro primary-action" data-id="${task.id}" title="${this.escapeHtml(t('tasks.start_focus'))}"><i class="ph ph-play"></i></button>` : ''}
                 <button class="icon-btn-sm btn-edit-task" data-id="${task.id}" title="${this.escapeHtml(t('tasks.edit_task'))}"><i class="ph ph-pencil-simple"></i></button>
-                ${task.recurring ?
+                ${recurring ?
                     `<button class="icon-btn-sm btn-unrecur" data-id="${task.id}" title="${this.escapeHtml(t('tasks.make_single'))}"><i class="ph ph-arrow-bend-down-right"></i></button>`
                     : ''}
                 <button class="icon-btn-sm btn-delete-task" data-id="${task.id}" title="${this.escapeHtml(t('tasks.delete_task'))}"><i class="ph ph-trash"></i></button>
@@ -1073,9 +1018,9 @@ const TaskSystem = {
     },
 
     updateActiveTaskUI: function() {
-        const pendingTasks = this.tasks.filter(task => !task.done);
+        const pendingTasks = this.visibleTasks().filter(task => !TasksCore.isDone(task));
         const activeTask = pendingTasks.find(task => task.id === this.activeTaskId);
-        const taskName = activeTask ? activeTask.text : t('tasks.no_active_task');
+        const taskName = activeTask ? activeTask.title : t('tasks.no_active_task');
 
         if (this.elements.fsActiveTaskName) this.elements.fsActiveTaskName.textContent = taskName;
 
@@ -1107,8 +1052,8 @@ const TaskSystem = {
             const btn = document.createElement('button');
             btn.className = 'task-selector-item' + (this.activeTaskId === task.id ? ' selected' : '');
             btn.innerHTML = `
-                ${task.recurring ? '<i class="ph ph-repeat"></i>' : '<i class="ph ph-check-square"></i>'}
-                <span>${this.escapeHtml(task.text)}</span>
+                ${task.fromRecurrence ? '<i class="ph ph-repeat"></i>' : '<i class="ph ph-check-square"></i>'}
+                <span>${this.escapeHtml(task.title)}</span>
             `;
             btn.addEventListener('click', () => {
                 this.setActiveTask(task.id);
@@ -1119,8 +1064,9 @@ const TaskSystem = {
     },
 
     checkAllDoneAnimation: function() {
-        const totalCount = this.tasks.length;
-        const pendingCount = this.tasks.filter(t => !t.done).length;
+        const visible = this.visibleTasks();
+        const totalCount = visible.length;
+        const pendingCount = visible.filter(t => !TasksCore.isDone(t)).length;
         if (totalCount > 0 && pendingCount === 0) {
             if (window.showToast) {
                 showToast(t('tasks.toast_all_done'), "success");

@@ -7,8 +7,8 @@
 //   - Settings        (locale, name, prayer lang, reminder toggles)
 //   - Blocker         (site list + lock config — NOT the enabled flag,
 //                      NOT daily counters, NOT timed-disable state)
-//   - Tasks           (recurring routine only — NOT one-off tasks,
-//                      NOT today's done/cycle progress)
+//   - Routine         (recurring task templates only — NOT one-off tasks,
+//                      NOT today's tasks or their completion)
 //
 // Design:
 //   - Each group is one sync entry: { v, updatedAt, data }.
@@ -17,11 +17,15 @@
 //   - Pushes are debounced and skipped when the sanitized payload is
 //     identical to the last pushed/applied one (prevents echo loops).
 //   - Merge functions are pure (no chrome.*) so the test suite can cover them.
+//   - The routine moved from `sync_tasks` (1.2.0 format) to `sync_routine`
+//     (TasksCore format). A legacy entry is converted once when no
+//     `sync_routine` exists yet. Depends on TasksCore and MigrateCore.
 
 const SyncSystem = {
-    VERSION: 1,
+    VERSION: 2,
     PUSH_DEBOUNCE_MS: 2500,
     META_KEY: 'ora_sync_meta',
+    TASKS_KEY: 'ora_tasks',
 
     SETTINGS_KEYS: [
         'ora_locale', 'ora_user_name', 'ora_prayer_lang',
@@ -51,20 +55,9 @@ const SyncSystem = {
         };
     },
 
+    // Only the routine templates travel; today's tasks and completions stay local.
     sanitizeTasks(tasks) {
-        if (!Array.isArray(tasks)) return [];
-        return tasks
-            .filter(t => t.recurring)
-            .map(t => ({
-                id: t.id,
-                text: t.text,
-                intention: t.intention || '',
-                totalCycles: t.totalCycles || 1,
-                recurring: true,
-                createdAt: t.createdAt,
-                streak: t.streak || 0,
-                lastStreakDate: t.lastStreakDate || null
-            }));
+        return TasksCore.normalizeTasks(tasks).filter(t => TasksCore.isTemplate(t));
     },
 
     // ── Merge functions (remote + local → new local) — pure ──
@@ -92,45 +85,39 @@ const SyncSystem = {
         };
     },
 
-    mergeTasks(remoteRecurring, localTasks) {
-        const local = Array.isArray(localTasks) ? localTasks : [];
-        const result = [];
+    mergeTasks(remoteTemplates, localTasks) {
+        const remote = TasksCore.normalizeTasks(remoteTemplates).filter(t => TasksCore.isTemplate(t));
+        const remoteIds = new Set(remote.map(t => t.id));
 
-        for (const task of local) {
-            if (!task.recurring) {
-                // One-off tasks are device-local
-                result.push(task);
-                continue;
-            }
-            const remote = remoteRecurring.find(r => r.id === task.id);
-            if (!remote) continue; // deleted on another device
+        // One-off tasks and today's routine tasks are device-local; local
+        // templates are replaced by the remote definitions (or dropped when
+        // the routine was deleted on another device).
+        let result = TasksCore.normalizeTasks(localTasks).filter(t => !TasksCore.isTemplate(t));
+        result = result.concat(remote);
 
-            // Remote wins for definition fields; today's progress stays local.
-            // Streak: keep whichever side has the most recent completion.
-            const localStreakNewer = (task.lastStreakDate || '') > (remote.lastStreakDate || '');
-            result.push({
-                ...task,
-                text: remote.text,
-                intention: remote.intention,
-                totalCycles: remote.totalCycles,
-                streak: localStreakNewer ? (task.streak || 0) : (remote.streak || 0),
-                lastStreakDate: localStreakNewer ? task.lastStreakDate : remote.lastStreakDate
+        // Renames reach today's open routine task too
+        for (const template of remote) {
+            result = TasksCore.updateTask(result, template.id, {
+                title: template.title,
+                estimateMin: template.estimateMin
             });
         }
 
-        // New recurring tasks from the other device
-        for (const remote of remoteRecurring) {
-            if (!result.some(t => t.id === remote.id)) {
-                result.push({
-                    ...remote,
-                    completedCycles: 0,
-                    done: false,
-                    completedAt: null
-                });
-            }
-        }
+        // Today's open task of a deleted routine becomes an ordinary task
+        const orphaned = result.filter(t => t.fromRecurrence && !remoteIds.has(t.fromRecurrence));
+        return result.map(t => {
+            if (!orphaned.includes(t)) return t;
+            const copy = Object.assign({}, t);
+            delete copy.fromRecurrence;
+            delete copy.date;
+            return copy;
+        });
+    },
 
-        return result;
+    // Legacy `sync_tasks` payload (1.2.0) → routine templates
+    convertLegacyRoutine(data) {
+        const converted = MigrateCore.legacyTasksToCore(Array.isArray(data) ? data : [], { now: Date.now() });
+        return converted.tasks.filter(t => TasksCore.isTemplate(t));
     },
 
     // ── Lifecycle ─────────────────────────────────────
@@ -158,10 +145,17 @@ const SyncSystem = {
 
     async pullAll() {
         try {
-            const entries = await chrome.storage.sync.get(['sync_settings', 'sync_blocker', 'sync_tasks']);
+            const entries = await chrome.storage.sync.get(['sync_settings', 'sync_blocker', 'sync_routine', 'sync_tasks']);
             if (entries.sync_settings) await this.pullSettings(entries.sync_settings);
             if (entries.sync_blocker) await this.pullBlocker(entries.sync_blocker);
-            if (entries.sync_tasks) await this.pullTasks(entries.sync_tasks);
+            if (entries.sync_routine) {
+                await this.pullTasks(entries.sync_routine);
+            } else if (entries.sync_tasks && entries.sync_tasks.data && !this._meta.routine) {
+                await this.pullTasks({
+                    updatedAt: entries.sync_tasks.updatedAt || 1,
+                    data: this.convertLegacyRoutine(entries.sync_tasks.data)
+                });
+            }
         } catch (e) {
             console.error('[Sync] pullAll failed:', e);
         }
@@ -209,15 +203,15 @@ const SyncSystem = {
     },
 
     async pullTasks(entry) {
-        if (!entry || !entry.data || (entry.updatedAt || 0) <= (this._meta.tasks || 0)) return;
+        if (!entry || !entry.data || (entry.updatedAt || 0) <= (this._meta.routine || 0)) return;
 
         this._applying = true;
         try {
-            const local = (await chrome.storage.local.get(['ora_tasks_daily'])).ora_tasks_daily;
+            const local = (await chrome.storage.local.get([this.TASKS_KEY]))[this.TASKS_KEY];
             const merged = this.mergeTasks(entry.data, local);
-            await chrome.storage.local.set({ ora_tasks_daily: merged });
-            this._meta.tasks = entry.updatedAt;
-            this._lastPushed.tasks = JSON.stringify(entry.data);
+            await chrome.storage.local.set({ [this.TASKS_KEY]: merged });
+            this._meta.routine = entry.updatedAt;
+            this._lastPushed.routine = JSON.stringify(this.sanitizeTasks(entry.data));
             await this.saveMeta();
             console.log('[Sync] Recurring tasks updated from sync');
         } finally {
@@ -233,7 +227,7 @@ const SyncSystem = {
 
             if (this.SETTINGS_KEYS.some(k => k in changes)) this.schedulePush('settings');
             if ('blocker_config' in changes) this.schedulePush('blocker');
-            if ('ora_tasks_daily' in changes) this.schedulePush('tasks');
+            if (this.TASKS_KEY in changes) this.schedulePush('routine');
         });
     },
 
@@ -250,8 +244,8 @@ const SyncSystem = {
             } else if (group === 'blocker') {
                 const cfg = (await chrome.storage.local.get(['blocker_config'])).blocker_config;
                 data = this.sanitizeBlockerConfig(cfg);
-            } else if (group === 'tasks') {
-                const tasks = (await chrome.storage.local.get(['ora_tasks_daily'])).ora_tasks_daily;
+            } else if (group === 'routine') {
+                const tasks = (await chrome.storage.local.get([this.TASKS_KEY]))[this.TASKS_KEY];
                 data = this.sanitizeTasks(tasks);
             }
             if (data === null || data === undefined) return;
@@ -280,7 +274,7 @@ const SyncSystem = {
             if (area !== 'sync') return;
             if (changes.sync_settings && changes.sync_settings.newValue) this.pullSettings(changes.sync_settings.newValue);
             if (changes.sync_blocker && changes.sync_blocker.newValue) this.pullBlocker(changes.sync_blocker.newValue);
-            if (changes.sync_tasks && changes.sync_tasks.newValue) this.pullTasks(changes.sync_tasks.newValue);
+            if (changes.sync_routine && changes.sync_routine.newValue) this.pullTasks(changes.sync_routine.newValue);
         });
     }
 };

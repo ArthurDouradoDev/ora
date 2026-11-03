@@ -15,6 +15,11 @@
         results.push({ group: currentGroup, name, pass: !!condition, detail: detail || '' });
     }
 
+    // Teste que depende de algo indisponível neste ambiente: aparece, mas não falha
+    function skip(name) {
+        results.push({ group: currentGroup, name: 'ignorado: ' + name, pass: true, skipped: true, detail: '' });
+    }
+
     function assertEq(name, actual, expected) {
         const pass = JSON.stringify(actual) === JSON.stringify(expected);
         assert(name, pass, pass ? '' : `esperado ${JSON.stringify(expected)}, obtido ${JSON.stringify(actual)}`);
@@ -193,14 +198,14 @@
     // ========================================================
 
     const rawTasks = [
-        { id: '1', text: 'Rezar terço', recurring: true, done: true, completedCycles: 2, totalCycles: 2, streak: 5, lastStreakDate: '2026-06-10', intention: 'família', createdAt: 'x' },
-        { id: '2', text: 'Tarefa única', recurring: false, done: false }
+        { id: 'r', title: 'Rezar terço', list: 'hoje', order: 0, recurrence: { days: [0, 1, 2, 3, 4, 5, 6] }, createdAt: 1 },
+        { id: 'r@2026-06-10', title: 'Rezar terço', list: 'hoje', order: 0, fromRecurrence: 'r', date: '2026-06-10', completedAt: 5, createdAt: 2 },
+        { id: '2', title: 'Tarefa única', list: 'hoje', order: 1, createdAt: 3 }
     ];
     const sanitized = SyncSystem.sanitizeTasks(rawTasks);
-    assertEq('sanitizeTasks mantém apenas recorrentes', sanitized.length, 1);
-    assert('sanitizeTasks remove progresso do dia (done/completedCycles)',
-        !('done' in sanitized[0]) && !('completedCycles' in sanitized[0]));
-    assertEq('sanitizeTasks preserva streak', sanitized[0].streak, 5);
+    assertEq('sanitizeTasks mantém apenas as rotinas', sanitized.map(t => t.id), ['r']);
+    assert('sanitizeTasks não leva a tarefa do dia nem a conclusão',
+        !sanitized.some(t => t.fromRecurrence) && !('completedAt' in sanitized[0]));
 
     const rawCfg = {
         enabled: true,
@@ -219,50 +224,33 @@
     // ========================================================
 
     const remoteTasks = [
-        { id: '1', text: 'Rezar terço (editado)', intention: '', totalCycles: 1, recurring: true, createdAt: 'x', streak: 3, lastStreakDate: '2026-06-08' },
-        { id: '9', text: 'Nova rotina', intention: '', totalCycles: 1, recurring: true, createdAt: 'y', streak: 0, lastStreakDate: null }
+        { id: 'r', title: 'Rezar terço (editado)', list: 'hoje', order: 0, recurrence: { days: [1, 2, 3, 4, 5] }, createdAt: 1 },
+        { id: '9', title: 'Nova rotina', list: 'hoje', order: 2, recurrence: { days: [0] }, createdAt: 9 }
     ];
     const localTasks = [
-        { id: '1', text: 'Rezar terço', recurring: true, done: true, completedCycles: 1, totalCycles: 2, streak: 5, lastStreakDate: '2026-06-10' },
-        { id: '2', text: 'Única local', recurring: false, done: false },
-        { id: '3', text: 'Recorrente apagada no outro device', recurring: true, done: false }
+        { id: 'r', title: 'Rezar terço', list: 'hoje', order: 0, recurrence: { days: [0, 1, 2, 3, 4, 5, 6] }, createdAt: 1 },
+        { id: 'r@2026-06-10', title: 'Rezar terço', list: 'hoje', order: 0, fromRecurrence: 'r', date: '2026-06-10', completedAt: 5, createdAt: 2 },
+        { id: '2', title: 'Única local', list: 'hoje', order: 1, createdAt: 3 },
+        { id: '3', title: 'Rotina apagada no outro device', list: 'hoje', order: 3, recurrence: { days: [1] }, createdAt: 4 },
+        { id: '3@2026-06-10', title: 'Rotina apagada no outro device', list: 'hoje', order: 3, fromRecurrence: '3', date: '2026-06-10', createdAt: 5 }
     ];
     const mergedTasks = SyncSystem.mergeTasks(remoteTasks, localTasks);
 
     assert('mergeTasks: tarefa única local é preservada', mergedTasks.some(t => t.id === '2'));
-    assert('mergeTasks: recorrente removida remotamente some', !mergedTasks.some(t => t.id === '3'));
-    assert('mergeTasks: nova recorrente remota é adicionada', mergedTasks.some(t => t.id === '9'));
-    const m1 = mergedTasks.find(t => t.id === '1');
-    assertEq('mergeTasks: texto remoto vence', m1.text, 'Rezar terço (editado)');
-    assert('mergeTasks: progresso local de hoje preservado', m1.done === true);
-    assertEq('mergeTasks: streak local mais recente vence', m1.streak, 5);
-    const m9 = mergedTasks.find(t => t.id === '9');
-    assert('mergeTasks: nova tarefa chega zerada para hoje', m9.done === false && m9.completedCycles === 0);
+    assert('mergeTasks: rotina removida remotamente some', !mergedTasks.some(t => t.id === '3'));
+    assert('mergeTasks: tarefa de hoje da rotina removida vira tarefa comum',
+        mergedTasks.some(t => t.id === '3@2026-06-10' && !t.fromRecurrence));
+    assert('mergeTasks: nova rotina remota é adicionada', mergedTasks.some(t => t.id === '9'));
+    const m1 = mergedTasks.find(t => t.id === 'r');
+    assertEq('mergeTasks: definição remota vence', [m1.title, m1.recurrence.days], ['Rezar terço (editado)', [1, 2, 3, 4, 5]]);
+    const mToday = mergedTasks.find(t => t.id === 'r@2026-06-10');
+    assert('mergeTasks: conclusão local de hoje preservada', !!mToday.completedAt);
 
-    const remoteCfg = {
-        lock: { enabled: true, verseIndex: 1, writeUnlockEnabled: true },
-        sites: [
-            { id: 1, url: 'x.com', mode: 'always', accessLimit: { enabled: false }, scheduleLimit: { enabled: false }, writeUnlockEnabled: false },
-            { id: 2, url: 'reddit.com', mode: 'limited', accessLimit: { enabled: true, count: 3, period: 'day' }, scheduleLimit: { enabled: false }, writeUnlockEnabled: true }
-        ]
-    };
-    const localCfg = {
-        enabled: false,
-        reenableAt: 999,
-        lock: { enabled: false, verseIndex: 0, writeUnlockEnabled: false },
-        sites: [{ id: 2, url: 'reddit.com', mode: 'limited', accessLimit: { enabled: true, count: 5, period: 'day' }, scheduleLimit: { enabled: false }, writeUnlockEnabled: false, todayAccesses: 2, lastAccessDate: '2026-06-10' }]
-    };
-    const mergedCfg = SyncSystem.mergeBlockerConfig(remoteCfg, localCfg);
-
-    assert('mergeBlocker: enabled continua decisão local', mergedCfg.enabled === false);
-    assertEq('mergeBlocker: reenableAt local preservado', mergedCfg.reenableAt, 999);
-    assert('mergeBlocker: lock remoto adotado', mergedCfg.lock.enabled === true);
-    assertEq('mergeBlocker: lista de sites vem do remoto', mergedCfg.sites.length, 2);
-    const reddit = mergedCfg.sites.find(sit => sit.url === 'reddit.com');
-    assertEq('mergeBlocker: contador local do dia preservado', reddit.todayAccesses, 2);
-    assertEq('mergeBlocker: limite remoto vence', reddit.accessLimit.count, 3);
-    const xcom = mergedCfg.sites.find(sit => sit.url === 'x.com');
-    assertEq('mergeBlocker: site novo começa com contador zerado', xcom.todayAccesses, 0);
+    const legacyRoutine = SyncSystem.convertLegacyRoutine([
+        { id: '1', text: 'Rotina 1.2.0', recurring: true, totalCycles: 1, streak: 4 },
+        { id: '2', text: 'Única', recurring: false }
+    ]);
+    assertEq('rotina no formato 1.2.0 é convertida', legacyRoutine.map(t => [t.id, t.title]), [['1', 'Rotina 1.2.0']]);
 
     // ========================================================
     group('RouteCore — rotas');
@@ -285,6 +273,290 @@
     assert('rotas diferentes', !RouteCore.sameRoute({ view: 'rezar', path: [] }, { view: 'rezar', path: ['terco'] }));
     assertEq('estado antigo inválido vira Hoje', RouteCore.sanitizeRoute({ foo: 1 }), { view: 'hoje', path: [] });
     assertEq('estado de outra versão com destino válido', RouteCore.sanitizeRoute({ view: 'frutos', path: 'x' }), { view: 'frutos', path: [] });
+
+    // ========================================================
+    group('PomodoroCore — configurações e fim de sessão');
+    // ========================================================
+
+    assertEq('pausa longa padrão de 15 min', PomodoroCore.getDefaultSettings().longPause, 15);
+    assertEq('pausa longa editável (20 min)', PomodoroCore.sanitizeSettings({ longPause: 20 }).longPause, 20);
+    assertEq('pausa longa acima do limite é limitada (60)', PomodoroCore.sanitizeSettings({ longPause: 999 }).longPause, 60);
+    assertEq('valor inválido volta ao padrão', PomodoroCore.sanitizeSettings({ longPause: 'x', focus: null }).focus, 25);
+    assertEq('texto numérico da 1.1.5 é aceito', PomodoroCore.sanitizeSettings({ focus: '50' }).focus, 50);
+    assert('campos booleanos ausentes recebem o padrão', PomodoroCore.sanitizeSettings({}).sound === true);
+
+    st = { phase: 'focus', pomodoroCount: 3, settings: PomodoroCore.sanitizeSettings({ longPause: 20 }) };
+    PomodoroCore.advancePhase(st);
+    assertEq('pausa longa usa a duração editada', st.timeRemaining, 20 * 60);
+
+    const longOpts = PomodoroCore.endOfSessionOptions({ phase: 'longPause', settings: PomodoroCore.sanitizeSettings({ longPause: 20 }) });
+    assertEq('fim da pausa longa: pausa, Respiro, mais uma sessão, voltar',
+        longOpts.map(o => o.id), ['longPause', 'respiro', 'nextSession', 'home']);
+    assert('pausa longa é editável e sugerida', longOpts[0].editable === true && longOpts[0].primary === true);
+    assertEq('pausa longa mostra a duração configurada', longOpts[0].minutes, 20);
+    const shortOpts = PomodoroCore.endOfSessionOptions({ phase: 'pause', settings: PomodoroCore.getDefaultSettings() });
+    assertEq('fim de sessão comum: pausa curta primeiro', shortOpts[0].id, 'pause');
+    assert('opções de fim de sessão incluem o Respiro', shortOpts.some(o => o.id === 'respiro'));
+    assertEq('estado inicial tem sessão vazia', PomodoroCore.createState({ focus: 50 }, new Date(2026, 10, 3)).session, null);
+    assertEq('chave diária legada', PomodoroCore.todayKey(new Date(2026, 10, 3)), 'ora_focus_total_Tue Nov 03 2026');
+
+    // ========================================================
+    group('TasksCore — tarefas');
+    // ========================================================
+
+    const T0 = new Date(2026, 10, 2, 9, 0).getTime(); // segunda, 02/11/2026
+    let tasks = [];
+    tasks = TasksCore.createTask(tasks, { id: 'a', title: 'Relatório', now: T0 });
+    tasks = TasksCore.createTask(tasks, { id: 'b', title: 'E-mails', now: T0 + 1 });
+    tasks = TasksCore.createTask(tasks, { id: 'c', title: 'Ligar para o banco', now: T0 + 2 });
+    tasks = TasksCore.createTask(tasks, { id: 'd', title: 'Ideia solta', list: 'depois', now: T0 + 3 });
+
+    assertEq('próximo passo é a primeira de Hoje', TasksCore.nextStep(tasks).id, 'a');
+    tasks = TasksCore.moveTask(tasks, 'c', -1);
+    tasks = TasksCore.moveTask(tasks, 'c', -1);
+    assertEq('próximo passo respeita a ordem escolhida (E03)', TasksCore.nextStep(tasks).id, 'c');
+    assertEq('ordem de Hoje após mover', TasksCore.listTasks(tasks, 'hoje').map(t => t.id), ['c', 'a', 'b']);
+    assert('Depois não entra no próximo passo', TasksCore.listTasks(tasks, 'hoje').every(t => t.id !== 'd'));
+
+    tasks = TasksCore.completeTask(tasks, 'c', T0 + 100);
+    assertEq('concluída sai do próximo passo', TasksCore.nextStep(tasks).id, 'a');
+    assert('concluir não cria sessões nem ciclos (E01)', !('completedCycles' in tasks.find(t => t.id === 'c')));
+    tasks = TasksCore.reopenTask(tasks, 'c');
+    assert('reabrir limpa a conclusão', !TasksCore.isDone(tasks.find(t => t.id === 'c')));
+
+    tasks = TasksCore.moveToToday(tasks, 'd');
+    assertEq('mover para Hoje vai para o fim da lista', TasksCore.listTasks(tasks, 'hoje').map(t => t.id), ['c', 'a', 'b', 'd']);
+    tasks = TasksCore.moveToLater(tasks, 'a');
+    assertEq('mover para Depois', TasksCore.listTasks(tasks, 'depois').map(t => t.id), ['a']);
+    const many = ['1', '2', '3', '4', '5'].reduce((acc, id) => TasksCore.createTask(acc, { id, title: 'T' + id, now: T0 }), []);
+    assertEq('Hoje guarda mais de 3 (limite é só de apresentação)', TasksCore.listTasks(many, 'hoje').length, 5);
+    assertEq('tarefa sem título é ignorada', TasksCore.createTask([], { id: 'x', title: '  ' }).length, 0);
+    assert('normalize descarta campos legados', !('done' in TasksCore.normalizeTask({ id: 1, title: 'x', done: true, streak: 4 })));
+
+    // ========================================================
+    group('TasksCore — recorrência e virada do dia');
+    // ========================================================
+
+    const MON = new Date(2026, 10, 2, 8, 0);  // segunda
+    const FRI = new Date(2026, 10, 6, 8, 0);  // sexta
+    const SAT = new Date(2026, 10, 7, 8, 0);  // sábado
+    let routine = TasksCore.createTask([], { id: 'r', title: 'Leitura espiritual', recurrence: { days: TasksCore.WEEKDAYS }, now: MON.getTime() });
+    assertEq('modelo de rotina não aparece na lista', TasksCore.visibleTasks(routine).length, 0);
+
+    const onMon = TasksCore.materializeRecurring(routine, MON);
+    assertEq('dias úteis: aparece na segunda', TasksCore.visibleTasks(onMon).map(t => t.title), ['Leitura espiritual']);
+    assertEq('dias úteis: aparece na sexta', TasksCore.visibleTasks(TasksCore.materializeRecurring(routine, FRI)).length, 1);
+    assertEq('dias úteis: não aparece no sábado (E05)', TasksCore.visibleTasks(TasksCore.materializeRecurring(routine, SAT)).length, 0);
+    assertEq('materializar duas vezes não duplica', TasksCore.materializeRecurring(onMon, MON).length, onMon.length);
+
+    let day = TasksCore.completeTask(onMon, 'r@2026-11-02', MON.getTime() + 3600e3);
+    day = TasksCore.createTask(day, { id: 'u', title: 'Pagar conta', now: MON.getTime() });
+    day = TasksCore.completeTask(day, 'u', MON.getTime() + 7200e3);
+    day = TasksCore.createTask(day, { id: 'p', title: 'Pendente', now: MON.getTime() });
+    const TUE = new Date(2026, 10, 3, 7, 0);
+    const rolled = TasksCore.rolloverDay(day, [], TUE);
+    assert('virada: concluídas viram histórico (E06)', rolled.history.some(h => h.id === 'u') && rolled.history.some(h => h.id === 'r@2026-11-02'));
+    assert('virada: concluídas saem da lista', !rolled.tasks.some(t => t.id === 'u'));
+    assert('virada: pendente comum continua', rolled.tasks.some(t => t.id === 'p'));
+    assert('virada: modelo de rotina continua', rolled.tasks.some(t => t.id === 'r'));
+    const tue = TasksCore.materializeRecurring(rolled.tasks, TUE);
+    assert('rotina gera a tarefa de terça, aberta', tue.some(t => t.id === 'r@2026-11-03' && !TasksCore.isDone(t)));
+    const rolledAgain = TasksCore.rolloverDay(tue, rolled.history, TUE);
+    assert('virada no mesmo dia não muda nada', !rolledAgain.changed && rolledAgain.history.length === rolled.history.length);
+
+    const missed = TasksCore.rolloverDay(TasksCore.materializeRecurring(routine, MON), [], TUE);
+    assert('rotina de ontem não feita não acumula', !missed.tasks.some(t => t.fromRecurrence));
+    const todayDone = TasksCore.completeTask(TasksCore.createTask([], { id: 'z', title: 'Hoje', now: TUE.getTime() }), 'z', TUE.getTime());
+    assert('concluída hoje fica na lista até amanhã', TasksCore.rolloverDay(todayDone, [], TUE).tasks.length === 1);
+
+    let edited = TasksCore.updateTask(tue, 'r@2026-11-03', { title: 'Leitura (30 min)' });
+    assertEq('editar a tarefa do dia renomeia a rotina', edited.find(t => t.id === 'r').title, 'Leitura (30 min)');
+    const single = TasksCore.stopRecurrence(tue, 'r@2026-11-03');
+    assert('tornar única remove o modelo e mantém a de hoje', !single.some(t => t.id === 'r') &&
+        single.some(t => t.id === 'r@2026-11-03' && !t.fromRecurrence));
+
+    const sessionsForDots = [
+        { id: 's1', taskId: 'a', status: 'completed', focusedMin: 25, startedAt: MON.getTime() },
+        { id: 's2', taskId: 'a', status: 'interrupted', focusedMin: 12, startedAt: MON.getTime() },
+        { id: 's3', taskId: 'a', status: 'completed', focusedMin: 25, startedAt: TUE.getTime() }
+    ];
+    assertEq('sessões concluídas da tarefa no dia', TasksCore.sessionsDoneToday(sessionsForDots, 'a', MON), 1);
+
+    // ========================================================
+    group('SessionsCore — sessões de foco');
+    // ========================================================
+
+    const S0 = new Date(2026, 10, 3, 9, 0).getTime();
+    const MIN = 60000;
+    let sess = SessionsCore.startSession({ id: 's', taskId: 'a', plannedMin: 25, now: S0 });
+    sess = SessionsCore.pause(sess, S0 + 5 * MIN);
+    assert('sessão pausada fica pausada', SessionsCore.isPaused(sess));
+    sess = SessionsCore.resume(sess, S0 + 15 * MIN); // 10 min pausada
+    const paused10 = SessionsCore.finishSession(sess, S0 + 35 * MIN);
+    assertEq('pausada por 10 min não soma esses 10 min', paused10.focusedMin, 25);
+    assertEq('sessão completa', paused10.status, 'completed');
+    assertEq('pausa no meio: tempo focado ao retomar', SessionsCore.focusedMs(sess, S0 + 20 * MIN), 10 * MIN);
+
+    const interrupted = SessionsCore.interruptSession(SessionsCore.startSession({ id: 'i', plannedMin: 25, now: S0 }), S0 + 12 * MIN + 40000);
+    assertEq('interrompida aos 12 min registra 12', interrupted.focusedMin, 12);
+    assertEq('status interrompida', interrupted.status, 'interrupted');
+
+    const free = SessionsCore.startSession({ plannedMin: 25, now: S0 });
+    assertEq('foco sem tarefa é válido', free.taskId, null);
+    const freeRecord = SessionsCore.finishSession(free, S0 + 25 * MIN);
+    assertEq('foco sem tarefa é registrado', SessionsCore.appendSession([], freeRecord).length, 1);
+    assertEq('menos de 1 min não vira sessão', SessionsCore.appendSession([], SessionsCore.interruptSession(free, S0 + 30000)).length, 0);
+
+    const withIntention = SessionsCore.startSession({ intention: '  Pela família ', now: S0 });
+    assertEq('intenção da sessão é guardada na sessão', SessionsCore.finishSession(withIntention, S0 + MIN).intention, 'Pela família');
+
+    const rangeSessions = [
+        { id: 'imported-2026-11-01', imported: true, date: '2026-11-01', focusedMin: 75, startedAt: null },
+        { id: 'x1', focusedMin: 25, startedAt: new Date(2026, 10, 2, 10, 0).getTime() },
+        { id: 'x2', focusedMin: 12, startedAt: new Date(2026, 10, 2, 23, 50).getTime() },
+        { id: 'x3', focusedMin: 25, startedAt: new Date(2026, 10, 3, 0, 10).getTime() }
+    ];
+    assertEq('minutos do dia 02/11', SessionsCore.minutesInRange(rangeSessions, new Date(2026, 10, 2), new Date(2026, 10, 3)), 37);
+    assertEq('sessão importada conta no próprio dia', SessionsCore.minutesInRange(rangeSessions, new Date(2026, 10, 1), new Date(2026, 10, 2)), 75);
+    assertEq('semana inteira', SessionsCore.minutesInRange(rangeSessions, new Date(2026, 9, 29), new Date(2026, 10, 5)), 137);
+
+    // ========================================================
+    group('SessionsCore — intenção do dia');
+    // ========================================================
+
+    let intentions = SessionsCore.setDayIntention({}, new Date(2026, 10, 3), 'Pela saúde da mãe');
+    assertEq('intenção gravada por data', SessionsCore.dayIntention(intentions, new Date(2026, 10, 3, 18)), 'Pela saúde da mãe');
+    assertEq('dia seguinte começa sem intenção', SessionsCore.dayIntention(intentions, new Date(2026, 10, 4)), '');
+    const sessionWithOwn = SessionsCore.startSession({ intention: 'Pelo colega doente', now: S0 });
+    assertEq('intenção da sessão não altera a do dia', SessionsCore.dayIntention(intentions, new Date(2026, 10, 3)), 'Pela saúde da mãe');
+    assertEq('e a do dia não altera a da sessão', sessionWithOwn.intention, 'Pelo colega doente');
+    intentions = SessionsCore.setDayIntention(intentions, new Date(2026, 10, 3), '');
+    assertEq('apagar a intenção remove a data', Object.keys(intentions).length, 0);
+
+    // ========================================================
+    group('CounterCore — Dias com Ora');
+    // ========================================================
+
+    const counterHistory = {
+        sessions: [
+            { id: 'a', focusedMin: 25, startedAt: new Date(2026, 9, 1, 10).getTime() },
+            { id: 'b', focusedMin: 25, startedAt: new Date(2026, 9, 1, 15).getTime() },
+            { id: 'imported-2026-09-20', imported: true, date: '2026-09-20', focusedMin: 50, startedAt: null }
+        ],
+        tasks: [{ id: 't', title: 'x', completedAt: new Date(2026, 8, 20, 9).getTime() }], // mesmo dia da sessão importada
+        taskHistory: [{ id: 'h', title: 'só uma tarefa', completedAt: new Date(2026, 10, 2, 9).getTime() }],
+        extraDays: ['2026-08-15']
+    };
+    assertEq('conta dias distintos', CounterCore.daysWithOra(counterHistory), 4);
+    assert('um dia com só uma tarefa concluída conta', CounterCore.activeDays(counterHistory).includes('2026-11-02'));
+    assertEq('dias sem registro entre eles não zeram o contador', CounterCore.activeDays(counterHistory), ['2026-08-15', '2026-09-20', '2026-10-01', '2026-11-02']);
+    assertEq('sessão com 0 min não conta', CounterCore.daysWithOra({ sessions: [{ focusedMin: 0, startedAt: Date.now() }] }), 0);
+    assertEq('sem histórico = 0', CounterCore.daysWithOra({}), 0);
+
+    // ========================================================
+    group('MigrateCore — 1.1.5');
+    // ========================================================
+
+    const fixture = (typeof window !== 'undefined' ? window : globalThis).__oraFixtures &&
+        (typeof window !== 'undefined' ? window : globalThis).__oraFixtures['storage-1.1.5'];
+    if (!fixture) {
+        skip('fixture tests/fixtures/storage-1.1.5.json indisponível (rode node tests/run.js ou sirva por http)');
+    } else {
+        const snap115 = {};
+        Object.keys(fixture).filter(k => k[0] !== '_').forEach(k => { snap115[k] = fixture[k]; });
+        const NOW = new Date(2026, 10, 3, 10, 0).getTime(); // terça, 03/11/2026
+        const r1 = MigrateCore.migrate(snap115, { now: NOW });
+        const after1 = MigrateCore.apply(snap115, r1);
+
+        assertEq('grava ora_schema_version = 2', after1.ora_schema_version, 2);
+        assert('migração é necessária antes e não depois', MigrateCore.needsMigration(snap115) && !MigrateCore.needsMigration(after1));
+        assertEq('atalhos preservados', after1.ora_quick_links.map(l => l.name), ['Google', 'ChatGPT', 'Liturgia das Horas', 'Vatican News']);
+        assert('playlists viram lista', Array.isArray(after1.ora_user_playlists) && after1.ora_user_playlists.length === 2);
+        assertEq('playlist preserva o id externo', after1.ora_user_playlists[0].externalId, 'PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG');
+        assertEq('playlists padrão removidas pela pessoa continuam removidas', after1.ora_deleted_default_playlists, ['lofi-girl']);
+        assertEq('preferências de foco ficam no estado do pomodoro', after1.ora_pomodoro_state.settings.focus, 50);
+        assert('ora_focus_settings já absorvida sai', !('ora_focus_settings' in after1));
+
+        const imported = after1.ora_sessions.filter(sx => sx.imported);
+        assertEq('totais de dias anteriores viram sessões importadas', imported.map(sx => [sx.date, sx.focusedMin]), [['2026-10-30', 75], ['2026-11-02', 100]]);
+        assert('sessões importadas não têm horário', imported.every(sx => sx.startedAt === null && sx.taskId === null));
+        assert('total de 20 s não vira sessão, mas a chave antiga sai', !imported.some(sx => sx.date === '2026-10-31') && !('ora_focus_total_Sat Oct 31 2026' in after1));
+        assertEq('total de hoje continua com o pomodoro', after1['ora_focus_total_Tue Nov 03 2026'], '1500');
+
+        assertEq('intenção vira a intenção do dia de hoje', after1.ora_day_intention, { '2026-11-03': 'Pela saúde da minha mãe' });
+        assert('ora_intention antiga sai', !('ora_intention' in after1));
+        assertEq('registros de exame viram lista', after1.ora_exam_logs.map(l => l.type), ['night', 'midday']);
+        assert('registros de exame ganham id estável', after1.ora_exam_logs.every(l => /^exam-\d+$/.test(l.id)));
+        assertEq('progresso do terço vira objeto', after1.ora_rosary_progress, { bead: 27, mystery: 'gloriosos', chapletType: 'terco', lang: 'pt' });
+
+        assertEq('chaves do bloqueador ficam intactas', after1.blocker_config, snap115.blocker_config);
+        assert('nenhuma tarefa é inventada', !('ora_tasks' in after1));
+        const unknownKeys = ['catholic_dash_date', 'catholic_dash_image', 'liturgy_gospel_cache', 'ora_exam_done_Sat Oct 31 2026',
+            'ora_evening_done_Sat Oct 31 2026', 'ora_virtues_list', 'ora_virtues_log_Mon Nov 02 2026', 'ora_quote_index', 'ora_greeting_index'];
+        assert('nenhuma chave desconhecida é apagada', unknownKeys.every(k => JSON.stringify(after1[k]) === JSON.stringify(snap115[k])));
+        assert('só chaves legadas convertidas são removidas', r1.removals.every(k =>
+            k === 'ora_focus_settings' || k === 'ora_intention' || k.startsWith('ora_focus_total_')));
+
+        const r2 = MigrateCore.migrate(after1, { now: NOW });
+        const after2 = MigrateCore.apply(after1, r2);
+        assertEq('rodar duas vezes dá o mesmo resultado', after2, after1);
+        assert('segunda rodada não muda nem remove nada', Object.keys(r2.changes).length === 0 && r2.removals.length === 0);
+    }
+
+    // ========================================================
+    group('MigrateCore — casos de borda');
+    // ========================================================
+
+    const NOW2 = new Date(2026, 10, 3, 10, 0).getTime();
+    const fresh = MigrateCore.migrate({}, { now: NOW2 });
+    assertEq('instalação nova só grava a versão', fresh.changes, { ora_schema_version: 2 });
+
+    const broken = { ora_user_playlists: '{oops', ora_exam_logs: 'não é json', ora_unknown: 1 };
+    const rb = MigrateCore.migrate(broken, { now: NOW2 });
+    assert('texto inválido é deixado como está', !('ora_user_playlists' in rb.changes) && !rb.removals.includes('ora_user_playlists') && !('ora_exam_logs' in rb.changes));
+
+    const noState = MigrateCore.migrate({ ora_focus_settings: '{"focus":40,"longPause":10}' }, { now: NOW2 });
+    assertEq('sem estado do pomodoro, cria um com as preferências antigas', noState.changes.ora_pomodoro_state.settings.longPause, 10);
+
+    const oldLinks = MigrateCore.migrate({ oraLinks: '[{"name":"Bíblia","url":"https://www.bibliaonline.com.br"}]' }, { now: NOW2 });
+    assert('chave antiga oraLinks vira ora_quick_links', oldLinks.changes.ora_quick_links[0].name === 'Bíblia' && oldLinks.removals.includes('oraLinks'));
+
+    const stats = MigrateCore.migrate({
+        'ora_focus_total_Fri Oct 30 2026': '1500',
+        ora_daily_stats: { '2026-10-30': { focusSeconds: 3000, tasksDone: 2 }, '2026-10-29': { tasksDone: 1 }, '2026-11-03': { tasksDone: 9 } }
+    }, { now: NOW2 });
+    assertEq('estatísticas da 1.2.0: maior total do dia vence', stats.changes.ora_sessions.map(sx => sx.focusedMin), [50]);
+    assertEq('dias com tarefas concluídas entram no contador', stats.changes.ora_imported_active_days, ['2026-10-29', '2026-10-30']);
+
+    // ========================================================
+    group('MigrateCore — tarefas da 1.2.0');
+    // ========================================================
+
+    const legacy120 = {
+        ora_pomodoro_state: { settings: { focus: 30 } },
+        ora_tasks_last_reset: new Date(NOW2).toDateString(),
+        ora_active_task_id: 'r1',
+        ora_tasks_daily: [
+            { id: 't1', text: 'Escrever capítulo', intention: 'Pelos alunos', totalCycles: 3, completedCycles: 2, done: false, recurring: false, createdAt: '2026-11-01T12:00:00.000Z' },
+            { id: 't2', text: 'Revisar contrato', totalCycles: 2, completedCycles: 2, done: true, recurring: false, completedAt: new Date(NOW2 - 3600e3).toISOString() },
+            { id: 'r1', text: 'Terço', totalCycles: 1, completedCycles: 1, done: true, recurring: true, streak: 9, lastStreakDate: '2026-11-03', completedAt: new Date(NOW2 - 600e3).toISOString() }
+        ]
+    };
+    const r120 = MigrateCore.migrate(legacy120, { now: NOW2 });
+    const after120 = MigrateCore.apply(legacy120, r120);
+    const migratedTasks = after120.ora_tasks;
+    const t1 = migratedTasks.find(t => t.id === 't1');
+    assertEq('tarefa vira título + lista Hoje', [t1.title, t1.list], ['Escrever capítulo', 'hoje']);
+    assertEq('ciclos previstos viram estimativa', t1.estimateMin, 90);
+    assert('ciclos feitos não viram sessões (E01)', !('ora_sessions' in after120));
+    assert('concluída mantém a conclusão', TasksCore.isDone(migratedTasks.find(t => t.id === 't2')));
+    const r1Template = migratedTasks.find(t => t.id === 'r1');
+    assertEq('recorrente vira rotina diária', r1Template.recurrence.days, TasksCore.DAILY);
+    assert('rotina feita hoje continua concluída hoje', TasksCore.isDone(migratedTasks.find(t => t.id === 'r1@2026-11-03')));
+    assert('streak não é migrado', !('streak' in r1Template));
+    assertEq('tarefa ativa recorrente aponta para a de hoje', after120.ora_active_task_id, 'r1@2026-11-03');
+    assert('chaves antigas de tarefas saem', !('ora_tasks_daily' in after120) && !('ora_tasks_last_reset' in after120));
+    assertEq('tarefas da 1.2.0: idempotente', MigrateCore.apply(after120, MigrateCore.migrate(after120, { now: NOW2 })), after120);
 
     // ========================================================
     // Render

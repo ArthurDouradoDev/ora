@@ -54,8 +54,16 @@ Memória do projeto para sessões futuras. Consolida o que foi discutido e decid
 - Cores: não usar cor para julgar desempenho espiritual (não é "zero vermelho/verde" absoluto: erro e cores litúrgicas têm outra função).
 - Nenhuma ação destrutiva ou "Guardado/Salvo" sem gravação real.
 
-## Modelo de domínio recomendado (pendente de decisão)
+## Modelo de domínio (implementado na fase 1, 03/11/2026)
 
+- **Tarefa**, **sessão** e **intenção** são dados separados (`ora_tasks`, `ora_sessions`, `ora_day_intention`; esquema 2). Detalhes em `CLAUDE.md` › Storage.
+- Rotina = modelo com `recurrence.days` que gera a tarefa do dia; concluídas viram histórico (`ora_tasks_history`).
+- Sessões são gravadas só pelo SW. Pausada não conta tempo; interrompida conta os minutos focados; menos de 1 min não vira sessão.
+- Totais diários da 1.1.5 viram sessões importadas (`imported: true`, sem horário); o dia da atualização perde as sessões já feitas antes dela (fica só no total do pomodoro).
+- Contador "Dias com Ora" substitui o streak (removido das tarefas e do sync).
+- Fixture `tests/fixtures/storage-1.1.5.json` foi montada a partir do código da 1.1.5 (commit `1ca2ccb`), não exportada de uma instalação real: substituir por uma exportação real quando possível.
+
+Decisões que continuam valendo:
 - Separar **tarefa**, **sessão** e **intenção** no modelo de dados.
 - Tarefas: Agora (uma atividade) · Hoje (até 3 prioridades escolhidas; limite é só de apresentação) · Depois (captura rápida, só nome obrigatório) · Ritmo (recorrências com dias definidos).
 - Permitir foco sem tarefa formal.

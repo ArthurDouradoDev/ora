@@ -29,7 +29,7 @@ There is no build process. This is pure vanilla JS/HTML/CSS — no npm, no bundl
 - Check console in the new tab with `Ctrl+Shift+J`
 - View SW logs: Extensions > Details > "Service Worker" link
 
-**Tests:** pure functions in `scripts/shared/` are covered by `tests/tests.js`. Run `node tests/run.js` from the project root (exits 1 on failure), or open `tests/tests.html` in a browser. UI flows are still tested manually by exercising each module.
+**Tests:** pure functions in `scripts/shared/` are covered by `tests/tests.js`. Run `node tests/run.js` from the project root (exits 1 on failure), or open `tests/tests.html` in a browser (serve it over http so `tests/fixtures/*.json` load; under `file://` the fixture tests are skipped). UI flows are still tested manually by exercising each module.
 
 ## Architecture
 
@@ -74,6 +74,13 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 - `chrome.storage.local` — persistent user data (blocker config, playlists, tasks, focus sessions, settings)
 - `chrome.storage.session` — ephemeral (e.g., `ora_bg_loaded` to prevent duplicate loading screens)
 - Notable keys: `ora_pomodoro_state`, `blocker_config`, `blocker_sites`, `ora_settings`, `liturgy_gospel_cache`
+- **Data model (schema 2, `ora_schema_version`):** task, session and intention are separate.
+  - `ora_tasks` — tasks (`scripts/shared/tasks-core.js`); a task with `recurrence` is a routine template that generates the day's task. Completed tasks move to `ora_tasks_history` at day rollover.
+  - `ora_sessions` — focus sessions, written **only by the SW** (`sessions-core.js`): paused time does not count, interrupted sessions keep the minutes focused, focus without a task is allowed.
+  - `ora_day_intention` — intention of the day by date; a session's intention lives in the session.
+  - "Dias com Ora" (`counter-core.js`) is derived from sessions + completed tasks; it never resets.
+  - `scripts/shared/migrate-core.js` converts 1.1.5 / 1.2.0 data; it runs (idempotently) in the SW and in `main.js` before modules start. The blocker keys stay as-is until phase 4.
+  - Sync carries only routine templates (`sync_routine`) and settings.
 
 ### i18n
 Use the global `t(key, params?)` function from `utils.js`. Keys use dot-notation (`t('header.liturgy')`). Locale files are in `/data/i18n/` (pt.json, en.json, es.json). Always use `t()` for any user-visible string.

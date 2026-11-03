@@ -168,10 +168,11 @@ const FocusSystem = {
             }
         }
 
-        // Trigger side-effects that were previously in advancePhase
+        // Trigger side-effects that were previously in advancePhase.
+        // The session is recorded by the SW; the task is never auto-completed (E02).
         if (completedPhase === 'focus') {
             if (window.ReminderSystem) window.ReminderSystem.showRosarySuggestion();
-            if (window.TaskSystem) window.TaskSystem.incrementActiveTaskCycle();
+            if (window.TaskSystem) window.TaskSystem.onFocusSessionCompleted();
             // Check if it was the 4th pomodoro (now in longPause)
             if (this.phase === 'longPause') {
                 setTimeout(() => {
@@ -323,19 +324,16 @@ const FocusSystem = {
     },
 
     saveSettings: function() {
-        const f = parseInt(this.elements.settings.focusInput.value) || 25;
-        const p = parseInt(this.elements.settings.pauseInput.value) || 5;
-        const lp = parseInt(this.elements.settings.longPauseInput.value) || 15;
-
-        const settings = {
-            focus: Math.max(1, Math.min(120, f)),
-            pause: Math.max(1, Math.min(30, p)),
-            longPause: Math.max(1, Math.min(60, lp)),
+        // Limits and defaults (long pause: 15 min) live in PomodoroCore
+        const settings = PomodoroCore.sanitizeSettings({
+            focus: this.elements.settings.focusInput.value,
+            pause: this.elements.settings.pauseInput.value,
+            longPause: this.elements.settings.longPauseInput.value,
             sound: this.elements.settings.soundInput ? this.elements.settings.soundInput.checked : true,
             autoNext: this.elements.settings.autoNextInput ? this.elements.settings.autoNextInput.checked : false,
             continuousAlarm: this.elements.settings.continuousAlarmInput ? this.elements.settings.continuousAlarmInput.checked : false,
             wakeLock: this.elements.settings.wakeLockInput ? this.elements.settings.wakeLockInput.checked : false
-        };
+        });
 
         this.sendCommand('pomodoro:updateSettings', { settings });
     },

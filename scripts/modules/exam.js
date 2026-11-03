@@ -1,5 +1,6 @@
 
 const ExamSystem = {
+    EXAM_LOGS_MAX: 1000,
     data: null,
     config: {},
     state: {
@@ -350,19 +351,23 @@ const ExamSystem = {
         }
 
         // Save exam log
+        // Exam records feed Frutos: kept as an array (schema 2), not a JSON string
+        const now = new Date();
         const log = {
+            id: 'exam-' + now.getTime(),
             type: currentExamType,
-            date: new Date().toISOString(),
+            date: now.toISOString(),
             answers: examAnswers
         };
         try {
             const existingLogs = await AsyncStorage.get('ora_exam_logs');
-            let logs = existingLogs ? ((typeof existingLogs === 'string') ? JSON.parse(existingLogs) : existingLogs) : [];
+            let logs = MigrateCore.normalizeExamLogs(existingLogs || []) || [];
             logs.push(log);
-            // Keep last 30 entries
-            if (logs.length > 30) logs = logs.slice(-30);
-            await AsyncStorage.set('ora_exam_logs', JSON.stringify(logs));
-        } catch (e) { /* ignore */ }
+            if (logs.length > this.EXAM_LOGS_MAX) logs = logs.slice(-this.EXAM_LOGS_MAX);
+            await AsyncStorage.set('ora_exam_logs', logs);
+        } catch (e) {
+            console.error('[Exam] Failed to save exam log:', e);
+        }
 
         animateModal(this.dom.examFlowModal, false);
         showToast(t('toast.exam_done'), 'success');

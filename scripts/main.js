@@ -102,6 +102,12 @@ async function initApp() {
     }
 
     // ============================================================
+    // DATA MIGRATION (1.1.5 / 1.2.0 → schema 2) — before any module
+    // reads storage. The SW runs the same idempotent migration.
+    // ============================================================
+    await runMigration();
+
+    // ============================================================
     // LOAD i18n LOCALE (must happen before any module init)
     // ============================================================
     try {
@@ -303,29 +309,29 @@ async function initApp() {
 
 
     // ============================================================
-    // 6. INTENTION INPUT PERSISTENCE
+    // 6. INTENTION OF THE DAY (ora_day_intention, by date — separate
+    //    from the intention offered for a single focus session)
     // ============================================================
 
     const intentionInput = document.getElementById('intention-input');
+    const DAY_INTENTION_KEY = 'ora_day_intention';
 
     if (intentionInput) {
-        const savedIntention = await AsyncStorage.get('ora_intention');
-        if (savedIntention) {
-            intentionInput.value = savedIntention;
-        }
+        intentionInput.value = SessionsCore.dayIntention(await AsyncStorage.get(DAY_INTENTION_KEY, {}), new Date());
 
-        const saveIntention = window.debounce((value) => {
-             AsyncStorage.set('ora_intention', value);
+        const saveIntention = window.debounce(async (value) => {
+            const map = await AsyncStorage.get(DAY_INTENTION_KEY, {});
+            await AsyncStorage.set(DAY_INTENTION_KEY, SessionsCore.setDayIntention(map, new Date(), value));
         }, 500);
 
         intentionInput.addEventListener('input', (e) => {
             saveIntention(e.target.value);
         });
 
-        // Listen for storage changes from other windows/tabs (requires background script usually, chrome.storage.onChanged)
+        // Other tabs; the tab being typed in keeps its own text
         chrome.storage.onChanged.addListener((changes, namespace) => {
-            if (namespace === 'local' && changes.ora_intention) {
-                 intentionInput.value = changes.ora_intention.newValue || '';
+            if (namespace === 'local' && changes[DAY_INTENTION_KEY] && document.activeElement !== intentionInput) {
+                intentionInput.value = SessionsCore.dayIntention(changes[DAY_INTENTION_KEY].newValue, new Date());
             }
         });
     }
@@ -415,6 +421,21 @@ async function initApp() {
     }
 
     console.log('[Ora] App fully initialized');
+}
+
+// Migração de dados para o esquema 2 (ver scripts/shared/migrate-core.js)
+async function runMigration() {
+    try {
+        const snapshot = await chrome.storage.local.get(null);
+        if (!MigrateCore.needsMigration(snapshot)) return;
+        const result = MigrateCore.migrate(snapshot);
+        await chrome.storage.local.set(result.changes);
+        if (result.removals.length) await chrome.storage.local.remove(result.removals);
+        console.log(`[Ora] Data migrated to schema ${result.schemaVersion}:`, Object.keys(result.changes), 'removed:', result.removals);
+    } catch (e) {
+        // Nothing was removed: the legacy data stays intact and the next tab retries
+        console.error('[Ora] Data migration failed:', e);
+    }
 }
 
 // Atalhos provisórios do shell enquanto as telas da V0 convivem com as novas

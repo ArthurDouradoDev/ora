@@ -8,15 +8,12 @@ Legenda de origem: **[código]** verificado no código da extensão · **[protó
 
 | ID | Pri. | Onde | Problema | Correção esperada |
 |---|---|---|---|---|
-| E01 | P1 | `scripts/modules/tasks.js` `toggleTaskStatus` (l. ~577) | Concluir manualmente preenche os ciclos previstos, registrando ciclos que não aconteceram. | Separar conclusão de tarefa de sessões realizadas. |
-| E02 | P1 | `tasks.js` `incrementActiveTaskCycle` (l. ~767) | Atingir os ciclos previstos conclui a tarefa automaticamente (estimativa vira "terminado"). | Perguntar se concluiu ou quer continuar. Resolver antes do painel Frutos. |
-| E03 | P2 | `tasks.js` `renderHomeWidget` (l. ~861) | Hoje mostra as 3 primeiras pendentes, não prioridades escolhidas; pendências antigas ocupam o espaço. | Seleção explícita do que pertence a Hoje. |
+| E03 | P2 | `tasks.js` `renderHomeWidget` | Hoje mostra as 3 primeiras pendentes, não prioridades escolhidas; pendências antigas ocupam o espaço. | Seleção explícita do que pertence a Hoje. **Fase 1:** núcleo pronto (`TasksCore.nextStep`, listas Hoje/Depois, ordem escolhida; o widget já segue a ordem de Hoje). Falta a interface de Hoje/Depois (fase 2). |
 | E04 | P2 | `tasks.js` `maybeShowMorningRitual` (l. ~420) | Ritual matinal abre automaticamente na primeira aba do dia e pode interromper ação rápida. | Não interceptar início rápido; manter opcional e com saída. |
-| E05 | P2 | `tasks.js` (recorrência) | Recorrência = repetir diariamente; não atende dias úteis/semanal. | Frequências com dias definidos, separadas de tarefas pontuais. |
-| E06 | P2 | `tasks.js` `checkDailyReset` | Tarefas pontuais concluídas somem na virada do dia (só resta agregado). | Preservar histórico útil de concluídas. |
+| E05 | P2 | `tasks.js` (recorrência) | Recorrência = repetir diariamente; não atende dias úteis/semanal. | Frequências com dias definidos, separadas de tarefas pontuais. **Fase 1:** núcleo pronto (`recurrence.days`, `materializeRecurring`). A interface antiga ainda só cria rotina diária; a escolha dos dias entra no painel da fase 2. |
 | E07 | P2 | `tasks.js` / `.task-checkbox` | Controles de conclusão são `div` com clique: sem semântica de checkbox nem teclado. | Elementos semânticos, foco visível, nome acessível. |
 | E11 | P2 | `styles/modules/rosary.css` | Modal do terço com rolagem vertical + texto com limite de 200 px + rolagem horizontal das contas; contas de 14 px. | Área de toque ≥ 24×24 CSS px ou controles equivalentes; reduzir rolagens concorrentes. |
-| E12 | P2 | `focus.js` `onPhaseComplete` | Fim do foco pode disparar sugestão de terço e, na pausa longa, também check-in, como decisões separadas. | Uma única transição de fim de sessão. |
+| E12 | P2 | `focus.js` `onPhaseComplete` | Fim do foco pode disparar sugestão de terço e, na pausa longa, também check-in, como decisões separadas. | Uma única transição de fim de sessão. **Fase 1:** `PomodoroCore.endOfSessionOptions` define a transição (pausa curta/longa editável, Respiro, mais uma sessão, voltar). A tela que a usa é da fase 2; até lá o fim do foco antigo continua igual. |
 | E13 | P3 | `dashboard.css` | Relógio de até `8rem` domina mesmo quando há atividade em andamento. | Atividade ganha prioridade ao iniciar trabalho. |
 | E14 | P3 | Permissões do manifesto | `<all_urls>` não é exigência geral de regras DNR dinâmicas; precisa ser justificado ou reduzido antes da publicação. | Revisar regras efetivamente usadas. |
 | E15 | P3 | `index.html` | Protótipo legado, fora do manifesto, aponta para `style.css` inexistente. | Arquivar ou remover após confirmação. |
@@ -73,3 +70,6 @@ Não registrado como confirmado: "salto duplo" de Espaço no terço (não reprod
 | E09 | 02/11/2026 | `styles/components/glass-panels.css` | Hover só em `.glass-panel` interativos (`a`, `button`, `[role="button"]`, `.action-btn`). Os `#…:hover { transform }` compensatórios dos modais ficaram redundantes e saem quando cada tela for migrada. Fase 0. |
 | E10 | 02/11/2026 | `styles/utils/animations.css` | `prefers-reduced-motion` e `html[data-motion="reduce"]` reduzem animações e transições a corte simples. Fase 0. |
 | D01 | 02/11/2026 | `CLAUDE.md`, `AGENTS.md` | Documentam a suíte (`node tests/run.js` ou `tests/tests.html`). Fase 0. |
+| E01 | 03/11/2026 | `scripts/modules/tasks.js`, `scripts/shared/tasks-core.js` | Tarefa não guarda mais ciclos: concluir só grava `completedAt`. Sessões são registradas pelo SW em `ora_sessions` (`sessions-core.js`) e a migração da 1.2.0 não inventa sessões a partir de ciclos. Fase 1. |
+| E02 | 03/11/2026 | `tasks.js`, `focus.js`, `sw.js` | `incrementActiveTaskCycle` removido: completar as sessões previstas registra a sessão e mantém a tarefa aberta (aviso "Sessão de foco concluída"). A pergunta "concluiu ou continua?" entra na tela de sessão concluída (fase 2). Fase 1. |
+| E06 | 03/11/2026 | `tasks-core.js` `rolloverDay` | Concluídas de dias anteriores vão para `ora_tasks_history` em vez de sumir; "Limpar concluídas" também guarda no histórico. Fase 1. |

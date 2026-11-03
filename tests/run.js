@@ -18,9 +18,16 @@ const FILES = [
     'scripts/shared/blocker-core.js',
     'scripts/shared/pomodoro-core.js',
     'scripts/shared/route-core.js',
+    'scripts/shared/tasks-core.js',
+    'scripts/shared/sessions-core.js',
+    'scripts/shared/counter-core.js',
+    'scripts/shared/migrate-core.js',
     'scripts/modules/sync.js',
     'tests/tests.js'
 ];
+
+// Fixtures em JSON (o tests.html as busca por fetch quando servido por http)
+const FIXTURES = ['storage-1.1.5'];
 
 function makeElement() {
     return {
@@ -45,6 +52,10 @@ const context = {
 context.self = context;
 context.window = context;
 context.globalThis = context;
+context.__oraFixtures = {};
+for (const name of FIXTURES) {
+    context.__oraFixtures[name] = JSON.parse(fs.readFileSync(path.join(root, 'tests', 'fixtures', name + '.json'), 'utf8'));
+}
 vm.createContext(context);
 
 for (const file of FILES) {
@@ -66,6 +77,7 @@ for (const r of failures) {
 
 const groups = new Set(results.map(r => r.group)).size;
 const passed = results.length - failures.length;
+for (const r of results.filter(r => r.skipped)) console.log(`  - ${r.group}: ${r.name}`);
 console.log(`\n${failures.length ? '✗' : '✓'} ${passed}/${results.length} testes passaram (${groups} grupos)`);
 
 process.exit(results.length && !failures.length ? 0 : 1);
