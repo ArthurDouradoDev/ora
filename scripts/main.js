@@ -276,6 +276,15 @@ async function initApp() {
         });
     }
 
+    // Screen Time Reflection (popup de reflexão sobre o uso digital)
+    if (window.ScreenTimeSystem) {
+        window.ScreenTimeSystem.init();
+    }
+    // Conta esta nova aba para o relatório de tempo de tela (SW é o escritor)
+    try {
+        chrome.runtime.sendMessage({ type: 'screentime:newtab' });
+    } catch (e) { /* SW indisponível */ }
+
     // Listen for events from ReminderSystem
     window.addEventListener('ora:start-exam', (e) => {
         // Handled by ExamSystem

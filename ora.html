@@ -41,6 +41,7 @@
     <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/modules/tasks.css">
     <link rel="stylesheet" href="styles/modules/onboarding.css">
+    <link rel="stylesheet" href="styles/modules/screentime.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
 </head>
@@ -179,6 +180,9 @@
         <div class="footer-left">
             <div class="glass-panel action-btn" id="btn-focus" data-i18n-html="footer.pomodoro"><i class="ph ph-timer"></i> Pomodoro</div>
             <div class="glass-panel action-btn" id="btn-exam" data-i18n-html="footer.exam"><i class="ph ph-heart"></i> Examinar</div>
+            <div class="glass-panel action-btn action-btn-icon" id="btn-screentime" data-i18n-title="screentime.button_title" title="Tempo de tela">
+                <i class="ph ph-chart-bar"></i>
+            </div>
         </div>
         <div class="quote-container">
             <div class="quote-text"></div>
@@ -776,6 +780,14 @@
                     <span class="slider round"></span>
                 </label>
             </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_screentime">Reflexão sobre tempo de tela (13h e 19h)</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-screentime" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
 
         <!-- Replay Onboarding -->
@@ -1029,6 +1041,42 @@
         </div>
     </div>
 
+    <!-- Screen Time Reflection Modal -->
+    <div id="screentime-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
+        <div class="modal-header">
+            <h3 id="screentime-title">Um momento de reflexão</h3>
+            <button id="close-screentime-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+        </div>
+
+        <p id="screentime-subtitle" class="st-subtitle"></p>
+
+        <div class="st-stats">
+            <div class="st-stat">
+                <span id="screentime-total" class="st-stat-value">—</span>
+                <span class="st-stat-label" data-i18n="screentime.total_label">Tempo de tela hoje</span>
+            </div>
+            <div class="st-stat">
+                <span id="screentime-newtabs" class="st-stat-value">0</span>
+                <span class="st-stat-label" data-i18n="screentime.newtabs_label">Novas abas abertas</span>
+            </div>
+        </div>
+
+        <p id="screentime-compare" class="st-compare"></p>
+
+        <div class="st-section">
+            <h4 class="st-section-title" data-i18n="screentime.bars_title">Tempo por site</h4>
+            <div id="screentime-bars" class="st-bars"></div>
+            <p id="screentime-empty" class="st-empty" style="display: none;" data-i18n="screentime.empty">
+                Ainda não há tempo registrado hoje.
+            </p>
+        </div>
+
+        <div class="st-section">
+            <h4 class="st-section-title" data-i18n="screentime.questions_title">Para refletir</h4>
+            <div id="screentime-questions" class="st-questions"></div>
+        </div>
+    </div>
+
     <script src="scripts/utils.js" defer></script>
     <script src="scripts/shared/blocker-core.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
@@ -1044,6 +1092,7 @@
     <script src="scripts/modules/settings.js" defer></script>
     <script src="scripts/modules/onboarding.js" defer></script>
     <script src="scripts/modules/sync.js" defer></script>
+    <script src="scripts/modules/screentime.js" defer></script>
     <script src="scripts/main.js" defer></script>
     <script src="scripts/sw-init.js" defer></script>
 </body>

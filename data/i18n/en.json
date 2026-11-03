@@ -211,7 +211,8 @@
     "reminder_mercy": "Divine Mercy Hour",
     "reminder_midday": "Midday Examen",
     "reminder_evening": "Evening Examen",
-    "reminder_rosary": "Rosary suggestion (after Pomodoro)"
+    "reminder_rosary": "Rosary suggestion (after Pomodoro)",
+    "reminder_screentime": "Screen time reflection (1pm & 7pm)"
   },
   "tasks": {
     "modal_title": "Today's Tasks",
@@ -310,5 +311,32 @@
     "btn_finish": "Get started",
     "toast_welcome": "Welcome to Ora!",
     "settings_replay": "Replay the introduction"
+  },
+  "screentime": {
+    "button_title": "Screen time",
+    "title_midday": "A moment to reflect",
+    "title_evening": "A moment to reflect",
+    "subtitle_midday": "See how your morning has gone so far. This isn't a judgment — just a mirror to help you spend a more intentional afternoon.",
+    "subtitle_evening": "Look at your day as a whole. What do these numbers tell you about what you'd like to change tomorrow?",
+    "total_label": "Screen time today",
+    "newtabs_label": "New tabs opened",
+    "bars_title": "Time per site",
+    "empty": "No time recorded yet today.",
+    "questions_title": "To reflect on",
+    "answer_placeholder": "Write whatever comes to mind...",
+    "lt_minute": "less than 1 min",
+    "compare_none": "Not enough history yet to compare with your other days.",
+    "compare_ok": "Your usage today is in line with your recent average.",
+    "compare_highlight": "Today you've already spent {pct}% more on {domain} than your daily average.",
+    "questions_midday": [
+      "Is what you did this morning aligned with what mattered to you today?",
+      "Did any of these sites pull you away from what you wanted to do?",
+      "What one thing would make your afternoon better spent?"
+    ],
+    "questions_evening": [
+      "Looking at the whole day, did you use your time the way you wanted?",
+      "Where did time slip away without you noticing?",
+      "What would you do differently tomorrow to become the person you want to be?"
+    ]
   }
 }

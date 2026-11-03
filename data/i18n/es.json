@@ -211,7 +211,8 @@
     "reminder_mercy": "Hora de la Misericordia",
     "reminder_midday": "Examen del Mediodía",
     "reminder_evening": "Examen Nocturno",
-    "reminder_rosary": "Sugerencia de rosario (después del Pomodoro)"
+    "reminder_rosary": "Sugerencia de rosario (después del Pomodoro)",
+    "reminder_screentime": "Reflexión sobre el tiempo de pantalla (13h y 19h)"
   },
   "tasks": {
     "modal_title": "Tareas de Hoy",
@@ -310,5 +311,32 @@
     "btn_finish": "Comenzar",
     "toast_welcome": "¡Bienvenido a Ora!",
     "settings_replay": "Volver a ver la presentación"
+  },
+  "screentime": {
+    "button_title": "Tiempo de pantalla",
+    "title_midday": "Un momento para reflexionar",
+    "title_evening": "Un momento para reflexionar",
+    "subtitle_midday": "Mira cómo ha ido tu mañana hasta ahora. No es un reproche, solo un espejo para ayudarte a tener una tarde más intencional.",
+    "subtitle_evening": "Mira tu día en conjunto. ¿Qué te dicen estos números sobre lo que te gustaría cambiar mañana?",
+    "total_label": "Tiempo de pantalla hoy",
+    "newtabs_label": "Pestañas nuevas abiertas",
+    "bars_title": "Tiempo por sitio",
+    "empty": "Aún no hay tiempo registrado hoy.",
+    "questions_title": "Para reflexionar",
+    "answer_placeholder": "Escribe lo que te venga a la mente...",
+    "lt_minute": "menos de 1 min",
+    "compare_none": "Todavía no hay suficiente historial para comparar con tus otros días.",
+    "compare_ok": "Tu uso de hoy está dentro de tu promedio de los últimos días.",
+    "compare_highlight": "Hoy ya pasaste un {pct}% más en {domain} que tu promedio diario.",
+    "questions_midday": [
+      "¿Lo que hiciste esta mañana está alineado con lo que te importaba hoy?",
+      "¿Alguno de estos sitios te alejó de lo que querías hacer?",
+      "¿Qué única cosa haría que aproveches mejor tu tarde?"
+    ],
+    "questions_evening": [
+      "Mirando todo el día, ¿usaste tu tiempo como querías?",
+      "¿Dónde se te escapó el tiempo sin darte cuenta?",
+      "¿Qué harías diferente mañana para acercarte a la persona que quieres ser?"
+    ]
   }
 }

@@ -211,7 +211,8 @@
     "reminder_mercy": "Hora da Misericórdia",
     "reminder_midday": "Exame Meridiano",
     "reminder_evening": "Exame Noturno",
-    "reminder_rosary": "Sugestão de terço (após Pomodoro)"
+    "reminder_rosary": "Sugestão de terço (após Pomodoro)",
+    "reminder_screentime": "Reflexão sobre tempo de tela (13h e 19h)"
   },
   "tasks": {
     "modal_title": "Tarefas de Hoje",
@@ -310,5 +311,32 @@
     "btn_finish": "Começar",
     "toast_welcome": "Bem-vindo ao Ora!",
     "settings_replay": "Rever apresentação inicial"
+  },
+  "screentime": {
+    "button_title": "Tempo de tela",
+    "title_midday": "Um momento de reflexão",
+    "title_evening": "Um momento de reflexão",
+    "subtitle_midday": "Veja como sua manhã foi até agora. Não é uma cobrança — é só um espelho para te ajudar a ter uma tarde mais intencional.",
+    "subtitle_evening": "Olhe para o seu dia como um todo. O que estes números te dizem sobre o que você quer mudar amanhã?",
+    "total_label": "Tempo de tela hoje",
+    "newtabs_label": "Novas abas abertas",
+    "bars_title": "Tempo por site",
+    "empty": "Ainda não há tempo registrado hoje.",
+    "questions_title": "Para refletir",
+    "answer_placeholder": "Escreva o que vier à mente...",
+    "lt_minute": "menos de 1 min",
+    "compare_none": "Ainda não há histórico suficiente para comparar com seus outros dias.",
+    "compare_ok": "Seu uso hoje está dentro da sua média dos últimos dias.",
+    "compare_highlight": "Hoje você já passou {pct}% a mais em {domain} do que sua média diária.",
+    "questions_midday": [
+      "O que você fez nesta manhã está alinhado com o que importava para você hoje?",
+      "Algum desses sites te afastou do que você queria fazer?",
+      "Qual única coisa tornaria a sua tarde mais bem aproveitada?"
+    ],
+    "questions_evening": [
+      "Olhando o dia inteiro, você usou seu tempo como gostaria?",
+      "Onde o tempo escapou sem você perceber?",
+      "O que você faria diferente amanhã para se aproximar da pessoa que quer ser?"
+    ]
   }
 }

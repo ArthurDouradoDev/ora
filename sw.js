@@ -679,3 +679,271 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
         console.error('[Blocker Fallback] Error:', e);
     }
 });
+
+// ============================================================
+// SCREEN TIME TRACKING — tempo por domínio + reflexão diária
+// ============================================================
+// Coleta o tempo gasto por domínio (somente aba ativa, janela focada e
+// usuário presente) e dispara dois momentos de reflexão por dia (~13h e ~19h)
+// via notificação do sistema. Tudo fica no dispositivo; histórico podado a 14 dias.
+
+const SCREENTIME_KEY = 'ora_screentime';
+const SCREENTIME_ACTIVE_KEY = 'ora_screentime_active'; // storage.session
+const SCREENTIME_MAX_AGE_DAYS = 14;
+const SCREENTIME_MAX_DELTA_MS = 2 * 60 * 60 * 1000; // descarta deltas > 2h (sleep/suspensão)
+const SCREENTIME_SETTING_KEY = 'ora_reminder_screentime';
+
+const REFLECT_MIDDAY_ALARM = 'screentime_reflect_midday';
+const REFLECT_EVENING_ALARM = 'screentime_reflect_evening';
+const REFLECT_MIDDAY_HOUR = 13;
+const REFLECT_EVENING_HOUR = 19;
+
+const ST_NOTIF_STRINGS = {
+    pt: {
+        midday: { title: 'Um momento de reflexão', message: 'Como está o seu dia até agora? Toque para ver seu tempo de tela.' },
+        evening: { title: 'Um momento de reflexão', message: 'Como foi o seu dia? Toque para revisar seu tempo de tela.' }
+    },
+    en: {
+        midday: { title: 'A moment to reflect', message: 'How is your day going so far? Tap to see your screen time.' },
+        evening: { title: 'A moment to reflect', message: 'How was your day? Tap to review your screen time.' }
+    },
+    es: {
+        midday: { title: 'Un momento para reflexionar', message: '¿Cómo va tu día hasta ahora? Toca para ver tu tiempo de pantalla.' },
+        evening: { title: 'Un momento para reflexionar', message: '¿Cómo fue tu día? Toca para revisar tu tiempo de pantalla.' }
+    }
+};
+
+function stDateStr(d = new Date()) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function stExtractDomain(url) {
+    try {
+        if (!url || !/^https?:\/\//i.test(url)) return null;
+        const h = new URL(url).hostname.replace(/^www\./, '');
+        return h || null;
+    } catch (e) { return null; }
+}
+
+async function stGetLocale() {
+    try {
+        const d = await chrome.storage.local.get(['ora_locale']);
+        const loc = d['ora_locale'];
+        return (loc === 'en' || loc === 'es') ? loc : 'pt';
+    } catch (e) { return 'pt'; }
+}
+
+async function stGetActive() {
+    try {
+        const d = await chrome.storage.session.get(SCREENTIME_ACTIVE_KEY);
+        return d[SCREENTIME_ACTIVE_KEY] || null;
+    } catch (e) { return null; }
+}
+
+async function stSetActive(active) {
+    try {
+        if (active) await chrome.storage.session.set({ [SCREENTIME_ACTIVE_KEY]: active });
+        else await chrome.storage.session.remove(SCREENTIME_ACTIVE_KEY);
+    } catch (e) { /* session storage indisponível */ }
+}
+
+// Lê o store de tempo de tela já podando dias além do limite.
+async function stPruneAndGet() {
+    const data = await chrome.storage.local.get([SCREENTIME_KEY]);
+    const store = data[SCREENTIME_KEY] || {};
+    const cutoff = Date.now() - SCREENTIME_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+    for (const k of Object.keys(store)) {
+        const t = new Date(k + 'T00:00:00').getTime();
+        if (!isNaN(t) && t < cutoff) delete store[k];
+    }
+    return store;
+}
+
+async function stAddSeconds(domain, seconds) {
+    if (!domain || seconds <= 0) return;
+    const store = await stPruneAndGet();
+    const today = stDateStr();
+    if (!store[today]) store[today] = { domains: {}, newTabs: 0 };
+    if (!store[today].domains) store[today].domains = {};
+    store[today].domains[domain] = (store[today].domains[domain] || 0) + seconds;
+    await chrome.storage.local.set({ [SCREENTIME_KEY]: store });
+}
+
+// Liquida a sessão ativa (credita o tempo decorrido) e inicia uma nova.
+// newDomain = null apenas pausa (janela sem foco, idle, lock).
+async function stFlushAndStart(newDomain) {
+    const now = Date.now();
+    const active = await stGetActive();
+    if (active && active.domain && active.startTime) {
+        const deltaMs = now - active.startTime;
+        if (deltaMs > 0 && deltaMs < SCREENTIME_MAX_DELTA_MS) {
+            await stAddSeconds(active.domain, Math.round(deltaMs / 1000));
+        }
+    }
+    await stSetActive(newDomain ? { domain: newDomain, startTime: now } : null);
+}
+
+// Resolve o domínio da aba ativa na janela atualmente focada.
+async function stResolveActiveDomain() {
+    try {
+        const wins = await chrome.windows.getAll({ populate: false });
+        const focused = wins.find(w => w.focused);
+        if (!focused) return null;
+        const tabs = await chrome.tabs.query({ active: true, windowId: focused.id });
+        const tab = tabs && tabs[0];
+        return tab ? stExtractDomain(tab.url) : null;
+    } catch (e) { return null; }
+}
+
+async function stOnActivity() {
+    const domain = await stResolveActiveDomain();
+    await stFlushAndStart(domain);
+}
+
+// ── Listeners de atividade ──
+chrome.tabs.onActivated.addListener(() => { stOnActivity(); });
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.url && tab && tab.active) stOnActivity();
+});
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+    if (windowId === chrome.windows.WINDOW_ID_NONE) stFlushAndStart(null);
+    else stOnActivity();
+});
+
+try { chrome.idle.setDetectionInterval(60); } catch (e) { /* idle indisponível */ }
+chrome.idle.onStateChanged.addListener((state) => {
+    if (state === 'active') stOnActivity();
+    else stFlushAndStart(null); // 'idle' ou 'locked'
+});
+
+// ── Alarmes de reflexão (13h / 19h) ──
+function stNextOccurrence(hour) {
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
+    if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+    return next.getTime();
+}
+
+async function stEnsureReflectAlarms() {
+    const midday = await chrome.alarms.get(REFLECT_MIDDAY_ALARM);
+    if (!midday) {
+        chrome.alarms.create(REFLECT_MIDDAY_ALARM, { when: stNextOccurrence(REFLECT_MIDDAY_HOUR), periodInMinutes: 1440 });
+    }
+    const evening = await chrome.alarms.get(REFLECT_EVENING_ALARM);
+    if (!evening) {
+        chrome.alarms.create(REFLECT_EVENING_ALARM, { when: stNextOccurrence(REFLECT_EVENING_HOUR), periodInMinutes: 1440 });
+    }
+}
+// Garante os alarmes sempre que o SW inicializa (idempotente).
+stEnsureReflectAlarms();
+
+async function stIsReflectEnabled() {
+    try {
+        const d = await chrome.storage.local.get([SCREENTIME_SETTING_KEY]);
+        return d[SCREENTIME_SETTING_KEY] !== false; // default: ligado
+    } catch (e) { return true; }
+}
+
+async function stShownToday(moment) {
+    const key = `screentime_reflect_${moment}_${stDateStr()}`;
+    const d = await chrome.storage.local.get([key]);
+    return d[key] === true;
+}
+
+async function stMarkShown(moment) {
+    const key = `screentime_reflect_${moment}_${stDateStr()}`;
+    await chrome.storage.local.set({ [key]: true });
+}
+
+async function stFireReflection(moment) {
+    if (!(await stIsReflectEnabled())) return;
+    if (await stShownToday(moment)) return;
+    await stMarkShown(moment);
+
+    const locale = await stGetLocale();
+    const strings = (ST_NOTIF_STRINGS[locale] || ST_NOTIF_STRINGS.pt)[moment];
+    try {
+        chrome.notifications.create(`ora_reflect_${moment}`, {
+            type: 'basic',
+            iconUrl: chrome.runtime.getURL('assets/icon.png'),
+            title: strings.title,
+            message: strings.message,
+            priority: 2
+        });
+    } catch (e) {
+        console.error('[SW ScreenTime] Failed to create notification:', e);
+    }
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === REFLECT_MIDDAY_ALARM) stFireReflection('midday');
+    else if (alarm.name === REFLECT_EVENING_ALARM) stFireReflection('evening');
+});
+
+// ── Clique na notificação → abre a nova aba já no popup de reflexão ──
+chrome.notifications.onClicked.addListener((notificationId) => {
+    if (!notificationId.startsWith('ora_reflect_')) return;
+    const moment = notificationId.slice('ora_reflect_'.length);
+    const url = chrome.runtime.getURL('ora.html') + '?reflect=' + encodeURIComponent(moment);
+    chrome.tabs.create({ url });
+    chrome.notifications.clear(notificationId);
+});
+
+// ── Mensagens da página (contagem de novas abas e relatório) ──
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (!message || !message.type || !message.type.startsWith('screentime:')) return false;
+
+    const handler = async () => {
+        switch (message.type) {
+            case 'screentime:newtab': {
+                const store = await stPruneAndGet();
+                const today = stDateStr();
+                if (!store[today]) store[today] = { domains: {}, newTabs: 0 };
+                store[today].newTabs = (store[today].newTabs || 0) + 1;
+                await chrome.storage.local.set({ [SCREENTIME_KEY]: store });
+                return { ok: true };
+            }
+
+            case 'screentime:getReport': {
+                // Liquida a sessão em curso para o relatório refletir o agora.
+                await stOnActivity();
+
+                const store = await stPruneAndGet();
+                const today = stDateStr();
+                const todayData = store[today] || { domains: {}, newTabs: 0 };
+
+                // Média por domínio e total diário médio dos dias anteriores (exclui hoje).
+                const prevDays = Object.keys(store).filter(k => k !== today);
+                const domainTotals = {};
+                let prevTotal = 0;
+                for (const k of prevDays) {
+                    const doms = store[k].domains || {};
+                    for (const d of Object.keys(doms)) {
+                        domainTotals[d] = (domainTotals[d] || 0) + doms[d];
+                        prevTotal += doms[d];
+                    }
+                }
+                const nPrev = prevDays.length;
+                const averages = {};
+                for (const d of Object.keys(domainTotals)) {
+                    averages[d] = domainTotals[d] / nPrev;
+                }
+                const avgDailyTotal = nPrev ? prevTotal / nPrev : 0;
+
+                return { today: todayData, averages, avgDailyTotal, prevDaysCount: nPrev };
+            }
+
+            default:
+                return { ok: false };
+        }
+    };
+
+    handler().then(res => sendResponse(res)).catch(err => {
+        console.error('[SW ScreenTime] Handler error:', err);
+        sendResponse({ error: err.message });
+    });
+
+    return true; // resposta assíncrona
+});

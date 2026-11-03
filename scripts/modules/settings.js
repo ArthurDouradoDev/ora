@@ -10,6 +10,7 @@ const SettingsSystem = {
         REMINDER_MIDDAY: 'ora_reminder_midday',
         REMINDER_EVENING: 'ora_reminder_evening',
         REMINDER_ROSARY: 'ora_reminder_rosary',
+        REMINDER_SCREENTIME: 'ora_reminder_screentime',
     },
 
     // Cached settings
@@ -24,6 +25,7 @@ const SettingsSystem = {
             midday: true,
             evening: true,
             rosary: true,
+            screentime: true,
         },
     },
 
@@ -47,6 +49,7 @@ const SettingsSystem = {
         this.state.reminders.midday = await AsyncStorage.get(this.KEYS.REMINDER_MIDDAY, true);
         this.state.reminders.evening = await AsyncStorage.get(this.KEYS.REMINDER_EVENING, true);
         this.state.reminders.rosary = await AsyncStorage.get(this.KEYS.REMINDER_ROSARY, true);
+        this.state.reminders.screentime = await AsyncStorage.get(this.KEYS.REMINDER_SCREENTIME, true);
     },
 
     cacheDOM: function() {
@@ -62,6 +65,7 @@ const SettingsSystem = {
         this.elements.toggleMidday = document.getElementById('toggle-reminder-midday');
         this.elements.toggleEvening = document.getElementById('toggle-reminder-evening');
         this.elements.toggleRosary = document.getElementById('toggle-reminder-rosary');
+        this.elements.toggleScreentime = document.getElementById('toggle-reminder-screentime');
     },
 
     bindEvents: function() {
@@ -149,6 +153,7 @@ const SettingsSystem = {
             toggleMidday: { key: this.KEYS.REMINDER_MIDDAY, prop: 'midday' },
             toggleEvening: { key: this.KEYS.REMINDER_EVENING, prop: 'evening' },
             toggleRosary: { key: this.KEYS.REMINDER_ROSARY, prop: 'rosary' },
+            toggleScreentime: { key: this.KEYS.REMINDER_SCREENTIME, prop: 'screentime' },
         };
 
         for (const [elName, config] of Object.entries(toggleMap)) {
@@ -178,6 +183,7 @@ const SettingsSystem = {
         if (this.elements.toggleMidday) this.elements.toggleMidday.checked = this.state.reminders.midday;
         if (this.elements.toggleEvening) this.elements.toggleEvening.checked = this.state.reminders.evening;
         if (this.elements.toggleRosary) this.elements.toggleRosary.checked = this.state.reminders.rosary;
+        if (this.elements.toggleScreentime) this.elements.toggleScreentime.checked = this.state.reminders.screentime;
     },
 
     saveSetting: async function(key, value) {
