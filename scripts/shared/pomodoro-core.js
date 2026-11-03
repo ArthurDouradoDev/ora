@@ -66,7 +66,11 @@
             totalFocusSeconds: 0,
             todayKey: todayKey(date),
             settings: s,
-            session: null
+            session: null,
+            // Última sessão concluída, enquanto a pessoa decide como continuar
+            completed: null,
+            // A proteção foi ligada pela sessão (e volta ao estado anterior no fim)
+            protection: null
         };
     }
 
@@ -112,6 +116,7 @@
         state.pomodoroCount = 0;
 
         if (!activeCrossMidnight) {
+            state.completed = null;
             state.isRunning = false;
             state.expectedEndTime = null;
             state.phase = 'focus';
@@ -145,6 +150,58 @@
         ];
     }
 
+    function isBreak(phase) {
+        return phase === 'pause' || phase === 'longPause';
+    }
+
+    // Prepara uma fase de foco com a duração escolhida na preparação
+    // (15/25/50/90 ou a padrão), vinda de qualquer fase. Não começa a contar.
+    function prepareFocus(state, minutes) {
+        const s = sanitizeSettings(state.settings);
+        state.phase = 'focus';
+        state.timeRemaining = clampMinutes(minutes, 'focus', s.focus) * 60;
+        state.totalDuration = state.timeRemaining;
+        state.completed = null;
+        return state;
+    }
+
+    // Ajusta a pausa que vem depois do foco (a longa é editável naquele momento).
+    function prepareBreak(state, minutes) {
+        if (!isBreak(state.phase) || state.isRunning) return state;
+        const s = sanitizeSettings(state.settings);
+        const fallback = getPhaseDuration(state.phase, s) / 60;
+        state.timeRemaining = clampMinutes(minutes, state.phase, fallback) * 60;
+        state.totalDuration = state.timeRemaining;
+        return state;
+    }
+
+    // "Voltar ao início": parado, na fase de foco com a duração padrão.
+    function resetToIdle(state) {
+        const s = sanitizeSettings(state.settings);
+        state.isRunning = false;
+        state.expectedEndTime = null;
+        state.phase = 'focus';
+        state.timeRemaining = s.focus * 60;
+        state.totalDuration = state.timeRemaining;
+        state.completed = null;
+        return state;
+    }
+
+    // Resumo da sessão que acabou de terminar, para a tela de sessão concluída.
+    function completedSummary(session, record) {
+        if (!session && !record) return null;
+        const src = record || session;
+        const summary = {
+            taskId: src.taskId || null,
+            plannedMin: src.plannedMin,
+            focusedMin: record ? record.focusedMin : src.plannedMin,
+            endedAt: record ? record.endedAt : Date.now()
+        };
+        if (src.title) summary.title = src.title;
+        if (src.intention) summary.intention = src.intention;
+        return summary;
+    }
+
     global.PomodoroCore = {
         LONG_PAUSE_EVERY,
         getDefaultSettings,
@@ -154,6 +211,11 @@
         getPhaseDuration,
         advancePhase,
         applyDayRollover,
-        endOfSessionOptions
+        endOfSessionOptions,
+        isBreak,
+        prepareFocus,
+        prepareBreak,
+        resetToIdle,
+        completedSummary
     };
 })(typeof self !== 'undefined' ? self : this);

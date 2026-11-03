@@ -22,6 +22,8 @@ const FILES = [
     'scripts/shared/sessions-core.js',
     'scripts/shared/counter-core.js',
     'scripts/shared/migrate-core.js',
+    'scripts/shared/today-core.js',
+    'scripts/shared/reminders-core.js',
     'scripts/modules/sync.js',
     'tests/tests.js'
 ];

@@ -30,7 +30,7 @@ const SyncSystem = {
     SETTINGS_KEYS: [
         'ora_locale', 'ora_user_name', 'ora_prayer_lang',
         'ora_reminder_carlo', 'ora_reminder_angelus', 'ora_reminder_mercy',
-        'ora_reminder_midday', 'ora_reminder_evening', 'ora_reminder_rosary'
+        'ora_reminder_midday', 'ora_reminder_evening'
     ],
 
     _meta: {},

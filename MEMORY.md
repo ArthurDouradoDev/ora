@@ -70,6 +70,16 @@ Decisões que continuam valendo:
 - Intenção do dia ≠ intenção da sessão; alterar a da sessão não altera a do dia.
 - Distinguir tempo realizado, sessão completada e tarefa concluída (e refletir isso em Frutos).
 
+## Tela Hoje (implementada na fase 2, 03/11/2026)
+
+- Referência: `01d-hoje-melhorada`. Estados vêm de `TodayCore.resolveTodayState` (ver `CLAUDE.md`).
+- **Atalhos ficaram no eixo central**, como no `01d-hoje-melhorada` ("favoritos voltam ao eixo"), e não "no alto, ao lado da marca" como diz o texto do plano. Confirmar com o usuário.
+- **Saudação**: mantidas as saudações devocionais de `data/greetings.json` (+ nome), em vez de "Bom dia/Boa tarde" do protótipo. Confirmar.
+- "Bloquear distrações" na preparação liga o bloqueador atual só durante a sessão (e devolve o estado anterior, inclusive uma pausa contemplativa em curso); com o bloqueador já ligado, o switch aparece marcado e travado. Perfis e "durante o foco" de verdade são da fase 4.
+- Mudar o nome da atividade na preparação desliga a sessão da tarefa (foco livre com o novo nome).
+- Convite "Encerrar o dia" a partir das 21h (antes o exame noturno aparecia às 18h). Sugestão de terço após o pomodoro saiu das Configurações.
+- Configurações do foco (durações, som, avançar sozinho, tela acesa) foram para o modal de Configurações até a fase 7.
+
 ## Roteiro recomendado
 
 1. Estado e continuidade (sessão, ritual matinal, retomadas, persistência).
@@ -111,10 +121,10 @@ Frutos só deve ser conectado aos dados depois de separar tarefa de sessão.
 
 Extensão carregada com os ajustes, bloqueio real, permissões nativas, segundo plano, áudio, APIs/cache reais, zoom real, teclado móvel, alcance físico, mobile efetivo 360×640, leitor de tela, fadiga de leitura. Contraste sobre fotografia não foi medido.
 
-## Estado do repositório (02/11/2026)
+## Estado do repositório (03/11/2026)
 
-- Branch `main`, versão 1.2.0. Alterações **não commitadas**: i18n (pt/en/es), `manifest.json`, `ora.html`, `scripts/main.js`, `scripts/modules/settings.js`, `sw.js`, novos `scripts/modules/screentime.js` e `styles/modules/screentime.css` (reflexão sobre tempo de tela, já implementada mas pendente das correções da seção 2 do IDEAS.md: tirar vermelho/verde e abrir pela pergunta).
-- Testes de funções puras em `tests/` (72 asserções); sem build.
+- Branch `v1/fase-0`, versão 1.2.0 no manifesto. Fases 0 e 1 do `PLANO_V1_ORA.md` commitadas; fase 2 (Hoje) implementada.
+- Testes de funções puras em `tests/` (`node tests/run.js`, 241 asserções); sem build.
 - Ao empacotar a extensão, **excluir `prototypes/`** (com "Load unpacked" a pasta entra na extensão).
 
 ## Como trabalhar neste repositório

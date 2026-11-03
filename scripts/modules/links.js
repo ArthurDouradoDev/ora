@@ -1,312 +1,241 @@
-// links.js
+// ============================================================
+// SEUS ATALHOS — sites que a pessoa abre a partir de Hoje
+// ============================================================
+// Lê os atalhos migrados da 1.1.5 (ora_quick_links). Sem atalhos gravados,
+// começa com Google, ChatGPT e Liturgia das Horas. Gerenciar abre um
+// diálogo (DialogSystem): remover, adicionar (até 6).
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const linksContainer = document.getElementById('quick-links-container');
-    const linksModal = document.getElementById('links-modal');
-    const linksList = document.getElementById('manage-links-list');
-    
-    // Buttons
-    const openLinksBtn = document.getElementById('manage-links-btn'); // Button in the main view
-    const closeLinksBtn = document.getElementById('close-links-btn');
-    const addLinkBtn = document.getElementById('add-link-btn');
-    
-    // Inputs
-    const linkNameInput = document.getElementById('link-name-input');
-    const linkUrlInput = document.getElementById('link-url-input');
-
-    // Default Links
-    const DEFAULT_LINKS = [
+const LinksSystem = {
+    STORAGE_KEY: 'ora_quick_links',
+    MAX_LINKS: 6,
+    MAX_NAME_LENGTH: 20,
+    DEFAULT_LINKS: [
         { name: 'Google', url: 'https://google.com' },
         { name: 'ChatGPT', url: 'https://chatgpt.com' },
         { name: 'Liturgia das Horas', url: 'https://www.paulus.com.br/portal/liturgia-diaria-das-horas/' }
-    ];
+    ],
 
-    // State
-    let links = [];
+    links: [],
+    elements: {},
 
-    // Favicon Cache
-    const faviconCache = new Map();
+    init: async function() {
+        this.cacheDOM();
+        this.bindEvents();
+        await this.load();
+        this.render();
 
-    // Max limits
-    const MAX_LINKS = 6;
-    const MAX_NAME_LENGTH = 20;
-
-    // --- Init ---
-    await loadLinks();
-    renderLinks();
-    setupEventListeners();
-
-    function setupEventListeners() {
-        // Open/Close Modal
-        if (openLinksBtn) {
-            openLinksBtn.addEventListener('click', () => {
-                renderManageList();
-                openModal(linksModal);
-            });
-        }
-
-        if (closeLinksBtn) {
-            closeLinksBtn.addEventListener('click', () => {
-                closeModal(linksModal);
-            });
-        }
-
-        // Close on click outside
-        window.addEventListener('click', (e) => {
-            // If user is typing in an input inside the modal, don't close it
-            if (linksModal.contains(document.activeElement) && 
-                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-                return;
-            }
-
-            if (e.target === linksModal) {
-                closeModal(linksModal);
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'local' && changes[this.STORAGE_KEY]) {
+                const next = this.normalize(changes[this.STORAGE_KEY].newValue) || [];
+                if (JSON.stringify(next) === JSON.stringify(this.links)) return; // a própria gravação
+                this.links = next;
+                this.render();
+                if (DialogSystem.isOpen(this.elements.dialog)) this.renderManage();
             }
         });
+    },
 
-        // Add Link
-        if (addLinkBtn) {
-            addLinkBtn.addEventListener('click', addNewLink);
+    cacheDOM: function() {
+        const $ = (id) => document.getElementById(id);
+        this.elements = {
+            list: $('shortcuts-list'),
+            dialog: $('shortcuts-dialog'),
+            manage: $('shortcuts-manage'),
+            form: $('shortcuts-form'),
+            name: $('shortcut-name'),
+            url: $('shortcut-url'),
+            add: $('shortcut-add'),
+            note: $('shortcuts-note')
+        };
+    },
+
+    bindEvents: function() {
+        this.elements.form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.add();
+        });
+        this.elements.manage.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-remove]');
+            if (btn) this.remove(Number(btn.dataset.remove));
+        });
+    },
+
+    normalize: function(raw) {
+        let value = raw;
+        if (typeof value === 'string') {
+            try { value = JSON.parse(value); } catch (e) { return null; }
         }
+        if (!Array.isArray(value)) return null;
+        return value
+            .filter(l => l && typeof l.name === 'string' && this.isValidURL(l.url))
+            .map(l => ({ name: l.name.slice(0, this.MAX_NAME_LENGTH), url: l.url }))
+            .slice(0, this.MAX_LINKS);
+    },
 
-        // Event Delegation for Delete Buttons
-        if (linksList) {
-            linksList.addEventListener('click', (e) => {
-                const deleteBtn = e.target.closest('.delete-link-btn');
-                if (deleteBtn) {
-                    const index = parseInt(deleteBtn.dataset.index);
-                    deleteLink(index);
-                }
-            });
+    load: async function() {
+        const stored = this.normalize(await AsyncStorage.get(this.STORAGE_KEY, null));
+        if (stored) {
+            this.links = stored;
+        } else {
+            this.links = this.DEFAULT_LINKS.slice();
+            await AsyncStorage.set(this.STORAGE_KEY, this.links);
         }
-    }
+    },
 
-
-
-    function getFavicon(url) {
+    isValidURL: function(value) {
         try {
-            const urlObj = new URL(url);
-            if (!['http:', 'https:'].includes(urlObj.protocol)) {
-                throw new Error('Protocolo inválido');
-            }
-            const domain = urlObj.hostname;
-
-            if (faviconCache.has(domain)) {
-                return faviconCache.get(domain);
-            }
-
-            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-            faviconCache.set(domain, faviconUrl);
-            return faviconUrl;
-        } catch (e) {
-            console.error('[Links] Erro ao obter favicon:', e);
-            // Return a generic local icon
-            return 'assets/icon.png';
-        }
-    }
-
-    function isValidURL(urlString) {
-        try {
-            const url = new URL(urlString);
-            return ['http:', 'https:'].includes(url.protocol);
+            return ['http:', 'https:'].includes(new URL(value).protocol);
         } catch (e) {
             return false;
         }
-    }
+    },
 
-    function renderLinks() {
-        if (!linksContainer) return;
-        
-        linksContainer.innerHTML = '';
+    favicon: function(url) {
+        try {
+            return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`;
+        } catch (e) {
+            return null;
+        }
+    },
 
-        // Optimization: Use DocumentFragment
-        const fragment = document.createDocumentFragment();
+    initials: function(name) {
+        const words = name.trim().split(/\s+/).filter(w => w.length > 2 || /^[A-Z]/.test(w));
+        const letters = (words.length > 1 ? words.slice(0, 2).map(w => w[0]) : [name.trim()[0] || '?']).join('');
+        return letters.toUpperCase();
+    },
 
-        links.forEach(link => {
-            const linkEl = document.createElement('a');
-            linkEl.href = link.url;
-            linkEl.target = '_blank';
-            linkEl.className = 'quick-link glass-panel-sm';
-            
-            const img = document.createElement('img');
-            img.src = getFavicon(link.url);
-            img.alt = link.name;
-            img.className = 'link-icon';
+    // Ícone do site; sem rede, as iniciais
+    makeFav: function(link) {
+        const fav = document.createElement('span');
+        fav.className = 'fav';
+        fav.setAttribute('aria-hidden', 'true');
+        fav.textContent = this.initials(link.name);
+        const src = this.favicon(link.url);
+        if (src && navigator.onLine !== false) {
+            const img = new Image();
+            img.alt = '';
             img.loading = 'lazy';
-            
-            const span = document.createElement('span');
-            span.textContent = link.name;
-            
-            linkEl.appendChild(img);
-            linkEl.appendChild(span);
-            
-            fragment.appendChild(linkEl);
-        });
-
-        linksContainer.appendChild(fragment);
-
-        // Append the "Manage" button at the end of the grid/row
-        const manageBtn = document.createElement('button');
-        manageBtn.id = 'manage-links-btn-dynamic';
-        manageBtn.className = 'quick-link-add glass-panel-sm';
-        manageBtn.title = 'Gerenciar Links';
-        
-        let iconClass = 'ph-plus';
-        if (links.length === 0 || links.length >= MAX_LINKS) {
-            iconClass = 'ph-link';
+            img.onload = () => fav.replaceChildren(img);
+            img.src = src;
         }
-        
-        manageBtn.innerHTML = `<i class="ph ${iconClass}"></i>`;
-        
-        manageBtn.addEventListener('click', () => {
-             renderManageList();
-             openModal(linksModal);
+        return fav;
+    },
+
+    render: function() {
+        const fragment = document.createDocumentFragment();
+        this.links.forEach(link => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'sc surface-glass';
+            a.href = link.url;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.append(this.makeFav(link), document.createTextNode(link.name));
+            li.appendChild(a);
+            fragment.appendChild(li);
         });
 
-        linksContainer.appendChild(manageBtn);
-    }
+        const li = document.createElement('li');
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.className = 'sc sc-add surface-glass';
+        add.innerHTML = '<span class="fav" aria-hidden="true"><i class="ph ph-plus"></i></span>';
+        add.append(document.createTextNode(t(this.links.length ? 'shortcuts.manage' : 'shortcuts.add')));
+        add.addEventListener('click', () => this.openDialog(add));
+        li.appendChild(add);
+        fragment.appendChild(li);
 
-    function renderManageList() {
-        if (!linksList) return;
-        linksList.innerHTML = '';
+        this.elements.list.replaceChildren(fragment);
+    },
 
-        links.forEach((link, index) => {
-            const item = document.createElement('div');
-            item.className = 'manage-link-item glass-panel-sm';
-            
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'link-info';
-            
-            const img = document.createElement('img');
-            img.src = getFavicon(link.url);
-            img.className = 'link-icon-sm';
-            
-            const span = document.createElement('span');
-            span.textContent = link.name;
-            
-            infoDiv.appendChild(img);
-            infoDiv.appendChild(span);
-            
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'icon-btn-sm delete-link-btn';
-            deleteBtn.dataset.index = index;
-            deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
-            
-            item.appendChild(infoDiv);
-            item.appendChild(deleteBtn);
-            
-            linksList.appendChild(item);
+    openDialog: function(opener) {
+        this.renderManage();
+        this.elements.note.textContent = t('shortcuts.limit', { max: this.MAX_LINKS });
+        // O botão é recriado a cada mudança: ao fechar, o foco volta ao "Adicionar" atual
+        DialogSystem.open(this.elements.dialog, {
+            opener,
+            onClose: () => {
+                const add = this.elements.list.querySelector('.sc-add');
+                if (add && !document.contains(opener)) add.focus({ preventScroll: true });
+            }
         });
+        if (this.links.length < this.MAX_LINKS) this.elements.name.focus();
+    },
 
+    renderManage: function() {
+        const fragment = document.createDocumentFragment();
+        this.links.forEach((link, index) => {
+            const li = document.createElement('li');
+            const name = document.createElement('span');
+            name.textContent = link.name;
+            name.title = link.url;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn-icon sm';
+            remove.dataset.remove = String(index);
+            remove.setAttribute('aria-label', t('shortcuts.remove', { name: link.name }));
+            remove.innerHTML = '<i class="ph ph-trash" aria-hidden="true"></i>';
+            li.append(this.makeFav(link), name, remove);
+            fragment.appendChild(li);
+        });
+        this.elements.manage.replaceChildren(fragment);
+        const full = this.links.length >= this.MAX_LINKS;
+        this.elements.name.disabled = full;
+        this.elements.url.disabled = full;
+        this.elements.add.disabled = full;
+    },
 
-        
-        // Update Add Button State
-        if (links.length >= MAX_LINKS) {
-            addLinkBtn.disabled = true;
-            addLinkBtn.style.opacity = '0.5';
-            addLinkBtn.title = 'Limite máximo de 6 links atingido';
-        } else {
-            addLinkBtn.disabled = false;
-            addLinkBtn.style.opacity = '1';
-            addLinkBtn.title = 'Adicionar';
+    save: async function(next) {
+        const ok = await AsyncStorage.set(this.STORAGE_KEY, next);
+        if (!ok) {
+            this.elements.note.textContent = t('shortcuts.save_failed');
+            return false;
         }
-    }
+        this.links = next;
+        this.render();
+        this.renderManage();
+        return true;
+    },
 
-    async function addNewLink() {
-        const name = linkNameInput.value.trim();
-        let url = linkUrlInput.value.trim();
+    add: async function() {
+        const name = this.elements.name.value.trim();
+        let url = this.elements.url.value.trim();
+        const note = this.elements.note;
 
         if (!name || !url) {
-            showToast(t('toast.link_fill_fields'), 'error');
+            note.textContent = t('toast.link_fill_fields');
+            (name ? this.elements.url : this.elements.name).focus();
+            return;
+        }
+        if (this.links.length >= this.MAX_LINKS) {
+            note.textContent = t('toast.link_limit_reached');
+            return;
+        }
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        if (!this.isValidURL(url)) {
+            note.textContent = t('toast.link_invalid_url');
+            this.elements.url.focus();
             return;
         }
 
-        if (name.length > MAX_NAME_LENGTH) {
-            showToast(t('toast.link_name_max', { max: MAX_NAME_LENGTH }), 'error');
-            return;
-        }
+        const ok = await this.save(this.links.concat([{ name: name.slice(0, this.MAX_NAME_LENGTH), url }]));
+        if (!ok) return;
+        this.elements.name.value = '';
+        this.elements.url.value = '';
+        note.textContent = t('toast.link_added');
+        if (!this.elements.name.disabled) this.elements.name.focus();
+    },
 
-        if (links.length >= MAX_LINKS) {
-            showToast(t('toast.link_limit_reached'), 'error');
-            return;
-        }
-
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url;
-        }
-
-        if (!isValidURL(url)) {
-            showToast(t('toast.link_invalid_url'), 'error');
-            return;
-        }
-
-        links.push({ name, url });
-        await saveLinks();
-        
-        linkNameInput.value = '';
-        linkUrlInput.value = '';
-        
-        renderManageList();
-        renderLinks();
-        showToast(t('toast.link_added'), 'success');
+    remove: async function(index) {
+        const link = this.links[index];
+        if (!link) return;
+        const ok = await this.save(this.links.filter((_, i) => i !== index));
+        if (!ok) return;
+        this.elements.note.textContent = t('shortcuts.removed', { name: link.name });
+        // Foco não se perde quando o botão removido some
+        const buttons = this.elements.manage.querySelectorAll('[data-remove]');
+        (buttons[Math.min(index, buttons.length - 1)] || this.elements.name).focus();
     }
+};
 
-    async function deleteLink(index) {
-        links.splice(index, 1);
-        await saveLinks();
-        renderManageList();
-        renderLinks();
-        showToast(t('toast.link_removed'), 'info');
-    }
-
-    // Load links (Async)
-    async function loadLinks() {
-        try {
-            const rawLinks = await AsyncStorage.get('ora_quick_links'); // Use updated SafeStorage or AsyncStorage if directly available
-            if (rawLinks) {
-                links = (typeof rawLinks === 'string') ? JSON.parse(rawLinks) : rawLinks;
-            } else {
-                 // Try legacy key
-                const legacyLinks = await AsyncStorage.get('oraLinks');
-                if (legacyLinks) {
-                     links = (typeof legacyLinks === 'string') ? JSON.parse(legacyLinks) : legacyLinks;
-                     // Migrate to new key
-                     await AsyncStorage.set('ora_quick_links', links);
-                     await AsyncStorage.remove('oraLinks');
-                } else {
-                    links = DEFAULT_LINKS;
-                    await saveLinks();
-                }
-            }
-        } catch (e) {
-            console.error('[Links] Error loading links:', e);
-            links = DEFAULT_LINKS;
-        }
-    }
-
-    // Save links (Async)
-    async function saveLinks() {
-        await AsyncStorage.set('ora_quick_links', links); // Store as object/array directly supported by chrome.storage
-    }
-
-    // Reuse existing helper if available, or define local
-    function openModal(modal) {
-        if (typeof animateModal === 'function') {
-            animateModal(modal, true);
-        } else {
-            if (!modal) return;
-            modal.style.display = 'flex';
-            modal.classList.add('active');
-        }
-    }
-
-    function closeModal(modal) {
-        if (typeof animateModal === 'function') {
-            animateModal(modal, false);
-        } else {
-             if (!modal) return;
-            modal.style.display = 'none';
-            modal.classList.remove('active');
-        }
-    }
-});
+window.LinksSystem = LinksSystem;

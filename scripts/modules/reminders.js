@@ -1,425 +1,159 @@
 const ReminderSystem = {
-    // Dependencies
-    // Global: SafeStorage, animateModal, isModalVisible, window.PrayerSystem
-    
-    // Data
-    prayers: [],
-    examData: null,
+    // Um único espaço de convite em Hoje (Angelus, Terço da Misericórdia,
+    // exame do meio-dia, Encerrar o dia, oração ao abrir o navegador), com
+    // "Agora não". A escolha do convite é de RemindersCore; esta camada lê as
+    // preferências e o que já foi atendido, e avisa Hoje ('ora:invite').
+    // Dependencies: AsyncStorage, RemindersCore, SettingsSystem, PrayerSystem,
+    // RosarySystem, ExamSystem.
 
-    // DOM Elements
-    elements: {
-        carlo: {
-            modal: null,
-            openBtn: null,
-            checkBtn: null
-        },
-        angelus: {
-            modal: null,
-            openBtn: null,
-            checkBtn: null
-        },
-        mercy: {
-            modal: null,
-            openBtn: null,
-            checkBtn: null
-        },
-        midday: {
-            modal: null,
-            startBtn: null,
-            checkBtn: null
-        },
-        evening: {
-            modal: null,
-            startBtn: null,
-            checkBtn: null
-        },
-        rosary: {
-            modal: null,
-            startBtn: null,
-            dismissBtn: null
-        }
-    },
+    HANDLED_KEY: 'ora_invites_handled',
+    CARLO_SESSION_KEY: 'carlo_acutis_shown', // chrome.storage.session
+
+    prayers: [],
+    handled: {},
+    carloPending: false,
+    sessionActive: false,
+    current: null,
 
     init: async function(data) {
         this.prayers = data.prayers || [];
-        this.examData = data.exam || {};
-        
-        this.cacheDOM();
-        this.bindEvents();
-        
-        // Start monitoring
-        this.startMonitoring();
-        
-        // Initial checks
-        await this.checkCarloAcutisReminder();
-        await this.checkAngelusTime();
-        await this.checkMercyTime();
-        await this.checkMiddayExam();
-        await this.checkEveningExam();
-        
+        this.handled = (await AsyncStorage.get(this.HANDLED_KEY, {})) || {};
+
+        // Oração para usar a internet: uma vez por sessão do navegador, depois do onboarding
+        try {
+            const onboardingDone = await AsyncStorage.get('ora_onboarding_done', false);
+            const session = await chrome.storage.session.get([this.CARLO_SESSION_KEY]);
+            this.carloPending = !!onboardingDone && !session[this.CARLO_SESSION_KEY];
+        } catch (e) {
+            this.carloPending = false;
+        }
+
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'local' && changes[this.HANDLED_KEY]) {
+                this.handled = changes[this.HANDLED_KEY].newValue || {};
+                this.refresh();
+            }
+            if (area === 'session' && changes[this.CARLO_SESSION_KEY] && changes[this.CARLO_SESSION_KEY].newValue) {
+                this.carloPending = false;
+                this.refresh();
+            }
+        });
+        window.addEventListener('ora:settings-changed', () => this.refresh());
+
+        // Os horários mudam com o relógio
+        setInterval(() => this.refresh(), 60000);
+        this.refresh();
         console.log('[Ora] Reminder System initialized');
     },
 
-    cacheDOM: function() {
-        this.elements.carlo.modal = document.getElementById('carlo-reminder');
-        this.elements.carlo.openBtn = document.getElementById('open-carlo-btn');
-        this.elements.carlo.checkBtn = document.getElementById('check-carlo-btn');
-
-        this.elements.angelus.modal = document.getElementById('angelus-reminder');
-        this.elements.angelus.openBtn = document.getElementById('open-angelus-btn');
-        this.elements.angelus.checkBtn = document.getElementById('check-angelus-btn');
-
-        this.elements.mercy.modal = document.getElementById('mercy-reminder');
-        this.elements.mercy.openBtn = document.getElementById('open-mercy-btn');
-        this.elements.mercy.checkBtn = document.getElementById('check-mercy-btn');
-
-        this.elements.midday.modal = document.getElementById('midday-reminder');
-        this.elements.midday.startBtn = document.getElementById('start-midday-btn');
-        this.elements.midday.checkBtn = document.getElementById('check-midday-btn');
-
-        this.elements.evening.modal = document.getElementById('evening-reminder');
-        this.elements.evening.startBtn = document.getElementById('start-evening-btn');
-        this.elements.evening.checkBtn = document.getElementById('check-evening-btn');
-
-        this.elements.rosary.modal = document.getElementById('rosary-reminder');
-        this.elements.rosary.startBtn = document.getElementById('start-rosary-btn');
-        this.elements.rosary.dismissBtn = document.getElementById('dismiss-rosary-btn');
+    enabledMap: function() {
+        const s = window.SettingsSystem;
+        const on = (key) => !s || s.isReminderEnabled(key);
+        return { angelus: on('angelus'), mercy: on('mercy'), midday: on('midday'), evening: on('evening'), carlo: on('carlo') };
     },
 
-    bindEvents: function() {
-        // --- Carlo Acutis ---
-        if (this.elements.carlo.openBtn) {
-            this.elements.carlo.openBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Close reminder
-                this.hideModal(this.elements.carlo.modal);
-                
-                // Open prayer
-                const carloPrayer = this.prayers.find(p => p.id === 'sao-carlo-acutis');
-                if (carloPrayer && window.PrayerSystem) {
-                    window.PrayerSystem.openReader(carloPrayer);
-                } else {
-                    console.error('[Ora] Carlo Acutis prayer not found or PrayerSystem missing');
-                }
-            });
-        }
+    // Hoje informa se há foco ou pausa em andamento (nenhum convite)
+    setSessionActive: function(active) {
+        if (this.sessionActive === active) return;
+        this.sessionActive = active;
+        this.refresh();
+    },
 
-        if (this.elements.carlo.checkBtn) {
-            this.elements.carlo.checkBtn.addEventListener('click', () => {
-                this.hideModal(this.elements.carlo.modal);
-            });
+    refresh: function() {
+        const invite = RemindersCore.pickInvite({
+            now: new Date(),
+            enabled: this.enabledMap(),
+            handled: this.handled,
+            carloPending: this.carloPending,
+            sessionActive: this.sessionActive
+        });
+        const changed = JSON.stringify(invite) !== JSON.stringify(this.current);
+        this.current = invite;
+        if (changed) {
+            window.dispatchEvent(new CustomEvent('ora:invite', { detail: invite }));
+            if (invite && invite.id === 'angelus') this.trySendNotification(invite);
         }
+    },
 
-        // --- Angelus ---
-        if (this.elements.angelus.openBtn) {
-            this.elements.angelus.openBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Close reminder
-                this.hideModal(this.elements.angelus.modal);
-                
-                // Open prayer
-                const angelusPrayer = this.prayers.find(p => p.id === 'angelus');
-                if (angelusPrayer && window.PrayerSystem) {
-                    window.PrayerSystem.openReader(angelusPrayer);
-                } else {
-                    console.error('[Ora] Angelus prayer not found or PrayerSystem missing');
-                }
-            });
+    // Texto e ícone de cada convite
+    describe: function(invite) {
+        if (!invite) return null;
+        const map = {
+            angelus: { icon: 'ph-bell-ringing', go: 'invites.pray' },
+            mercy: { icon: 'ph-drop', go: 'invites.pray' },
+            midday: { icon: 'ph-sun-horizon', go: 'invites.start' },
+            closeDay: { icon: 'ph-moon-stars', go: 'invites.start' },
+            carlo: { icon: 'ph-laptop', go: 'invites.pray' }
+        };
+        const d = map[invite.id];
+        return {
+            icon: d.icon,
+            title: t(`invites.${invite.id}_title`),
+            meta: t(`invites.${invite.id}_meta`),
+            go: t(d.go)
+        };
+    },
+
+    // "Agora não" (ou feito): vale até o próximo horário do convite
+    dismiss: async function(invite) {
+        if (!invite) return;
+        if (invite.id === 'carlo') {
+            this.carloPending = false;
+            try { await chrome.storage.session.set({ [this.CARLO_SESSION_KEY]: true }); } catch (e) { /* sem session storage */ }
+        } else {
+            this.handled = RemindersCore.dismiss(this.handled, invite, new Date());
+            await AsyncStorage.set(this.HANDLED_KEY, this.handled);
         }
+        this.refresh();
+    },
 
-        if (this.elements.angelus.checkBtn) {
-            this.elements.angelus.checkBtn.addEventListener('click', async () => {
-                const now = new Date();
-                const windowName = this.getAngelusWindow(now.getHours());
-                if (windowName) {
-                    await this.markDone('angelus_done_' + windowName);
-                }
-                this.hideModal(this.elements.angelus.modal);
-                showToast(t('toast.angelus_done'), 'success');
-            });
-        }
+    // Marca pelo id (ex.: o exame da noite concluído por outro caminho)
+    markDoneById: async function(id) {
+        this.handled = RemindersCore.dismissById(this.handled, id, new Date());
+        await AsyncStorage.set(this.HANDLED_KEY, this.handled);
+        this.refresh();
+    },
 
-        // --- Mercy ---
-        if (this.elements.mercy.openBtn) {
-            this.elements.mercy.openBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.hideModal(this.elements.mercy.modal);
-                // Open Rosary in Mercy Mode
+    act: async function(invite) {
+        if (!invite) return;
+        await this.dismiss(invite);
+        const prayer = (id) => this.prayers.find(p => p.id === id);
+        switch (invite.id) {
+            case 'angelus':
+                if (window.PrayerSystem) PrayerSystem.openReader(prayer('angelus'));
+                break;
+            case 'carlo':
+                if (window.PrayerSystem) PrayerSystem.openReader(prayer('sao-carlo-acutis'));
+                break;
+            case 'mercy':
                 if (window.RosarySystem) {
-                    window.RosarySystem.chapletType = 'misericordia';
-                    window.RosarySystem.currentBead = 0; // Reset
-                    window.RosarySystem.renderBeads(); // Update beads for disabled ones
-                    window.RosarySystem.refreshDisplay();
-                    window.RosarySystem.open();
+                    RosarySystem.chapletType = 'misericordia';
+                    RosarySystem.currentBead = 0;
+                    RosarySystem.renderBeads();
+                    RosarySystem.refreshDisplay();
+                    RosarySystem.open();
                 }
-            });
-        }
-
-        if (this.elements.mercy.checkBtn) {
-            this.elements.mercy.checkBtn.addEventListener('click', async () => {
-                await this.markDone('mercy_done');
-                this.hideModal(this.elements.mercy.modal);
-                showToast(t('toast.mercy_done'), 'success');
-            });
-        }
-
-        // --- Midday Exam ---
-        if (this.elements.midday.startBtn) {
-            this.elements.midday.startBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.hideModal(this.elements.midday.modal);
-                // Trigger exam start in script.js (we might need a callback or event)
-                // Integrating tightly: we can dispatch an event or use a callback passed in deps
-                // For now, let's dispatch a custom event that script.js listens to
-                window.dispatchEvent(new CustomEvent('ora:start-exam', { detail: { type: 'midday' } }));
-            });
-        }
-
-        if (this.elements.midday.checkBtn) {
-            this.elements.midday.checkBtn.addEventListener('click', async () => {
-                await this.markDone('ora_midday_done');
-                this.hideModal(this.elements.midday.modal);
-                showToast(t('toast.midday_done'), 'success');
-            });
-        }
-
-        // --- Evening Exam ---
-        if (this.elements.evening.startBtn) {
-            this.elements.evening.startBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.hideModal(this.elements.evening.modal);
-                window.dispatchEvent(new CustomEvent('ora:start-exam', { detail: { type: 'night' } }));
-            });
-        }
-
-        if (this.elements.evening.checkBtn) {
-            this.elements.evening.checkBtn.addEventListener('click', async () => {
-                await this.markDone('ora_evening_done');
-                this.hideModal(this.elements.evening.modal);
-                showToast(t('toast.evening_done'), 'success');
-            });
-        }
-
-        // --- Rosary Suggestion ---
-        if (this.elements.rosary.startBtn) {
-            this.elements.rosary.startBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                
-                // Dispatch event to minimize focus timer if active
-                window.dispatchEvent(new CustomEvent('ora:minimize-focus'));
-
-                this.hideModal(this.elements.rosary.modal); // Close reminder immediately
-
-                // Open Rosary with small delay to prevent animation conflicts
-                setTimeout(() => {
-                    if (window.RosarySystem && typeof window.RosarySystem.open === 'function') {
-                        window.RosarySystem.open();
-                    } else {
-                        const btnRosary = document.getElementById('btn-rosary');
-                        if (btnRosary) btnRosary.click();
-                    }
-                }, 50);
-            });
-        }
-
-        if (this.elements.rosary.dismissBtn) {
-            this.elements.rosary.dismissBtn.addEventListener('click', () => {
-                this.hideModal(this.elements.rosary.modal);
-            });
+                break;
+            case 'midday':
+                // O ritual da noite (fase 5) substitui o exame noturno avulso
+                if (window.ExamSystem) ExamSystem.startExam('midday');
+                break;
+            case 'closeDay':
+                if (window.ExamSystem) ExamSystem.startExam('night');
+                break;
         }
     },
 
-    startMonitoring: function() {
-        // Check every minute
-        setInterval(async () => {
-            await this.checkAngelusTime();
-            await this.checkMercyTime();
-            await this.checkMiddayExam();
-            await this.checkEveningExam();
-        }, 60000);
-    },
-
-    // --- Helpers ---
-
-    showModal: function(el) {
-        if (el && !isModalVisible(el)) {
-            animateModal(el, true);
-        }
-    },
-
-    hideModal: function(el) {
-        if (el) {
-            animateModal(el, false);
-        }
-    },
-
-    markDone: async function(prefix) {
-        const todayStr = new Date().toDateString();
-        const key = prefix + '_' + todayStr;
-        await AsyncStorage.set(key, 'true');
-    },
-
-    isDone: async function(prefix) {
-        const todayStr = new Date().toDateString();
-        const key = prefix + '_' + todayStr;
-        const value = await AsyncStorage.get(key);
-        
-        // Retorna true se foi marcado como feito hoje
-        return value === 'true';
-    },
-
-    // --- Logic ---
-
-    checkCarloAcutisReminder: async function() {
-        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('carlo')) return;
-        if (!chrome.storage || !chrome.storage.session) return;
-        // Don't compete with the first-run onboarding wizard (not marked as
-        // shown, so it appears on the next tab after onboarding finishes)
-        const onboardingDone = await AsyncStorage.get('ora_onboarding_done', false);
-        if (!onboardingDone) return;
-        
-        try {
-            const data = await chrome.storage.session.get(['carlo_acutis_shown']);
-            if (!data.carlo_acutis_shown) {
-                // Show reminder
-                this.showModal(this.elements.carlo.modal);
-                // Mark as shown for the rest of the session
-                await chrome.storage.session.set({ carlo_acutis_shown: true });
-            }
-        } catch (e) {
-            console.warn('[Ora] Error accessing session storage for Carlo Acutis reminder:', e);
-        }
-    },
-
-    getAngelusWindow: function(hours) {
-        if (hours >= 6 && hours < 8) return 'morning';
-        if (hours >= 12 && hours < 14) return 'midday';
-        if (hours >= 18 && hours < 21) return 'evening';
-        return null;
-    },
-
-    checkAngelusTime: async function() {
-        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('angelus')) return;
-        const now = new Date();
-        const hours = now.getHours();
-        const windowName = this.getAngelusWindow(hours);
-
-        if (windowName) {
-            const done = await this.isDone('angelus_done_' + windowName);
-            if (!done) {
-                this.showModal(this.elements.angelus.modal);
-                // Notification (optional, keeping consistent with old logic)
-                await this.trySendNotification('Hora do Angelus', 'O Anjo do Senhor anunciou a Maria...', windowName);
-            } else {
-                this.hideModal(this.elements.angelus.modal);
-            }
-        } else {
-            this.hideModal(this.elements.angelus.modal);
-        }
-    },
-
-    checkMercyTime: async function() {
-        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('mercy')) return;
-        // If Rosary modal is already open, do not show reminder
-        if (isModalVisible(document.getElementById('rosary-modal'))) {
-            this.hideModal(this.elements.mercy.modal);
-            return;
-        }
-
-        const hours = new Date().getHours();
-        // 15h - 16h
-        if (hours === 15) {
-            const done = await this.isDone('mercy_done');
-            if (!done) {
-                this.showModal(this.elements.mercy.modal);
-            } else {
-                this.hideModal(this.elements.mercy.modal);
-            }
-        } else {
-            this.hideModal(this.elements.mercy.modal);
-        }
-    },
-
-    checkMiddayExam: async function() {
-        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('midday')) return;
-        const hours = new Date().getHours();
-        // 11h - 14h
-        if (hours >= 11 && hours < 14) {
-            const done = await this.isDone('ora_midday_done');
-            if (!done) {
-                this.showModal(this.elements.midday.modal);
-            }
-        } else {
-            this.hideModal(this.elements.midday.modal);
-        }
-    },
-
-    checkEveningExam: async function() {
-        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('evening')) return;
-        const hours = new Date().getHours();
-        // 18h+
-        if (hours >= 18) {
-            const done = await this.isDone('ora_evening_done');
-            if (!done) {
-                this.showModal(this.elements.evening.modal);
-            }
-        } else {
-            this.hideModal(this.elements.evening.modal);
-        }
-    },
-
-    showRosarySuggestion: function() {
-        if (window.SettingsSystem && !window.SettingsSystem.isReminderEnabled('rosary')) return;
-        // Only show if not already praying or doing exam
-        const rosaryModal = document.getElementById('rosary-modal');
-        const examModal = document.getElementById('exam-flow-modal');
-        
-        const isRosaryOpen = isModalVisible(rosaryModal);
-        const isExamOpen = isModalVisible(examModal);
-
-        if (!isRosaryOpen && !isExamOpen) {
-            this.showModal(this.elements.rosary.modal);
-            this.playTone();
-        }
-    },
-
-    trySendNotification: async function(title, body, windowName) {
+    trySendNotification: async function(invite) {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
-        
-        const todayStr = new Date().toDateString();
-        const key = 'angelus_notif_' + windowName + '_' + todayStr;
+        const key = 'angelus_notif_' + invite.window + '_' + new Date().toDateString();
         if (await AsyncStorage.get(key)) return; // Already sent
-
         try {
-            new Notification(title, { body: body, icon: 'assets/icon.png' });
+            new Notification(t('invites.angelus_title'), { body: t('invites.angelus_notification'), icon: 'assets/icon.png' });
             await AsyncStorage.set(key, 'true');
         } catch (e) {
             console.warn('[Ora] Notification failed:', e);
         }
-    },
-
-    playTone: function() {
-        try {
-            // Reusing context helps performance
-            if (!this.audioContext) {
-                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (this.audioContext.state === 'suspended') {
-                this.audioContext.resume();
-            }
-
-            const ctx = this.audioContext;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 528;
-            osc.type = 'sine';
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 1.5);
-        } catch (e) { /* audio not available */ }
     }
 };
 

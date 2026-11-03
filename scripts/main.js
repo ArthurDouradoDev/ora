@@ -1,19 +1,3 @@
-// 1. Relógio
-function updateClock() {
-    try {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const clock = document.getElementById('clock');
-        if (clock) clock.textContent = `${hours}:${minutes}`;
-    } catch (e) { console.error(e); }
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// Helper for safe storage access is now in utils.js
-
-
 // ============================================================
 // LOAD DATA FROM JSON & INITIALIZE
 // ============================================================
@@ -156,96 +140,6 @@ async function initApp() {
     await bgPreloadPromise;
 
     // ============================================================
-    // 2b. Frase e Saudação Dinâmicas
-    // ============================================================
-
-    async function setQuote() {
-        try {
-            if (!data.quotes || data.quotes.length === 0) return;
-            const quoteText = document.querySelector('.quote-text');
-            const quoteAuthor = document.querySelector('.quote-author');
-            if (!quoteText || !quoteAuthor) return;
-
-            const today = new Date().toDateString();
-            const savedQuoteDate = await AsyncStorage.get('ora_quote_date');
-            
-            let quoteIndex;
-
-            if (savedQuoteDate === today) {
-                const savedIndex = await AsyncStorage.get('ora_quote_index');
-                if (savedIndex !== null) {
-                    quoteIndex = parseInt(savedIndex);
-                }
-            } 
-            
-            if (quoteIndex === undefined) {
-                quoteIndex = Math.floor(Math.random() * data.quotes.length);
-                await AsyncStorage.set('ora_quote_date', today);
-                await AsyncStorage.set('ora_quote_index', quoteIndex.toString());
-            }
-
-            const quote = data.quotes[quoteIndex] || data.quotes[0];
-            const locale = window._i18nLocale || 'pt';
-            const qText = (typeof quote.text === 'object') ? (quote.text[locale] || quote.text.pt || '') : quote.text;
-            quoteText.textContent = `"${qText}"`;
-            quoteAuthor.textContent = quote.author;
-        } catch (e) {
-            console.error('[Ora] Error in setQuote:', e);
-        }
-    }
-    await setQuote();
-
-    async function setGreeting() {
-        try {
-            if (!data.greetings || data.greetings.length === 0) return;
-            const greetingEl = document.querySelector('.greeting');
-            if (!greetingEl) return;
-
-            const today = new Date().toDateString();
-            const savedGreetingDate = await AsyncStorage.get('ora_greeting_date');
-            
-            let greetingIndex;
-
-            if (savedGreetingDate === today) {
-                 const savedIndex = await AsyncStorage.get('ora_greeting_index');
-                 if (savedIndex !== null) {
-                     greetingIndex = parseInt(savedIndex);
-                 }
-            }
-            
-            if (greetingIndex === undefined) {
-                greetingIndex = Math.floor(Math.random() * data.greetings.length);
-                await AsyncStorage.set('ora_greeting_date', today);
-                await AsyncStorage.set('ora_greeting_index', greetingIndex.toString());
-            }
-
-            const greeting = data.greetings[greetingIndex] || data.greetings[0];
-            const locale = window._i18nLocale || 'pt';
-            let greetingText = (typeof greeting === 'object') ? (greeting[locale] || greeting.pt || '') : greeting;
-
-            const userName = window.SettingsSystem ? window.SettingsSystem.getUserName() : '';
-            if (userName && greeting.appendName !== false) {
-                greetingText = `${greetingText}, ${userName}`;
-            }
-            greetingEl.textContent = greetingText;
-        } catch (e) {
-            console.error('[Ora] Error in setGreeting:', e);
-        }
-    }
-    await setGreeting();
-
-    // Listen for settings changes to refresh greeting and quote
-    window.addEventListener('ora:settings-changed', async (e) => {
-        if (e.detail.key === 'userName') {
-            await setGreeting();
-        }
-    });
-    window.addEventListener('ora:locale-changed', async () => {
-        await setQuote();
-        await setGreeting();
-    });
-
-    // ============================================================
     // 3. Music Library & Player Logic
     // ============================================================
 
@@ -270,7 +164,7 @@ async function initApp() {
     }
 
     // ============================================================
-    // 5. REMINDERS (Angelus, Exam, Rosary)
+    // 5. ROSARY
     // ============================================================
 
     // Initialize New Rosary System
@@ -282,13 +176,6 @@ async function initApp() {
         console.error('[Ora] RosarySystem not loaded!');
     }
 
-    if (window.ReminderSystem) {
-        window.ReminderSystem.init({
-            prayers: data.prayers,
-            exam: data.exam
-        });
-    }
-
     // Screen Time Reflection (popup de reflexão sobre o uso digital)
     if (window.ScreenTimeSystem) {
         window.ScreenTimeSystem.init();
@@ -297,44 +184,6 @@ async function initApp() {
     try {
         chrome.runtime.sendMessage({ type: 'screentime:newtab' });
     } catch (e) { /* SW indisponível */ }
-
-    // Listen for events from ReminderSystem
-    window.addEventListener('ora:start-exam', (e) => {
-        // Handled by ExamSystem
-    });
-
-    window.addEventListener('ora:minimize-focus', () => {
-         // Focus system listener handles this now
-    });
-
-
-    // ============================================================
-    // 6. INTENTION OF THE DAY (ora_day_intention, by date — separate
-    //    from the intention offered for a single focus session)
-    // ============================================================
-
-    const intentionInput = document.getElementById('intention-input');
-    const DAY_INTENTION_KEY = 'ora_day_intention';
-
-    if (intentionInput) {
-        intentionInput.value = SessionsCore.dayIntention(await AsyncStorage.get(DAY_INTENTION_KEY, {}), new Date());
-
-        const saveIntention = window.debounce(async (value) => {
-            const map = await AsyncStorage.get(DAY_INTENTION_KEY, {});
-            await AsyncStorage.set(DAY_INTENTION_KEY, SessionsCore.setDayIntention(map, new Date(), value));
-        }, 500);
-
-        intentionInput.addEventListener('input', (e) => {
-            saveIntention(e.target.value);
-        });
-
-        // Other tabs; the tab being typed in keeps its own text
-        chrome.storage.onChanged.addListener((changes, namespace) => {
-            if (namespace === 'local' && changes[DAY_INTENTION_KEY] && document.activeElement !== intentionInput) {
-                intentionInput.value = SessionsCore.dayIntention(changes[DAY_INTENTION_KEY].newValue, new Date());
-            }
-        });
-    }
 
     // ============================================================
     // 7. FOCUS TIMER (POMODORO)
@@ -364,49 +213,30 @@ async function initApp() {
     }
 
     // ============================================================
-    // 9. SITE BLOCKER INTEGRATION
+    // 9. SITE BLOCKER + PROTECTION PILL
     // ============================================================
     if (window.Blocker) {
         await window.Blocker.init();
-        
-        const btnBlocker = document.getElementById('btn-blocker');
-        const blockerModal = document.getElementById('blocker-modal');
-        const closeBlockerBtn = document.getElementById('close-blocker-btn');
-
-        if (btnBlocker) {
-            btnBlocker.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!isModalVisible(blockerModal)) {
-                    animateModal(blockerModal, true);
-                    window.Blocker.onModalOpen();
-                } else {
-                    animateModal(blockerModal, false);
-                }
-            });
-        }
-
-        if (closeBlockerBtn) {
-            closeBlockerBtn.addEventListener('click', () => {
-                animateModal(blockerModal, false);
-            });
-        }
-        
-        // Close on click outside (but not if clicking inside lock overlay/inputs)
-        document.addEventListener('click', (e) => {
-            if (blockerModal && blockerModal.contains(document.activeElement) && 
-                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
-                return;
-            }
-             if (isModalVisible(blockerModal) && 
-                !blockerModal.contains(e.target) && 
-                !btnBlocker.contains(e.target)) {
-                animateModal(blockerModal, false);
-            }
-        });
+    }
+    if (window.ProtectionSystem) {
+        await window.ProtectionSystem.init();
     }
 
     // ============================================================
-    // 10. CROSS-DEVICE SYNC (after all modules, so merges land on
+    // 10. HOJE — atalhos, convites e a tela (depois dos módulos que ela lê)
+    // ============================================================
+    if (window.LinksSystem) {
+        await window.LinksSystem.init();
+    }
+    if (window.ReminderSystem) {
+        await window.ReminderSystem.init({ prayers: data.prayers });
+    }
+    if (window.TodaySystem) {
+        await window.TodaySystem.init({ quotes: data.quotes, greetings: data.greetings });
+    }
+
+    // ============================================================
+    // 11. CROSS-DEVICE SYNC (after all modules, so merges land on
     //     fully-migrated data)
     // ============================================================
     if (window.SyncSystem) {
@@ -414,7 +244,7 @@ async function initApp() {
     }
 
     // ============================================================
-    // 11. ONBOARDING (first run — shows the welcome wizard)
+    // 12. ONBOARDING (first run — shows the welcome wizard)
     // ============================================================
     if (window.OnboardingSystem) {
         await window.OnboardingSystem.init();

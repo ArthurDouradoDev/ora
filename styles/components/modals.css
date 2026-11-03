@@ -46,11 +46,6 @@
 }
 
 /* Modal no canto (mini-player, prayer-list) */
-.modal-corner-right {
-    top: 90px;
-    right: 20px;
-    width: 350px;
-}
 
 .modal-corner-left {
     top: 90px;
@@ -60,19 +55,6 @@
 .modal-corner-bottom-right {
     bottom: 80px;
     right: 20px;
-}
-
-.modal-corner-bottom-left {
-    bottom: 80px;
-    left: 20px;
-}
-
-/* Modal fullscreen (focus timer fullscreen) */
-.modal-fullscreen {
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
 }
 
 /* ============================================
@@ -142,20 +124,4 @@
 }
 .modal-fade.modal-closing { 
     animation: modalFadeDown 0.2s ease forwards; 
-}
-
-/* Angelus/reminders */
-.modal-slide.modal-opening { 
-    animation: modalSlideDown 0.4s ease forwards; 
-}
-.modal-slide.modal-closing { 
-    animation: modalSlideUp 0.3s ease forwards; 
-}
-
-/* Fullscreen */
-.modal-fs.modal-opening { 
-    animation: fsFadeIn 0.3s ease forwards; 
-}
-.modal-fs.modal-closing { 
-    animation: fsFadeOut 0.25s ease forwards; 
 }

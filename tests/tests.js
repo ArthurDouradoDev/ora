@@ -559,6 +559,144 @@
     assertEq('tarefas da 1.2.0: idempotente', MigrateCore.apply(after120, MigrateCore.migrate(after120, { now: NOW2 })), after120);
 
     // ========================================================
+    group('TodayCore — estados de Hoje');
+    // ========================================================
+
+    const T_AFTERNOON = new Date(2026, 10, 4, 14, 22).getTime();
+    const T_NIGHT = new Date(2026, 10, 4, 21, 30).getTime();
+    const idle = PomodoroCore.createState(null, new Date(T_AFTERNOON));
+    const todayTasks = TasksCore.normalizeTasks([
+        { id: 'b', title: 'Revisar capítulo 3', list: 'hoje', order: 2, estimateMin: 50 },
+        { id: 'a', title: 'Preparar apresentação', list: 'hoje', order: 1, estimateMin: 25 },
+        { id: 'c', title: 'Ligar para o banco', list: 'depois', order: 0 }
+    ]);
+
+    assertEq('sem tarefas → vazio', TodayCore.resolveTodayState({ tasks: [], pomodoro: idle, now: T_AFTERNOON }).state, 'repouso-vazio');
+    assertEq('só tarefas de Depois → vazio', TodayCore.resolveTodayState({ tasks: todayTasks.filter(t => t.list === 'depois'), pomodoro: idle, now: T_AFTERNOON }).state, 'repouso-vazio');
+    const rest = TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: idle, now: T_AFTERNOON });
+    assertEq('com tarefas → repouso', rest.state, 'repouso');
+    assertEq('próximo passo segue a ordem escolhida', rest.next.id, 'a');
+    assertEq('contagem conta só as abertas de Hoje', rest.openToday, 2);
+
+    const runningSession = SessionsCore.startSession({ id: 's1', taskId: 'a', plannedMin: 25, now: T_AFTERNOON - 5 * MIN });
+    const running = Object.assign({}, idle, {
+        isRunning: true, expectedEndTime: T_AFTERNOON + 20 * MIN, totalDuration: 25 * 60, timeRemaining: 25 * 60, session: runningSession
+    });
+    const angelusInvite = { id: 'angelus', window: 'meio-dia', key: 'k' };
+    const active = TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: running, now: T_AFTERNOON, reminders: angelusInvite });
+    assertEq('sessão rodando → ativa', active.state, 'ativa');
+    assertEq('sessão ativa → nenhum convite', active.invite, null);
+    assertEq('sessão ativa → sem próximo passo (nada de "Começar foco")', active.next, null);
+    assertEq('atividade usa o título da tarefa', active.session.title, 'Preparar apresentação');
+    assertEq('tempo restante calculado pelo fim previsto', active.session.remainingSec, 20 * 60);
+
+    const pausedState = Object.assign({}, idle, {
+        isRunning: false, expectedEndTime: null, totalDuration: 25 * 60, timeRemaining: 13 * 60,
+        session: SessionsCore.pause(runningSession, T_AFTERNOON)
+    });
+    const paused = TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: pausedState, now: T_AFTERNOON + 60 * MIN });
+    assertEq('sessão pausada → pausada (nunca ativa)', paused.state, 'pausada');
+    assertEq('pausada não conta o tempo', paused.session.remainingSec, 13 * 60);
+    assertEq('pausada com a preparação pedida continua pausada', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: pausedState, now: T_AFTERNOON, preparing: true }).state, 'pausada');
+
+    const night = TodayCore.resolveTodayState({ tasks: [], pomodoro: idle, now: T_NIGHT, reminders: { id: 'closeDay', window: 'noite', key: 'n' } });
+    assertEq('21h30 sem sessão → noite', night.state, 'noite');
+    assertEq('noite mostra o convite de encerrar o dia', night.invite.id, 'closeDay');
+    assertEq('21h30 com sessão ativa → ativa', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: running, now: T_NIGHT - 60 * MIN + 60 * MIN }).state, 'ativa');
+
+    const afterFocus = Object.assign({}, idle, {
+        phase: 'pause', timeRemaining: 5 * 60, totalDuration: 5 * 60, session: null,
+        completed: { taskId: 'a', title: 'Preparar apresentação', plannedMin: 25, focusedMin: 25, endedAt: T_AFTERNOON }
+    });
+    const done = TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: afterFocus, now: T_AFTERNOON + MIN });
+    assertEq('foco terminou → concluída', done.state, 'concluida');
+    assertEq('concluída sugere a próxima tarefa', done.completed.after.id, 'b');
+    assertEq('concluída sem convite', done.invite, null);
+    assertEq('mais uma sessão abre a preparação', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: afterFocus, now: T_AFTERNOON, preparing: true }).state, 'preparacao');
+    assertEq('concluída de ontem não reaparece', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: afterFocus, now: T_AFTERNOON + 13 * 60 * MIN }).state, 'noite');
+
+    const breakRunning = Object.assign({}, afterFocus, { isRunning: true, expectedEndTime: T_AFTERNOON + 4 * MIN });
+    const onBreak = TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: breakRunning, now: T_AFTERNOON });
+    assertEq('pausa correndo → ativa', onBreak.state, 'ativa');
+    assertEq('pausa correndo é do tipo pausa', onBreak.session.kind, 'pause');
+
+    assertEq('falha de gravação em repouso → falha', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: idle, now: T_AFTERNOON, error: { kind: 'save' } }).state, 'falha');
+    assertEq('falha não esconde a sessão ativa', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: running, now: T_AFTERNOON, error: { kind: 'save' } }).state, 'ativa');
+    assertEq('sem estado do pomodoro → repouso', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: null, now: T_AFTERNOON }).state, 'repouso');
+
+    // ========================================================
+    group('RemindersCore — um convite por vez');
+    // ========================================================
+
+    const R = (h, m) => new Date(2026, 10, 4, h, m || 0);
+    assertEq('12h30: Angelus tem prioridade sobre o exame do meio-dia', RemindersCore.pickInvite({ now: R(12, 30) }).id, 'angelus');
+    assertEq('11h30: só o exame do meio-dia', RemindersCore.pickInvite({ now: R(11, 30) }).id, 'midday');
+    assertEq('15h10: Terço da Misericórdia', RemindersCore.pickInvite({ now: R(15, 10) }).id, 'mercy');
+    assertEq('21h10: Encerrar o dia', RemindersCore.pickInvite({ now: R(21, 10) }).id, 'closeDay');
+    assertEq('10h: nenhum convite', RemindersCore.pickInvite({ now: R(10) }), null);
+    assertEq('sessão ativa: nenhum convite', RemindersCore.pickInvite({ now: R(12, 30), sessionActive: true }), null);
+
+    const angelusNoon = RemindersCore.pickInvite({ now: R(12, 30) });
+    let handled = RemindersCore.dismiss({}, angelusNoon, R(12, 30));
+    assertEq('"Agora não" no Angelus deixa a vez para o próximo', RemindersCore.pickInvite({ now: R(12, 40), handled }).id, 'midday');
+    handled = RemindersCore.dismiss(handled, RemindersCore.pickInvite({ now: R(12, 40), handled }), R(12, 40));
+    assertEq('com os dois adiados, nada às 12h50', RemindersCore.pickInvite({ now: R(12, 50), handled }), null);
+    assertEq('"Agora não" adia só até o próximo horário (18h)', RemindersCore.pickInvite({ now: R(18, 5), handled }).id, 'angelus');
+    assertEq('desligado nas configurações não aparece', RemindersCore.pickInvite({ now: R(15, 10), enabled: { mercy: false } }), null);
+    assertEq('oração de abertura espera um convite com horário', RemindersCore.pickInvite({ now: R(12, 30), carloPending: true }).id, 'angelus');
+    assertEq('oração de abertura aparece fora dos horários', RemindersCore.pickInvite({ now: R(10), carloPending: true }).id, 'carlo');
+    const oldHandled = RemindersCore.dismiss({ '2026-10-01:angelus:manha': true }, null, R(9));
+    assertEq('registros antigos são descartados', Object.keys(oldHandled).length, 0);
+    assertEq('marcar pelo id (exame feito por outro caminho)', RemindersCore.pickInvite({ now: R(21, 20), handled: RemindersCore.dismissById({}, 'closeDay', R(21, 15)) }), null);
+
+    // ========================================================
+    group('PomodoroCore — preparação, pausa e volta ao início');
+    // ========================================================
+
+    const prepState = PomodoroCore.createState({ focus: 25 }, new Date(T_AFTERNOON));
+    prepState.phase = 'pause';
+    prepState.completed = { title: 'x' };
+    PomodoroCore.prepareFocus(prepState, 50);
+    assertEq('preparação escolhe 50 min', prepState.totalDuration, 50 * 60);
+    assertEq('preparação vinda da pausa volta ao foco', prepState.phase, 'focus');
+    assertEq('preparação limpa a sessão concluída', prepState.completed, null);
+    assertEq('duração inválida usa a padrão', PomodoroCore.prepareFocus(PomodoroCore.createState({ focus: 25 }), 'x').totalDuration, 25 * 60);
+
+    const longBreak = PomodoroCore.createState({ longPause: 15 });
+    longBreak.phase = 'longPause';
+    PomodoroCore.prepareBreak(longBreak, 20);
+    assertEq('pausa longa editável naquele momento', longBreak.timeRemaining, 20 * 60);
+    assertEq('pausa longa não muda a configuração', longBreak.settings.longPause, 15);
+    const focusPhase = PomodoroCore.createState();
+    assertEq('ajustar pausa fora da pausa não faz nada', PomodoroCore.prepareBreak(focusPhase, 20).totalDuration, 25 * 60);
+
+    const home = Object.assign(PomodoroCore.createState({ focus: 30 }), { phase: 'longPause', completed: { title: 'x' }, timeRemaining: 60 });
+    PomodoroCore.resetToIdle(home);
+    assertEq('voltar ao início: foco parado com a duração padrão', [home.phase, home.isRunning, home.totalDuration, home.completed], ['focus', false, 30 * 60, null]);
+
+    const summary = PomodoroCore.completedSummary(null, { taskId: 'a', title: 'Preparar', intention: 'Pela equipe', plannedMin: 25, focusedMin: 25, endedAt: 5 });
+    assertEq('resumo da sessão concluída', summary, { taskId: 'a', plannedMin: 25, focusedMin: 25, endedAt: 5, title: 'Preparar', intention: 'Pela equipe' });
+    const titled = SessionsCore.finishSession(SessionsCore.startSession({ title: ' Foco livre ', plannedMin: 25, now: S0 }), S0 + 25 * MIN);
+    assertEq('sessão guarda o nome da atividade', titled.title, 'Foco livre');
+
+    // ========================================================
+    group('TasksCore — rotina a partir de uma tarefa');
+    // ========================================================
+
+    const WED = new Date(2026, 10, 4, 9).getTime(); // quarta-feira
+    const plain = TasksCore.createTask([], { id: 'p', title: 'Ler', estimateMin: 25, now: WED });
+    const routineToday = TasksCore.makeRecurring(plain, 'p', TasksCore.WEEKDAYS, WED);
+    const tpl = routineToday.find(t => TasksCore.isTemplate(t));
+    assertEq('cria o modelo com os dias escolhidos', tpl.recurrence.days, [1, 2, 3, 4, 5]);
+    assertEq('a tarefa vira a de hoje da rotina', routineToday.find(t => t.id === 'p').fromRecurrence, tpl.id);
+    assertEq('não duplica a tarefa de hoje', TasksCore.materializeRecurring(routineToday, new Date(WED)).length, 2);
+    assertEq('dias da rotina pela tarefa do dia', TasksCore.recurrenceDays(routineToday, routineToday.find(t => t.id === 'p')), [1, 2, 3, 4, 5]);
+    const routineLater = TasksCore.makeRecurring(plain, 'p', [6], WED);
+    assert('fora dos dias, a tarefa continua comum', !routineLater.find(t => t.id === 'p').fromRecurrence);
+    assertEq('rotina de sábado aparece no sábado', TasksCore.materializeRecurring(routineLater, new Date(2026, 10, 7)).length, 3);
+    assertEq('dias vazios não criam rotina', TasksCore.makeRecurring(plain, 'p', [], WED).length, 1);
+
+    // ========================================================
     // Render
     // ========================================================
 

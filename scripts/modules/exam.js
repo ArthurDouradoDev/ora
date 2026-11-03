@@ -59,9 +59,6 @@ const ExamSystem = {
             examNextBtn: document.getElementById('exam-next-btn'),
             examStepCounter: document.querySelector('.exam-step-counter'),
 
-            pomodoroCheckin: document.getElementById('pomodoro-checkin'),
-            closeCheckinBtn: document.getElementById('close-checkin-btn'),
-            checkinOptions: document.querySelector('.checkin-options'),
 
             microPrayerModal: document.getElementById('micro-prayer-modal'),
             closeMicroPrayerBtn: document.getElementById('close-micro-prayer-btn'),
@@ -121,8 +118,6 @@ const ExamSystem = {
             }
         });
 
-        // Pomodoro Checkin
-        if (d.closeCheckinBtn) d.closeCheckinBtn.addEventListener('click', () => animateModal(d.pomodoroCheckin, false));
         if (d.closeMicroPrayerBtn) d.closeMicroPrayerBtn.addEventListener('click', () => animateModal(d.microPrayerModal, false));
         if (d.microPrayerBackBtn) d.microPrayerBackBtn.addEventListener('click', () => {
             d.microPrayerTextEl.style.display = 'none';
@@ -341,13 +336,10 @@ const ExamSystem = {
         const todayStr = new Date().toDateString();
         await AsyncStorage.set('ora_exam_done_' + todayStr, 'true');
 
-        // Also mark the corresponding reminder as done
-        if (currentExamType === 'night') {
-            await AsyncStorage.set('ora_evening_done_' + todayStr, 'true');
-            if (window.ReminderSystem) window.ReminderSystem.hideModal(document.getElementById('evening-reminder'));
-        } else if (currentExamType === 'midday') {
-             await AsyncStorage.set('ora_midday_done_' + todayStr, 'true');
-            if (window.ReminderSystem) window.ReminderSystem.hideModal(document.getElementById('midday-reminder'));
+        // The matching invite on Hoje is done for this time window
+        if (window.ReminderSystem) {
+            if (currentExamType === 'night') await ReminderSystem.markDoneById('closeDay');
+            else if (currentExamType === 'midday') await ReminderSystem.markDoneById('midday');
         }
 
         // Save exam log
@@ -379,31 +371,7 @@ const ExamSystem = {
         this.state.currentExamType = null;
     },
 
-    // --- Pomodoro Check-in ---
-
-    showPomodoroCheckin() {
-        const { checkinOptions, pomodoroCheckin } = this.dom;
-        
-        checkinOptions.innerHTML = '';
-        const options = this.data.exam.pomodoroCheckin.options;
-
-        options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'checkin-emoji-btn';
-            btn.innerHTML = `<span class="checkin-emoji">${opt.emoji}</span><span class="checkin-label">${l(opt.label)}</span>`;
-            btn.addEventListener('click', () => {
-                animateModal(pomodoroCheckin, false);
-                if (opt.id === 'heavy') {
-                    this.showMicroPrayerOptions();
-                } else {
-                    showToast(t('toast.exam_checkin_response', { emoji: opt.emoji, label: l(opt.label) }), 'success');
-                }
-            });
-            checkinOptions.appendChild(btn);
-        });
-
-        animateModal(pomodoroCheckin, true);
-    },
+    // --- Respiro provisório (Oração rápida) até a fase 3 ---
 
     showMicroPrayerOptions() {
         const { microPrayerOptionsEl, microPrayerTextEl, microPrayerModal } = this.dom;
@@ -413,7 +381,8 @@ const ExamSystem = {
         microPrayerOptionsEl.style.display = 'grid';
 
         this.data.exam.pomodoroCheckin.microPrayers.forEach(mp => {
-            const card = document.createElement('div');
+            const card = document.createElement('button');
+            card.type = 'button';
             card.className = 'micro-prayer-card';
             card.innerHTML = `
                 <i class="ph ${mp.icon}"></i>
@@ -431,11 +400,14 @@ const ExamSystem = {
                 microPrayerOptionsEl.style.display = 'none';
                 microPrayerTextEl.textContent = text;
                 microPrayerTextEl.style.display = 'block';
+                if (this.dom.microPrayerBackBtn) this.dom.microPrayerBackBtn.focus();
             });
             microPrayerOptionsEl.appendChild(card);
         });
 
         animateModal(microPrayerModal, true);
+        const first = microPrayerOptionsEl.querySelector('button');
+        if (first) setTimeout(() => first.focus(), 50);
     },
 
     // --- Virtues Checklist ---

@@ -21,6 +21,45 @@
     backdrop-filter: blur(16px);
 }
 .topbar .right { justify-self: end; display: flex; align-items: center; gap: 0.5rem; }
+.topbar .chip { white-space: nowrap; }
+.topbar .chip[aria-expanded="true"] { border-color: var(--line-strong); background: rgba(20, 17, 13, 0.7); }
+
+/* Configurações: mesmo ícone e estrutura do botão da extensão (protótipo) */
+.settings-btn {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 2.75rem; min-height: 2.5rem;
+    padding: 10px 12px;
+    font: inherit; font-size: 1.1rem; line-height: normal;
+    color: var(--text); cursor: pointer;
+    background: rgba(20, 20, 20, 0.4);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    transition: background var(--dur);
+}
+.settings-btn:hover { background: rgba(60, 60, 60, 0.5); }
+
+/* Pílula da Proteção: estado visível, sem competir com a navegação */
+.protection-wrap { position: relative; }
+#protection-chip {
+    background: rgba(24, 20, 15, 0.24);
+    border-color: rgba(255, 255, 255, 0.09);
+    color: var(--text-2);
+    font-weight: 400;
+}
+#protection-chip:hover, #protection-chip[aria-expanded="true"] {
+    background: rgba(24, 20, 15, 0.58);
+    border-color: var(--line-strong);
+    color: var(--text);
+}
+#protection-chip .dot { width: 0.4375rem; height: 0.4375rem; }
+#protection-popover { top: calc(100% + 0.5rem); right: 0; text-align: left; color: var(--text); }
+.protection-list { list-style: none; margin: 0.25rem 0; padding: 0; display: grid; gap: 0.625rem; max-height: 14rem; overflow: auto; }
+.protection-list li { display: grid; grid-template-columns: auto 1fr; gap: 0.125rem 0.625rem; align-items: baseline; }
+.protection-list li b { font-weight: 600; overflow-wrap: anywhere; }
+.protection-list li .meta { grid-column: 2; }
+#protection-manage { justify-self: start; }
 
 @supports not ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
     .topbar .nav.surface-glass { background: rgba(24, 20, 15, 0.92); }
@@ -30,6 +69,13 @@
 @media (max-width: 54rem) {
     .topbar { grid-template-columns: auto 1fr; }
     .topbar .nav { order: 3; grid-column: 1 / -1; justify-self: center; }
+}
+/* Muito estreita (ou zoom de 200% numa janela pequena): a pílula guarda só o
+   ponto e o nome; o estado completo fica no nome acessível e no popover */
+@media (max-width: 40rem) {
+    .topbar { padding-inline: 1rem; }
+    .topbar .right { flex-wrap: wrap; justify-content: flex-end; }
+    #protection-chip .chip-long { display: none; }
 }
 
 /* ---------- Destinos ---------- */
@@ -42,9 +88,6 @@
     z-index: 1;
 }
 .view:focus { outline: none; }
-
-/* Hoje (provisório): conteúdo da V0 até a fase 2 */
-.view-hoje { justify-content: space-between; }
 
 /* Rezar e Frutos (provisório): estado vazio honesto até as fases 3 e 5 */
 .view-placeholder {

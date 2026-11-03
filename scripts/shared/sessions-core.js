@@ -5,10 +5,11 @@
 // Usado pelo sw.js (motor do pomodoro grava as sessões), pelas páginas e testes.
 //
 // Sessão em andamento (dentro de ora_pomodoro_state.session):
-//   { id, taskId|null, intention?, plannedMin, startedAt, focusedMs, resumedAt|null }
+//   { id, taskId|null, title?, intention?, plannedMin, startedAt, focusedMs, resumedAt|null }
 // Sessão registrada (ora_sessions):
-//   { id, taskId|null, intention?, plannedMin, focusedMin, startedAt, endedAt,
+//   { id, taskId|null, title?, intention?, plannedMin, focusedMin, startedAt, endedAt,
 //     status: 'completed'|'interrupted' }
+// `title` é o nome da atividade escolhido na preparação (foco sem tarefa também tem).
 // Registros importados da 1.1.5 têm `imported: true`, `date` e não têm horário.
 //
 // Foco sem tarefa é válido (taskId null). Tempo pausado não conta.
@@ -40,6 +41,8 @@
             focusedMs: Math.max(0, f.alreadyFocusedMs || 0),
             resumedAt: f.paused ? null : now
         };
+        const title = typeof f.title === 'string' ? f.title.trim() : '';
+        if (title) session.title = title;
         const intention = typeof f.intention === 'string' ? f.intention.trim() : '';
         if (intention) session.intention = intention;
         return session;
@@ -75,6 +78,7 @@
             endedAt: now,
             status
         };
+        if (session.title) record.title = session.title;
         if (session.intention) record.intention = session.intention;
         return record;
     }

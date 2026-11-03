@@ -1,25 +1,5 @@
 /* --- INPUTS, TEXTAREAS, SELECTS --- */
 
-/* Focus Section Input */
-.focus-section input {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-    font-size: 2rem;
-    color: white;
-    text-align: center;
-    font-family: 'Cinzel', serif;
-    outline: none;
-    width: 100%;
-    max-width: 500px;
-}
-
-.focus-section input::placeholder {
-    color: rgba(255, 255, 255, 0.61);
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 300;
-}
-
 /* Playlist Input */
 #playlist-input {
     flex: 1;
@@ -42,8 +22,8 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* Focus Settings Input */
-.focus-setting-row input {
+/* Focus settings (settings modal) */
+.settings-number {
     width: 60px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -57,14 +37,14 @@
     transition: all 0.2s;
 }
 
-.focus-setting-row input:focus {
+.settings-number:focus {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Remove number input arrows */
-.focus-setting-row input::-webkit-outer-spin-button,
-.focus-setting-row input::-webkit-inner-spin-button {
+.settings-number::-webkit-outer-spin-button,
+.settings-number::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }

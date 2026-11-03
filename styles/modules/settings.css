@@ -1,9 +1,3 @@
-/* Icon-only action button variant */
-.action-btn-icon {
-    padding: 10px 12px;
-    font-size: 1.1rem;
-}
-
 /* Settings modal */
 #settings-modal {
     width: 420px;

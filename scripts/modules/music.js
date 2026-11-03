@@ -376,6 +376,17 @@ const MusicSystem = {
         showToast(t('toast.music_removed'), 'info');
     },
 
+    // Used by Hoje (focus preparation and session chip) until the phase 6 Sound selector
+    getPlaylists: function() {
+        return [...this.state.defaultPlaylists, ...this.state.userPlaylists]
+            .filter(p => p && !this.state.deletedDefaultPlaylists.includes(p.id));
+    },
+
+    nowPlaying: function() {
+        if (!this.state.activePlayer) return null;
+        return (this.dom.nowPlayingText && this.dom.nowPlayingText.textContent) || null;
+    },
+
     playPlaylist: function(playlist) {
         animateModal(this.dom.miniPlayer, true);
         this.dom.nowPlayingText.textContent = playlist.title;

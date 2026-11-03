@@ -267,6 +267,39 @@
             });
     }
 
+    // Transforma uma tarefa comum em rotina nos dias escolhidos. A tarefa vira
+    // a tarefa de hoje da rotina quando hoje está entre os dias; senão, fica
+    // como tarefa comum (já está na lista) e a rotina começa no próximo dia da regra.
+    function makeRecurring(tasks, id, days, now) {
+        const target = (tasks || []).find(t => t.id === id);
+        const clean = normalizeDays(days);
+        if (!target || isTemplate(target) || target.fromRecurrence || !clean.length) return (tasks || []).slice();
+        const at = now || Date.now();
+        const templateId = 'routine-' + at;
+        const template = normalizeTask({
+            id: templateId,
+            title: target.title,
+            list: 'hoje',
+            order: target.order,
+            estimateMin: target.estimateMin,
+            intention: target.intention,
+            recurrence: { days: clean },
+            createdAt: at
+        });
+        const d = new Date(at);
+        const list = tasks.concat([template]);
+        if (!isDueOn(template, d)) return list;
+        return mapTask(list, id, t => Object.assign(t, { fromRecurrence: templateId, date: isoDate(d) }));
+    }
+
+    // Dias da rotina a que a tarefa pertence (ou [] para tarefa comum).
+    function recurrenceDays(tasks, task) {
+        if (!task) return [];
+        if (isTemplate(task)) return task.recurrence.days.slice();
+        const template = task.fromRecurrence ? (tasks || []).find(t => t.id === task.fromRecurrence) : null;
+        return template && isTemplate(template) ? template.recurrence.days.slice() : [];
+    }
+
     function instanceId(templateId, iso) {
         return `${templateId}@${iso}`;
     }
@@ -376,6 +409,8 @@
         updateTask,
         removeTask,
         stopRecurrence,
+        makeRecurring,
+        recurrenceDays,
         materializeRecurring,
         archiveCompleted,
         rolloverDay,

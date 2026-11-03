@@ -31,15 +31,3 @@ body {
     z-index: 0;
     pointer-events: none;
 }
-
-/* --- MAIN CONTAINER (Hoje provisório, V0) --- */
-.legacy-main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    z-index: 1;
-    position: relative;
-    flex: 1;
-}

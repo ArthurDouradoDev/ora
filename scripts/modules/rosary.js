@@ -30,8 +30,7 @@ const RosarySystem = {
         chapletBtns: null,
         langBtns: null,
         resetBtn: null,
-        btnRosary: null,
-        rosarySuggestion: null // The reminder/suggestion modal
+        btnRosary: null
     },
 
     init: async function(data) {
@@ -64,7 +63,6 @@ const RosarySystem = {
         this.elements.langBtns = this.elements.modal.querySelectorAll('.lang-toggle-rosary .lang-btn');
         this.elements.resetBtn = document.getElementById('reset-rosary-btn');
         this.elements.btnRosary = document.getElementById('btn-rosary');
-        this.elements.rosarySuggestion = document.getElementById('rosary-reminder');
 
         if (!this.elements.container) console.error('[Rosary] Container not found!');
     },
@@ -351,11 +349,6 @@ const RosarySystem = {
         // Safest is:
         this.renderBeads(); // Re-render to ensure correct disabled beads for current mode
         this.refreshDisplay();
-
-        // Also check prompt
-        if (isModalVisible(this.elements.rosarySuggestion)) {
-            animateModal(this.elements.rosarySuggestion, false);
-        }
     },
 
     close: function() {

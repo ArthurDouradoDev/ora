@@ -25,22 +25,16 @@
     <link rel="stylesheet" href="styles/components/modals.css">
     <link rel="stylesheet" href="styles/components/ui.css">
     <link rel="stylesheet" href="styles/layout/main.css">
-    <link rel="stylesheet" href="styles/layout/header.css">
-    <link rel="stylesheet" href="styles/layout/footer.css">
     <link rel="stylesheet" href="styles/layout/grid.css">
     <link rel="stylesheet" href="styles/layout/shell.css">
-    <link rel="stylesheet" href="styles/modules/dashboard.css">
     <link rel="stylesheet" href="styles/modules/blocker.css">
     <link rel="stylesheet" href="styles/modules/music.css">
     <link rel="stylesheet" href="styles/modules/rosary.css">
-    <link rel="stylesheet" href="styles/modules/reminders.css">
-    <link rel="stylesheet" href="styles/modules/focus.css">
     <link rel="stylesheet" href="styles/modules/prayers.css">
     <link rel="stylesheet" href="styles/modules/exam.css">
-    <link rel="stylesheet" href="styles/modules/links.css">
     <link rel="stylesheet" href="styles/modules/settings.css">
-    <link rel="stylesheet" href="styles/modules/tasks.css">
     <link rel="stylesheet" href="styles/modules/onboarding.css">
+    <link rel="stylesheet" href="styles/modules/today.css">
     <link rel="stylesheet" href="styles/modules/screentime.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
@@ -62,54 +56,23 @@
             <a href="#frutos" data-route="frutos"><i class="ph ph-plant" aria-hidden="true"></i><span data-i18n="nav.fruits">Frutos</span></a>
         </nav>
         <div class="right">
-            <div class="glass-panel action-btn" id="btn-blocker" role="button" tabindex="0" data-i18n-html="blocker.modal_title"><i class="ph ph-shield-slash"></i> Bloqueador</div>
-            <div class="glass-panel action-btn action-btn-icon" id="btn-settings" role="button" tabindex="0" data-i18n-title="settings.title" title="Configurações">
-                <i class="ph ph-gear"></i>
+            <button type="button" class="chip surface-glass" id="tasks-chip" aria-controls="tasks-panel" aria-expanded="false">
+                <i class="ph ph-list-checks" aria-hidden="true"></i><span data-i18n="tasks.chip">Tarefas</span><span class="count" id="tasks-count">0</span>
+            </button>
+            <div class="protection-wrap">
+                <button type="button" class="chip surface-glass" id="protection-chip" aria-controls="protection-popover" aria-expanded="false">
+                    <span class="dot off" id="protection-dot" aria-hidden="true"></span><span id="protection-label" data-i18n="protection.title">Proteção</span>
+                </button>
+                <div class="popover surface-solid" id="protection-popover" role="dialog" aria-labelledby="protection-pop-title" hidden>
+                    <p class="label" id="protection-pop-title" data-i18n="protection.title">Proteção</p>
+                    <p class="meta" id="protection-summary"></p>
+                    <ul class="protection-list" id="protection-list"></ul>
+                    <button type="button" class="btn btn-aux btn-sm" id="protection-manage" data-i18n="protection.manage">Gerenciar proteção</button>
+                </div>
             </div>
+            <button type="button" class="settings-btn" id="btn-settings" aria-label="Configurações" data-i18n-aria-label="settings.title" title="Configurações" data-i18n-title="settings.title"><i class="ph ph-gear" aria-hidden="true"></i></button>
         </div>
     </header>
-
-    <!-- Angelus Reminder (6h-8h, 12h-13h, 18h-20h) -->
-    <div id="angelus-reminder" class="glass-panel modal-slide" style="display: none;">
-        <div class="angelus-content">
-            <i class="ph ph-bell-ringing"></i>
-            <span data-i18n="reminders.angelus_title">Hora do Angelus</span>
-        </div>
-        <div class="angelus-actions">
-            <button id="open-angelus-btn" class="pray-btn" data-i18n-title="reminders.btn_pray" title="Rezar"><i class="ph ph-hands-praying"></i></button>
-            <button id="check-angelus-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
-                <i class="ph ph-check"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Mercy Reminder (15h-16h) -->
-    <div id="mercy-reminder" class="glass-panel modal-slide" style="display: none;">
-        <div class="angelus-content">
-            <i class="ph ph-drop"></i>
-            <span data-i18n="reminders.mercy_title">Hora da Misericórdia</span>
-        </div>
-        <div class="angelus-actions">
-            <button id="open-mercy-btn" class="pray-btn" data-i18n-title="reminders.btn_pray" title="Rezar"><i class="ph ph-hands-praying"></i></button>
-            <button id="check-mercy-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
-                <i class="ph ph-check"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Carlo Acutis Reminder (First Browser Open) -->
-    <div id="carlo-reminder" class="glass-panel modal-slide" style="display: none;">
-        <div class="angelus-content">
-            <i class="ph ph-laptop"></i>
-            <span data-i18n="reminders.carlo_title">Oração para usar a internet</span>
-        </div>
-        <div class="angelus-actions">
-            <button id="open-carlo-btn" class="pray-btn" data-i18n-title="reminders.btn_pray" title="Rezar"><i class="ph ph-hands-praying"></i></button>
-            <button id="check-carlo-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_not_now" title="Agora não">
-                <i class="ph ph-x"></i>
-            </button>
-        </div>
-    </div>
 
     <!-- Music Library Modal -->
     <div id="music-library" class="glass-panel modal modal-center modal-scale" style="display: none;">
@@ -158,78 +121,219 @@
     </div>
 
     <main class="view view-hoje" id="view-hoje" data-view="hoje">
-        <!-- Hoje provisório (V0): substituído na fase 2 -->
-        <div class="legacy-header">
-            <div class="links-container">
-                <a id="link-liturgy" href="https://padrepauloricardo.org/liturgia/" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.liturgy" data-i18n-href="header.liturgy_url">
-                    <i class="ph ph-book-open-text"></i> Liturgia
-                </a>
-                <div class="glass-panel action-btn" id="btn-music" role="button" tabindex="0" data-i18n-html="header.music"><i class="ph ph-music-notes"></i> Música</div>
+        <div class="today" id="today">
+            <div class="today-center" id="today-center">
+                <!-- Chegada -->
+                <section class="arrival" id="today-arrival">
+                    <h1 class="sr-only" data-route-focus data-i18n="nav.today">Hoje</h1>
+                    <time class="clock" id="today-clock" aria-hidden="true"></time>
+                    <p class="greeting" id="today-greeting"></p>
+                    <p class="day"><span id="today-date"></span><span id="today-celebration-sep" aria-hidden="true" hidden>·</span><span class="lit" id="today-celebration" hidden></span></p>
+                </section>
+
+                <!-- Intenção do dia (a da sessão fica na preparação) -->
+                <div class="intent" id="today-intent">
+                    <div id="today-intent-edit">
+                        <label for="today-intent-input" class="sr-only" data-i18n="today.intent_label">Intenção do dia (opcional)</label>
+                        <input class="line-input" id="today-intent-input" maxlength="120" autocomplete="off" placeholder="Oferecer o dia por…" data-i18n-placeholder="today.intent_placeholder">
+                    </div>
+                    <p class="intent-set" id="today-intent-set" hidden>
+                        <span id="today-intent-text"></span>
+                        <button type="button" class="btn btn-quiet" id="today-intent-change" data-i18n="today.intent_change">alterar</button>
+                    </p>
+                </div>
+
+                <!-- Próximo passo (com tarefas) -->
+                <section class="next surface-light" id="today-next" aria-labelledby="today-next-title" hidden>
+                    <p class="label" data-i18n="today.next_label">Próximo passo</p>
+                    <h2 class="next-title" id="today-next-title"></h2>
+                    <p class="meta" id="today-next-meta"></p>
+                    <div class="row">
+                        <button type="button" class="btn btn-primary btn-lg" id="today-start"><i class="ph-fill ph-play" aria-hidden="true"></i><span data-i18n="today.start_focus">Começar foco</span></button>
+                        <button type="button" class="btn btn-quiet" id="today-choose" aria-controls="tasks-panel" data-i18n="today.choose_other">Escolher outra</button>
+                    </div>
+                </section>
+
+                <!-- Próximo passo (sem tarefas) -->
+                <section class="next surface-light" id="today-empty" aria-labelledby="today-empty-label" hidden>
+                    <p class="label" id="today-empty-label" data-i18n="today.next_label">Próximo passo</p>
+                    <form id="today-quick-form">
+                        <label for="today-quick-input" class="sr-only" data-i18n="today.quick_placeholder">O que você quer fazer agora?</label>
+                        <input class="input" id="today-quick-input" maxlength="80" autocomplete="off" placeholder="O que você quer fazer agora?" data-i18n-placeholder="today.quick_placeholder">
+                        <button class="btn btn-primary" type="submit" data-i18n="today.start_focus">Começar foco</button>
+                    </form>
+                    <p class="meta" data-i18n="today.just_stay">Ou apenas fique aqui um instante.</p>
+                </section>
+
+                <!-- Seus atalhos -->
+                <nav class="shortcuts" id="shortcuts" aria-label="Seus atalhos" data-i18n-aria-label="shortcuts.label">
+                    <ul class="row" id="shortcuts-list"></ul>
+                </nav>
+
+                <!-- Espaço único de convite -->
+                <div class="invite surface-light" id="today-invite" hidden>
+                    <i class="ph ph-bell lead" id="today-invite-icon" aria-hidden="true"></i>
+                    <div class="txt"><b id="today-invite-title"></b><span class="meta" id="today-invite-meta"></span></div>
+                    <div class="invite-actions">
+                        <button type="button" class="btn btn-aux btn-sm" id="today-invite-go"></button>
+                        <button type="button" class="btn btn-quiet btn-sm" id="today-invite-later" data-i18n="today.not_now">Agora não</button>
+                    </div>
+                </div>
+
+                <!-- Preparação do foco -->
+                <section class="prep surface-solid" id="today-prep" role="dialog" aria-modal="true" aria-labelledby="today-prep-label" data-dismiss-on-scrim="false" hidden>
+                    <div>
+                        <p class="label" id="today-prep-label" data-i18n="today.prep_label">Preparar foco</p>
+                        <input class="prep-title" id="today-prep-title" maxlength="80" autocomplete="off" aria-label="Atividade" data-i18n-aria-label="today.prep_activity" placeholder="Em que você vai trabalhar?" data-i18n-placeholder="today.prep_activity_placeholder">
+                    </div>
+                    <div class="field">
+                        <span id="today-dur-label" data-i18n="today.prep_duration">Duração</span>
+                        <div class="seg" id="today-dur" role="group" aria-labelledby="today-dur-label"></div>
+                    </div>
+                    <label class="field">
+                        <span><span data-i18n="today.prep_offer">Oferecer esta sessão por</span> <span class="muted" data-i18n="today.optional">· opcional</span></span>
+                        <input class="input" id="today-prep-intent" maxlength="120" autocomplete="off" placeholder="Ex.: pela minha equipe" data-i18n-placeholder="today.prep_offer_placeholder">
+                        <small id="today-prep-intent-hint"></small>
+                    </label>
+                    <div class="two">
+                        <div class="field">
+                            <span id="today-sound-label" data-i18n="today.prep_sound">Som</span>
+                            <button type="button" class="chip sound-chip" id="today-sound-chip" aria-expanded="false" aria-controls="today-sound-list" aria-describedby="today-sound-label">
+                                <i class="ph ph-music-notes" aria-hidden="true"></i><span id="today-sound-text"></span><i class="ph ph-caret-down" aria-hidden="true"></i>
+                            </button>
+                            <ul class="sound-list" id="today-sound-list" aria-labelledby="today-sound-label" hidden></ul>
+                        </div>
+                        <div class="field">
+                            <span data-i18n="today.prep_protection">Proteção</span>
+                            <label class="toggle"><input type="checkbox" id="today-prep-protect"><span class="track"></span><span data-i18n="today.prep_block">Bloquear distrações</span></label>
+                            <small><span id="today-prep-protect-hint"></span> · <button type="button" class="link-btn" id="today-prep-rules" data-i18n="today.prep_rules">ver regras</button></small>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-primary btn-lg" id="today-prep-start"><i class="ph-fill ph-play" aria-hidden="true"></i><span id="today-prep-start-label"></span></button>
+                        <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.cancel">Cancelar</button>
+                        <span class="spacer"></span><span class="meta prep-esc"><kbd>Esc</kbd> <span data-i18n="today.esc_closes">fecha</span></span>
+                    </div>
+                </section>
+
+                <!-- Sessão ativa / pausada -->
+                <section class="session" id="today-session" aria-labelledby="today-session-title" hidden>
+                    <p class="label session-state"><span class="dot" id="today-session-dot" aria-hidden="true"></span><span id="today-session-state"></span></p>
+                    <h1 class="session-title" id="today-session-title"></h1>
+                    <div class="timer clock" id="today-timer" role="timer" aria-label="Tempo restante" data-i18n-aria-label="today.time_left"></div>
+                    <div class="progress" aria-hidden="true"><span id="today-progress"></span></div>
+                    <p class="meta" id="today-session-meta"></p>
+                    <p class="session-intent" id="today-session-intent" hidden></p>
+                    <p class="pause-note" id="today-pause-note" hidden></p>
+                    <div class="controls">
+                        <button type="button" class="btn btn-aux btn-lg" id="today-pause"><i class="ph ph-pause" aria-hidden="true"></i><span data-i18n="today.pause">Pausar</span></button>
+                        <button type="button" class="btn btn-primary btn-lg" id="today-resume" hidden><i class="ph-fill ph-play" aria-hidden="true"></i><span data-i18n="today.resume">Retomar</span></button>
+                        <button type="button" class="btn btn-quiet" id="today-end"></button>
+                    </div>
+                    <div class="aux-row">
+                        <button type="button" class="chip surface-glass" id="today-session-sound"><i class="ph ph-music-notes" aria-hidden="true"></i><span id="today-session-sound-text"></span></button>
+                        <span class="chip surface-glass chip-static" id="today-session-protect" hidden><span class="dot" aria-hidden="true"></span><span id="today-session-protect-text"></span></span>
+                    </div>
+                </section>
+
+                <!-- Sessão concluída: uma única transição (E12) -->
+                <section class="done" id="today-done" aria-labelledby="today-done-title" hidden>
+                    <p class="label" data-i18n="today.done_label">Sessão concluída</p>
+                    <h1 id="today-done-title"></h1>
+                    <p class="meta" id="today-done-meta"></p>
+                    <label class="check-row surface-glass" id="today-done-check-row"><input type="checkbox" id="today-done-check"><span data-i18n="today.done_mark">Marcar tarefa como concluída</span></label>
+                    <div class="break-edit" id="today-break-edit" hidden>
+                        <span id="today-break-edit-label" data-i18n="today.long_break">Pausa longa</span>
+                        <button type="button" class="btn-icon" id="today-break-less" aria-label="Menos 5 minutos" data-i18n-aria-label="today.break_less"><i class="ph ph-minus" aria-hidden="true"></i></button>
+                        <output class="tnum" id="today-break-min" aria-live="polite" aria-labelledby="today-break-edit-label"></output>
+                        <button type="button" class="btn-icon" id="today-break-more" aria-label="Mais 5 minutos" data-i18n-aria-label="today.break_more"><i class="ph ph-plus" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="row">
+                        <button type="button" class="btn btn-primary" id="today-break"><i class="ph ph-coffee" aria-hidden="true"></i><span id="today-break-label"></span></button>
+                        <button type="button" class="btn btn-aux" id="today-respiro" hidden><i class="ph ph-wind" aria-hidden="true"></i><span data-i18n="today.respiro">Fazer um Respiro</span></button>
+                        <button type="button" class="btn btn-aux" id="today-more" data-i18n="today.more_session">Mais uma sessão</button>
+                        <button type="button" class="btn btn-quiet" id="today-home" data-i18n="today.back_home">Voltar ao início</button>
+                    </div>
+                    <p class="meta" id="today-after" hidden></p>
+                </section>
+
+                <!-- Falhas: mensagem persistente com ação -->
+                <div class="today-alert" id="today-alert" hidden>
+                    <div class="banner err" role="alert">
+                        <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                        <div>
+                            <strong id="today-alert-title"></strong><span id="today-alert-detail"></span>
+                            <div class="actions">
+                                <button type="button" class="btn btn-aux btn-sm" id="today-alert-retry" data-i18n="today.retry">Tentar de novo</button>
+                                <button type="button" class="btn btn-quiet btn-sm" id="today-alert-dismiss" data-i18n="today.close">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="links-container">
-                <a id="link-bible" href="https://padrepauloricardo.org/biblia/gn?cap=1&edition=matos-soares" target="_blank" class="glass-panel action-btn" style="text-decoration: none; color: inherit;" data-i18n-html="header.bible" data-i18n-href="header.bible_url">
-                    <i class="ph ph-book-bookmark"></i> Bíblia
-                </a>
+
+            <footer class="today-foot" id="today-foot">
+                <div class="gospel surface-glass" id="today-gospel">
+                    <span class="ref" id="today-gospel-ref"></span>
+                    <button type="button" class="btn btn-quiet btn-sm" id="today-gospel-read" data-i18n="today.gospel_read">Ler aqui</button>
+                    <a class="btn btn-quiet btn-sm ext" id="today-gospel-full" target="_blank" rel="noopener" data-i18n="today.liturgy_full">Liturgia completa</a>
+                </div>
+                <figure class="quote" id="today-quote">
+                    <blockquote id="today-quote-text"></blockquote>
+                    <figcaption id="today-quote-author"></figcaption>
+                </figure>
+            </footer>
+        </div>
+
+        <!-- Tarefas: painel lateral integrado (folha em janelas pequenas) -->
+        <aside class="tasks-panel surface-solid" id="tasks-panel" aria-labelledby="tasks-panel-title" inert>
+            <div class="tasks-inner">
+                <header class="tasks-head">
+                    <h2 id="tasks-panel-title" data-i18n="tasks.panel_title">Tarefas de hoje</h2>
+                    <button type="button" class="btn-icon" id="tasks-close" aria-label="Fechar tarefas" data-i18n-aria-label="tasks.close"><i class="ph ph-x" aria-hidden="true"></i></button>
+                </header>
+                <form class="tasks-add" id="tasks-add-form">
+                    <label for="tasks-add-input" class="sr-only" data-i18n="tasks.add_label">Nova tarefa para hoje</label>
+                    <input class="input" id="tasks-add-input" maxlength="80" autocomplete="off" placeholder="Adicionar tarefa" data-i18n-placeholder="tasks.add_placeholder">
+                    <button class="btn btn-aux" type="submit" data-i18n="tasks.add">Adicionar</button>
+                </form>
+                <div class="tasks-alert" id="tasks-alert" hidden>
+                    <div class="banner err" role="alert">
+                        <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                        <div>
+                            <strong id="tasks-alert-title"></strong><span data-i18n="tasks.save_failed_detail">O armazenamento do navegador recusou a gravação.</span>
+                            <div class="actions">
+                                <button type="button" class="btn btn-aux btn-sm" id="tasks-alert-retry" data-i18n="today.retry">Tentar de novo</button>
+                                <button type="button" class="btn btn-quiet btn-sm" id="tasks-alert-dismiss" data-i18n="today.close">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tasks-scroll">
+                    <ul class="task-list" id="tasks-today" aria-labelledby="tasks-panel-title"></ul>
+                    <div class="tasks-empty" id="tasks-today-empty" hidden>
+                        <b data-i18n="tasks.empty_title">Nada para hoje ainda.</b>
+                        <span data-i18n="tasks.empty_desc">Escreva uma coisa que importa. Ela vira o próximo passo.</span>
+                    </div>
+                    <p class="meta tasks-many" id="tasks-many" hidden></p>
+
+                    <section class="tasks-later" aria-labelledby="tasks-later-title">
+                        <h3 class="label" id="tasks-later-title" data-i18n="tasks.later_title">Depois</h3>
+                        <form class="tasks-add" id="tasks-later-form">
+                            <label for="tasks-later-input" class="sr-only" data-i18n="tasks.later_label">Anotar para depois</label>
+                            <input class="input" id="tasks-later-input" maxlength="80" autocomplete="off" placeholder="Anotar para depois" data-i18n-placeholder="tasks.later_placeholder">
+                            <button class="btn btn-quiet" type="submit" data-i18n="tasks.add">Adicionar</button>
+                        </form>
+                        <ul class="task-list" id="tasks-later" aria-labelledby="tasks-later-title"></ul>
+                    </section>
+
+                    <details class="tasks-done" id="tasks-done" hidden>
+                        <summary id="tasks-done-summary"></summary>
+                        <ul class="task-list" id="tasks-done-list"></ul>
+                    </details>
+                </div>
             </div>
-        </div>
-
-        <div class="legacy-main">
-
-
-        <div class="clock" id="clock">00:00</div>
-        <div class="greeting"></div>
-        <div class="focus-section">
-            <input type="text" id="intention-input" placeholder="Qual sua intenção hoje?" data-i18n-placeholder="main.intention_placeholder">
-        </div>
-
-        <!-- Quick Links Section -->
-        <div id="quick-links-container" class="links-grid">
-            <!-- Links will be injected here by links.js -->
-        </div>
-        </div>
-
-    <footer>
-        <div class="footer-left">
-            <div class="glass-panel action-btn" id="btn-focus" data-i18n-html="footer.pomodoro"><i class="ph ph-timer"></i> Pomodoro</div>
-            <div class="glass-panel action-btn" id="btn-exam" data-i18n-html="footer.exam"><i class="ph ph-heart"></i> Examinar</div>
-            <div class="glass-panel action-btn action-btn-icon" id="btn-screentime" data-i18n-title="screentime.button_title" title="Tempo de tela">
-                <i class="ph ph-chart-bar"></i>
-            </div>
-        </div>
-        <div class="quote-container">
-            <div class="quote-text"></div>
-            <div class="quote-author"></div>
-        </div>
-
-        <div class="footer-right">
-            <div class="glass-panel action-btn" id="btn-rosary" data-i18n-html="footer.rosary"><i class="ph ph-cross"></i> Terço</div>
-            <div class="glass-panel action-btn" id="btn-prayers" data-i18n-html="footer.prayers">Orações <i class="ph ph-caret-up"></i></div>
-            <div class="glass-panel action-btn action-btn-icon" id="btn-tasks" title="Tarefas">
-                <i class="ph ph-check-square"></i>
-                <span id="tasks-badge" class="tasks-badge" style="display: none;">0</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Home Tasks Widget (docked to the right edge, collapsible) -->
-    <div id="home-tasks-widget" class="home-tasks-widget" style="display: none;">
-        <button id="home-tasks-collapse" class="home-tasks-collapse" data-i18n-title="tasks.widget_collapse" title="Recolher">
-            <i class="ph ph-caret-right"></i>
-        </button>
-        <div class="home-tasks-body">
-            <div class="home-tasks-header">
-                <span class="home-tasks-title"><i class="ph ph-check-square"></i> <span data-i18n="tasks.today_label">Hoje</span></span>
-                <button id="home-tasks-view-all" class="home-tasks-view-all"></button>
-            </div>
-            <div id="home-tasks-list" class="home-tasks-list"></div>
-            <div id="home-tasks-done-msg" class="home-tasks-done-msg" style="display: none;" data-i18n="tasks.all_done_short">Tudo concluído por hoje 🙌</div>
-            <button id="home-tasks-plan-cta" class="home-tasks-plan-cta" style="display: none;">
-                <i class="ph ph-plus-circle"></i> <span data-i18n="tasks.plan_cta">Quais são as suas prioridades hoje?</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Morning Ritual Modal (first tab of the day) -->
+        </aside>
     </main>
 
     <!-- Rezar provisório: substituído na fase 3 -->
@@ -242,6 +346,7 @@
                 <button type="button" class="btn btn-aux" data-legacy-open="btn-rosary"><i class="ph ph-cross" aria-hidden="true"></i><span data-i18n="views.open_rosary">Terço</span></button>
                 <button type="button" class="btn btn-aux" data-legacy-open="btn-prayers"><i class="ph ph-book-open" aria-hidden="true"></i><span data-i18n="views.open_prayers">Orações</span></button>
                 <button type="button" class="btn btn-aux" data-legacy-open="btn-exam"><i class="ph ph-heart" aria-hidden="true"></i><span data-i18n="views.open_exam">Exame</span></button>
+                <a class="btn btn-aux ext" id="link-bible" href="https://padrepauloricardo.org/biblia/gn?cap=1&amp;edition=matos-soares" target="_blank" rel="noopener" data-i18n-href="header.bible_url"><i class="ph ph-book-bookmark" aria-hidden="true"></i><span data-i18n="header.bible">Bíblia</span></a>
             </div>
         </section>
     </main>
@@ -258,134 +363,14 @@
         </section>
     </main>
 
-    <div id="morning-ritual-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 data-i18n="tasks.ritual_title">Planeje seu dia</h3>
-            <button id="ritual-close-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        <p id="ritual-greeting" class="ritual-greeting"></p>
-        <div id="ritual-stats" class="ritual-stats" style="display: none;"></div>
-        <div id="ritual-week" class="ritual-stats ritual-week" style="display: none;"></div>
-        <div class="ritual-section" id="ritual-routine-section" style="display: none;">
-            <h4 data-i18n="tasks.ritual_routine_label">Sua rotina de hoje</h4>
-            <div id="ritual-routine-list" class="ritual-routine-list"></div>
-        </div>
-        <div class="ritual-section">
-            <h4 data-i18n="tasks.ritual_priorities_label">Quais são as suas 3 prioridades hoje?</h4>
-            <div class="ritual-priority-inputs">
-                <input type="text" class="ritual-priority-input" maxlength="80" placeholder="1.">
-                <input type="text" class="ritual-priority-input" maxlength="80" placeholder="2.">
-                <input type="text" class="ritual-priority-input" maxlength="80" placeholder="3.">
-            </div>
-        </div>
-        <div class="ritual-actions">
-            <button id="ritual-skip-btn" class="ritual-skip-btn" data-i18n="tasks.ritual_skip">Pular</button>
-            <button id="ritual-start-btn" class="ritual-start-btn" data-i18n="tasks.ritual_start">Começar o dia</button>
-        </div>
-    </div>
-
-    <!-- Focus Timer - Compact Mini Modal -->
-    <div id="focus-mini" class="glass-panel modal modal-corner-bottom-left modal-fade" style="display: none;">
-        <div class="focus-mini-header">
-            <span class="focus-mini-phase" data-i18n="focus.phase_focus">Foco</span>
-            <div class="focus-mini-actions">
-                <button id="focus-mini-expand" class="icon-btn-sm" data-i18n-title="focus.btn_fullscreen" title="Tela cheia"><i class="ph ph-arrows-out"></i></button>
-                <button id="focus-mini-minimize" class="icon-btn-sm" data-i18n-title="focus.btn_minimize" title="Minimizar"><i class="ph ph-caret-down"></i></button>
-                <button id="focus-mini-close" class="icon-btn-sm" data-i18n-title="focus.btn_close" title="Fechar"><i class="ph ph-x"></i></button>
-            </div>
-        </div>
-        <div class="focus-mini-body">
-            <div class="focus-mini-timer">25:00</div>
-            <div class="focus-mini-controls">
-                <button id="focus-mini-play" class="icon-btn-sm" data-i18n-title="focus.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
-                <button id="focus-mini-skip" class="icon-btn-sm" data-i18n-title="focus.btn_skip" title="Pular"><i class="ph ph-skip-forward"></i></button>
-                <button id="focus-mini-reset" class="icon-btn-sm" data-i18n-title="focus.btn_reset" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
-            </div>
-        </div>
-        <div class="focus-mini-footer">
-            <span class="focus-mini-total"><i class="ph ph-fire"></i> Total: 0m</span>
-            <div class="focus-mini-dots"></div>
-        </div>
-    </div>
-
-    <!-- Focus Timer - Fullscreen Overlay -->
-    <div id="focus-fullscreen" class="modal-fs" style="display: none;">
-        <div class="focus-fs-header">
-            <button id="focus-fs-settings-btn" class="icon-btn" data-i18n-title="focus.btn_settings" title="Configurações"><i class="ph ph-gear"></i></button>
-            <button id="focus-fs-collapse" class="icon-btn" data-i18n-title="focus.btn_compact" title="Modo compacto"><i class="ph ph-arrows-in"></i></button>
-        </div>
-
-        <div class="focus-fs-content">
-            <div class="focus-fs-phase" data-i18n="focus.phase_focus">Foco</div>
-            <div class="focus-active-task-container fs-mode">
-                <span class="focus-active-task-label">Trabalhando em:</span>
-                <div class="focus-active-task-selector">
-                    <span id="focus-fs-active-task-name" class="active-task-name">Nenhuma tarefa selecionada</span>
-                    <i class="ph ph-caret-down"></i>
-                </div>
-                <div id="focus-fs-tasks-dropdown" class="tasks-selector-dropdown glass-panel-sm" style="display: none;"></div>
-                <span id="focus-fs-active-task-intention" class="active-task-intention" style="display: none;"></span>
-            </div>
-            <div class="focus-fs-ring-container">
-                <svg class="focus-ring" viewBox="0 0 200 200">
-                    <circle class="focus-ring-bg" cx="100" cy="100" r="90" />
-                    <circle class="focus-ring-progress" cx="100" cy="100" r="90" />
-                </svg>
-                <div class="focus-fs-timer">25:00</div>
-            </div>
-            <div class="focus-fs-dots"></div>
-            <div class="focus-fs-controls">
-                <button id="focus-fs-reset" class="control-btn" data-i18n-title="focus.btn_reset" title="Resetar"><i class="ph ph-arrow-counter-clockwise"></i></button>
-                <button id="focus-fs-play" class="control-btn control-btn-play" data-i18n-title="focus.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
-                <button id="focus-fs-skip" class="control-btn" data-i18n-title="focus.btn_skip" title="Pular"><i class="ph ph-skip-forward"></i></button>
-            </div>
-            <div class="focus-fs-total"><i class="ph ph-fire"></i> Total hoje: 0m</div>
-        </div>
-
-        <!-- Settings Panel (hidden by default) -->
-        <div id="focus-settings" class="focus-settings-panel" style="display: none;">
-            <h4 data-i18n="focus.settings_title">Configurações</h4>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_focus_min">Foco (min)</label>
-                <input type="number" id="setting-focus" min="1" max="120" value="25">
-            </div>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_pause_min">Pausa (min)</label>
-                <input type="number" id="setting-pause" min="1" max="30" value="5">
-            </div>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_long_pause_min">Pausa Longa (min)</label>
-                <input type="number" id="setting-long-pause" min="1" max="60" value="15">
-            </div>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_sound">Som</label>
-                <label class="switch">
-                    <input type="checkbox" id="setting-sound" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_auto_next">Avançar Automaticamente</label>
-                <label class="switch">
-                    <input type="checkbox" id="setting-auto-next">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_continuous_alarm">Alarme Contínuo</label>
-                <label class="switch">
-                    <input type="checkbox" id="setting-continuous-alarm">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="focus-setting-row">
-                <label data-i18n="focus.setting_wake_lock">Manter Tela Ativa</label>
-                <label class="switch">
-                    <input type="checkbox" id="setting-wake-lock">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-        </div>
+    <!-- Gatilhos dos módulos da V0 (terço, orações, exame, tempo de tela, música):
+         os destinos novos os acionam até cada tela ser refeita (fases 3, 5 e 6) -->
+    <div class="legacy-triggers" hidden>
+        <button type="button" id="btn-music" tabindex="-1"></button>
+        <button type="button" id="btn-rosary" tabindex="-1"></button>
+        <button type="button" id="btn-prayers" tabindex="-1"></button>
+        <button type="button" id="btn-exam" tabindex="-1"></button>
+        <button type="button" id="btn-screentime" tabindex="-1"></button>
     </div>
 
     <!-- Prayer List Modal -->
@@ -487,15 +472,6 @@
         </div>
     </div>
 
-    <!-- Pomodoro Emotional Check-in -->
-    <div id="pomodoro-checkin" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="checkin-header">
-            <span class="checkin-title" data-i18n="exam.checkin_title">Como está seu coração?</span>
-            <button id="close-checkin-btn" class="icon-btn-sm"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="checkin-options"></div>
-    </div>
-
     <!-- Micro-Prayer Suggestion -->
     <div id="micro-prayer-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
         <div class="modal-header">
@@ -505,48 +481,6 @@
         </div>
         <div id="micro-prayer-options" class="micro-prayer-grid grid grid-3 gap-sm"></div>
         <div id="micro-prayer-text" class="prayer-text" style="display: none;"></div>
-    </div>
-
-    <!-- Midday Exam Reminder -->
-    <div id="midday-reminder" class="glass-panel modal-slide" style="display: none;">
-        <div class="angelus-content">
-            <i class="ph ph-sun-horizon"></i>
-            <span data-i18n="reminders.midday_title">Hora do Exame Meridiano</span>
-        </div>
-        <div class="angelus-actions">
-            <button id="start-midday-btn" class="pray-btn" data-i18n-title="reminders.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
-            <button id="check-midday-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
-                <i class="ph ph-check"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Evening Exam Reminder -->
-    <div id="evening-reminder" class="glass-panel modal-slide" style="display: none;">
-        <div class="angelus-content">
-            <i class="ph ph-moon-stars"></i>
-            <span data-i18n="reminders.evening_title">Hora do Exame Noturno</span>
-        </div>
-        <div class="angelus-actions">
-            <button id="start-evening-btn" class="pray-btn" data-i18n-title="reminders.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
-            <button id="check-evening-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_done" title="Marcar como feito">
-                <i class="ph ph-check"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Rosary Suggestion (After Pomodoro) -->
-    <div id="rosary-reminder" class="glass-panel modal-slide" style="display: none;">
-        <div class="angelus-content">
-            <i class="ph ph-flower-lotus"></i>
-            <span data-i18n="reminders.rosary_suggestion">Rezar uma dezena?</span>
-        </div>
-        <div class="angelus-actions">
-            <button id="start-rosary-btn" class="pray-btn" data-i18n-title="reminders.btn_start" title="Iniciar"><i class="ph ph-play"></i></button>
-            <button id="dismiss-rosary-btn" class="icon-btn-sm check-btn" data-i18n-title="reminders.btn_not_now" title="Agora não">
-                <i class="ph ph-x"></i>
-            </button>
-        </div>
     </div>
 
     <!-- Virtues Checklist Modal -->
@@ -814,19 +748,44 @@
             </div>
 
             <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_rosary">Sugestão de terço (após Pomodoro)</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-rosary" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
                 <span data-i18n="settings.reminder_screentime">Reflexão sobre tempo de tela (13h e 19h)</span>
                 <label class="switch">
                     <input type="checkbox" id="toggle-reminder-screentime" checked>
                     <span class="slider round"></span>
                 </label>
+            </div>
+        </div>
+
+        <!-- Focus (moved from the old fullscreen timer until phase 7) -->
+        <div class="settings-section">
+            <h4 class="settings-section-title" data-i18n="focus.settings_title">Foco</h4>
+            <div class="settings-row settings-toggle-row">
+                <label for="setting-focus" data-i18n="focus.setting_focus_min">Duração padrão (min)</label>
+                <input type="number" id="setting-focus" class="settings-number" min="1" max="120" value="25">
+            </div>
+            <div class="settings-row settings-toggle-row">
+                <label for="setting-pause" data-i18n="focus.setting_pause_min">Pausa curta (min)</label>
+                <input type="number" id="setting-pause" class="settings-number" min="1" max="30" value="5">
+            </div>
+            <div class="settings-row settings-toggle-row">
+                <label for="setting-long-pause" data-i18n="focus.setting_long_pause_min">Pausa longa (min)</label>
+                <input type="number" id="setting-long-pause" class="settings-number" min="1" max="60" value="15">
+            </div>
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="focus.setting_sound">Som ao terminar</span>
+                <label class="switch"><input type="checkbox" id="setting-sound" checked><span class="slider round"></span></label>
+            </div>
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="focus.setting_auto_next">Avançar automaticamente</span>
+                <label class="switch"><input type="checkbox" id="setting-auto-next"><span class="slider round"></span></label>
+            </div>
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="focus.setting_continuous_alarm">Alarme contínuo</span>
+                <label class="switch"><input type="checkbox" id="setting-continuous-alarm"><span class="slider round"></span></label>
+            </div>
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="focus.setting_wake_lock">Manter a tela acesa</span>
+                <label class="switch"><input type="checkbox" id="setting-wake-lock"><span class="slider round"></span></label>
             </div>
         </div>
 
@@ -972,10 +931,6 @@
                             <span data-i18n="settings.reminder_evening">Exame Noturno</span>
                             <label class="switch"><input type="checkbox" id="ob-reminder-evening" checked><span class="slider round"></span></label>
                         </div>
-                        <div class="settings-row settings-toggle-row">
-                            <span data-i18n="settings.reminder_rosary">Sugestão de terço (após Pomodoro)</span>
-                            <label class="switch"><input type="checkbox" id="ob-reminder-rosary" checked><span class="slider round"></span></label>
-                        </div>
                     </div>
                 </div>
                 </div>
@@ -1005,79 +960,32 @@
     <!-- Toast Container -->
     <div id="toast-container"></div>
 
-    <!-- Manage Links Modal -->
-    <div id="links-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 data-i18n="links.modal_title">Gerenciar Links</h3>
-            <button id="close-links-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        
-        <div class="add-link-section">
-            <input type="text" id="link-name-input" placeholder="Nome (max 20 chars)" maxlength="20" data-i18n-placeholder="links.name_placeholder">
-            <input type="text" id="link-url-input" placeholder="URL (https://...)" data-i18n-placeholder="links.url_placeholder">
-            <button id="add-link-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
-        </div>
-
-        <div id="manage-links-list" class="manage-links-list">
-            <!-- Items injected here -->
-        </div>
-        <div class="links-note">
-            <small data-i18n="links.max_note">Máximo de 6 links.</small>
+    <!-- Seus atalhos -->
+    <div class="scrim" id="shortcuts-dialog" hidden>
+        <div class="dialog surface-solid" role="dialog" aria-modal="true" aria-labelledby="shortcuts-dialog-title">
+            <h2 id="shortcuts-dialog-title" data-i18n="shortcuts.label">Seus atalhos</h2>
+            <ul class="shortcut-manage" id="shortcuts-manage"></ul>
+            <form class="stack" id="shortcuts-form" style="--gap: 0.625rem" novalidate>
+                <label class="field"><span data-i18n="shortcuts.name">Nome</span><input class="input" id="shortcut-name" maxlength="20" autocomplete="off"></label>
+                <label class="field"><span data-i18n="shortcuts.url">Endereço</span><input class="input" id="shortcut-url" inputmode="url" autocomplete="off" placeholder="https://"></label>
+                <p class="meta" id="shortcuts-note" aria-live="polite"></p>
+                <div class="row">
+                    <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.close">Fechar</button>
+                    <button type="submit" class="btn btn-primary" id="shortcut-add" data-i18n="shortcuts.add">Adicionar</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Tasks Modal -->
-    <div id="tasks-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <div class="tasks-header-info">
-                <h3 data-i18n="tasks.modal_title">Tarefas de Hoje</h3>
-                <span id="tasks-progress-text" class="tasks-progress-text">0 de 0 concluídas</span>
+    <!-- Encerrar a sessão: ação destrutiva → confirmação curta -->
+    <div class="scrim" id="today-end-dialog" hidden>
+        <div class="dialog surface-solid" role="alertdialog" aria-modal="true" aria-labelledby="today-end-title" aria-describedby="today-end-desc">
+            <h2 id="today-end-title" data-i18n="today.end_title">Encerrar a sessão agora?</h2>
+            <p class="meta" id="today-end-desc"></p>
+            <div class="row">
+                <button type="button" class="btn btn-quiet" data-dialog-close autofocus data-i18n="today.keep_focus">Continuar foco</button>
+                <button type="button" class="btn btn-aux" id="today-end-confirm" data-i18n="today.end_confirm">Encerrar</button>
             </div>
-            <div class="tasks-header-actions">
-                <div class="dropdown-container">
-                    <button id="tasks-options-btn" class="icon-btn" data-i18n-title="tasks.options_title" title="Opções"><i class="ph ph-dots-three-vertical"></i></button>
-                    <div id="tasks-options-menu" class="tasks-dropdown-menu" style="display: none;">
-                        <button id="tasks-opt-clear-done" class="dropdown-item"><i class="ph ph-broom"></i> <span data-i18n="tasks.opt_clear_done">Limpar concluídas</span></button>
-                        <button id="tasks-opt-reset-today" class="dropdown-item"><i class="ph ph-arrow-counter-clockwise"></i> <span data-i18n="tasks.opt_reset_today">Resetar tudo para hoje</span></button>
-                        <button id="tasks-opt-reset-recurring" class="dropdown-item"><i class="ph ph-repeat"></i> <span data-i18n="tasks.opt_reset_recurring">Resetar apenas recorrentes</span></button>
-                        <div class="dropdown-divider"></div>
-                        <button id="tasks-opt-remove-all" class="dropdown-item danger"><i class="ph ph-trash"></i> <span data-i18n="tasks.opt_remove_all">Remover todas as tarefas</span></button>
-                    </div>
-                </div>
-                <button id="close-tasks-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-            </div>
-        </div>
-
-        <div class="add-task-section">
-            <div class="add-task-row">
-                <button id="toggle-recurring-btn" class="icon-btn-sm recurring-toggle" data-i18n-title="tasks.recurring_toggle_title" title="Repetir todo dia"><i class="ph ph-repeat"></i></button>
-                <input type="text" id="new-task-input" placeholder="Nova tarefa..." data-i18n-placeholder="tasks.new_task_placeholder">
-                <button id="add-task-btn" class="task-add-btn"><i class="ph ph-plus"></i></button>
-            </div>
-            <div class="task-intention-row">
-                <i class="ph ph-cross intention-icon"></i>
-                <input type="text" id="task-intention-input" class="task-intention-input" placeholder="Ofereço por... (opcional)" data-i18n-placeholder="tasks.intention_placeholder">
-            </div>
-        </div>
-
-        <div id="tasks-list-container" class="tasks-list-container">
-            <div id="tasks-list-active" class="tasks-list"></div>
-
-            <button id="tasks-completed-toggle" class="tasks-completed-toggle" style="display: none;">
-                <i class="ph ph-caret-right"></i>
-                <span data-i18n="tasks.completed_label">Concluídas</span>
-                <span id="tasks-completed-count" class="tasks-completed-count">(0)</span>
-            </button>
-            <div id="tasks-list-completed" class="tasks-list tasks-list-completed" style="display: none;"></div>
-
-            <div class="tasks-empty-state" id="tasks-empty-state">
-                <i class="ph ph-check-square-offset"></i>
-                <p data-i18n="tasks.empty_state">Nenhuma tarefa pendente para hoje.</p>
-            </div>
-        </div>
-
-        <div id="tasks-footer-msg" class="tasks-footer-msg" style="display: none;" data-i18n="tasks.footer_msg">
-            "Bem feito, servo bom e fiel." — Mt 25,21
         </div>
     </div>
 
@@ -1125,6 +1033,8 @@
     <script src="scripts/shared/sessions-core.js" defer></script>
     <script src="scripts/shared/counter-core.js" defer></script>
     <script src="scripts/shared/migrate-core.js" defer></script>
+    <script src="scripts/shared/today-core.js" defer></script>
+    <script src="scripts/shared/reminders-core.js" defer></script>
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
@@ -1137,6 +1047,8 @@
     <script src="scripts/modules/exam.js" defer></script>
     <script src="scripts/modules/focus.js" defer></script>
     <script src="scripts/modules/tasks.js" defer></script>
+    <script src="scripts/modules/protection.js" defer></script>
+    <script src="scripts/modules/today.js" defer></script>
     <script src="scripts/modules/settings.js" defer></script>
     <script src="scripts/modules/onboarding.js" defer></script>
     <script src="scripts/modules/sync.js" defer></script>

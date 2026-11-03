@@ -217,13 +217,3 @@
     min-width: 60px;
     text-align: center;
 }
-
-/* --- ROSARY SUGGESTION REMINDER --- */
-#rosary-reminder:hover {
-    transform: translateX(-50%);
-}
-
-#rosary-reminder .angelus-content i {
-    color: #f472b6; /* Pink/Rose */
-    animation: none;
-}

@@ -18,7 +18,6 @@ const OnboardingSystem = {
             mercy: true,
             midday: true,
             evening: true,
-            rosary: true,
         },
     },
 
@@ -55,7 +54,6 @@ const OnboardingSystem = {
             mercy: document.getElementById('ob-reminder-mercy'),
             midday: document.getElementById('ob-reminder-midday'),
             evening: document.getElementById('ob-reminder-evening'),
-            rosary: document.getElementById('ob-reminder-rosary'),
         };
         this.elements.btnReplay = document.getElementById('settings-replay-onboarding');
     },
@@ -240,7 +238,6 @@ const OnboardingSystem = {
         await AsyncStorage.set('ora_reminder_mercy', this.state.reminders.mercy);
         await AsyncStorage.set('ora_reminder_midday', this.state.reminders.midday);
         await AsyncStorage.set('ora_reminder_evening', this.state.reminders.evening);
-        await AsyncStorage.set('ora_reminder_rosary', this.state.reminders.rosary);
         await AsyncStorage.set(this.KEY_DONE, true);
 
         // Sync the in-memory settings state + UI

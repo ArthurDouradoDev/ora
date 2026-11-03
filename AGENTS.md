@@ -35,7 +35,11 @@ There is no build process. This is pure vanilla JS/HTML/CSS — no npm, no bundl
 `ora.html` → `scripts/main.js` loads all JSON data from `/data/`, registers the SW, calls `init()` on each module, applies i18n, then reveals the UI from behind a loading screen.
 
 ### Shell and navigation (V1)
-`ora.html` has a fixed `.topbar` (brand, nav Hoje · Rezar · Frutos, utilities) and one `<main class="view" data-view="…">` per destination. `scripts/ui/router.js` switches views; the route lives in `history.state` (URL stays clean, browser Back works, new tabs start at Hoje) and is parsed by the pure `scripts/shared/route-core.js`. New dialogs use `scripts/ui/dialog.js` (focus trap, inert background, Esc, focus return); legacy V0 modals still use `animateModal()` until each screen is migrated. The migration plan is in `PLANO_V1_ORA.md`.
+`ora.html` has a fixed `.topbar` (brand, nav Hoje · Rezar · Frutos, Tarefas chip, Proteção pill, settings) and one `<main class="view" data-view="…">` per destination. `scripts/ui/router.js` switches views; the route lives in `history.state` (URL stays clean, browser Back works, new tabs start at Hoje) and is parsed by the pure `scripts/shared/route-core.js`. New dialogs use `scripts/ui/dialog.js` (focus trap, inert background, Esc, focus return); legacy V0 modals still use `animateModal()` until each screen is migrated (their triggers live in the hidden `.legacy-triggers` block; buttons that open them must `stopPropagation()`, because they close on any outside click). The migration plan is in `PLANO_V1_ORA.md`.
+
+### Hoje and the focus flow (phase 2)
+`TodayCore.resolveTodayState({ tasks, pomodoro, now, reminders, preparing, error })` is the single source for the Hoje state (`repouso-vazio`, `repouso`, `preparacao`, `ativa`, `pausada`, `concluida`, `noite`, `falha`). The SW owns the timer: `pomodoro:startFocus` (activity, minutes, task, session intention, protection), `pomodoro:pause` / `pomodoro:start` (resume), `pomodoro:interrupt` (focused minutes count), `pomodoro:startBreak`, `pomodoro:home`, `pomodoro:tick` (a tab whose countdown hit zero asks the SW to close the phase without waiting for the alarm). When a focus phase ends the SW writes `ora_pomodoro_state.completed`, which Hoje shows as the single end-of-session transition (E12). "Bloquear distrações" turns the blocker on for the session when it is off and restores it at the end (`ora_pomodoro_state.protection`).
+Dev-only 1-minute focus: with the extension loaded unpacked, set `chrome.storage.local.set({ ora_debug_short_focus: true })` and reload; the preparation offers "1 min".
 
 ### Module Pattern
 Every feature in `scripts/modules/` is a singleton object:
@@ -52,13 +56,16 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 ### Key Modules
 | File | Purpose |
 |------|---------|
-| `scripts/modules/focus.js` | Pomodoro timer, phases, wake lock, sounds |
-| `scripts/modules/blocker.js` | Website blocker using Declarative Net Request (DNR) |
-| `scripts/modules/reminders.js` | Scheduled notifications (Angelus, Chaplet, etc.) |
+| `scripts/modules/today.js` | Hoje: arrival, next step, focus preparation/session/completion, day intention, gospel footer. State comes from `TodayCore.resolveTodayState` |
+| `scripts/modules/focus.js` | Focus engine in the page: mirrors the SW pomodoro state (`ora:pomodoro` event), sends commands, end tone, wake lock |
+| `scripts/modules/blocker.js` | Website blocker using Declarative Net Request (DNR); its V0 modal is opened by "Gerenciar proteção" until phase 4 |
+| `scripts/modules/protection.js` | "Proteção" pill in the header (real state) and summary popover |
+| `scripts/modules/reminders.js` | The single invite space on Hoje (Angelus, Chaplet, midday exam, "Encerrar o dia", internet prayer), chosen by `RemindersCore` |
+| `scripts/modules/links.js` | "Seus atalhos" on Hoje + manage dialog (`ora_quick_links`) |
 | `scripts/modules/rosary.js` | Interactive rosary with bead visualization |
 | `scripts/modules/exam.js` | Guided conscience examination |
 | `scripts/modules/music.js` | YouTube/Spotify player with relay iframe workaround |
-| `scripts/modules/tasks.js` | Task/intention management |
+| `scripts/modules/tasks.js` | Tasks side panel "Tarefas (n)": Hoje (ordered) and Depois, weekday recurrence, completed of the day |
 | `scripts/modules/prayers.js` | Prayer library with full-text search |
 | `scripts/modules/settings.js` | User preferences UI |
 | `scripts/utils.js` | Shared utilities: i18n, storage helpers, UI helpers |
@@ -70,7 +77,8 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 - **Data model (schema 2, `ora_schema_version`):** task, session and intention are separate.
   - `ora_tasks` — tasks (`scripts/shared/tasks-core.js`); a task with `recurrence` is a routine template that generates the day's task. Completed tasks move to `ora_tasks_history` at day rollover.
   - `ora_sessions` — focus sessions, written **only by the SW** (`sessions-core.js`): paused time does not count, interrupted sessions keep the minutes focused, focus without a task is allowed.
-  - `ora_day_intention` — intention of the day by date; a session's intention lives in the session.
+  - `ora_day_intention` — intention of the day by date; a session's intention (and activity title) lives in the session.
+  - Hoje: `ora_quick_links` (shortcuts), `ora_invites_handled` (invites done or postponed per time window), `ora_focus_protect` / `ora_focus_sound` (last choices in the preparation).
   - "Dias com Ora" (`counter-core.js`) is derived from sessions + completed tasks; it never resets.
   - `scripts/shared/migrate-core.js` converts 1.1.5 / 1.2.0 data; it runs (idempotently) in the SW and in `main.js` before modules start. The blocker keys stay as-is until phase 4.
   - Sync carries only routine templates (`sync_routine`) and settings.
