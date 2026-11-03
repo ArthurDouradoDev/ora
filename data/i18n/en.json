@@ -573,6 +573,7 @@
       "saints": "Saints and angels"
     },
     "exam_restart_title": "Start another examination?",
-    "exam_restart_body": "The current draft will be replaced by a new examination."
+    "exam_restart_body": "The current draft will be replaced by a new examination.",
+    "saints_url": "https://www.vaticannews.va/en/saints.html"
   }
 }

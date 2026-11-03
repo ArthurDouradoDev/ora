@@ -573,6 +573,7 @@
       "saints": "Santos y ángeles"
     },
     "exam_restart_title": "¿Empezar otro examen?",
-    "exam_restart_body": "El borrador actual se sustituirá por un nuevo examen."
+    "exam_restart_body": "El borrador actual se sustituirá por un nuevo examen.",
+    "saints_url": "https://www.vaticannews.va/es/santos.html"
   }
 }

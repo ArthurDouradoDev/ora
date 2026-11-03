@@ -573,6 +573,7 @@
       "saints": "Santos e anjos"
     },
     "exam_restart_title": "Começar outro exame?",
-    "exam_restart_body": "O rascunho atual será substituído por um novo exame."
+    "exam_restart_body": "O rascunho atual será substituído por um novo exame.",
+    "saints_url": "https://www.vaticannews.va/pt/santo-do-dia.html"
   }
 }
