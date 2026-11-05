@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Hoje (mobile)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  .m-app { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .m-status { height: 44px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font: 600 15px/1 var(--f-ui); }
+  .m-status span:last-child { display: inline-flex; gap: 6px; font-size: 14px; }
+  .m-top { display: flex; align-items: center; justify-content: space-between; padding: 0.25rem 0.5rem 0.25rem 1.25rem; flex: none; }
+  .m-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 1.5rem; }
+
+  .m-hero {
+    position: relative; margin: 0.25rem 1rem 1rem; border-radius: var(--r-xl); overflow: hidden;
+    padding: 1.25rem 1.25rem 1.125rem; min-height: 8.5rem; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.25rem;
+  }
+  .m-hero .photo { background-position: center 35%; background-image: linear-gradient(180deg, rgba(10,8,6,.35) 0%, rgba(10,8,6,.82) 100%), var(--photo-url), var(--photo-fallback); }
+  html[data-photo="reserva"] .m-hero .photo { background-image: var(--photo-fallback); }
+  .m-scroll { scrollbar-width: none; }
+  .m-hero > *:not(.photo) { position: relative; }
+  .m-hero h1 { font-size: 1.5rem; font-weight: 600; }
+  .m-hero .day { color: var(--text-2); font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+  .m-sec { padding: 0 1rem; margin-top: 1.25rem; }
+  .m-sec > .label { display: block; margin: 0 0.25rem 0.5rem; }
+  .m-card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.125rem; }
+  .now h2 { font-size: 1.375rem; font-weight: 600; margin: 0.25rem 0; }
+  .now .btn { margin-top: 1rem; min-height: 3rem; }
+  .now form { display: grid; gap: 0.625rem; margin-top: 0.5rem; }
+  .sugs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .sug { min-height: 2.5rem; padding: 0.375rem 0.875rem; border-radius: 999px; border: 1px solid var(--line-strong); background: none; color: var(--text-2); cursor: pointer; font-size: 0.875rem; }
+
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li { display: flex; align-items: center; gap: 0.875rem; min-height: 3.25rem; padding: 0.375rem 0.25rem; border-bottom: 1px solid var(--line); }
+  .list li:last-child { border-bottom: 0; }
+  .list .check { width: 1.625rem; height: 1.625rem; border-radius: 50%; border: 1.5px solid var(--text-3); flex: none; background: none; cursor: pointer; position: relative; }
+  .list .check::after { content: ''; position: absolute; inset: -0.6rem; } /* área de toque ≥ 44 */
+  .list li.done .check { background: var(--text-3); }
+  .list li.done .t { color: var(--text-3); text-decoration: line-through; }
+  .list .t { flex: 1; font-size: 1rem; }
+  .list .m { color: var(--text-3); font-size: 0.8125rem; }
+  .add-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .add-row .input { flex: 1; min-width: 0; min-height: 3rem; }
+  .add-btn { width: 100%; justify-content: flex-start; min-height: 3rem; padding-inline: 0.25rem; color: var(--text-2); }
+
+  .gospel-card .ref { font-family: var(--f-read); font-size: 1.125rem; margin: 0.25rem 0; }
+  .gospel-card p.meta { line-height: 1.5; }
+  .gospel-card .row { margin-top: 0.875rem; }
+
+  .intent-row { display: flex; align-items: center; gap: 0.75rem; min-height: 3.25rem; padding: 0 0.25rem; color: var(--text-2); background: none; border: 0; width: 100%; text-align: left; cursor: pointer; font-size: 0.9375rem; }
+  .intent-row i { font-size: 1.25rem; color: var(--gold); }
+
+  /* Resumo persistente de sessão, acima da navegação */
+  .m-mini {
+    flex: none; margin: 0 0.75rem 0.5rem; border-radius: var(--r-lg);
+    background: var(--surface-3); border: 1px solid var(--line-strong);
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+    box-shadow: 0 -8px 24px rgba(0,0,0,.35);
+  }
+  .m-mini .open { flex: 1; min-width: 0; background: none; border: 0; text-align: left; cursor: pointer; padding: 0.25rem 0; display: grid; }
+  .m-mini .open b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-mini .open span { font-size: 0.8125rem; color: var(--text-2); }
+  .m-mini .bar { position: absolute; }
+
+  .m-tabs {
+    flex: none; display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line); background: var(--surface-1);
+    padding: 0.25rem 0.25rem 1.25rem;
+  }
+  .m-tabs button {
+    background: none; border: 0; cursor: pointer; color: var(--text-3);
+    display: grid; justify-items: center; gap: 0.125rem; padding: 0.5rem 0.25rem; min-height: 3.25rem;
+    font-size: 0.75rem; font-weight: 500;
+  }
+  .m-tabs button i { font-size: min(1.5rem, 7.5cqw); }
+  /* Com texto ampliado, o rótulo da navegação para de crescer quando não cabe (como as barras nativas) */
+  .m-tabs button { font-size: min(0.75rem, 3.3cqw); min-width: 0; }
+  .m-tabs button[aria-current="page"] { color: var(--text); font-weight: 600; }
+  .m-tabs button[aria-current="page"] i { color: var(--gold); }
+
+  /* Teclado simulado */
+  .m-keyboard { flex: none; height: 291px; background: #2b2a2e; padding: 6px 4px 30px; display: grid; grid-template-rows: 40px repeat(4, 1fr); gap: 10px; }
+  .m-keyboard .sugg { display: flex; justify-content: space-around; align-items: center; color: #ddd; font: 15px var(--f-ui); border-bottom: 1px solid #3a393e; }
+  .m-keyboard .krow { display: flex; gap: 6px; justify-content: center; padding: 0 3px; }
+  .m-keyboard .k { flex: 1; max-width: 34px; background: #6b6a70; border-radius: 5px; color: #fff; display: grid; place-items: center; font: 17px var(--f-ui); }
+  .m-keyboard .k.w { max-width: none; flex: 5; background: #6b6a70; font-size: 14px; }
+  .m-keyboard .k.s { max-width: 44px; background: #4a494e; font-size: 13px; }
+
+  /* Sessão imersiva */
+  .m-immersive {
+    position: absolute; inset: 0; z-index: 40; background: var(--bg);
+    display: flex; flex-direction: column; padding: 44px 1.25rem 2.5rem;
+  }
+  .m-immersive .photo { opacity: .35; }
+  .m-immersive > *:not(.photo) { position: relative; }
+  .m-immersive .top { display: flex; align-items: center; justify-content: space-between; }
+  .m-immersive .body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 0.75rem; overflow: auto; }
+  .m-immersive h1 { font-size: 1.75rem; font-weight: 600; }
+  .m-immersive .clock { font-size: 5.5rem; }
+  .m-immersive .intent { font-family: var(--f-read); font-style: italic; color: var(--text-2); }
+  .m-immersive .ctrls { display: grid; gap: 0.5rem; }
+  .m-immersive .chips { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
+
+  /* Destinos secundários */
+  .tile-list { display: grid; gap: 0.5rem; }
+  .tile { display: flex; align-items: center; gap: 0.875rem; min-height: 3.5rem; padding: 0.75rem 1rem; border-radius: var(--r-lg); background: var(--surface-1); border: 1px solid var(--line); text-decoration: none; }
+  .tile i.lead { font-size: 1.375rem; color: var(--gold); }
+  .tile .tx { flex: 1; display: grid; }
+  .tile .tx span { color: var(--text-3); font-size: 0.8125rem; }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.375rem; margin-top: 0.75rem; }
+  .week div { aspect-ratio: 1 / 1.3; border-radius: 8px; display: grid; place-items: end center; padding-bottom: 0.25rem; font-size: 0.6875rem; color: var(--text-3); border: 1px solid var(--line); }
+  .week .has { background: rgba(216,176,97,.22); border-color: rgba(216,176,97,.4); color: var(--text); }
+  .week .none { border-style: dashed; }
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-3); }
+  .legend span::before { content: ''; display: inline-block; width: 0.625rem; height: 0.625rem; border-radius: 3px; margin-right: 0.35rem; vertical-align: -1px; }
+  .legend .a::before { background: rgba(216,176,97,.5); }
+  .legend .b::before { border: 1px dashed var(--text-3); }
+</style>
+</head>
+<body>
+<div class="proto-stage"><div class="proto-frame" id="app">
+  <div class="m-app">
+    <div class="m-status" aria-hidden="true"><span>14:22</span><span><i class="ph-fill ph-cell-signal-high"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+    <header class="m-top" data-note="Configurações no topo; nada essencial depende só do canto superior." data-ref="§11">
+      <span class="brand">ORA</span>
+      <a class="settings-btn" href="06-ritmo-novenas.html#configuracoes" aria-label="Configurações"><i class="ph ph-gear" aria-hidden="true"></i></a>
+    </header>
+
+    <main class="m-scroll" id="scroll">
+      <!-- ===== HOJE ===== -->
+      <div data-tab="hoje">
+        <div class="m-hero" data-note="Fotografia vira faixa: mantém a atmosfera sem ficar atrás de listas longas. O relógio sai — o sistema já mostra a hora." data-ref="§11">
+          <div class="photo"></div>
+          <p class="day"><span>Quarta-feira, 28 de outubro</span></p>
+          <h1>Boa tarde, Arthur</h1>
+          <p class="day"><span class="lit lit-vermelho">São Simão e São Judas</span></p>
+        </div>
+
+        <section class="m-sec">
+          <div class="m-card now" data-note="AGORA: o que fazer, quanto tempo e o que acontece com a proteção, com um botão grande e alcançável." data-ref="§11">
+            <p class="label">Agora</p>
+            <div data-hide="vazio">
+              <h2 id="nowTitle">Preparar apresentação</h2>
+              <p class="meta">25 minutos · proteção configurada</p>
+              <button class="btn btn-primary btn-block" id="startBtn"><i class="ph-fill ph-play"></i>Começar foco</button>
+            </div>
+            <div data-show="vazio" data-note="Sem tarefas: pergunta direta e sugestões que podem ser tocadas." data-ref="§15">
+              <h2>O que é importante agora?</h2>
+              <form id="quickForm">
+                <label for="quick" class="sr-only">Atividade</label>
+                <input class="input" id="quick" placeholder="Ex.: estudar para a prova" autocomplete="off">
+                <div class="sugs"><button type="button" class="sug">Estudar</button><button type="button" class="sug">Trabalho profundo</button><button type="button" class="sug">Leitura</button></div>
+                <button class="btn btn-primary btn-block" type="submit">Começar foco</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="m-sec">
+          <span class="label">Para hoje</span>
+          <div class="m-card" style="padding: 0.25rem 0.875rem 0.5rem">
+            <ul class="list" id="list"></ul>
+            <p class="meta" id="emptyList" style="padding: 0.875rem 0.25rem 0.25rem" hidden>Nada na lista ainda.</p>
+            <form class="add-row" id="addRow" data-show="teclado" data-note="Teclado aberto: o campo de entrada sobe e fica visível; a navegação dá lugar ao teclado." data-ref="§16">
+              <label for="addInput" class="sr-only">Nova tarefa</label>
+              <input class="input" id="addInput" placeholder="Nova tarefa" autocomplete="off" enterkeyhint="done">
+              <button class="btn btn-primary" type="submit">Adicionar</button>
+            </form>
+            <button class="btn btn-quiet add-btn" data-goto="teclado" data-hide="teclado"><i class="ph ph-plus"></i>Adicionar</button>
+          </div>
+        </section>
+
+        <section class="m-sec">
+          <div class="m-card gospel-card" data-note="Evangelho do dia como bloco de leitura com uma ação: Ler (abre o leitor do app, não um site)." data-ref="§11 · §5">
+            <p class="label">Evangelho do dia</p>
+            <p class="ref">Lucas 6,12-19</p>
+            <p class="meta">Jesus passa a noite em oração e, ao amanhecer, escolhe os Doze.</p>
+            <div class="row"><a class="btn btn-aux" href="03-rezar.html#leitor-evangelho">Ler</a><span class="offline-tag"><i class="ph ph-download-simple"></i>Disponível offline</span></div>
+          </div>
+        </section>
+
+        <section class="m-sec">
+          <button class="intent-row" id="intentRow"><i class="ph ph-heart"></i><span id="intentText">Oferecer o dia por… <span class="muted">(opcional)</span></span></button>
+        </section>
+      </div>
+
+      <!-- ===== REZAR ===== -->
+      <div data-tab="rezar" hidden>
+        <section class="m-sec" style="margin-top:.5rem">
+          <h1 style="font-size:1.5rem;margin:0 .25rem 1rem">Rezar</h1>
+          <div class="m-card" style="display:flex;gap:.875rem;align-items:center" data-note="Santo do dia: pequeno destaque em Rezar, não personagem permanente." data-ref="§13.7">
+            <i class="ph ph-sparkle" style="font-size:1.5rem;color:var(--lit-vermelho)"></i>
+            <div><p class="label">Santo do dia</p><p>São Simão e São Judas, apóstolos</p></div>
+          </div>
+        </section>
+        <section class="m-sec">
+          <span class="label">Continuar</span>
+          <a class="tile" href="03-rezar.html#terco-oracao"><i class="ph ph-circles-four lead"></i><span class="tx"><b>Terço</b><span>3º mistério glorioso · ontem</span></span><i class="ph ph-caret-right"></i></a>
+        </section>
+        <section class="m-sec tile-list">
+          <span class="label">Para hoje</span>
+          <a class="tile" href="03-rezar.html#leitor-evangelho"><i class="ph ph-book-open lead"></i><span class="tx"><b>Evangelho do dia</b><span>Lc 6,12-19</span></span><i class="ph ph-caret-right"></i></a>
+          <a class="tile" href="03-rezar.html#respiro"><i class="ph ph-wind lead"></i><span class="tx"><b>Respiro</b><span>Uma dezena, sem pressa</span></span><i class="ph ph-caret-right"></i></a>
+          <a class="tile" href="05-frutos-ritual.html#ritual-noite"><i class="ph ph-moon-stars lead"></i><span class="tx"><b>Encerrar o dia</b><span>Disponível à noite</span></span><i class="ph ph-caret-right"></i></a>
+          <a class="tile" href="03-rezar.html#biblioteca"><i class="ph ph-books lead"></i><span class="tx"><b>Orações</b><span>Biblioteca e favoritos</span></span><i class="ph ph-caret-right"></i></a>
+        </section>
+      </div>
+
+      <!-- ===== PROTEÇÃO ===== -->
+      <div data-tab="protecao" hidden>
+        <section class="m-sec" style="margin-top:.5rem">
+          <h1 style="font-size:1.5rem;margin:0 .25rem 1rem">Proteção</h1>
+          <div class="banner ok"><i class="ph ph-shield-check"></i><div><strong>Ativa</strong>Redes sociais liberadas até 22h. Vídeos: 12 de 30 min usados.</div></div>
+        </section>
+        <section class="m-sec tile-list" data-note="Resumo por perfil, com regras em linguagem direta." data-ref="§14">
+          <a class="tile" href="04-protecao.html#configuracao"><i class="ph ph-users-three lead"></i><span class="tx"><b>Redes sociais</b><span>Bloqueadas durante foco e entre 22h e 7h</span></span><i class="ph ph-caret-right"></i></a>
+          <a class="tile" href="04-protecao.html#configuracao"><i class="ph ph-play-circle lead"></i><span class="tx"><b>Vídeos</b><span>Limite de 30 min por dia</span></span><i class="ph ph-caret-right"></i></a>
+          <a class="tile" href="04-protecao.html#ios-shield"><i class="ph ph-device-mobile lead"></i><span class="tx"><b>Como aparece o bloqueio</b><span>No iPhone, a tela segue o layout do sistema</span></span><i class="ph ph-caret-right"></i></a>
+        </section>
+      </div>
+
+      <!-- ===== FRUTOS ===== -->
+      <div data-tab="frutos" hidden>
+        <section class="m-sec" style="margin-top:.5rem">
+          <h1 style="font-size:1.5rem;margin:0 .25rem .25rem">Frutos</h1>
+          <p class="meta" style="margin:0 .25rem 1rem">22 a 28 de outubro</p>
+          <div class="m-card" data-note="No celular, Frutos é uma sequência vertical: síntese, semana, pergunta — sem comprimir o painel do desktop." data-ref="§13.2">
+            <p style="font-size:1.0625rem">9 sessões de foco (3h45) e terço em 4 dias.</p>
+            <div class="week" aria-label="Semana">
+              <div class="has">qui</div><div class="has">sex</div><div class="none">sáb</div><div class="has">dom</div><div class="has">seg</div><div class="none">ter</div><div class="has">qua</div>
+            </div>
+            <div class="legend"><span class="a">com registro</span><span class="b">sem registro (não medido)</span></div>
+          </div>
+        </section>
+        <section class="m-sec">
+          <div class="m-card">
+            <p class="label">Para refletir</p>
+            <p class="reflect" style="font-size:1.1875rem;margin:.5rem 0 .875rem">Em que momento desta semana você se sentiu mais presente?</p>
+            <a class="btn btn-aux btn-block" href="05-frutos-ritual.html#frutos">Escrever</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Resumo persistente da sessão -->
+    <div class="m-mini" id="mini" data-show="ativa pausada" data-note="Durante a sessão, um resumo persistente acima da navegação: atividade, tempo e acesso para retomar a tela completa." data-ref="§11">
+      <button class="open" id="miniOpen" aria-label="Abrir sessão em tela cheia">
+        <b id="miniTitle">Preparar apresentação</b>
+        <span><span id="miniState">Em foco</span> · <span class="tnum" id="miniTime">18:42</span></span>
+      </button>
+      <button class="icon-btn" id="miniToggle" aria-label="Pausar" style="background:rgba(255,255,255,.08)"><i class="ph-fill ph-pause"></i></button>
+    </div>
+
+    <nav class="m-tabs" aria-label="Principal" data-hide="teclado" data-note="Quatro destinos fixos com ícone e texto. Foco não é uma quinta aba: é uma atividade iniciada em Hoje." data-ref="§11">
+      <button data-tabbtn="hoje" aria-current="page"><i class="ph ph-sun-horizon"></i>Hoje</button>
+      <button data-tabbtn="rezar"><i class="ph ph-hands-praying"></i>Rezar</button>
+      <button data-tabbtn="protecao"><i class="ph ph-shield-check"></i>Proteção</button>
+      <button data-tabbtn="frutos"><i class="ph ph-plant"></i>Frutos</button>
+    </nav>
+
+    <div class="m-keyboard" data-show="teclado" aria-hidden="true">
+      <div class="sugg"><span>Enviar</span><span>Revisar</span><span>Ligar</span></div>
+      <div class="krow"><span class="k">q</span><span class="k">w</span><span class="k">e</span><span class="k">r</span><span class="k">t</span><span class="k">y</span><span class="k">u</span><span class="k">i</span><span class="k">o</span><span class="k">p</span></div>
+      <div class="krow"><span class="k">a</span><span class="k">s</span><span class="k">d</span><span class="k">f</span><span class="k">g</span><span class="k">h</span><span class="k">j</span><span class="k">k</span><span class="k">l</span><span class="k">ç</span></div>
+      <div class="krow"><span class="k s">⇧</span><span class="k">z</span><span class="k">x</span><span class="k">c</span><span class="k">v</span><span class="k">b</span><span class="k">n</span><span class="k">m</span><span class="k s">⌫</span></div>
+      <div class="krow"><span class="k s">123</span><span class="k w">espaço</span><span class="k s">ok</span></div>
+    </div>
+  </div>
+
+  <!-- Experiência imersiva -->
+  <div class="m-immersive" data-show="imersiva" role="dialog" aria-label="Sessão de foco" data-note="Na experiência imersiva o restante sai de cena. Pausar é grande e explícito; minimizar devolve ao resumo." data-ref="§11 · §12 Foco">
+    <div class="photo"></div>
+    <div class="top">
+      <button class="icon-btn" id="minimize" aria-label="Minimizar sessão"><i class="ph ph-caret-down"></i></button>
+      <span class="label"><span class="dot" style="display:inline-block;margin-right:.4rem"></span>Em foco</span>
+      <span style="width:2.75rem"></span>
+    </div>
+    <div class="body">
+      <h1 id="immTitle">Preparar apresentação</h1>
+      <div class="clock" id="immTime">18:42</div>
+      <p class="meta">termina às 14:47</p>
+      <p class="intent">Oferecida pela minha equipe</p>
+    </div>
+    <div class="chips">
+      <span class="chip"><i class="ph ph-music-notes"></i>Silêncio</span>
+      <span class="chip"><span class="dot"></span>Redes bloqueadas</span>
+    </div>
+    <div class="ctrls">
+      <button class="btn btn-aux btn-lg btn-block" id="immPause"><i class="ph ph-pause"></i>Pausar</button>
+      <button class="btn btn-quiet btn-block" id="immEnd">Encerrar sessão</button>
+    </div>
+  </div>
+</div></div>
+
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const DEFAULT = [
+    { t: 'Preparar apresentação', m: '25 min' },
+    { t: 'Revisar capítulo 3', m: '50 min' },
+    { t: 'Enviar documento', m: '15 min' },
+  ];
+  let items = DEFAULT.map((x) => ({ ...x }));
+  let tab = 'hoje';
+  let left = 18 * 60 + 42;
+  let tick = null;
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (s) => pad(Math.floor(s / 60)) + ':' + pad(s % 60);
+
+  function renderList() {
+    const ul = $('#list');
+    ul.innerHTML = '';
+    $('#emptyList').hidden = items.length > 0;
+    items.forEach((it) => {
+      const li = document.createElement('li');
+      if (it.done) li.className = 'done';
+      li.innerHTML = `<button class="check" aria-label="Concluir ${it.t}" aria-pressed="${!!it.done}"></button><span class="t">${it.t}</span><span class="m">${it.m}</span>`;
+      li.querySelector('.check').onclick = () => { it.done = !it.done; renderList(); };
+      ul.appendChild(li);
+    });
+  }
+  function setTab(t) {
+    tab = t;
+    document.querySelectorAll('[data-tab]').forEach((n) => (n.hidden = n.dataset.tab !== t));
+    document.querySelectorAll('[data-tabbtn]').forEach((b) => {
+      if (b.dataset.tabbtn === t) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
+    $('#scroll').scrollTop = 0;
+    requestAnimationFrame(() => Proto.renderNotes());
+  }
+  document.querySelectorAll('[data-tabbtn]').forEach((b) => b.onclick = () => {
+    const t = b.dataset.tabbtn;
+    if (['ativa', 'pausada'].includes(Proto.state)) setTab(t);
+    else Proto.setState(t === 'hoje' ? 'prioridades' : t);
+  });
+
+  function renderTime() {
+    $('#miniTime').textContent = fmt(left);
+    $('#immTime').textContent = fmt(left);
+  }
+  function start() { stop(); tick = setInterval(() => { left = Math.max(0, left - 1); renderTime(); }, 1000); }
+  function stop() { clearInterval(tick); tick = null; }
+
+  $('#startBtn').onclick = () => { left = 25 * 60; Proto.setState('imersiva'); };
+  $('#quickForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#quick').value.trim() || 'Foco livre'; $('#immTitle').textContent = $('#miniTitle').textContent = v; left = 25 * 60; Proto.setState('imersiva'); });
+  document.querySelectorAll('.sug').forEach((b) => b.onclick = () => { $('#quick').value = b.textContent; $('#quick').focus(); });
+  $('#minimize').onclick = () => Proto.setState('ativa');
+  $('#miniOpen').onclick = () => Proto.setState('imersiva');
+  $('#miniToggle').onclick = () => Proto.setState(Proto.state === 'pausada' ? 'ativa' : 'pausada');
+  $('#immPause').onclick = () => Proto.setState('pausada');
+  $('#immEnd').onclick = () => { if (confirm('Encerrar a sessão agora? O tempo já feito fica registrado.')) Proto.setState('prioridades'); };
+  $('#addRow').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#addInput').value.trim();
+    if (v) { items.push({ t: v, m: '25 min' }); renderList(); $('#addInput').value = ''; }
+    Proto.setState('prioridades');
+  });
+  let intent = '';
+  $('#intentRow').onclick = () => {
+    const v = prompt('Oferecer o dia por…', intent);
+    if (v === null) return;
+    intent = v.trim();
+    $('#intentText').innerHTML = intent ? `Hoje, por ${intent.replace(/</g, '&lt;')}` : 'Oferecer o dia por… <span class="muted">(opcional)</span>';
+  };
+
+  Proto.init({
+    id: 'hoje-mobile',
+    title: 'Hoje — mobile',
+    refs: '§11 §15',
+    kind: 'mobile',
+    photo: true,
+    initial: 'prioridades',
+    states: [
+      { id: 'vazio', group: 'Hoje', label: 'Sem tarefas', hint: 'Escolha uma sugestão ou digite e toque em Começar foco.' },
+      { id: 'prioridades', group: 'Hoje', label: 'Com prioridades', hint: 'Role a tela: AGORA, PARA HOJE, EVANGELHO. Teste com o polegar: o botão principal fica alcançável?' },
+      { id: 'teclado', group: 'Hoje', label: 'Teclado aberto', hint: 'O campo de nova tarefa deve continuar visível acima do teclado. Envie para voltar.' },
+      { id: 'imersiva', group: 'Sessão', label: 'Foco imersivo', hint: 'Toque na seta para minimizar e navegar pelas abas com a sessão correndo.' },
+      { id: 'ativa', group: 'Sessão', label: 'Resumo persistente', hint: 'O resumo fica acima da navegação em todas as abas. Toque nele para voltar à tela cheia.' },
+      { id: 'pausada', group: 'Sessão', label: 'Pausada', hint: 'O resumo muda de estado e de ação (retomar).' },
+      { id: 'rezar', group: 'Destinos', label: 'Rezar', hint: 'Santo do dia discreto, continuar e conteúdos do dia.' },
+      { id: 'protecao', group: 'Destinos', label: 'Proteção', hint: 'Resumo por perfil. Detalhes no protótipo de Proteção.' },
+      { id: 'frutos', group: 'Destinos', label: 'Frutos', hint: 'Sequência vertical: síntese, semana e pergunta.' },
+    ],
+    questions: [
+      { q: 'Sem relógio dominante, você reconhece rapidamente o que pode fazer?', ref: '§11' },
+      { q: 'Hoje · Rezar · Proteção · Frutos são os quatro destinos certos (sem aba de Foco)?', ref: '§11' },
+      { q: 'O botão "Começar foco" e a navegação são confortáveis para uso com uma mão?', ref: '§11 §17' },
+      { q: 'Com o teclado aberto, o campo continua visível e a ação clara?', ref: '§16' },
+      { q: 'O resumo persistente da sessão é claro e não atrapalha a navegação?', ref: '§11' },
+      { q: 'Com texto 200% no celular estreito, nada é cortado e as ações continuam acessíveis?', ref: '§15 §16' },
+      { q: 'A faixa de foto no topo preserva a identidade sem prejudicar a leitura?', ref: '§8.2 §11' },
+    ],
+    onState(id) {
+      if (id === 'vazio') items = [];
+      else if (!items.length) items = DEFAULT.map((x) => ({ ...x }));
+      renderList();
+      if (['rezar', 'protecao', 'frutos'].includes(id)) setTab(id);
+      else if (['vazio', 'prioridades', 'teclado'].includes(id)) setTab('hoje');
+      else if (id === 'imersiva' && tab !== 'hoje') { /* mantém a aba de origem */ }
+
+      if (id === 'ativa' || id === 'imersiva') start(); else stop();
+      $('#miniState').textContent = id === 'pausada' ? 'Pausada' : 'Em foco';
+      $('#miniToggle').innerHTML = id === 'pausada' ? '<i class="ph-fill ph-play"></i>' : '<i class="ph-fill ph-pause"></i>';
+      $('#miniToggle').setAttribute('aria-label', id === 'pausada' ? 'Retomar' : 'Pausar');
+      $('#mini').style.background = id === 'pausada' ? 'var(--surface-2)' : '';
+      $('#mini').style.borderColor = id === 'pausada' ? 'rgba(236,199,122,.5)' : '';
+      renderTime();
+      if (id === 'teclado') setTimeout(() => { $('#addInput').focus(); $('#addRow').scrollIntoView({ block: 'end' }); }, 60);
+      if (id === 'imersiva') setTimeout(() => $('#immPause').focus(), 60);
+    },
+  });
+})();
+</script>
+</body>
+</html>

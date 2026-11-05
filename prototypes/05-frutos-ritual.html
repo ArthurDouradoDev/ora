@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Frutos e rituais</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  .shell { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .main { flex: 1; overflow: auto; }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 0.5rem 1.5rem 3rem; }
+  .head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  .head h1 { font-size: 2rem; font-weight: 600; flex: 1; }
+  .range { display: flex; align-items: center; gap: 0.25rem; }
+  .range span { min-width: 9rem; text-align: center; font-weight: 500; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  .panel { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.5rem; display: grid; gap: 1.25rem; }
+  .synth { font-family: var(--f-read); font-size: 1.375rem; line-height: 1.45; }
+  .synth b { font-weight: 600; }
+
+  .strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
+  .day { display: grid; grid-template-rows: 7rem auto auto; gap: 0.375rem; justify-items: center; }
+  .day .barbox { width: 100%; max-width: 3rem; border-radius: var(--r-sm); background: var(--surface-2); display: flex; align-items: flex-end; overflow: hidden; border: 1px solid transparent; }
+  .day .barbox span { display: block; width: 100%; background: linear-gradient(180deg, var(--gold-hover), var(--gold)); border-radius: var(--r-sm) var(--r-sm) 0 0; }
+  .day.none .barbox { background: transparent; border: 1px dashed var(--line-strong); }
+  .day .marks { display: flex; gap: 0.25rem; min-height: 0.75rem; }
+  .day .marks i { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--text-2); display: block; }
+  .day .marks i.ex { border-radius: 2px; background: var(--lit-roxo); }
+  .day .lbl { font-size: 0.75rem; color: var(--text-3); font-weight: 500; }
+  .day.today .lbl { color: var(--text); font-weight: 600; }
+  .month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.375rem; }
+  .month .h { font-size: 0.6875rem; color: var(--text-3); text-align: center; font-weight: 600; }
+  .month .c { aspect-ratio: 1; border-radius: var(--r-sm); display: grid; place-items: center; font-size: 0.75rem; color: var(--text-3); position: relative; }
+  .month .c.f1 { background: rgba(216,176,97,.18); color: var(--text-2); }
+  .month .c.f2 { background: rgba(216,176,97,.38); color: var(--text); }
+  .month .c.f3 { background: rgba(216,176,97,.6); color: var(--on-gold); }
+  .month .c.none { border: 1px dashed var(--line-strong); }
+  .month .c.fut { opacity: .35; }
+  .month .c.p::after { content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+  .legend { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.8125rem; color: var(--text-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .legend .sw { width: 0.75rem; height: 0.75rem; border-radius: 3px; display: inline-block; }
+  .measured { font-size: 0.875rem; color: var(--text-2); display: flex; gap: 0.625rem; align-items: flex-start; }
+  .measured i { color: var(--info); font-size: 1.125rem; margin-top: 0.1rem; }
+  details.usage summary { cursor: pointer; font-weight: 500; min-height: 2.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  details.usage table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-top: 0.5rem; }
+  details.usage th, details.usage td { text-align: left; padding: 0.5rem 0.375rem; border-bottom: 1px solid var(--line); }
+  details.usage th { color: var(--text-3); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  details.usage td.na { color: var(--text-3); font-style: italic; }
+  .past { display: grid; gap: 0.875rem; }
+  .past article { border-left: 2px solid var(--line-strong); padding-left: 0.875rem; }
+  .past article p { font-family: var(--f-read); color: var(--text-2); }
+
+  /* Rituais */
+  .ritual { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; background: var(--bg); }
+  .ritual .photo { opacity: .25; }
+  .ritual > *:not(.photo) { position: relative; }
+  .ritual-top { display: flex; align-items: center; padding: 1rem 1.25rem; gap: 1rem; }
+  .ritual-top .ttl { flex: 1; text-align: center; }
+  .ritual-top .ttl b { display: block; font-family: var(--f-brand); font-weight: 400; letter-spacing: 0.08em; }
+  .ritual-steps { display: flex; gap: 0.375rem; justify-content: center; margin-top: 0.375rem; }
+  .ritual-steps span { width: 2rem; height: 4px; border-radius: 4px; background: var(--surface-3); }
+  .ritual-steps span.on { background: var(--gold); }
+  .ritual-body { flex: 1; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: safe center; padding: 1.5rem; }
+  .ritual-card { width: min(36rem, 100%); display: grid; gap: 1.25rem; }
+  .ritual-card .q { font-family: var(--f-read); font-size: clamp(1.5rem, 4cqh, 2rem); line-height: 1.3; font-weight: 400; }
+  .ritual-card .help { color: var(--text-2); }
+  .ritual-card .textarea { min-height: 8rem; font-family: var(--f-read); font-size: 1.0625rem; background: rgba(0,0,0,.25); }
+  .ritual-card .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .choices { display: grid; gap: 0.5rem; }
+  .choice { display: flex; align-items: center; gap: 0.875rem; padding: 0.875rem 1rem; border-radius: var(--r-md); border: 1px solid var(--line-strong); cursor: pointer; background: rgba(0,0,0,.2); }
+  .choice input { width: 1.125rem; height: 1.125rem; accent-color: var(--gold); }
+  .choice:has(input:checked) { border-color: var(--text-2); background: var(--surface-2); }
+  .choice .m { margin-left: auto; color: var(--text-3); font-size: 0.875rem; }
+  .prayer-short { font-family: var(--f-read); font-size: 1.25rem; line-height: 1.7; text-align: center; color: var(--text); }
+  .prayer-short .resp { font-size: 1.0625rem; }
+
+  @container frame (max-width: 56rem) {
+    .cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="proto-stage"><div class="proto-frame" id="app">
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">ORA</a>
+      <nav class="nav" aria-label="Principal">
+        <a href="01-hoje-extensao.html"><i class="ph ph-sun-horizon" aria-hidden="true"></i>Hoje</a>
+        <a href="03-rezar.html"><i class="ph ph-hands-praying" aria-hidden="true"></i>Rezar</a>
+        <a href="05-frutos-ritual.html#frutos" aria-current="page"><i class="ph ph-plant" aria-hidden="true"></i>Frutos</a>
+      </nav>
+      <div class="right">
+        <a class="chip" href="04-protecao.html"><span class="dot"></span>Proteção ativa</a>
+        <a class="settings-btn" href="06-ritmo-novenas.html#configuracoes" aria-label="Configurações"><i class="ph ph-gear" aria-hidden="true"></i></a>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="wrap">
+        <div class="head">
+          <h1>Frutos</h1>
+          <div class="seg" role="group" aria-label="Período" id="periodSeg" data-note="Primeiro nível: o período." data-ref="§13.2">
+            <button aria-pressed="true" data-p="semana">Semana</button>
+            <button aria-pressed="false" data-p="mes">Mês</button>
+          </div>
+          <div class="range">
+            <button class="icon-btn" aria-label="Período anterior"><i class="ph ph-caret-left"></i></button>
+            <span id="rangeLabel">22 – 28 de outubro</span>
+            <button class="icon-btn" aria-label="Próximo período" disabled style="opacity:.35"><i class="ph ph-caret-right"></i></button>
+          </div>
+        </div>
+
+        <div class="cols">
+          <section class="panel" aria-labelledby="synthLabel" data-note="Segundo nível: síntese curta em frase, não quatro indicadores grandes." data-ref="§13.2">
+            <p class="label" id="synthLabel">Síntese</p>
+            <p class="synth" id="synth"></p>
+            <div id="chart" data-note="Dias sem registro têm tratamento neutro (tracejado), nunca vermelho. A legenda diz explicitamente o que isso significa." data-ref="§13.2 · §8.1"></div>
+            <div class="legend" id="legend">
+              <span><i class="sw" style="background:var(--gold)"></i>Minutos de foco</span>
+              <span><i class="sw" style="background:var(--text-2);border-radius:50%"></i>Terço ou oração</span>
+              <span><i class="sw" style="background:var(--lit-roxo)"></i>Exame da noite</span>
+              <span><i class="sw" style="border:1px dashed var(--text-3)"></i>Sem registro</span>
+            </div>
+            <p class="measured" data-note="Diferencia o que foi medido do que não foi." data-ref="§13.2"><i class="ph ph-info"></i><span>O Ora registra só o que acontece aqui: sessões de foco, orações abertas no app e exames. Um dia sem registro não diz nada sobre o seu dia.</span></p>
+            <details class="usage" data-note="Detalhes de uso ficam abaixo, em expansão." data-ref="§13.2">
+              <summary><i class="ph ph-caret-right"></i>Detalhes de uso</summary>
+              <table id="usage"></table>
+            </details>
+          </section>
+
+          <section class="panel" aria-labelledby="refLabel" data-note="Terceiro nível: uma pergunta de reflexão. Na extensão, ocupa a segunda coluna." data-ref="§13.2">
+            <p class="label" id="refLabel">Para refletir</p>
+            <p class="reflect" id="question">Em que momento desta semana você se sentiu mais presente?</p>
+            <label class="sr-only" for="refText">Sua reflexão</label>
+            <textarea class="textarea" id="refText" placeholder="Escreva com calma. Só você vê isso." style="font-family:var(--f-read);font-size:1.0625rem"></textarea>
+            <div class="row">
+              <button class="btn btn-aux" id="saveRef">Guardar</button>
+              <button class="btn btn-quiet" id="otherQ">Outra pergunta</button>
+              <span class="saved" id="savedRef" role="status"><i class="ph ph-check"></i>Guardado</span>
+            </div>
+            <div class="past" data-hide="frutos-vazio">
+              <p class="label" style="color:var(--text-3)">Semanas anteriores</p>
+              <article><span class="meta">15 – 21 out · O que pesou mais nesta semana?</span><p>A apresentação. Percebi que rezei melhor nos dias em que comecei cedo.</p></article>
+              <article><span class="meta">8 – 14 out · Por quem você rezou?</span><p>Pela minha avó, e pela equipe no dia da entrega.</p></article>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= RITUAL DA NOITE ================= -->
+  <div class="ritual" data-show="ritual-noite" role="dialog" aria-label="Encerrar o dia" data-note="Ritual noturno: aparência noturna mais suave, uma pergunta por etapa, pular e sair sempre disponíveis." data-ref="§13.4">
+    <div class="photo"></div>
+    <div class="ritual-top">
+      <button class="btn btn-quiet btn-sm" id="nExit"><i class="ph ph-x"></i>Sair</button>
+      <div class="ttl"><b>Encerrar o dia</b><div class="ritual-steps" id="nSteps"><span></span><span></span><span></span></div></div>
+      <span class="meta" id="nCount" style="min-width:4.5rem;text-align:right">1 de 3</span>
+    </div>
+    <div class="ritual-body"><div class="ritual-card" id="nCard" aria-live="polite"></div></div>
+  </div>
+
+  <!-- ================= RITUAL DA MANHÃ ================= -->
+  <div class="ritual" data-show="ritual-manha" role="dialog" aria-label="Começar o dia" data-note="Ritual matinal: prioridade, intenção opcional e começo. Não parece formulário obrigatório." data-ref="§13.4">
+    <div class="photo"></div>
+    <div class="ritual-top">
+      <button class="btn btn-quiet btn-sm" id="mExit"><i class="ph ph-x"></i>Agora não</button>
+      <div class="ttl"><b>Começar o dia</b><div class="ritual-steps" id="mSteps"><span></span><span></span><span></span></div></div>
+      <span class="meta" id="mCount" style="min-width:4.5rem;text-align:right">1 de 3</span>
+    </div>
+    <div class="ritual-body"><div class="ritual-card" id="mCard" aria-live="polite"></div></div>
+  </div>
+</div></div>
+
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const WEEK = [
+    { d: 'qui', n: 22, foco: 50, terco: true, exame: false, bloq: 3 },
+    { d: 'sex', n: 23, foco: 75, terco: true, exame: true, bloq: 5 },
+    { d: 'sáb', n: 24, none: true },
+    { d: 'dom', n: 25, foco: 0, terco: true, exame: false, bloq: 0 },
+    { d: 'seg', n: 26, foco: 50, terco: false, exame: true, bloq: 4 },
+    { d: 'ter', n: 27, none: true },
+    { d: 'qua', n: 28, foco: 50, terco: true, exame: true, bloq: 2, today: true },
+  ];
+  let period = 'semana';
+  const QUESTIONS = [
+    'Em que momento desta semana você se sentiu mais presente?',
+    'O que você quer levar desta semana para a próxima?',
+    'Por quem você rezou nestes dias?',
+    'Onde você percebeu a ação de Deus, mesmo pequena?',
+  ];
+  let qi = 0;
+
+  function renderChart(empty) {
+    if (period === 'semana') {
+      $('#rangeLabel').textContent = '22 – 28 de outubro';
+      const max = 90;
+      $('#chart').innerHTML = `<div class="strip" role="list" aria-label="Dias da semana">${WEEK.map((w) => {
+        const none = empty || w.none;
+        const label = none ? 'sem registro' : `${w.foco} min de foco${w.terco ? ', terço' : ''}${w.exame ? ', exame' : ''}`;
+        return `<div class="day ${none ? 'none' : ''} ${w.today ? 'today' : ''}" role="listitem" aria-label="${w.d} ${w.n}: ${label}" title="${label}">
+          <div class="barbox" style="height:7rem">${none ? '' : `<span style="height:${Math.max(2, (w.foco / max) * 100)}%"></span>`}</div>
+          <div class="marks">${none ? '' : `${w.terco ? '<i></i>' : ''}${w.exame ? '<i class="ex"></i>' : ''}`}</div>
+          <span class="lbl">${w.d} ${w.n}</span></div>`;
+      }).join('')}</div>`;
+    } else {
+      $('#rangeLabel').textContent = 'Outubro de 2026';
+      const heads = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'].map((h) => `<span class="h">${h}</span>`).join('');
+      let cells = '<span></span><span></span><span></span>'; // 1/out/2026 é quinta
+      const seed = [2, 1, 0, 3, 2, 2, -1, 1, 3, 2, 0, 2, 1, -1, 2, 2, 3, 1, 0, -1, 2, 1, 2, -1, 0, 2, -1, 2];
+      for (let d = 1; d <= 31; d++) {
+        if (d > 28) { cells += `<span class="c fut">${d}</span>`; continue; }
+        const v = empty ? -1 : seed[d - 1];
+        cells += `<span class="c ${v < 0 ? 'none' : v === 0 ? 'p' : 'f' + v + (d % 3 ? ' p' : '')}" title="${v < 0 ? 'sem registro' : v === 0 ? 'oração, sem foco' : v + ' sessões de foco'}">${d}</span>`;
+      }
+      $('#chart').innerHTML = `<div class="month" aria-label="Outubro">${heads}${cells}</div>`;
+    }
+  }
+  function renderSynth(empty) {
+    $('#synth').innerHTML = empty
+      ? 'Ainda não há registros nesta semana.<br><span class="meta" style="font-family:var(--f-ui);font-size:.9375rem">Eles aparecem quando você usa foco, terço ou exame no Ora. A pergunta ao lado continua valendo.</span>'
+      : period === 'semana'
+        ? 'Nesta semana: <b>9 sessões de foco</b> (3h45), <b>terço em 4 dias</b> e <b>3 exames</b> da noite.'
+        : 'Em outubro: <b>34 sessões de foco</b>, oração registrada em <b>22 dias</b>.';
+  }
+  function renderUsage(empty) {
+    const rows = WEEK.map((w) => (empty || w.none)
+      ? `<tr><td>${w.d} ${w.n}</td><td class="na" colspan="4">sem registro</td></tr>`
+      : `<tr><td>${w.d} ${w.n}</td><td class="tnum">${w.foco} min</td><td>${w.terco ? 'Sim' : '—'}</td><td>${w.exame ? 'Sim' : '—'}</td><td class="tnum">${w.bloq}</td></tr>`).join('');
+    $('#usage').innerHTML = `<thead><tr><th>Dia</th><th>Foco</th><th>Terço</th><th>Exame</th><th>Bloqueios</th></tr></thead><tbody>${rows}</tbody>`;
+  }
+  function renderFrutos() {
+    const empty = Proto.state === 'frutos-vazio';
+    renderSynth(empty); renderChart(empty); renderUsage(empty);
+  }
+  document.querySelectorAll('#periodSeg button').forEach((b) => b.onclick = () => {
+    period = b.dataset.p;
+    document.querySelectorAll('#periodSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderFrutos();
+  });
+  $('#saveRef').onclick = () => { const s = $('#savedRef'); s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 2000); };
+  $('#otherQ').onclick = () => { qi = (qi + 1) % QUESTIONS.length; $('#question').textContent = QUESTIONS[qi]; };
+
+  /* ---------- Ritual da noite ---------- */
+  const night = { step: 0, answers: ['', ''] };
+  const NIGHT = [
+    { q: 'Pelo que você agradece hoje?', help: 'Pode ser pequeno: uma conversa, um café, um trabalho bem feito.' },
+    { q: 'Onde você percebeu Deus hoje — e onde tropeçou?', help: 'Sem julgamento. Só olhar o dia com honestidade.' },
+  ];
+  function renderNight() {
+    const s = night.step;
+    document.querySelectorAll('#nSteps span').forEach((x, i) => x.classList.toggle('on', i <= Math.min(s, 2)));
+    $('#nCount').textContent = s < 3 ? `${s + 1} de 3` : '';
+    let html = '';
+    if (s < 2) {
+      html = `<p class="label">${s === 0 ? 'Gratidão' : 'Reflexão'}</p>
+        <p class="q">${NIGHT[s].q}</p><p class="help">${NIGHT[s].help}</p>
+        <label class="sr-only" for="nText">Resposta</label>
+        <textarea class="textarea" id="nText" placeholder="Escreva, se quiser.">${esc(night.answers[s])}</textarea>
+        <div class="actions"><button class="btn btn-primary btn-lg" id="nNext">Continuar</button><button class="btn btn-quiet" id="nSkip">Pular</button>${s > 0 ? '<span class="spacer"></span><button class="btn btn-quiet" id="nBack">Voltar</button>' : ''}</div>`;
+    } else if (s === 2) {
+      html = `<p class="label" style="text-align:center">Encerramento</p>
+        <div class="prayer-short">Em vossas mãos, Senhor,<br>entrego o meu espírito.<br><span class="resp">Vós nos remistes, Senhor, Deus fiel.</span><br><br>Protegei-nos, Senhor, enquanto velamos;<br>guardai-nos enquanto dormimos.</div>
+        <div class="banner info"><i class="ph ph-moon"></i><div>Redes sociais ficam bloqueadas até 7h. Bom descanso.</div></div>
+        <div class="actions" style="justify-content:center"><button class="btn btn-primary btn-lg" id="nNext">Encerrar o dia</button></div>`;
+    } else {
+      const g = night.answers[0].trim();
+      html = `<div style="text-align:center;display:grid;gap:1rem">
+        <p class="q">Boa noite, Arthur.</p>
+        ${g ? `<p class="help" style="font-family:var(--f-read);font-style:italic">Hoje você agradeceu por: ${esc(g)}</p>` : ''}
+        <div><a class="btn btn-aux" href="01-hoje-extensao.html#noite">Fechar</a></div></div>`;
+    }
+    $('#nCard').innerHTML = html;
+    const t = $('#nText');
+    t?.addEventListener('input', () => (night.answers[s] = t.value));
+    $('#nNext') && ($('#nNext').onclick = () => { night.step++; renderNight(); });
+    $('#nSkip') && ($('#nSkip').onclick = () => { night.step++; renderNight(); });
+    $('#nBack') && ($('#nBack').onclick = () => { night.step--; renderNight(); });
+    setTimeout(() => (t || $('#nNext') || $('#nCard a'))?.focus(), 30);
+  }
+  $('#nExit').onclick = () => { location.href = '01-hoje-extensao.html#noite'; };
+
+  /* ---------- Ritual da manhã ---------- */
+  const morning = { step: 0, prio: 'Preparar apresentação', intent: '' };
+  function renderMorning() {
+    const s = morning.step;
+    document.querySelectorAll('#mSteps span').forEach((x, i) => x.classList.toggle('on', i <= s));
+    $('#mCount').textContent = `${s + 1} de 3`;
+    let html = '';
+    if (s === 0) {
+      const opts = [['Preparar apresentação', '25 min'], ['Revisar capítulo 3', '50 min'], ['Enviar documento para a secretaria', '15 min']];
+      html = `<p class="label">Prioridade</p><p class="q">Qual é a coisa mais importante hoje?</p>
+        <div class="choices" role="radiogroup">${opts.map(([t, m]) => `<label class="choice"><input type="radio" name="prio" value="${t}" ${t === morning.prio ? 'checked' : ''}><span>${t}</span><span class="m">${m}</span></label>`).join('')}
+        <label class="choice"><input type="radio" name="prio" value="__outra"><input class="input" id="mOther" placeholder="Outra coisa…" style="min-height:2.25rem;border:0;background:none;padding:0"></label></div>
+        <div class="actions"><button class="btn btn-primary btn-lg" id="mNext">Continuar</button></div>`;
+    } else if (s === 1) {
+      html = `<p class="label">Intenção · opcional</p><p class="q">Quer oferecer o dia por alguém ou por algo?</p>
+        <label class="sr-only" for="mIntent">Intenção do dia</label><input class="input" id="mIntent" placeholder="Ex.: pela minha avó" value="${esc(morning.intent)}" style="font-family:var(--f-read);font-size:1.125rem;min-height:3.25rem">
+        <div class="actions"><button class="btn btn-primary btn-lg" id="mNext">Continuar</button><button class="btn btn-quiet" id="mSkip">Pular</button></div>`;
+    } else {
+      html = `<p class="label">Começo</p><p class="q">${esc(morning.prio)}</p>
+        ${morning.intent ? `<p class="help" style="font-family:var(--f-read);font-style:italic">Oferecendo o dia ${esc(morning.intent)}</p>` : ''}
+        <div class="actions"><a class="btn btn-primary btn-lg" href="01-hoje-extensao.html#preparacao"><i class="ph-fill ph-play"></i>Começar foco</a><a class="btn btn-aux" href="01-hoje-extensao.html#repouso">Ir para Hoje</a></div>`;
+    }
+    $('#mCard').innerHTML = html;
+    $('#mNext') && ($('#mNext').onclick = () => {
+      if (s === 0) {
+        const v = document.querySelector('input[name="prio"]:checked')?.value;
+        morning.prio = v === '__outra' ? ($('#mOther').value.trim() || 'Outra coisa') : v || morning.prio;
+      }
+      if (s === 1) morning.intent = $('#mIntent').value.trim();
+      morning.step++; renderMorning();
+    });
+    $('#mOther')?.addEventListener('focus', () => { document.querySelector('input[name="prio"][value="__outra"]').checked = true; });
+    $('#mSkip') && ($('#mSkip').onclick = () => { morning.step++; renderMorning(); });
+    setTimeout(() => ($('#mIntent') || $('#mNext') || $('#mCard a'))?.focus(), 30);
+  }
+  $('#mExit').onclick = () => { location.href = '01-hoje-extensao.html#repouso'; };
+
+  Proto.init({
+    id: 'frutos-ritual',
+    title: 'Frutos e rituais',
+    refs: '§13.2 §13.4 §15',
+    kind: 'extension',
+    photo: true,
+    initial: 'frutos',
+    states: [
+      { id: 'frutos', group: 'Frutos', label: 'Com registros', hint: 'Período → síntese → pergunta. Alterne Semana/Mês. Abra “Detalhes de uso”.' },
+      { id: 'frutos-vazio', group: 'Frutos', label: 'Sem registros', hint: 'Nada medido: tom neutro, explicação, e a reflexão continua disponível.' },
+      { id: 'ritual-manha', group: 'Rituais', label: 'Manhã', hint: 'Três passos curtos. O último leva direto ao foco.' },
+      { id: 'ritual-noite', group: 'Rituais', label: 'Noite', hint: 'Aparência noturna. Teste pular etapas e sair no meio.' },
+    ],
+    questions: [
+      { q: 'Frutos começa pelo que importa (síntese e reflexão) em vez de números?', ref: '§13.2' },
+      { q: 'Dias sem registro parecem neutros, não falhas?', ref: '§13.2 §8.1' },
+      { q: 'Fica claro o que o Ora mede e o que não mede?', ref: '§13.2' },
+      { q: 'A semana vazia ainda convida a usar a tela?', ref: '§15' },
+      { q: 'O ritual da manhã é leve o bastante para virar hábito?', ref: '§13.4' },
+      { q: 'O ritual da noite não parece formulário obrigatório?', ref: '§13.4' },
+      { q: 'A aparência noturna é suave e ainda legível?', ref: '§13.4 §8.4' },
+    ],
+    onState(id) {
+      if (id === 'ritual-noite') document.documentElement.dataset.theme = 'noite';
+      else delete document.documentElement.dataset.theme;
+      if (id === 'frutos' || id === 'frutos-vazio') renderFrutos();
+      if (id === 'ritual-noite') { night.step = 0; renderNight(); }
+      if (id === 'ritual-manha') { morning.step = 0; renderMorning(); }
+    },
+  });
+})();
+</script>
+</body>
+</html>

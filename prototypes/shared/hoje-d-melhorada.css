@@ -1,0 +1,54 @@
+/* D-Melhorada: composição de chegada; demais estados preservam a base D. */
+:is([data-state="repouso"], [data-state="repouso-vazio"], [data-state="tarefas"], [data-state="noite"], [data-state="falhas"]) .center { gap: 1.5rem; }
+.arrival { gap: .375rem; }
+.arrival .clock { font-size: clamp(3.5rem, 13cqh, 7rem); }
+.day { color: var(--text-2); }
+.center > .intent { margin-top: -.75rem; }
+.intent .line-input { border-bottom-color: var(--line); min-width: 0; width: min(22rem, 100%); }
+.intent .line-input:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+.next { width: min(28rem, 100%); padding: 1rem 1.5rem; }
+.next-title { overflow-wrap: anywhere; }
+/* Favoritos voltam ao eixo, com nomes em todas as larguras. */
+.center > .shortcuts { order: 3; position: static; justify-items: center; max-width: 100%; margin-top: -.25rem; }
+.shortcuts .row { justify-content: center; flex-wrap: wrap; gap: .5rem; }
+.shortcuts .sc, .shortcuts button.sc { font-size: .8125rem; gap: .5rem; padding: .45rem .75rem; min-height: 2.75rem; }
+.shortcuts .sc .fav { width: 1.375rem; height: 1.375rem; font-size: .6875rem; flex: none; }
+.shortcuts .sc:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.center > .invite { order: 4; margin-top: .125rem; max-width: 100%; flex-wrap: wrap; justify-content: center; color: var(--text-2); }
+.invite .txt { flex: 0 1 auto; }
+@container frame (max-height: 51rem) {
+  :is([data-state="repouso"], [data-state="repouso-vazio"], [data-state="tarefas"], [data-state="noite"], [data-state="falhas"]) .center { gap: 1rem; }
+  .center > .intent { margin-top: -.375rem; }
+  .next { padding: .875rem 1.25rem; }
+}
+@container frame (max-width: 54rem) {
+  .day { max-width: 28rem; }
+  .center { padding-inline: 1rem; }
+  .next { padding-inline: 1rem; }
+}
+/* Cabeçalho: vidro quente, com a ação principal ainda mais sólida. */
+.topbar .nav.surface-glass {
+  background: rgba(24, 20, 15, .58);
+  border-color: rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: none;
+}
+#protChip {
+  background: rgba(24, 20, 15, .24);
+  border-color: rgba(255, 255, 255, .09);
+  color: var(--text-2);
+  font-weight: 400;
+}
+#protChip:hover, #protChip[aria-expanded="true"] {
+  background: rgba(24, 20, 15, .58);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+#protChip:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+#protChip .dot { width: .4375rem; height: .4375rem; }
+#protChip .chip-long { display: inline; }
+#protPop { max-width: calc(100% - 2rem); }
+@supports not ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
+  .topbar .nav.surface-glass { background: rgba(24, 20, 15, .92); }
+}

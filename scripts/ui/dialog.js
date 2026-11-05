@@ -64,6 +64,9 @@ const DialogSystem = {
         const root = this.resolve(target);
         if (!root || this.state.stack.some(entry => entry.root === root)) return;
 
+        const covered = this.state.stack.some(entry => entry.inerted.includes(root));
+        if (covered) root.inert = false;
+
         // Tudo que é irmão do diálogo (ou de seus ancestrais) fica inerte
         const inerted = [];
         let node = root;
@@ -82,6 +85,7 @@ const DialogSystem = {
             root,
             opener: opener || document.activeElement,
             inerted,
+            covered,
             onClose
         });
 
@@ -97,9 +101,11 @@ const DialogSystem = {
         const index = this.state.stack.findIndex(entry => entry.root === root);
         if (index === -1) return;
 
+        while (this.state.stack.length > index + 1) this.close(this.top().root);
         const [entry] = this.state.stack.splice(index, 1);
         entry.root.hidden = true;
         entry.inerted.forEach(el => { el.inert = false; });
+        if (entry.covered) entry.root.inert = true;
 
         if (entry.opener && document.contains(entry.opener) && typeof entry.opener.focus === 'function') {
             entry.opener.focus({ preventScroll: true });
@@ -114,7 +120,7 @@ const DialogSystem = {
 
     focusables: function(container) {
         return Array.from(container.querySelectorAll(this.FOCUSABLE))
-            .filter(el => !el.hidden && el.offsetParent !== null);
+            .filter(el => !el.hidden && el.tabIndex >= 0 && el.offsetParent !== null);
     },
 
     trapTab: function(e, root) {

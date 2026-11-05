@@ -77,7 +77,7 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         check('paused focus is protected', await protectedNow());
         await page.evaluate(async () => { await FocusSystem.interrupt(); await FocusSystem.goHome(); });
         check('ended focus is clean', !await protectedNow());
-        await page.evaluate(() => { MusicSystem.state.activePlayer = 'youtube'; LeaveGuard.refresh(); });
+        await page.evaluate(() => { SoundSystem.active = { choice: { kind: 'playlist' } }; LeaveGuard.refresh(); });
         check('silent open player is clean', !await protectedNow());
         await page.evaluate(async () => {
             window.testAudio = new AudioContext();
@@ -86,12 +86,10 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         });
         await page.waitForFunction(() => LeaveGuard.audible, null, { timeout: 15000 }).catch(async error => { console.log(await page.evaluate(async () => ({ audio: testAudio.state, tab: await chrome.tabs.getCurrent(), guardTab: LeaveGuard.tabId }))); throw error; });
         check('music audio protects the tab', await protectedNow());
-        await page.evaluate(() => { MusicSystem.state.isPlayerMinimized = true; LeaveGuard.refresh(); });
-        check('minimizing does not remove audio protection', await protectedNow());
         await page.evaluate(async () => { testTone.stop(); await testAudio.close(); });
         await page.waitForFunction(() => !LeaveGuard.audible, null, { timeout: 15000 });
         check('paused or ended audio is clean', !await protectedNow());
-        await page.evaluate(() => { MusicSystem.stopPlayback(); LeaveGuard.refresh(); });
+        await page.evaluate(() => { SoundSystem.active = null; LeaveGuard.refresh(); });
         // Exercise the actual persistence hook with writes completing after newer typing.
         await page.evaluate(() => { document.getElementById('settings-modal').style.display = 'block'; });
         await page.locator('#settings-user-name').focus();

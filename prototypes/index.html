@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Protótipos</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  body { min-height: 100vh; }
+  .hero { position: relative; overflow: hidden; }
+  .hero .photo { position: absolute; background-image: linear-gradient(90deg, rgba(10,8,6,.9) 0%, rgba(10,8,6,.55) 60%, rgba(10,8,6,.35) 100%), var(--photo-url), var(--photo-fallback); }
+  .hero-in { position: relative; max-width: 68rem; margin: 0 auto; padding: 3.5rem 1.5rem 3rem; display: grid; gap: 1rem; }
+  .hero h1 { font-family: var(--f-read); font-weight: 400; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; max-width: 40rem; }
+  .hero p { max-width: 44rem; color: var(--text-2); font-size: 1.0625rem; }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; gap: 3rem; }
+  h2 { font-size: 1.375rem; margin-bottom: 1rem; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; counter-reset: s; }
+  .step { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.25rem; display: grid; gap: 0.5rem; align-content: start; }
+  .step::before { counter-increment: s; content: counter(s); width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--gold); color: var(--on-gold); display: grid; place-items: center; font-weight: 700; font-size: 0.875rem; }
+  .step b { font-weight: 600; }
+  .step p { color: var(--text-2); font-size: 0.9rem; }
+  .sets { display: grid; gap: 1rem; }
+  .set { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: 1.25rem; align-items: start; background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.25rem 1.5rem; }
+  .set .num { font-family: var(--f-read); font-size: 2rem; color: var(--gold); line-height: 1; }
+  .set h3 { font-size: 1.125rem; }
+  .set h3 a { text-decoration: none; }
+  .set h3 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .set .desc { color: var(--text-2); margin: 0.25rem 0 0.75rem; }
+  .set .refs { color: var(--text-3); font-size: 0.8125rem; }
+  .links { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+  .links a { font-size: 0.8125rem; padding: 0.3rem 0.7rem; border-radius: 999px; border: 1px solid var(--line-strong); text-decoration: none; color: var(--text-2); }
+  .links a:hover { color: var(--text); border-color: var(--text-3); }
+  .prog { text-align: right; display: grid; gap: 0.5rem; justify-items: end; min-width: 8rem; }
+  .prog .bar { width: 8rem; height: 6px; border-radius: 6px; background: var(--surface-3); overflow: hidden; }
+  .prog .bar span { display: block; height: 100%; background: var(--ok); }
+  .phase { margin: 0.5rem 0 -0.25rem; }
+  .checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 0.5rem 1.5rem; }
+  .check { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .check input { width: 1.125rem; height: 1.125rem; accent-color: var(--gold); margin-top: 0.2rem; }
+  .check span { display: grid; gap: 0.125rem; }
+  .check small { color: var(--text-3); font-size: 0.8125rem; }
+  .kbd-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 0.5rem 1.5rem; color: var(--text-2); }
+  .notes { color: var(--text-2); display: grid; gap: 0.5rem; padding-left: 1.1rem; margin: 0; }
+  .export { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+  @media (max-width: 640px) { .set { grid-template-columns: 1fr; } .prog { justify-items: start; text-align: left; } }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="photo"></div>
+    <div class="hero-in">
+      <span class="brand">ORA</span>
+      <h1>Protótipos da nova interface</h1>
+      <p>Telas navegáveis para validar a direção “Paisagem com espaço de trabalho” descrita em <code>ANALISE_INTERFACE_ORA.md</code>: hierarquia por estado, controles previsíveis, superfícies com função, leitura confortável e um layout próprio para o celular.</p>
+      <p class="meta">Protótipos isolados: não alteram a extensão nem leem os dados dela. Conteúdo realista, mas fictício, no cenário de quarta-feira, 28/10, às 14h22.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>Como validar</h2>
+      <div class="steps">
+        <div class="step"><b>Siga a ordem do §16</b><p>Os conjuntos 1 a 5 vêm primeiro. A fase 2 só faz sentido depois de aprovar os componentes base.</p></div>
+        <div class="step"><b>Percorra os estados</b><p>A barra de protótipo (canto inferior) troca o estado da tela. Os fluxos também funcionam clicando nos próprios botões.</p></div>
+        <div class="step"><b>Teste as condições</b><p>Na mesma barra: janela pequena, texto 200%, movimento reduzido e foto indisponível. Ative “Notas de design” para ver a intenção de cada elemento.</p></div>
+        <div class="step"><b>Registre e exporte</b><p>“Validar esta tela” abre perguntas e um campo por estado. Tudo fica neste navegador; exporte em Markdown aqui embaixo.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Conjuntos</h2>
+      <div class="sets" id="sets"></div>
+    </section>
+
+    <section>
+      <h2>Condições de validação <span class="meta" style="font-weight:400">(§12.2 e §16)</span></h2>
+      <div class="checks" id="checks"></div>
+    </section>
+
+    <section>
+      <h2>Exportar respostas</h2>
+      <div class="export">
+        <button class="btn btn-primary" id="dl"><i class="ph ph-download-simple"></i>Baixar validação (.md)</button>
+        <button class="btn btn-aux" id="cp">Copiar Markdown</button>
+        <span class="spacer"></span>
+        <button class="btn btn-quiet" id="reset" style="color:var(--err)">Apagar respostas</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Atalhos</h2>
+      <div class="kbd-list">
+        <span><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> estado anterior / seguinte</span>
+        <span><kbd>Alt</kbd> + <kbd>N</kbd> notas de design</span>
+        <span><kbd>Alt</kbd> + <kbd>V</kbd> painel de validação</span>
+        <span><kbd>Alt</kbd> + <kbd>P</kbd> recolher a barra</span>
+        <span><kbd>←</kbd> <kbd>→</kbd> <kbd>espaço</kbd> no terço e no Respiro</span>
+        <span><kbd>Esc</kbd> fecha painéis e diálogos</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Limites destes protótipos</h2>
+      <ul class="notes">
+        <li>Textos bíblicos em tradução do protótipo; orações e mistérios vêm de <code>data/prayers.json</code> e <code>data/rosary.json</code>.</li>
+        <li>Fontes e ícones são carregados da internet (Google Fonts, Phosphor). Sem conexão, entram fontes de reserva.</li>
+        <li>Diálogos nativos (<code>confirm</code>, <code>prompt</code>) no mobile substituem folhas que ainda precisam de desenho.</li>
+        <li>O contraste sobre fotografia não é medido automaticamente: confira com imagens reais do <code>backgrounds.json</code>.</li>
+      </ul>
+    </section>
+  </main>
+
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const SETS = [
+    { n: '0', id: 'sistema', file: '00-sistema.html', title: 'Sistema visual', desc: 'Cores em três papéis, tipografia por função, controles, superfícies, estados e contraste medido.', refs: '§5 §6 §7 §8 §15', states: [['cores-tipo', 'Cores e tipo'], ['controles', 'Controles'], ['estados', 'Estados'], ['contraste', 'Contraste']] },
+    { n: '1', id: 'hoje-extensao', file: '01-hoje-extensao.html', title: 'Hoje na extensão', desc: 'Chegada contemplativa, próximo passo, intenção do dia × da sessão, tarefas integradas e o fluxo completo de foco.', refs: '§4 §5 §10 §12', states: [['repouso-vazio', 'Vazio'], ['repouso', 'Prioridades'], ['tarefas', 'Tarefas'], ['preparacao', 'Preparar'], ['ativa', 'Ativa'], ['pausada', 'Pausada'], ['concluida', 'Concluída'], ['noite', 'Noite'], ['falhas', 'Erros']] },
+    { n: '1a', id: 'hoje-recolhida', file: '01a-hoje-recolhida.html', title: 'Hoje · A · Recolhida', desc: 'Cópia de composição: centro mínimo, próximo passo em uma linha sem cartão, convite no canto, frase centralizada.', refs: '§4.1', states: [['repouso-vazio', 'Vazio'], ['repouso', 'Prioridades'], ['tarefas', 'Tarefas'], ['noite', 'Noite']] },
+    { n: '1c', id: 'hoje-assimetrica', file: '01c-hoje-assimetrica.html', title: 'Hoje · C · Assimétrica', desc: 'Cópia de composição: coluna alinhada à esquerda no terço inferior, deixando o centro da foto livre.', refs: '§4.1 §4.3', states: [['repouso-vazio', 'Vazio'], ['repouso', 'Prioridades'], ['tarefas', 'Tarefas'], ['noite', 'Noite']] },
+    { n: '1d', id: 'hoje-eixo', file: '01d-hoje-eixo.html', title: 'Hoje · D · Eixo', desc: 'Cópia de composição: três grupos no centro, como a tela noturna. Cartão do próximo passo mantido; atalhos no alto; intenção como linha da chegada; convite em uma linha.', refs: '§4.1 §6', states: [['repouso-vazio', 'Vazio'], ['repouso', 'Prioridades'], ['tarefas', 'Tarefas'], ['noite', 'Noite']] },
+    { n: '1d+', id: 'hoje-d-melhorada', file: '01d-hoje-melhorada.html', title: 'Hoje · D-Melhorada', desc: 'Cartão de foco destacado, intenção integrada à chegada e favoritos com nomes abaixo da ação principal.', refs: '§4 §5 §10', states: [['repouso', 'Prioridades'], ['repouso-vazio', 'Vazio'], ['tarefas', 'Tarefas'], ['noite', 'Noite']] },
+    { n: '1e', id: 'hoje-assimetrica-cartao', file: '01e-hoje-assimetrica-cartao.html', title: 'Hoje · E · Assimétrica com cartão', desc: 'Cópia de composição: coluna à esquerda da C com o cartão do próximo passo e a mesma distribuição da D.', refs: '§4.1 §4.3 §6', states: [['repouso-vazio', 'Vazio'], ['repouso', 'Prioridades'], ['tarefas', 'Tarefas'], ['noite', 'Noite']] },
+    { n: '2', id: 'hoje-mobile', file: '02-hoje-mobile.html', title: 'Hoje no mobile', desc: 'Quatro destinos fixos, AGORA / PARA HOJE / EVANGELHO, teclado aberto, resumo persistente e sessão imersiva.', refs: '§11 §15', states: [['vazio', 'Vazio'], ['prioridades', 'Prioridades'], ['teclado', 'Teclado'], ['imersiva', 'Imersiva'], ['ativa', 'Resumo'], ['pausada', 'Pausada'], ['rezar', 'Rezar'], ['protecao', 'Proteção'], ['frutos', 'Frutos']] },
+    { n: '3', id: 'rezar', file: '03-rezar.html', title: 'Leitor e terço', desc: 'Biblioteca pesquisável, leitor com texto curto, longo e retomada, Evangelho indisponível, Lectio, terço e Respiro.', refs: '§7 §12 §13.1 §13.6', states: [['biblioteca', 'Biblioteca'], ['retomada', 'Retomada'], ['leitor-curto', 'Curto'], ['leitor-longo', 'Longo'], ['evangelho-indisponivel', 'Indisponível'], ['lectio', 'Lectio'], ['terco-preparacao', 'Terço · preparar'], ['terco-oracao', 'Terço · rezar'], ['respiro', 'Respiro']] },
+    { n: '3a', id: 'rezar-melhorada', file: '03a-rezar-melhorada.html', title: 'Rezar · versão revisada', desc: 'Entrada compacta, Biblioteca separada, busca por categoria sem acentos, favoritos pessoais, retomada real, leitor adaptável e três formas de Respiro.', refs: 'Revisão UX/UI · 30/10', states: [['rezar', 'Rezar'], ['biblioteca', 'Biblioteca'], ['leitor-longo', 'Leitura longa'], ['lectio', 'Lectio'], ['terco-preparacao', 'Terço'], ['respiro', 'Respiro']] },
+    { n: '3b', id: 'rezar-arte', file: '03b-rezar-arte.html', title: 'Rezar · arte e recolhimento', desc: 'Hierarquia editorial, Evangelho ilustrado, santos com frase opcional e fonte, pintura e mosaico comparáveis, retomada discreta e favoritas pela Biblioteca.', refs: 'Direção artística · pintura / mosaico', states: [['rezar', 'Rezar'], ['biblioteca', 'Biblioteca'], ['leitor-evangelho', 'Evangelho'], ['lectio', 'Lectio'], ['terco-preparacao', 'Terço'], ['respiro', 'Respiro']] },
+    { n: '3c', id: 'rezar-prioridades', file: '03c-rezar-prioridades.html', title: 'Rezar · oração ao alcance', desc: 'Favoritos antes do conteúdo do dia, ações explícitas no Evangelho, práticas acessíveis e santo com destaque secundário.', refs: 'Direção artística · pintura / mosaico', states: [['rezar', 'Rezar'], ['biblioteca', 'Biblioteca'], ['leitor-evangelho', 'Evangelho'], ['lectio', 'Lectio'], ['terco-preparacao', 'Terço'], ['respiro', 'Respiro']] },
+    { n: '4', id: 'protecao', file: '04-protecao.html', title: 'Proteção', desc: 'Resumo por perfil, edição com consequência antes de salvar, ativa / pausada / sem permissão e as telas de interceptação.', refs: '§12 §14 §15', states: [['configuracao', 'Configuração'], ['editar', 'Editar'], ['ativa-foco', 'Em foco'], ['pausada', 'Pausada'], ['sem-permissao', 'Sem permissão'], ['bloqueio-foco', 'Bloqueio'], ['acesso-temporario', 'Acesso temporário'], ['ios-shield', 'iPhone']] },
+    { n: '5', id: 'frutos-ritual', file: '05-frutos-ritual.html', title: 'Frutos e rituais', desc: 'Período, síntese e reflexão, com e sem registros; rituais da manhã e da noite.', refs: '§13.2 §13.4', states: [['frutos', 'Com registros'], ['frutos-vazio', 'Sem registros'], ['ritual-manha', 'Manhã'], ['ritual-noite', 'Noite']] },
+    { n: '6', id: 'ritmo-novenas', file: '06-ritmo-novenas.html', phase: true, title: 'Fase 2 — ritmo, novena, exame, companheiro', desc: 'Construída sobre os componentes dos conjuntos 1–5. Inclui Configurações reorganizadas.', refs: '§12 §13.3 §13.5 §13.7', states: [['ritmo', 'Meu ritmo'], ['ritmo-modelo', 'Modelo'], ['novena', 'Novena'], ['exame', 'Exame'], ['companheiro', 'Companheiro'], ['configuracoes', 'Configurações']] },
+  ];
+  const QCOUNT = { sistema: 5, 'hoje-extensao': 9, 'hoje-recolhida': 9, 'hoje-assimetrica': 9, 'hoje-d-melhorada': 9, 'hoje-eixo': 9, 'hoje-assimetrica-cartao': 9, 'hoje-mobile': 7, rezar: 9, 'rezar-melhorada': 9, 'rezar-arte': 11, protecao: 8, 'frutos-ritual': 7, 'ritmo-novenas': 8 };
+
+  function render() {
+    const data = Proto.store.read();
+    $('#sets').innerHTML = SETS.map((s) => {
+      const p = data.pages[s.id] || {};
+      const total = (p.questions || []).length || QCOUNT[s.id];
+      const done = Object.values(p.answers || {}).filter((a) => a && a.v).length;
+      return `${s.phase ? '<p class="label phase">Depois de aprovar a base</p>' : ''}
+      <article class="set">
+        <span class="num">${s.n}</span>
+        <div>
+          <h3><a href="${s.file}">${s.title}</a></h3>
+          <p class="desc">${s.desc}</p>
+          <div class="links">${s.states.map(([id, l]) => `<a href="${s.file}#${id}">${l}</a>`).join('')}</div>
+        </div>
+        <div class="prog"><span class="refs">${s.refs}</span><div class="bar"><span style="width:${total ? (100 * done / total) : 0}%"></span></div><span class="meta">${done} de ${total} respondidas</span><a class="btn btn-aux btn-sm" href="${s.file}">Abrir</a></div>
+      </article>`;
+    }).join('');
+
+    const CHECKS = [
+      ['Janela pequena de notebook', 'Barra › Janela 1024×640 e 800×600 em Hoje, Rezar e Proteção.'],
+      ['Zoom de 200%', 'Barra › Texto 200% em todas as telas; nada essencial cortado.'],
+      ['Celular estreito', 'Hoje mobile › Celular estreito 360×740, com texto 150% e 200%.'],
+      ['Nomes longos', 'Adicione uma tarefa com título longo em Hoje e no mobile.'],
+      ['Uso por teclado', 'Tab e Shift+Tab por Hoje, terço (← →) e diálogos (Esc devolve o foco).'],
+      ['Leitura prolongada', 'Leitor › Texto longo por alguns minutos, nas aparências Escuro e Papel.'],
+      ['Movimento reduzido', 'Barra › Movimento reduzido: trocas de estado sem animação.'],
+      ['Foto indisponível', 'Barra › Foto indisponível: o fundo local de reserva mantém a atmosfera.'],
+      ['Vazio, indisponível e erro', 'Estados “Sem tarefas”, “Evangelho indisponível”, “Sem permissão” e “Falha ao salvar”.'],
+    ];
+    const checked = data.prefs?.checks || {};
+    $('#checks').innerHTML = CHECKS.map(([t, d], i) => `<label class="check"><input type="checkbox" data-c="${i}" ${checked[i] ? 'checked' : ''}><span><b style="font-weight:500">${t}</b><small>${d}</small></span></label>`).join('');
+    $('#checks').querySelectorAll('input').forEach((c) => c.onchange = () => {
+      const d = Proto.store.read(); d.prefs = d.prefs || {}; d.prefs.checks = d.prefs.checks || {};
+      d.prefs.checks[c.dataset.c] = c.checked; Proto.store.write(d);
+    });
+  }
+  $('#dl').onclick = () => Proto.download();
+  $('#cp').onclick = () => Proto.copy();
+  $('#reset').onclick = () => {
+    if (!confirm('Apagar todas as respostas e observações salvas neste navegador?')) return;
+    const d = Proto.store.read();
+    Object.values(d.pages).forEach((p) => { p.answers = {}; p.stateNotes = {}; });
+    if (d.prefs) d.prefs.checks = {};
+    Proto.store.write(d); render();
+  };
+  render();
+  addEventListener('pageshow', render);
+})();
+</script>
+</body>
+</html>

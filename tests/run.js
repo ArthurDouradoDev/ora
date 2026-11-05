@@ -23,6 +23,7 @@ const FILES = [
     'scripts/shared/counter-core.js',
     'scripts/shared/migrate-core.js',
     'scripts/shared/today-core.js',
+    'scripts/shared/sound-core.js',
     'scripts/shared/reminders-core.js',
     'scripts/shared/search-core.js',
     'scripts/shared/reader-core.js',

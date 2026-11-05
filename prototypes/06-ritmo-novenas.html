@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Ritmo, novenas e mais</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  .shell { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .main { flex: 1; overflow: auto; }
+  .wrap { max-width: 50rem; margin: 0 auto; padding: 0.5rem 1.5rem 3rem; display: grid; gap: 1.5rem; }
+  .wrap h1 { font-size: 2rem; font-weight: 600; }
+  .card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.25rem; }
+
+  /* Meu ritmo */
+  .moment { display: grid; gap: 0.5rem; }
+  .moment > .label { margin-left: 0.25rem; }
+  .ritem { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; padding: 0.875rem 1rem; border-bottom: 1px solid var(--line); }
+  .ritem:last-child { border-bottom: 0; }
+  .ritem .ic { width: 2.5rem; height: 2.5rem; border-radius: var(--r-md); background: var(--surface-2); display: grid; place-items: center; font-size: 1.25rem; color: var(--text-2); }
+  .ritem b { font-weight: 600; }
+  .ritem .when { color: var(--text-2); font-size: 0.875rem; }
+  .does { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 999px; background: var(--surface-2); color: var(--text-2); white-space: nowrap; }
+  .does.prot { background: var(--info-bg); color: var(--info); }
+  .list-card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); }
+  .tpl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.75rem; }
+  .tpl { text-align: left; padding: 1rem 1.125rem; border-radius: var(--r-lg); border: 1px solid var(--line-strong); background: var(--surface-1); cursor: pointer; display: grid; gap: 0.25rem; }
+  .tpl[aria-pressed="true"] { border-color: var(--text); background: var(--surface-2); }
+  .tpl b { font-family: var(--f-read); font-weight: 500; font-size: 1.125rem; }
+  .diff { display: grid; gap: 0.5rem; }
+  .diff label { display: grid; grid-template-columns: auto 1fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem 0.875rem; border-radius: var(--r-md); border: 1px solid var(--line); cursor: pointer; }
+  .diff input { width: 1.125rem; height: 1.125rem; accent-color: var(--gold); }
+
+  /* Novena */
+  .novena-head { display: grid; gap: 0.375rem; }
+  .novena-head h1 { font-family: var(--f-read); font-weight: 500; font-size: 2rem; }
+  .ndays { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .nday { width: 3rem; display: grid; gap: 0.25rem; justify-items: center; font-size: 0.75rem; color: var(--text-3); }
+  .nday i { width: 2.25rem; height: 2.25rem; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 600; font-size: 0.875rem; border: 1px solid var(--line-strong); color: var(--text-2); }
+  .nday.done i { background: rgba(216,176,97,.25); border-color: transparent; color: var(--text); }
+  .nday.miss i { border-style: dashed; color: var(--text-3); }
+  .nday.today i { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .nday.fut i { opacity: .45; }
+  .commit { border: 1px solid rgba(156,195,238,.3); background: var(--info-bg); border-radius: var(--r-lg); padding: 1rem 1.125rem; display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; }
+  .commit .ic { font-size: 1.5rem; color: var(--info); }
+  .commit .tech { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 0.8125rem; color: var(--text-2); }
+
+  /* Exame */
+  .exam { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; background: var(--bg); }
+  .exam-top { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; }
+  .exam-top .mid { flex: 1; text-align: center; }
+  .exam-prog { display: flex; gap: 0.375rem; justify-content: center; margin-top: 0.375rem; }
+  .exam-prog span { width: 1.75rem; height: 4px; border-radius: 4px; background: var(--surface-3); }
+  .exam-prog span.on { background: var(--gold); }
+  .exam-body { flex: 1; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: safe center; padding: 1.5rem; }
+  .exam-card { width: min(36rem, 100%); display: grid; gap: 1.25rem; }
+  .exam-card .q { font-family: var(--f-read); font-size: clamp(1.5rem, 4cqh, 2rem); line-height: 1.3; }
+  .exam-nav { display: flex; gap: 0.5rem; align-items: center; padding: 1rem 1.25rem 1.5rem; border-top: 1px solid var(--line); max-width: 40rem; width: 100%; margin: 0 auto; }
+
+  /* Companheiro */
+  .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .mock { border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--line); position: relative; min-height: 15rem; display: grid; place-items: center; padding: 1.5rem; text-align: center; }
+  .mock .photo { filter: brightness(.45); }
+  .mock > *:not(.photo) { position: relative; }
+  .mock .bubble { display: flex; gap: 0.75rem; align-items: center; text-align: left; max-width: 22rem; padding: 0.75rem 1rem; border-radius: var(--r-md); }
+  .mock .bubble p { font-family: var(--f-read); font-style: italic; color: var(--text-2); font-size: 0.9375rem; }
+  .rules li { color: var(--text-2); margin-bottom: 0.375rem; }
+
+  /* Configurações */
+  .settings { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 2rem; max-width: 62rem; margin: 0 auto; padding: 0.5rem 1.5rem 3rem; }
+  .snav { display: grid; gap: 0.125rem; align-content: start; position: sticky; top: 0; }
+  .snav button { text-align: left; padding: 0.625rem 0.875rem; border-radius: var(--r-md); border: 0; background: none; cursor: pointer; color: var(--text-2); font-weight: 500; display: flex; gap: 0.625rem; align-items: center; }
+  .snav button[aria-current="true"] { background: var(--surface-2); color: var(--text); }
+  .sgroup { display: grid; gap: 0.25rem; }
+  .sgroup h2 { font-size: 1.375rem; margin-bottom: 0.75rem; }
+  .srow { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+  .srow .tx { display: grid; gap: 0.125rem; }
+  .srow .tx span { color: var(--text-3); font-size: 0.875rem; }
+  .srow .ctl { display: flex; align-items: center; gap: 0.75rem; justify-content: flex-end; }
+
+  @container frame (max-width: 54rem) {
+    .settings { grid-template-columns: 1fr; }
+    .snav { position: static; grid-auto-flow: column; overflow-x: auto; }
+    .comp-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="proto-stage"><div class="proto-frame" id="app">
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">ORA</a>
+      <nav class="nav" aria-label="Principal">
+        <a href="01-hoje-extensao.html"><i class="ph ph-sun-horizon" aria-hidden="true"></i>Hoje</a>
+        <a href="03-rezar.html" id="navRezar"><i class="ph ph-hands-praying" aria-hidden="true"></i>Rezar</a>
+        <a href="05-frutos-ritual.html"><i class="ph ph-plant" aria-hidden="true"></i>Frutos</a>
+      </nav>
+      <div class="right">
+        <a class="chip" href="04-protecao.html"><span class="dot"></span>Proteção ativa</a>
+        <a class="settings-btn" href="#configuracoes" data-goto="configuracoes" aria-label="Configurações"><i class="ph ph-gear" aria-hidden="true"></i></a>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- ================= MEU RITMO ================= -->
+      <div class="wrap" data-show="ritmo">
+        <div class="row wrap"><h1 style="flex:1">Meu ritmo</h1><button class="btn btn-aux" data-goto="ritmo-modelo"><i class="ph ph-sparkle"></i>Começar de um modelo</button></div>
+        <p class="meta" style="margin-top:-1rem">O que você quer viver ao longo do dia — e o que o Ora faz para ajudar.</p>
+        <div class="moment" data-note="Regra de vida organizada por momentos do dia, não por recurso técnico." data-ref="§13.3">
+          <span class="label">Ao começar</span>
+          <div class="list-card">
+            <div class="ritem"><span class="ic"><i class="ph ph-sun-horizon"></i></span><div><b>Oferecimento do dia</b><div class="when">Sem horário fixo · na primeira aba do dia</div></div><span class="does"><i class="ph ph-lightbulb"></i>Sugerir</span></div>
+          </div>
+        </div>
+        <div class="moment">
+          <span class="label">Durante o dia</span>
+          <div class="list-card" data-note="Cada item diz quando acontece e o que o Ora fará: lembrar, sugerir ou aplicar proteção." data-ref="§13.3">
+            <div class="ritem"><span class="ic"><i class="ph ph-target"></i></span><div><b>Foco</b><div class="when">Dias úteis · blocos de 50 min</div></div><span class="does prot"><i class="ph ph-shield-check"></i>Aplicar proteção</span></div>
+            <div class="ritem"><span class="ic"><i class="ph ph-bell-simple"></i></span><div><b>Angelus</b><div class="when">Próximo de 12h</div></div><span class="does"><i class="ph ph-bell"></i>Lembrar</span></div>
+            <div class="ritem"><span class="ic"><i class="ph ph-circles-four"></i></span><div><b>Terço da Misericórdia</b><div class="when">15h · dias úteis</div></div><span class="does"><i class="ph ph-bell"></i>Lembrar</span></div>
+          </div>
+        </div>
+        <div class="moment">
+          <span class="label">Ao encerrar</span>
+          <div class="list-card">
+            <div class="ritem"><span class="ic"><i class="ph ph-moon-stars"></i></span><div><b>Exame breve</b><div class="when">Convite à noite, depois das 21h</div></div><span class="does"><i class="ph ph-lightbulb"></i>Sugerir</span></div>
+            <div class="ritem"><span class="ic"><i class="ph ph-shield-check"></i></span><div><b>Redes sociais descansam</b><div class="when">22h às 7h</div></div><span class="does prot"><i class="ph ph-shield-check"></i>Aplicar proteção</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= MODELO ================= -->
+      <div class="wrap" data-show="ritmo-modelo">
+        <div><button class="btn btn-quiet btn-sm" data-goto="ritmo" style="margin-left:-.75rem"><i class="ph ph-arrow-left"></i>Meu ritmo</button><h1 style="margin-top:.5rem">Começar de um modelo</h1><p class="meta">Modelos inspirados em santos. Tudo é editável depois.</p></div>
+        <div class="tpl-grid" id="tpls" role="group" aria-label="Modelos"></div>
+        <section class="card stack" data-note="Antes de ativar, mostrar as consequências — especialmente o que muda no bloqueio." data-ref="§13.3">
+          <p class="label">O que muda no seu ritmo</p>
+          <div class="diff" id="diff"></div>
+          <div class="banner info" id="protWarn"><i class="ph ph-shield-check"></i><div><strong>Isso altera a Proteção.</strong><span id="protWarnText"></span></div></div>
+          <div class="row wrap"><button class="btn btn-primary" id="applyTpl">Aplicar selecionados</button><button class="btn btn-quiet" data-goto="ritmo">Cancelar</button></div>
+        </section>
+      </div>
+
+      <!-- ================= NOVENA ================= -->
+      <div class="wrap" data-show="novena">
+        <div class="novena-head" data-note="Primeiro: dia e nome da novena. Depois, a oração do dia." data-ref="§13.5">
+          <p class="label">Novena · dia 5 de 9</p>
+          <h1>Novena pelas almas</h1>
+          <p class="meta">24 de outubro a 1º de novembro · termina na véspera de Finados</p>
+        </div>
+        <div class="ndays" aria-label="Dias da novena" data-note="Dias não registrados ficam neutros (tracejado), nunca vermelhos." data-ref="§13.5">
+          <span class="nday done"><i>1</i>sáb</span><span class="nday done"><i>2</i>dom</span><span class="nday done"><i>3</i>seg</span><span class="nday miss"><i>4</i>não reg.</span><span class="nday today"><i>5</i>hoje</span><span class="nday fut"><i>6</i></span><span class="nday fut"><i>7</i></span><span class="nday fut"><i>8</i></span><span class="nday fut"><i>9</i></span>
+        </div>
+        <section class="card stack" style="--gap:1rem">
+          <p class="label">Oração do 5º dia</p>
+          <div class="read-col" style="max-width:none">
+            <p>Senhor, nosso Deus, vida dos que em vós esperam, lembrai-vos das almas que partiram marcadas com o sinal da fé. Purificai-as na vossa misericórdia e concedei-lhes a luz que não se apaga.</p>
+            <p>Acolhei hoje, de modo especial, aquelas de quem ninguém mais se lembra. Por Cristo, nosso Senhor. Amém.</p>
+            <p>Dai-lhes, Senhor, o descanso eterno.<br><span class="resp">E brilhe para elas a vossa luz.</span></p>
+          </div>
+          <div class="row wrap"><button class="btn btn-primary" id="prayed">Rezei hoje</button><button class="btn btn-quiet" id="adjust">Ajustar datas</button><span class="saved" id="prayedOk"><i class="ph ph-check"></i>Registrado</span></div>
+        </section>
+        <div class="banner" style="background:var(--surface-1)"><i class="ph ph-arrow-counter-clockwise" style="color:var(--text-2)"></i><div><strong>Ontem não foi registrado.</strong>Você pode rezar a oração do 4º dia agora, continuar normalmente ou recomeçar a novena.<div class="actions"><button class="btn btn-aux btn-sm">Rezar o 4º dia</button><button class="btn btn-quiet btn-sm">Continuar do 5º</button></div></div></div>
+
+        <div class="commit" data-note="Compromisso digital separado e concreto, com aparência de configuração — não se confunde com a progressão espiritual." data-ref="§13.5">
+          <i class="ph ph-shield-check ic"></i>
+          <div><b>Compromisso digital desta novena</b><div class="meta">Redes sociais bloqueadas entre 22h e 7h</div><div class="tech">ativo · até 01/11 07:00 · perfil “Redes sociais”</div></div>
+          <a class="btn btn-aux btn-sm" href="04-protecao.html#editar">Ajustar</a>
+        </div>
+      </div>
+
+      <!-- ================= COMPANHEIRO ================= -->
+      <div class="wrap" data-show="companheiro" style="max-width:62rem">
+        <div><h1>Companheiro e santo do dia</h1><p class="meta">Presença breve no início ou no fim — nunca durante a atividade.</p></div>
+        <div class="comp-grid">
+          <div class="mock" data-note="Início de sessão: uma linha discreta dentro da preparação, sem personagem animado." data-ref="§13.7">
+            <div class="photo"></div>
+            <div class="stack" style="--gap:.75rem;justify-items:center">
+              <p class="label">Ao preparar o foco</p>
+              <div class="bubble surface-solid">
+                <svg width="36" height="36" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M22 9v26M14 17h16" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/></svg>
+                <p>“Começai, que Deus completará.” <span class="meta" style="font-style:normal">— S. Francisco de Sales</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="mock" data-note="Fim de sessão: ilustração estática e uma frase, sem pedir atenção." data-ref="§13.7">
+            <div class="photo"></div>
+            <div class="stack" style="--gap:.75rem;justify-items:center">
+              <p class="label">Ao concluir</p>
+              <p style="font-size:1.5rem;font-weight:600">Sessão concluída</p>
+              <div class="bubble surface-solid">
+                <svg width="36" height="36" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M22 9v26M14 17h16" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/></svg>
+                <p>“Fazei tudo por amor.” <span class="meta" style="font-style:normal">— S. Teresinha</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <p class="label" style="margin-bottom:.75rem">Regras de presença</p>
+          <ul class="rules" style="margin:0;padding-left:1.1rem">
+            <li>No máximo uma aparição por sessão; nada durante o foco, leitura ou oração.</li>
+            <li>Ilustração estática, sem balões repetidos nem animação pedindo atenção.</li>
+            <li>Santo do dia aparece só como pequeno destaque em Rezar.</li>
+            <li>Pode ser desligado em Configurações › Oração.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ================= CONFIGURAÇÕES ================= -->
+      <div class="settings" data-show="configuracoes config-falha">
+        <nav class="snav" aria-label="Seções" data-note="Configurações divididas em Aparência, Oração, Foco, Lembretes e Dados, em vez de uma lista crescente num modal estreito." data-ref="§12 Configurações">
+          <button aria-current="true" data-s="aparencia"><i class="ph ph-paint-brush"></i>Aparência</button>
+          <button data-s="oracao"><i class="ph ph-hands-praying"></i>Oração</button>
+          <button data-s="foco"><i class="ph ph-target"></i>Foco</button>
+          <button data-s="lembretes"><i class="ph ph-bell"></i>Lembretes</button>
+          <button data-s="dados"><i class="ph ph-database"></i>Dados</button>
+          <a class="btn btn-quiet btn-sm" href="04-protecao.html" style="justify-content:flex-start"><i class="ph ph-shield-check"></i>Proteção ↗</a>
+        </nav>
+        <div id="sbody"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= EXAME ================= -->
+  <div class="exam" data-show="exame" role="dialog" aria-label="Exame da noite" data-note="Exame: uma pergunta por vez, navegação estável embaixo, pular e sair sempre disponíveis." data-ref="§12 Exame">
+    <div class="exam-top">
+      <button class="btn btn-quiet btn-sm" data-goto="ritmo"><i class="ph ph-x"></i>Sair</button>
+      <div class="mid"><b class="ceremonial">Exame da noite</b><div class="exam-prog" id="eProg"></div></div>
+      <span class="meta" id="eCount" style="min-width:6rem;text-align:right"></span>
+    </div>
+    <div class="exam-body"><div class="exam-card" id="eCard" aria-live="polite"></div></div>
+    <div class="exam-nav" id="eNav">
+      <button class="btn btn-quiet" id="ePrev"><i class="ph ph-arrow-left"></i>Anterior</button>
+      <span class="spacer"></span>
+      <button class="btn btn-quiet" id="eSkip">Pular</button>
+      <button class="btn btn-primary" id="eNext">Próxima</button>
+    </div>
+  </div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+  /* ---------- Modelos ---------- */
+  const TPL = {
+    sales: { name: 'São Francisco de Sales', sub: 'Devoção na vida comum', items: [['ph-sun-horizon', 'Oferecimento ao acordar', 'Sugerir', false], ['ph-bell', 'Angelus às 12h', 'Lembrar', false], ['ph-target', 'Trabalho em blocos com pausa breve', 'Aplicar proteção', true], ['ph-moon-stars', 'Exame curto à noite', 'Sugerir', false]], prot: 'Sessões de foco passarão a bloquear redes sociais e vídeos.' },
+    bento: { name: 'São Bento', sub: 'Ora et labora', items: [['ph-sun-horizon', 'Laudes ao começar', 'Sugerir', false], ['ph-target', 'Foco de 50 min, dias úteis', 'Aplicar proteção', true], ['ph-bell', 'Pausa para oração às 12h e 15h', 'Lembrar', false], ['ph-shield-check', 'Silêncio digital 21h–7h', 'Aplicar proteção', true], ['ph-moon-stars', 'Completas ao encerrar', 'Sugerir', false]], prot: 'Redes sociais e vídeos serão bloqueados entre 21h e 7h, todos os dias — hoje começa às 21h.' },
+    teresinha: { name: 'Santa Teresinha', sub: 'Pequenos passos', items: [['ph-heart', 'Uma intenção por dia', 'Sugerir', false], ['ph-wind', 'Um respiro à tarde', 'Lembrar', false], ['ph-moon-stars', 'Gratidão antes de dormir', 'Sugerir', false]], prot: '' },
+  };
+  let tpl = 'bento';
+  function renderTpl() {
+    $('#tpls').innerHTML = Object.entries(TPL).map(([k, t]) => `<button class="tpl" aria-pressed="${k === tpl}" data-t="${k}"><b>${t.name}</b><span class="meta">${t.sub}</span></button>`).join('');
+    $('#tpls').querySelectorAll('.tpl').forEach((b) => b.onclick = () => { tpl = b.dataset.t; renderTpl(); });
+    const t = TPL[tpl];
+    $('#diff').innerHTML = t.items.map(([ic, n, d, p]) => `<label><input type="checkbox" checked data-p="${p}"><span><i class="ph ${ic}" style="margin-right:.5rem;color:var(--text-2)"></i>${n}</span><span class="does ${p ? 'prot' : ''}">${d}</span></label>`).join('');
+    $('#protWarn').hidden = !t.prot;
+    $('#protWarnText').textContent = t.prot;
+    $('#diff').querySelectorAll('input').forEach((i) => i.onchange = () => { $('#protWarn').hidden = !t.prot || ![...$('#diff').querySelectorAll('input[data-p="true"]')].some((x) => x.checked); });
+  }
+  $('#applyTpl').onclick = () => { Proto.setState('ritmo'); Proto.toast('Modelo aplicado — revise os itens no seu ritmo'); };
+
+  $('#prayed').onclick = () => { $('#prayedOk').classList.add('show'); $('#prayed').disabled = true; $('#prayed').textContent = 'Rezado hoje'; };
+  $('#adjust').onclick = () => Proto.toast('Abriria a escolha de datas');
+
+  /* ---------- Exame ---------- */
+  const EQ = [
+    ['Agradeça', 'Pelo que você é grato hoje?'],
+    ['Reveja', 'Onde sentiu a presença de Deus?'],
+    ['Examine', 'Que sentimentos marcaram o dia?'],
+    ['Arrependimento', 'Onde você tropeçou?'],
+    ['Resolva', 'Como será amanhã?'],
+  ];
+  let ei = 0;
+  const ans = [];
+  function renderExam() {
+    const done = ei >= EQ.length;
+    $('#eProg').innerHTML = EQ.map((_, i) => `<span class="${i <= ei ? 'on' : ''}"></span>`).join('');
+    $('#eCount').textContent = done ? '' : `Pergunta ${ei + 1} de ${EQ.length}`;
+    $('#eNav').hidden = done;
+    if (done) {
+      const contr = window.ORA_DATA.prayers.find((p) => p.id === 'ato-contricao');
+      $('#eCard').innerHTML = `<p class="label">Para terminar</p><p class="q">Ato de contrição</p><div class="read-col" style="white-space:pre-line">${esc(contr.text)}</div>
+        <div class="row wrap"><button class="btn btn-primary" data-goto="ritmo">Encerrar</button><span class="meta">${ans.filter(Boolean).length} de ${EQ.length} respostas guardadas só neste aparelho</span></div>`;
+      return;
+    }
+    $('#eCard').innerHTML = `<p class="label">${EQ[ei][0]}</p><p class="q">${EQ[ei][1]}</p>
+      <label class="sr-only" for="eText">Resposta</label><textarea class="textarea" id="eText" placeholder="Escreva, se quiser." style="font-family:var(--f-read);font-size:1.0625rem;min-height:8rem">${esc(ans[ei] || '')}</textarea>`;
+    $('#eText').oninput = (e) => (ans[ei] = e.target.value);
+    $('#ePrev').disabled = ei === 0;
+    $('#eNext').textContent = ei === EQ.length - 1 ? 'Concluir' : 'Próxima';
+    setTimeout(() => $('#eText')?.focus(), 30);
+  }
+  $('#ePrev').onclick = () => { ei = Math.max(0, ei - 1); renderExam(); };
+  $('#eNext').onclick = $('#eSkip').onclick = () => { ei++; renderExam(); };
+
+  /* ---------- Configurações ---------- */
+  const SETTINGS = {
+    aparencia: ['Aparência', [
+      ['Fotografia de fundo', 'Muda uma vez por dia; nunca durante leitura ou foco', 'switch', true],
+      ['Leitura', 'Aparência padrão do leitor', 'seg', ['Escuro', 'Papel']],
+      ['Tamanho do texto de leitura', 'Também ajustável dentro do leitor', 'seg', ['A', 'A+', 'A++']],
+      ['Reduzir movimento', 'Transições simples, sem pulsações', 'switch', false],
+      ['Idioma', '', 'select', ['Português', 'English', 'Español']],
+    ]],
+    oracao: ['Oração', [
+      ['Companheiro', 'Uma frase breve no início ou fim do foco', 'switch', true],
+      ['Santo do dia em Rezar', '', 'switch', true],
+      ['Mistérios do terço', 'Seguir o dia da semana', 'switch', true],
+      ['Texto das orações no terço', '', 'seg', ['Completo', 'Só o nome']],
+    ]],
+    foco: ['Foco', [
+      ['Duração padrão', '', 'seg', ['25 min', '50 min', '90 min']],
+      ['Pausa curta', '', 'seg', ['5 min', '10 min']],
+      ['Proteção durante o foco', 'Aplica os perfis marcados para foco', 'switch', true],
+      ['Manter a tela acesa', 'Durante sessões ativas', 'switch', false],
+    ]],
+    lembretes: ['Lembretes', [
+      ['Angelus', 'Próximo de 12h', 'switch', true],
+      ['Terço da Misericórdia', '15h · dias úteis', 'switch', true],
+      ['Convite para encerrar o dia', 'Depois das 21h', 'switch', true],
+      ['Som das notificações', '', 'switch', false],
+    ]],
+    dados: ['Dados', [
+      ['Exportar meus dados', 'Tarefas, reflexões e registros em um arquivo', 'btn', 'Exportar'],
+      ['Conteúdo offline', 'Evangelho dos próximos 7 dias · 2,1 MB', 'btn', 'Atualizar'],
+      ['Apagar reflexões', 'Remove todas as respostas de exames e rituais', 'danger', 'Apagar…'],
+    ]],
+  };
+  let sec = 'aparencia';
+  function renderSettings() {
+    const [title, rows] = SETTINGS[sec];
+    const fail = Proto.state === 'config-falha';
+    document.querySelectorAll('.snav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.s === sec)));
+    $('#sbody').innerHTML = `<div class="sgroup"><h2>${title}</h2>${rows.map(([n, d, kind, v], i) => {
+      let ctl = '';
+      if (kind === 'switch') ctl = `<label class="switch"><input type="checkbox" ${v ? 'checked' : ''} data-i="${i}"><span class="track"></span><span class="sr-only">${n}</span></label>`;
+      if (kind === 'seg') ctl = `<div class="seg" role="group" aria-label="${n}">${v.map((o, j) => `<button aria-pressed="${j === 0}" data-i="${i}">${o}</button>`).join('')}</div>`;
+      if (kind === 'select') ctl = `<select class="select" style="width:auto" aria-label="${n}">${v.map((o) => `<option>${o}</option>`).join('')}</select>`;
+      if (kind === 'btn') ctl = `<button class="btn btn-aux btn-sm">${v}</button>`;
+      if (kind === 'danger') ctl = `<button class="btn btn-danger btn-sm">${v}</button>`;
+      const err = fail && i === 0 ? `<div class="banner err" role="alert" style="grid-column:1/-1;margin-top:.5rem"><i class="ph ph-warning-circle"></i><div><strong>Não foi possível salvar “${n}”.</strong>A alteração foi desfeita para não ficar inconsistente.<div class="actions"><button class="btn btn-aux btn-sm" onclick="Proto.setState('configuracoes')">Tentar de novo</button></div></div></div>` : '';
+      return `<div class="srow"><div class="tx"><b style="font-weight:500">${n}</b>${d ? `<span>${d}</span>` : ''}</div><div class="ctl"><span class="saved" id="sv${i}"><i class="ph ph-check"></i>Salvo</span>${ctl}</div>${err}</div>`;
+    }).join('')}</div>`;
+    $('#sbody').querySelectorAll('input[type=checkbox], .seg button').forEach((c) => c.addEventListener(c.tagName === 'INPUT' ? 'change' : 'click', () => {
+      if (c.tagName === 'BUTTON') c.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
+      const s = $('#sv' + c.dataset.i); s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 1800);
+    }));
+    $('#sbody').querySelector('.srow')?.setAttribute('data-note', 'Alteração salva: confirmação discreta ao lado do próprio controle, não um aviso no canto da tela.');
+    $('#sbody').querySelector('.srow')?.setAttribute('data-ref', '§15');
+  }
+  document.querySelectorAll('.snav button').forEach((b) => b.onclick = () => { sec = b.dataset.s; renderSettings(); Proto.renderNotes(); });
+
+  Proto.init({
+    id: 'ritmo-novenas',
+    title: 'Fase 2 — ritmo, novena, exame e mais',
+    refs: '§12 §13.3 §13.5 §13.7',
+    kind: 'extension',
+    photo: true,
+    initial: 'ritmo',
+    states: [
+      { id: 'ritmo', group: 'Meu ritmo', label: 'Por momentos', hint: 'Ao começar, durante o dia, ao encerrar. Cada item diz o que o Ora fará.' },
+      { id: 'ritmo-modelo', group: 'Meu ritmo', label: 'Modelo de santo', hint: 'Escolha São Bento e desmarque itens: o aviso sobre a Proteção acompanha.' },
+      { id: 'novena', group: 'Devoção', label: 'Novena', hint: 'Progressão espiritual separada do compromisso digital (no fim).' },
+      { id: 'exame', group: 'Devoção', label: 'Exame', hint: 'Uma pergunta por vez. Pule algumas e veja o final.' },
+      { id: 'companheiro', group: 'Devoção', label: 'Companheiro', hint: 'Onde e como o companheiro aparece — e onde não aparece.' },
+      { id: 'configuracoes', group: 'Configurações', label: 'Configurações', hint: 'Mude um controle: a confirmação aparece ao lado dele.' },
+      { id: 'config-falha', group: 'Configurações', label: 'Falha ao salvar', hint: 'Erro persistente junto da configuração afetada.' },
+    ],
+    questions: [
+      { q: 'Organizar a regra de vida por momentos do dia é intuitivo?', ref: '§13.3' },
+      { q: 'Lembrar / Sugerir / Aplicar proteção deixa claro o que o Ora fará?', ref: '§13.3' },
+      { q: 'Ao aplicar um modelo, a mudança no bloqueio fica evidente antes de confirmar?', ref: '§13.3' },
+      { q: 'Na novena, dia e oração vêm primeiro e o compromisso digital fica claramente separado?', ref: '§13.5' },
+      { q: 'O dia não registrado tem o tom certo (sem culpa) e opções úteis?', ref: '§13.5' },
+      { q: 'O exame com uma pergunta por vez é melhor que a versão atual?', ref: '§12 Exame' },
+      { q: 'O companheiro, assim limitado, agrega ou deveria ficar de fora?', ref: '§13.7' },
+      { q: 'As seções de Configurações encontram o que você procura?', ref: '§12' },
+    ],
+    onState(id) {
+      if (id === 'ritmo-modelo') renderTpl();
+      if (id === 'exame') { ei = 0; renderExam(); }
+      if (id === 'configuracoes' || id === 'config-falha') renderSettings();
+      if (['novena', 'companheiro'].includes(id)) $('#navRezar').setAttribute('aria-current', 'page');
+      else $('#navRezar').removeAttribute('aria-current');
+    },
+  });
+})();
+</script>
+</body>
+</html>

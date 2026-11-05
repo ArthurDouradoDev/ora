@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Sistema visual</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  .page { position: absolute; inset: 0; overflow: auto; }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; display: grid; gap: 2.5rem; }
+  .wrap > header h1 { font-size: 2rem; font-weight: 600; }
+  section > h2 { font-size: 1.25rem; margin-bottom: 1rem; }
+  section > p.meta { margin: -0.5rem 0 1rem; max-width: 46rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+  .card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.25rem; display: grid; gap: 0.75rem; align-content: start; }
+  .card h3 { font-size: 1rem; }
+  .sw-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .sw { width: 4.25rem; display: grid; gap: 0.25rem; font-size: 0.6875rem; color: var(--text-3); }
+  .sw i { height: 3rem; border-radius: var(--r-sm); border: 1px solid var(--line); display: block; }
+  .spec { display: grid; gap: 0.25rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+  .spec:last-child { border-bottom: 0; }
+  .spec .meta { font-size: 0.8125rem; }
+  .ctl-row { display: grid; grid-template-columns: 12rem 1fr; gap: 1rem; align-items: center; padding: 0.875rem 0; border-bottom: 1px solid var(--line); }
+  .ctl-row:last-child { border-bottom: 0; }
+  .ctl-row .meta { font-size: 0.8125rem; }
+  .surf-demo { position: relative; border-radius: var(--r-xl); overflow: hidden; padding: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1rem; }
+  .surf-demo > *:not(.photo) { position: relative; }
+  .surf-demo .s { border-radius: var(--r-lg); padding: 1rem; min-height: 8rem; display: grid; align-content: space-between; gap: 0.5rem; }
+  .surf-demo .s b { font-weight: 600; }
+  .surf-demo .s span { font-size: 0.8125rem; }
+  .states { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+  .state-card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1rem 1.125rem; display: grid; gap: 0.75rem; align-content: start; }
+  .state-card > .label { color: var(--text-3); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th, td { text-align: left; padding: 0.625rem 0.5rem; border-bottom: 1px solid var(--line); }
+  th { color: var(--text-3); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  td .chipc { display: inline-block; width: 1rem; height: 1rem; border-radius: 4px; vertical-align: -3px; margin-right: 0.375rem; border: 1px solid var(--line); }
+  .ok { color: var(--ok); font-weight: 600; } .bad { color: var(--err); font-weight: 600; } .mid { color: var(--warn); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="proto-stage"><div class="proto-frame" id="app">
+<div class="page">
+  <div class="wrap">
+    <header>
+      <a class="brand" href="index.html">ORA</a>
+      <h1 style="margin-top:1rem">Sistema visual</h1>
+      <p class="meta" style="max-width:44rem;margin-top:.5rem">Base comum dos protótipos: o mesmo produto em dois layouts (extensão e mobile). Mude o estado na barra para ver cada parte.</p>
+    </header>
+
+    <!-- ============ CORES E TIPO ============ -->
+    <section data-show="cores-tipo">
+      <h2>Cores em três papéis</h2>
+      <p class="meta">Marca, contexto litúrgico e estado funcional não se misturam. A cor litúrgica sempre vem acompanhada de texto; a seleção não usa o dourado da marca.</p>
+      <div class="grid">
+        <div class="card" data-note="Marca: dourado reservado para a ação principal e a identidade." data-ref="§8.1">
+          <h3>Marca</h3>
+          <div class="sw-row"><span class="sw"><i style="background:var(--gold)"></i>gold</span><span class="sw"><i style="background:var(--gold-hover)"></i>hover</span><span class="sw"><i style="background:var(--on-gold)"></i>on-gold</span></div>
+          <button class="btn btn-primary" style="justify-self:start">Começar foco</button>
+        </div>
+        <div class="card" data-note="Contexto litúrgico: um detalhe (marcador) com o nome do tempo/festa. A interface não é recolorida a cada dia." data-ref="§8.1">
+          <h3>Contexto litúrgico</h3>
+          <div class="sw-row"><span class="sw"><i style="background:var(--lit-verde)"></i>verde</span><span class="sw"><i style="background:var(--lit-roxo)"></i>roxo</span><span class="sw"><i style="background:var(--lit-vermelho)"></i>vermelho</span><span class="sw"><i style="background:var(--lit-rosa)"></i>rosa</span><span class="sw"><i style="background:var(--lit-branco)"></i>branco</span></div>
+          <span class="lit lit-vermelho">São Simão e São Judas · Festa</span>
+          <span class="lit lit-verde">30ª semana do Tempo Comum</span>
+        </div>
+        <div class="card" data-note="Estado funcional: informação, sucesso, atenção, erro. Nunca usado para julgar desempenho espiritual." data-ref="§8.1">
+          <h3>Estado funcional</h3>
+          <div class="sw-row"><span class="sw"><i style="background:var(--info)"></i>info</span><span class="sw"><i style="background:var(--ok)"></i>ok</span><span class="sw"><i style="background:var(--warn)"></i>atenção</span><span class="sw"><i style="background:var(--err)"></i>erro</span></div>
+          <div class="row wrap" style="--gap:.5rem"><span class="chip"><span class="dot"></span>Ativa</span><span class="chip"><span class="dot warn"></span>Pausada</span><span class="chip"><span class="dot err"></span>Sem permissão</span></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:2.5rem">Tipografia por função</h2>
+      <div class="card" style="gap:0">
+        <div class="spec" data-note="Cinzel com moderação: marca, aberturas e títulos cerimoniais." data-ref="§7">
+          <span class="meta">Marca e títulos cerimoniais · Cinzel</span>
+          <span class="brand" style="font-size:1.25rem">ORA</span>
+          <span class="ceremonial" style="font-size:1.75rem">Encerrar o dia</span>
+        </div>
+        <div class="spec">
+          <span class="meta">Interface · Montserrat 15–16 px, regular/média</span>
+          <span style="font-size:1rem">Preparar apresentação <span class="meta">· 25 min · Trabalho</span></span>
+        </div>
+        <div class="spec" data-note="Leitura em serifa de texto (Literata), caixa normal, 18–20 px, entrelinha ~1,65, coluna de 55–70 caracteres, alinhada à esquerda." data-ref="§7">
+          <span class="meta">Leitura · Literata 19 px / 1,68 · coluna 62ch</span>
+          <div class="read-col"><p>Naqueles dias, Jesus foi à montanha para orar e passou a noite inteira em oração a Deus. Quando amanheceu, chamou seus discípulos e escolheu doze dentre eles, aos quais deu o nome de apóstolos.</p></div>
+        </div>
+        <div class="spec" data-note="Relógio e cronômetro com algarismos de largura estável (tabular): o número não 'treme' ao mudar." data-ref="§7">
+          <span class="meta">Relógio e cronômetro · Literata Light, algarismos tabulares</span>
+          <span class="clock" style="font-size:4rem" id="demoClock">14:22</span>
+        </div>
+        <div class="spec">
+          <span class="meta">Perguntas de reflexão · serifa; itálico só em trechos curtos</span>
+          <span class="reflect">Em que momento desta semana você se sentiu mais presente?</span>
+        </div>
+        <div class="spec" data-note="Rótulos pequenos em caixa alta, mas com contraste suficiente: discrição vem de posição e espaço, não de opacidade baixa." data-ref="§7">
+          <span class="meta">Rótulo de seção</span>
+          <span class="label">Próximo passo</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTROLES E SUPERFÍCIES ============ -->
+    <section data-show="controles">
+      <h2>Controles: três tipos, três tratamentos</h2>
+      <p class="meta">Navegar, agir e configurar não podem parecer a mesma coisa.</p>
+      <div class="card" style="gap:0">
+        <div class="ctl-row" data-note="Navegação: texto + ícone discreto, seleção identificável." data-ref="§5">
+          <div><b>Navegação</b><p class="meta">Ir para outro lugar do Ora</p></div>
+          <nav class="nav" aria-label="Exemplo"><a href="#" aria-current="page" onclick="return false"><i class="ph ph-sun-horizon"></i>Hoje</a><a href="#" onclick="return false"><i class="ph ph-hands-praying"></i>Rezar</a><a href="#" onclick="return false"><i class="ph ph-plant"></i>Frutos</a></nav>
+        </div>
+        <div class="ctl-row" data-note="Ação principal: preenchida, uma por contexto." data-ref="§5">
+          <div><b>Ação principal</b><p class="meta">Uma por contexto</p></div>
+          <div class="row wrap"><button class="btn btn-primary"><i class="ph-fill ph-play"></i>Começar foco</button><button class="btn btn-primary btn-lg">Retomar</button></div>
+        </div>
+        <div class="ctl-row">
+          <div><b>Opção auxiliar</b><p class="meta">Menor ênfase, texto legível</p></div>
+          <div class="row wrap"><button class="btn btn-aux">Pausar</button><button class="btn btn-quiet">Escolher outra</button><button class="btn btn-danger btn-sm">Apagar…</button></div>
+        </div>
+        <div class="ctl-row" data-note="Link externo indicado discretamente com ↗; leitura interna não leva o símbolo." data-ref="§5">
+          <div><b>Interno × externo</b><p class="meta">Sair do Ora é sinalizado</p></div>
+          <div class="row wrap"><button class="btn btn-quiet btn-sm">Ler aqui</button><a class="btn btn-quiet btn-sm ext" href="#" onclick="return false">Liturgia completa</a></div>
+        </div>
+        <div class="ctl-row" data-note="Ícone isolado só para ações familiares (fechar, configurações), sempre com nome acessível." data-ref="§5">
+          <div><b>Ícone isolado</b><p class="meta">Só ações familiares, com nome acessível</p></div>
+          <div class="row"><button class="icon-btn" aria-label="Configurações"><i class="ph ph-gear"></i></button><button class="icon-btn" aria-label="Fechar"><i class="ph ph-x"></i></button></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:2.5rem">Superfícies com função delimitada</h2>
+      <p class="meta">Passe o mouse: nenhuma superfície de leitura ou organização reage como botão (ao contrário do <code>.glass-panel:hover</code> atual).</p>
+      <div class="surf-demo" data-note="Vidro só para navegação e informação breve. Organizar e ler usam fundos estáveis." data-ref="§6">
+        <div class="photo"></div>
+        <div class="s surface-glass"><b>Vidro discreto</b><span>Navegação sobre fotografia</span></div>
+        <div class="s surface-light"><b>Superfície leve</b><span>Informação breve, convites</span></div>
+        <div class="s surface-solid"><b>Quase opaca</b><span>Tarefas, preparação, edição</span></div>
+        <div class="s surface-read"><b>Leitura</b><span>Fundo estável, sem foto</span></div>
+        <div class="s surface-read paper"><b>Papel</b><span>Leitura prolongada, opcional</span></div>
+      </div>
+    </section>
+
+    <!-- ============ ESTADOS ============ -->
+    <section data-show="estados">
+      <h2>Sistema de estados</h2>
+      <p class="meta">“Uma tela bonita apenas quando preenchida e funcionando não constitui um sistema completo.” Cada estado abaixo aparece em pelo menos um protótipo.</p>
+      <div class="states">
+        <div class="state-card"><span class="label">Sem tarefas</span><p>O que você quer fazer agora?</p><p class="meta">Ou apenas fique aqui um instante.</p><a href="01-hoje-extensao.html#repouso-vazio" class="btn btn-quiet btn-sm" style="justify-self:start">Ver no protótipo →</a></div>
+        <div class="state-card"><span class="label">Conteúdo offline disponível</span><p>Lucas 6,12-19</p><span class="offline-tag"><i class="ph ph-download-simple"></i>Disponível offline</span><a href="02-hoje-mobile.html#prioridades" class="btn btn-quiet btn-sm" style="justify-self:start">Ver no protótipo →</a></div>
+        <div class="state-card"><span class="label">Evangelho atual indisponível</span><div class="banner warn"><i class="ph ph-cloud-slash"></i><div><strong>Mostrando o de terça-feira (27/10).</strong>O de hoje ainda não foi baixado.</div></div><a href="03-rezar.html#evangelho-indisponivel" class="btn btn-quiet btn-sm" style="justify-self:start">Ver no protótipo →</a></div>
+        <div class="state-card"><span class="label">Proteção sem permissão</span><div class="banner err"><i class="ph ph-warning-circle"></i><div><strong>O Ora não consegue bloquear sites.</strong><div class="actions"><button class="btn btn-aux btn-sm">Resolver</button></div></div></div><a href="04-protecao.html#sem-permissao" class="btn btn-quiet btn-sm" style="justify-self:start">Ver no protótipo →</a></div>
+        <div class="state-card"><span class="label">Pausada × encerrada</span><div class="row wrap"><span class="chip"><span class="dot warn"></span>Sessão pausada · 18:42</span><span class="chip"><i class="ph ph-check"></i>Sessão concluída</span></div><a href="01-hoje-extensao.html#pausada" class="btn btn-quiet btn-sm" style="justify-self:start">Ver no protótipo →</a></div>
+        <div class="state-card"><span class="label">Alteração salva</span><div class="row"><label class="switch"><input type="checkbox" checked id="demoSwitch"><span class="track"></span><span>Reduzir movimento</span></label><span class="saved" id="demoSaved"><i class="ph ph-check"></i>Salvo</span></div><p class="meta">Confirmação junto do controle.</p></div>
+        <div class="state-card"><span class="label">Falha ao salvar</span><div class="banner err"><i class="ph ph-warning-circle"></i><div><strong>Não foi possível salvar.</strong>Mensagem persistente.<div class="actions"><button class="btn btn-aux btn-sm">Tentar de novo</button></div></div></div><a href="04-protecao.html#falha-salvar" class="btn btn-quiet btn-sm" style="justify-self:start">Ver no protótipo →</a></div>
+        <div class="state-card"><span class="label">Texto ampliado</span><p>Use <b>Texto 200%</b> na barra de protótipo em qualquer tela. O layout cresce e rola; nada é cortado.</p></div>
+        <div class="state-card"><span class="label">Movimento reduzido</span><p>Respeita a preferência do sistema e o botão <b>Movimento reduzido</b> da barra: transições viram cortes simples, sem pulsação.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ CONTRASTE ============ -->
+    <section data-show="contraste">
+      <h2>Contraste medido (fundos sólidos)</h2>
+      <p class="meta">Calculado no navegador com a fórmula da WCAG. Texto comum precisa de 4,5:1; texto grande, 3:1. Fundos com transparência sobre fotografia <b>não</b> podem ser medidos aqui: dependem da imagem do dia e precisam de teste no fundo efetivo.</p>
+      <div class="card" style="overflow:auto">
+        <table id="contrast"><thead><tr><th>Texto</th><th>Fundo</th><th>Razão</th><th>Comum (4,5)</th><th>Grande (3)</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+  </div>
+</div>
+</div></div>
+
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  $('#demoSwitch').onchange = () => { const s = $('#demoSaved'); s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 1800); };
+
+  function rgb(v) {
+    const c = document.createElement('canvas').getContext('2d');
+    c.fillStyle = v; const h = c.fillStyle; // normaliza
+    if (h.startsWith('#')) return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    return h.match(/[\d.]+/g).slice(0, 3).map(Number);
+  }
+  function lum([r, g, b]) {
+    const f = (x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  }
+  function ratio(a, b) { const [x, y] = [lum(rgb(a)), lum(rgb(b))].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); }
+  function renderContrast() {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (n) => cs.getPropertyValue(n).trim();
+    const pairs = [
+      ['--text', '--bg'], ['--text-2', '--bg'], ['--text-3', '--bg'],
+      ['--text', '--surface-1'], ['--text-2', '--surface-1'], ['--text-3', '--surface-1'],
+      ['--text-3', '--surface-2'], ['--on-gold', '--gold'], ['--gold', '--surface-1'],
+      ['--paper-ink', '--paper'], ['--paper-ink-2', '--paper'],
+      ['--err', '--surface-1'], ['--warn', '--surface-1'], ['--ok', '--surface-1'], ['--info', '--surface-1'],
+    ];
+    $('#contrast tbody').innerHTML = pairs.map(([t, b]) => {
+      const r = ratio(v(t), v(b));
+      const cls = (min) => r >= min ? 'ok' : r >= min - 1 ? 'mid' : 'bad';
+      return `<tr><td><span class="chipc" style="background:${v(t)}"></span>${t}</td><td><span class="chipc" style="background:${v(b)}"></span>${b}</td><td class="tnum">${r.toFixed(2)}:1</td><td class="${cls(4.5)}">${r >= 4.5 ? 'passa' : 'não passa'}</td><td class="${cls(3)}">${r >= 3 ? 'passa' : 'não passa'}</td></tr>`;
+    }).join('');
+  }
+
+  Proto.init({
+    id: 'sistema',
+    title: 'Sistema visual',
+    refs: '§5 §6 §7 §8 §15',
+    kind: 'extension',
+    photo: true,
+    initial: 'cores-tipo',
+    states: [
+      { id: 'cores-tipo', label: 'Cores e tipografia', hint: 'Três papéis de cor e uma fonte por função.' },
+      { id: 'controles', label: 'Controles e superfícies', hint: 'Passe o mouse nas superfícies: nenhuma reage como botão.' },
+      { id: 'estados', label: 'Estados', hint: 'Catálogo dos estados do §15 com links para onde aparecem.' },
+      { id: 'contraste', label: 'Contraste', hint: 'Razões calculadas a partir dos tokens. Fundos sobre foto ficam fora.' },
+    ],
+    questions: [
+      { q: 'A separação marca / litúrgico / funcional é clara e sustentável?', ref: '§8.1' },
+      { q: 'Literata para leitura e Montserrat para interface combinam com a Cinzel da marca?', ref: '§7' },
+      { q: 'Navegação, ação principal e opção auxiliar são distinguíveis à primeira vista?', ref: '§5' },
+      { q: 'As superfícies preservam a identidade de vidro sem prejudicar leitura e organização?', ref: '§6' },
+      { q: 'Algum par de contraste precisa ser ajustado antes de implementar?', ref: '§8.4' },
+    ],
+    onState(id) { if (id === 'contraste') renderContrast(); },
+  });
+})();
+</script>
+</body>
+</html>

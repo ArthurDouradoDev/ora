@@ -144,20 +144,8 @@ async function initApp() {
     // Wait for background init if it hasn't finished yet
     await bgPreloadPromise;
 
-    // ============================================================
-    // 3. Music Library & Player Logic
-    // ============================================================
+    await SoundSystem.init(data.defaultPlaylists);
 
-    // Initialize Music System
-    if (window.MusicSystem) {
-        await window.MusicSystem.init(data.defaultPlaylists);
-        // Dependencies are now global
-
-    } else {
-        console.error('MusicSystem not found!');
-    }
-
-    // ============================================================
     // ============================================================
     // 4. PRAYER SYSTEM
     // ============================================================

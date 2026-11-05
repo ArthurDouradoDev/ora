@@ -526,7 +526,7 @@ O tema do Advento e a migração **não** entram no corte.
 
 ## Fase 6 — Som
 
-**Em resumo:** música deixa de ser um destino na tela e vira o **Som do foco**, no estilo do Momentum. Sons próprios do Ora que funcionam offline (chuva, igreja, sinos, mosteiro…), as playlists da pessoa no YouTube ou Spotify, e um controle pequeno visível durante a sessão.
+**Em resumo:** Som fica em Hoje e também acompanha o foco. O mesmo seletor oferece sons offline do Ora e playlists do YouTube ou Spotify. O mini controle fica disponível com ou sem cronômetro.
 
 ### Escopo
 
@@ -538,15 +538,15 @@ O tema do Advento e a migração **não** entram no corte.
      - mistura de até 2 camadas com volume;
      - lista inicial: chuva, igreja vazia, sinos ao longe, mosteiro, vela/lareira;
      - **canto gregoriano** só com gravação de licença livre comprovada (CC0/CC-BY, com atribuição registrada em `assets/sounds/CREDITS.md`).
-  3. **Minhas playlists**: YouTube/Spotify, reaproveitando o relay atual (`ora-player-relay`) e as playlists migradas. Spotify via embed: faixa completa se a pessoa estiver logada no navegador, senão prévia.
+  3. **Minhas playlists**: YouTube/Spotify, reaproveitando o relay atual (`ora-player-relay`) e as playlists migradas. O embed do Spotify pode oferecer uma prévia conforme a conta, o conteúdo e o navegador.
 - Lembrar a última escolha e o volume.
 - "Escolher som" **abre** o seletor; não troca a opção direto (M08).
-- **Mini controle** durante o foco em Hoje: nome do som, pausar, volume.
+- **Mini controle** em Hoje: nome do som, pausar e parar. Controle de volume para sons locais e YouTube. O Spotify não expõe ajuste de volume no embed.
 - Pausar o som junto com a sessão pausada (opcional, configurável).
 - Remover `music.css`, o modal "Biblioteca" de música e o botão do cabeçalho antigo.
 
 **Interface**
-- Chip "Som · \<escolha\>" na preparação (fase 2), seletor em diálogo e mini controle no estado `ativa`.
+- Chip Som em Hoje abre o seletor para ouvir sem cronômetro. Na preparação, o mesmo diálogo define o som da sessão. Se o som escolhido já estiver tocando, iniciar o foco mantém a posição. O áudio iniciado em Hoje pode continuar após o fim do foco.
 
 **Testes**
 - `SoundCore` (puro): parse de links do YouTube/Spotify (vídeo, playlist, álbum, `spotify:`); preferência restaurada; mistura limitada a 2 camadas.
@@ -555,7 +555,7 @@ O tema do Advento e a migração **não** entram no corte.
 
 - Escolher "Chuva" + "Sinos", começar um foco, trocar de aba e voltar → o som continua e o mini controle mostra a escolha.
 - Offline: os sons do Ora funcionam; as playlists mostram mensagem de indisponível.
-- Colar um link de playlist do YouTube e um do Spotify → tocam (Spotify completo com login no navegador).
+- Colar um link de playlist do YouTube e um do Spotify → abrir e testar os players incorporados, com opção de abrir no serviço.
 - Recarregar → a última escolha e o volume são restaurados.
 - **Teclado:** abrir o seletor, escolher e fechar com Esc.
 - **Testes:** `node tests/run.js`.

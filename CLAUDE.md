@@ -71,7 +71,8 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 | `scripts/modules/links.js` | "Seus atalhos" on Hoje + manage dialog (`ora_quick_links`) |
 | `scripts/modules/rosary.js` | Interactive rosary with bead visualization |
 | `scripts/modules/exam.js` | Guided conscience examination |
-| `scripts/modules/music.js` | YouTube/Spotify player with relay iframe workaround |
+| `scripts/modules/sound.js` | Som: Momentum-style popup (library grid → ambience mixer / playlist details / add music) and Hoje mini control; YouTube/Spotify via the relay iframe. Ambiences and links in `SoundCore` |
+| `scripts/modules/sound-engine.js` | Web Audio engine for Ora sounds: decoded buffers looped gaplessly (`SoundCore.loopCrossfade`), fades on every change, Media Session kept alive with a silent WAV |
 | `scripts/modules/tasks.js` | Tasks side panel "Tarefas (n)": Hoje (ordered) and Depois, weekday recurrence, completed of the day |
 | `scripts/modules/prayers.js` | Prayer library with full-text search |
 | `scripts/modules/settings.js` | User preferences UI |

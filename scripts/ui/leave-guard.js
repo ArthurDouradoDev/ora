@@ -135,7 +135,7 @@ const LeaveGuard = {
         const state = window.FocusSystem?.state;
         const focus = state?.phase === 'focus' && !!state.session
             && (!state.isRunning || !state.expectedEndTime || state.expectedEndTime > Date.now());
-        const music = this.audible && !!window.MusicSystem?.state.activePlayer;
+        const music = this.audible && !!window.SoundSystem?.active;
         return this.pendingWrites > 0 || this.hasEdits() || focus || music;
     },
 

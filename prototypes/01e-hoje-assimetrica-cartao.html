@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Hoje — E · Assimétrica com cartão</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<!-- Serifadas em teste para a frase de santo (seletor "Citação" na barra do protótipo) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&family=Crimson+Pro:ital,wght@1,400&family=EB+Garamond:ital@1&family=Libre+Baskerville:ital@1&family=Lora:ital@1&family=Spectral:ital@1&display=swap">
+<style>
+  .shell {
+    position: absolute; inset: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* Véu central: legibilidade do conteúdo sobre a fotografia, mais forte durante a atividade */
+  .shell::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(45% 50% at 50% 48%, rgba(8, 6, 4, .6), transparent 80%);
+    opacity: .45; transition: opacity 400ms var(--ease);
+  }
+  html[data-state="ativa"] .shell::before, html[data-state="pausada"] .shell::before,
+  html[data-state="concluida"] .shell::before, html[data-state="preparacao"] .shell::before { opacity: 1; }
+
+  /* ---------- Cabeçalho estável ---------- */
+  .topbar {
+    grid-column: 1 / -1;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    padding: 1rem 1.5rem; gap: 1rem;
+    position: relative; z-index: 5;
+    transition: opacity var(--dur);
+  }
+  .topbar .brand { justify-self: start; color: var(--text); }
+  .topbar .nav { padding: 0.25rem; border-radius: 999px; }
+  .topbar .right { justify-self: end; display: flex; align-items: center; gap: 0.5rem; }
+  html[data-state="ativa"] .topbar, html[data-state="pausada"] .topbar { opacity: 0.6; }
+  html[data-state="ativa"] .topbar:hover, html[data-state="ativa"] .topbar:focus-within,
+  html[data-state="pausada"] .topbar:hover, html[data-state="pausada"] .topbar:focus-within { opacity: 1; }
+  .count {
+    min-width: 1.4rem; height: 1.4rem; padding: 0 0.35rem; border-radius: 999px;
+    background: rgba(255,255,255,.12); display: inline-grid; place-items: center;
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .chip[aria-expanded="true"] { border-color: var(--line-strong); background: rgba(20,17,13,.7); }
+
+  .popover {
+    position: absolute; top: calc(100% - 0.25rem); right: 4.5rem; width: 22rem;
+    border-radius: var(--r-lg); padding: 1rem 1.125rem; z-index: 20;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45);
+  }
+  .popover ul { list-style: none; margin: 0.75rem 0; padding: 0; display: grid; gap: 0.75rem; }
+  .popover li { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.625rem; align-items: baseline; }
+  .popover li .dot { transform: translateY(-1px); }
+  .popover li b { font-weight: 600; }
+  .popover li span.meta { grid-column: 2; }
+
+  /* ---------- Centro: a atividade atual assume este espaço ---------- */
+  .center {
+    grid-column: 1; grid-row: 2;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: safe center;
+    gap: 1.75rem; padding: 1rem 1.5rem 1.5rem;
+    overflow: auto; text-align: center;
+  }
+  .arrival { display: grid; gap: 0.75rem; justify-items: center; }
+  .arrival .clock { font-size: clamp(4rem, 16cqh, 8rem); text-shadow: 0 4px 30px rgba(0,0,0,.35); transition: font-size 300ms var(--ease); }
+  .greeting { font-size: 1.375rem; font-weight: 500; }
+  .day { color: var(--text-2); display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; font-size: 0.9375rem; }
+  html[data-state="preparacao"] .arrival .clock { font-size: clamp(2.5rem, 8cqh, 3.5rem); }
+  html[data-state="preparacao"] .arrival .greeting, html[data-state="preparacao"] .arrival .day { display: none; }
+
+  .next {
+    width: min(30rem, 100%);
+    border-radius: var(--r-xl); padding: 1.25rem 1.5rem 1.375rem;
+    display: grid; gap: 0.5rem; justify-items: center;
+  }
+  .next-title { font-size: 1.5rem; font-weight: 600; }
+  .next .row { margin-top: 0.5rem; flex-wrap: wrap; justify-content: center; }
+  .next form { display: flex; gap: 0.5rem; width: 100%; margin-top: 0.25rem; flex-wrap: wrap; }
+  .next form .input { flex: 1 1 14rem; background: rgba(0,0,0,.35); }
+
+  .intent { display: grid; gap: 0.25rem; justify-items: center; }
+  .intent small { color: var(--text-2); font-size: 0.8125rem; }
+  .intent-set { display: inline-flex; gap: 0.5rem; align-items: baseline; color: var(--text); font-family: var(--f-read); font-size: 1.125rem; }
+  .intent-set .btn-quiet { font-family: var(--f-ui); font-size: 0.8125rem; min-height: auto; padding: 0.25rem 0.5rem; }
+
+  .shortcuts { display: grid; gap: 0.5rem; justify-items: center; }
+  .shortcuts .row { flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+  .sc {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.45rem 0.9rem 0.45rem 0.5rem; border-radius: 999px; text-decoration: none; font-size: 0.875rem; font-weight: 500;
+  }
+  .sc .fav { width: 1.375rem; height: 1.375rem; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.14); font-size: 0.6875rem; font-weight: 700; }
+  .sc:hover { background: rgba(30,26,21,.65); }
+
+  .invite {
+    width: min(30rem, 100%);
+    display: flex; align-items: center; gap: 0.875rem; text-align: left;
+    padding: 0.75rem 0.75rem 0.75rem 1rem; border-radius: var(--r-lg);
+  }
+  .invite i.lead { font-size: 1.375rem; color: var(--gold); }
+  .invite .txt { flex: 1; }
+  .invite .txt b { display: block; font-weight: 600; }
+
+  /* Preparação: painel contextual pequeno */
+  .prep {
+    width: min(34rem, 100%); text-align: left;
+    border-radius: var(--r-xl); padding: 1.5rem;
+    display: grid; gap: 1.125rem;
+    box-shadow: 0 30px 80px rgba(0,0,0,.45);
+  }
+  .prep-title {
+    font-size: 1.5rem; font-weight: 600; background: none; border: 0; border-bottom: 1px solid var(--line-strong);
+    padding: 0.25rem 0 0.5rem; width: 100%;
+  }
+  .prep-title:focus { outline: none; border-bottom-color: var(--gold); }
+  .prep .two { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem; }
+  .prep .two .seg { flex-wrap: nowrap; }
+  .prep .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+  /* Sessão ativa: atividade antes do cronômetro */
+  .session { display: grid; gap: 0.75rem; justify-items: center; width: min(36rem, 100%); }
+  .session-state { display: inline-flex; gap: 0.5rem; align-items: center; }
+  .session-title { font-size: clamp(1.75rem, 5cqh, 2.5rem); font-weight: 600; line-height: 1.2; }
+  .timer { font-size: clamp(4rem, 17cqh, 8.5rem); text-shadow: 0 4px 30px rgba(0,0,0,.35); }
+  html[data-state="pausada"] .timer { color: var(--text-2); }
+  .progress { width: min(22rem, 80%); height: 4px; border-radius: 4px; background: rgba(255,255,255,.15); overflow: hidden; }
+  .progress span { display: block; height: 100%; background: var(--gold); width: 0; transition: width 1s linear; }
+  .session-intent { font-family: var(--f-read); font-style: italic; color: var(--text-2); font-size: 1.0625rem; }
+  .session .controls { display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; justify-content: center; }
+  .session .aux-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; justify-content: center; }
+  .chip-static { cursor: default; }
+  .pause-note { color: var(--text-2); font-size: 0.875rem; }
+
+  .done { display: grid; gap: 0.875rem; justify-items: center; width: min(32rem, 100%); }
+  .done h1 { font-size: 2rem; font-weight: 600; }
+  .done .row { flex-wrap: wrap; justify-content: center; }
+  .check-row { display: inline-flex; gap: 0.625rem; align-items: center; cursor: pointer; padding: 0.5rem 0.75rem; border-radius: var(--r-md); }
+  .check-row input { width: 1.25rem; height: 1.25rem; accent-color: var(--gold); }
+  .companion { margin-top: 0.75rem; display: flex; gap: 0.75rem; align-items: center; color: var(--text-2); font-family: var(--f-read); font-style: italic; max-width: 26rem; text-align: left; }
+  .companion svg { flex: none; }
+
+  /* ---------- Rodapé ---------- */
+  .foot {
+    grid-column: 1; grid-row: 3;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem;
+    padding: 0 1.5rem 1.25rem;
+  }
+  .gospel { display: flex; align-items: center; gap: 0.25rem; padding: 0.375rem 0.5rem 0.375rem 1rem; border-radius: 999px; flex-wrap: wrap; }
+  .gospel .ref { font-weight: 500; margin-right: 0.5rem; }
+  .gospel .btn-sm { min-height: 2rem; }
+  /* Frase de santo com o tratamento da extensão atual: branco quase pleno e sombra curta sobre a foto */
+  .quote { text-align: right; max-width: 24rem; color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); }
+  .quote p { font-family: var(--f-quote, var(--f-ui)); font-weight: var(--quote-weight, 400); font-style: italic; font-size: var(--quote-size, 1rem); line-height: 1.5; margin-bottom: 5px; }
+  .quote span { font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; }
+  html[data-state="ativa"] .foot, html[data-state="pausada"] .foot, html[data-state="preparacao"] .foot, html[data-state="concluida"] .foot { visibility: hidden; }
+
+  /* ---------- Tarefas: painel lateral integrado ao layout ---------- */
+  .tasks {
+    grid-column: 2; grid-row: 2 / 4;
+    width: 0; overflow: hidden;
+    transition: width 280ms var(--ease);
+    border-radius: var(--r-xl) 0 0 0; border-right: 0; border-bottom: 0;
+  }
+  html[data-state="tarefas"] .tasks { width: 24rem; }
+  .tasks-inner { width: 24rem; height: 100%; display: flex; flex-direction: column; }
+  .tasks header { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 1rem 0.75rem 1.5rem; }
+  .tasks header h2 { font-size: 1.125rem; flex: 1; }
+  .tasks .add { display: flex; gap: 0.5rem; padding: 0 1.5rem 1rem; }
+  .tasks .add .input { flex: 1; min-width: 0; }
+  .task-list { list-style: none; margin: 0; padding: 0 0.75rem; overflow: auto; flex: 1; }
+  .task { border-top: 1px solid var(--line); }
+  .task:first-child { border-top: 0; }
+  .task-row { display: grid; grid-template-columns: auto 1fr auto; gap: 0.75rem; align-items: center; padding: 0.75rem; }
+  .check {
+    width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1.5px solid var(--text-3); background: none; cursor: pointer; padding: 0;
+    display: grid; place-items: center; color: transparent; font-size: 0.875rem;
+  }
+  .check:hover { border-color: var(--text); }
+  .task.is-done .check { background: var(--text-3); border-color: var(--text-3); color: var(--bg); }
+  .task-main { display: grid; gap: 0.125rem; min-width: 0; }
+  .task-title { background: none; border: 0; padding: 0; text-align: left; cursor: pointer; font-weight: 500; font-size: 1rem; color: var(--text); }
+  .task-title:hover { text-decoration: underline; text-decoration-color: var(--text-3); text-underline-offset: 3px; }
+  .task.is-done .task-title { color: var(--text-3); text-decoration: line-through; }
+  .task.is-next .task-main::before { content: 'Próximo passo'; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+  .task-edit { padding: 0 0.75rem 1rem 3rem; display: grid; gap: 0.75rem; }
+  .task-edit .row { flex-wrap: wrap; }
+  .tasks .empty { padding: 1.5rem; color: var(--text-2); display: grid; gap: 0.5rem; }
+  .tasks details { padding: 0.75rem 1.5rem 1.25rem; border-top: 1px solid var(--line); color: var(--text-2); }
+  .tasks summary { cursor: pointer; font-weight: 500; min-height: 2rem; display: flex; align-items: center; }
+  .tasks details ul { margin: 0.5rem 0 0; padding-left: 1.25rem; color: var(--text-3); }
+
+  /* ---------- Modal curto ---------- */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.55); display: grid; place-items: center; z-index: 50; padding: 1.5rem; }
+  .modal { width: min(25rem, 100%); border-radius: var(--r-xl); padding: 1.5rem; display: grid; gap: 0.75rem; }
+  .modal h2 { font-size: 1.25rem; }
+  .modal .row { justify-content: flex-end; margin-top: 0.5rem; flex-wrap: wrap; }
+
+  .status-msg { position: absolute; left: 50%; transform: translateX(-50%); bottom: 5.5rem; width: min(30rem, calc(100% - 2rem)); z-index: 10; }
+
+  /* ---------- Janelas pequenas ---------- */
+  @container frame (max-height: 51rem) {
+    .center { gap: 1rem; padding-top: 0.25rem; }
+    .arrival { gap: 0.5rem; }
+    .arrival .clock { font-size: clamp(3.5rem, 13cqh, 6rem); }
+    .greeting { font-size: 1.1875rem; }
+    .next { padding: 1rem 1.25rem 1.125rem; gap: 0.375rem; }
+    .next .row { margin-top: 0.25rem; }
+    .invite { padding-block: 0.5rem; }
+  }
+  /* Altura curta (ou texto ampliado): a página inteira rola, rodapé incluído, em vez de espremer o centro */
+  @container frame (max-height: 40rem) {
+    .shell { overflow-y: auto; grid-template-rows: auto auto auto; }
+    .center { overflow: visible; }
+    .foot { padding-top: 1rem; }
+  }
+  @container frame (max-width: 68rem) {
+    html[data-state="tarefas"] .tasks { width: 0; }
+    /* fixed é relativo à moldura (container-type cria o bloco de contenção) */
+    .tasks { position: fixed; right: 0; top: 0; bottom: 0; width: 24rem !important; max-width: 92%; z-index: 30; transform: translateX(100%); transition: transform 280ms var(--ease); border-radius: var(--r-xl) 0 0 var(--r-xl); }
+    html[data-state="tarefas"] .tasks { transform: none; box-shadow: -30px 0 60px rgba(0,0,0,.5); }
+    .tasks-inner { width: 100%; }
+    .quote { display: none; }
+  }
+  @container frame (max-width: 54rem) {
+    .topbar { grid-template-columns: auto 1fr; }
+    .topbar .nav { order: 3; grid-column: 1 / -1; justify-self: center; }
+    .chip .chip-long { display: none; }
+    .prep .two { grid-template-columns: 1fr; }
+  }
+</style>
+<!-- Cópia gerada de 01-hoje-extensao.html por shared/gerar-copias-hoje.py -->
+<link rel="stylesheet" href="shared/hoje-periferia.css">
+<link rel="stylesheet" href="shared/hoje-assimetrica-cartao.css">
+</head>
+<body>
+<div class="proto-stage"><div class="proto-frame" id="app">
+  <div class="photo" id="photo"></div>
+
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Ora — índice dos protótipos">ORA</a>
+      <nav class="nav surface-glass" aria-label="Principal" data-note="Navegação principal reduzida a três destinos estáveis. Proteção e Configurações saem da navegação: uma é estado, a outra é utilitário." data-ref="§10 · §5">
+        <a href="01e-hoje-assimetrica-cartao.html" aria-current="page"><i class="ph ph-sun-horizon" aria-hidden="true"></i>Hoje</a>
+        <a href="03-rezar.html"><i class="ph ph-hands-praying" aria-hidden="true"></i>Rezar</a>
+        <a href="05-frutos-ritual.html"><i class="ph ph-plant" aria-hidden="true"></i>Frutos</a>
+      </nav>
+      <div class="right">
+        <button class="chip surface-glass" id="tasksBtn" aria-controls="tasks" aria-expanded="false" data-note="Tarefas com rótulo visível e contagem: função a ser descoberta não fica escondida atrás de um ícone." data-ref="§5">
+          <i class="ph ph-list-checks" aria-hidden="true"></i><span>Tarefas</span><span class="count" id="taskCount">3</span>
+        </button>
+        <button class="chip surface-glass" id="protChip" aria-expanded="false" aria-controls="protPop" data-note="Proteção como estado visível (ativa, pausada, sem permissão), com acesso próprio — não como mais um botão igual aos outros." data-ref="§10 · §14">
+          <span class="dot" id="protDot"></span><span id="protLabel">Proteção <span class="chip-long">ativa</span></span>
+        </button>
+        <a class="settings-btn" href="06-ritmo-novenas.html#configuracoes" aria-label="Configurações" title="Configurações"><i class="ph ph-gear" aria-hidden="true"></i></a>
+      </div>
+
+      <div class="popover surface-solid" id="protPop" hidden role="dialog" aria-label="Resumo da proteção">
+        <p class="label">Proteção</p>
+        <ul>
+          <li><span class="dot"></span><b>Redes sociais</b><span class="meta">Bloqueadas durante foco e entre 22h e 7h</span></li>
+          <li><span class="dot"></span><b>Vídeos</b><span class="meta">Limite de 30 min por dia · 12 min usados</span></li>
+          <li><span class="dot off"></span><b>Notícias</b><span class="meta">Bloqueadas só durante foco · liberadas agora</span></li>
+        </ul>
+        <a class="btn btn-aux btn-sm" href="04-protecao.html">Gerenciar proteção</a>
+      </div>
+    </header>
+
+    <main class="center" id="center">
+      <!-- Chegada -->
+      <section class="arrival" data-show="repouso repouso-vazio tarefas preparacao noite falhas" data-note="Em repouso, relógio e saudação dominam. Algarismos de largura estável evitam o relógio 'tremer' a cada minuto." data-ref="§4 · §7">
+        <time class="clock" id="clock" aria-live="off">14:22</time>
+        <p class="greeting" id="greeting">Boa tarde, Arthur</p>
+        <p class="day"><span id="dayLine">Quarta-feira, 28 de outubro</span><span aria-hidden="true">·</span><span class="lit lit-vermelho">São Simão e São Judas, apóstolos</span></p>
+      </section>
+
+      <!-- Próximo passo (com tarefas) -->
+      <section class="next surface-light" data-show="repouso tarefas noite falhas" data-note="Uma única localização para a próxima atividade, com uma ação principal preenchida. 'Escolher outra' é auxiliar." data-ref="§10 · §5">
+        <p class="label">Próximo passo</p>
+        <h2 class="next-title" id="nextTitle">Preparar apresentação</h2>
+        <p class="meta" id="nextMeta">25 min · primeira da sua lista de hoje</p>
+        <div class="row">
+          <button class="btn btn-primary btn-lg" data-goto="preparacao"><i class="ph-fill ph-play" aria-hidden="true"></i>Começar foco</button>
+          <button class="btn btn-quiet" data-goto="tarefas">Escolher outra</button>
+        </div>
+      </section>
+
+      <!-- Próximo passo (sem tarefas) -->
+      <section class="next surface-light" data-show="repouso-vazio" data-note="Estado vazio: convite curto para escolher uma atividade — e permissão explícita para só permanecer." data-ref="§15">
+        <p class="label">Próximo passo</p>
+        <form id="quickForm">
+          <label for="quickTask" class="sr-only">O que você quer fazer agora?</label>
+          <input class="input" id="quickTask" placeholder="O que você quer fazer agora?" autocomplete="off">
+          <button class="btn btn-primary" type="submit">Começar foco</button>
+        </form>
+        <p class="meta">Ou apenas fique aqui um instante.</p>
+      </section>
+
+      <!-- Intenção do dia -->
+      <div class="intent" data-show="repouso repouso-vazio tarefas" data-note="Intenção do DIA, opcional. Na preparação do foco existe outro campo, a intenção da SESSÃO — os dois não se confundem." data-ref="§10">
+        <div id="intentEdit">
+          <label for="dayIntent" class="sr-only">Intenção do dia (opcional)</label>
+          <input class="line-input" id="dayIntent" placeholder="Oferecer o dia por…" autocomplete="off">
+          <small style="display:block;margin-top:.35rem">Intenção do dia · opcional</small>
+        </div>
+        <p class="intent-set" id="intentSet" hidden><span>Hoje, por <span id="intentText"></span></span><button class="btn btn-quiet" id="intentChange">alterar</button></p>
+      </div>
+
+      <!-- Atalhos -->
+      <div class="shortcuts" data-show="repouso repouso-vazio tarefas" data-note="Atalhos agrupados e nomeados. Sites externos recebem ↗ discreto." data-ref="§5">
+        <p class="label sr-only">Seus atalhos</p>
+        <div class="row">
+          <a class="sc surface-glass" href="#" onclick="return false"><span class="fav">G</span>Google</a>
+          <a class="sc surface-glass" href="#" onclick="return false"><span class="fav">C</span>ChatGPT</a>
+          <a class="sc surface-glass ext" href="#" onclick="return false"><span class="fav">LH</span>Liturgia das Horas</a>
+          <button class="sc surface-glass" style="border:1px solid rgba(255,255,255,.1);cursor:pointer" aria-label="Adicionar atalho"><span class="fav"><i class="ph ph-plus"></i></span>Adicionar</button>
+        </div>
+      </div>
+
+      <!-- Espaço único para convites -->
+      <div class="invite surface-light" data-show="repouso" data-note="Um espaço previsível para convites. Só um por vez — os outros esperam a vez em vez de competir." data-ref="§10">
+        <i class="ph ph-clock lead" aria-hidden="true"></i>
+        <div class="txt"><b>Terço da Misericórdia às 15h</b><span class="meta">Você pediu para ser lembrado nos dias úteis.</span></div>
+        <button class="btn btn-quiet btn-sm">Agora não</button>
+      </div>
+      <div class="invite surface-light" data-show="noite">
+        <i class="ph ph-moon-stars lead" aria-hidden="true"></i>
+        <div class="txt"><b>Encerrar o dia</b><span class="meta">Gratidão, reflexão e uma oração breve · cerca de 5 min</span></div>
+        <a class="btn btn-aux btn-sm" href="05-frutos-ritual.html#ritual-noite">Começar</a>
+        <button class="btn btn-quiet btn-sm">Agora não</button>
+      </div>
+
+      <!-- Preparação -->
+      <section class="prep surface-solid" data-show="preparacao" role="dialog" aria-labelledby="prepLabel" data-note="Painel contextual pequeno: duração, intenção da sessão, som e proteção reunidos antes de começar. O cronômetro ainda não domina." data-ref="§4 · §10.1 · §12 Foco">
+        <div>
+          <p class="label" id="prepLabel">Preparar foco</p>
+          <input class="prep-title" id="prepTitle" value="Preparar apresentação" aria-label="Atividade">
+        </div>
+        <div class="field">
+          <span>Duração</span>
+          <div class="seg" id="durSeg" role="group" aria-label="Duração">
+            <button aria-pressed="false" data-min="15">15 min</button>
+            <button aria-pressed="true" data-min="25">25 min</button>
+            <button aria-pressed="false" data-min="50">50 min</button>
+            <button aria-pressed="false" data-min="90">90 min</button>
+          </div>
+        </div>
+        <label class="field">
+          <span>Oferecer esta sessão por <span class="muted">· opcional</span></span>
+          <input class="input" id="sessIntent" placeholder="Ex.: pela minha equipe" autocomplete="off">
+          <small id="dayIntentHint">Vale só para esta sessão. A intenção do dia continua a mesma.</small>
+        </label>
+        <div class="two">
+          <div class="field">
+            <span>Som</span>
+            <div class="seg" id="soundSeg" role="group" aria-label="Som">
+              <button aria-pressed="true" data-s="Silêncio">Silêncio</button>
+              <button aria-pressed="false" data-s="Canto gregoriano">Gregoriano</button>
+              <button aria-pressed="false" data-s="Chuva">Chuva</button>
+            </div>
+          </div>
+          <div class="field">
+            <span>Proteção</span>
+            <label class="switch"><input type="checkbox" id="protToggle" checked><span class="track"></span><span>Bloquear distrações</span></label>
+            <small>Redes sociais, vídeos e notícias · <a href="04-protecao.html">ver regras</a></small>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary btn-lg" id="startBtn"><i class="ph-fill ph-play" aria-hidden="true"></i><span id="startLabel">Começar 25 min</span></button>
+          <button class="btn btn-quiet" data-goto="repouso">Cancelar</button>
+          <span class="spacer"></span><span class="meta"><kbd>Esc</kbd> fecha</span>
+        </div>
+      </section>
+
+      <!-- Sessão ativa / pausada -->
+      <section class="session" data-show="ativa pausada" data-note="Sessão ativa: a atividade vem antes do tempo. Pausa é explícita e diferente de encerrar." data-ref="§4 · §12 Foco · §15">
+        <p class="label session-state" id="sessState"><span class="dot" id="sessDot"></span><span id="sessStateText">Em foco</span></p>
+        <h1 class="session-title" id="sessTitle">Preparar apresentação</h1>
+        <div class="timer clock" id="timer" role="timer" aria-label="Tempo restante">25:00</div>
+        <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+        <p class="meta" id="sessMeta">restantes · termina às 14:47</p>
+        <p class="session-intent" id="sessIntentLine" hidden></p>
+        <p class="pause-note" data-show="pausada">O tempo restante não está correndo. A proteção continua até você retomar ou encerrar.</p>
+        <div class="controls">
+          <button class="btn btn-aux btn-lg" id="pauseBtn" data-show="ativa"><i class="ph ph-pause" aria-hidden="true"></i>Pausar</button>
+          <button class="btn btn-primary btn-lg" id="resumeBtn" data-show="pausada"><i class="ph-fill ph-play" aria-hidden="true"></i>Retomar</button>
+          <button class="btn btn-quiet" id="endBtn">Encerrar sessão</button>
+        </div>
+        <div class="aux-row">
+          <button class="chip surface-glass" id="soundChip" data-note="Música vira controle auxiliar associado ao foco, não um destino na tela inicial." data-ref="§10 · §12 Música"><i class="ph ph-music-notes" aria-hidden="true"></i><span id="soundText">Silêncio</span></button>
+          <span class="chip surface-glass chip-static" id="protStatus"><span class="dot"></span>Distrações bloqueadas até o fim</span>
+        </div>
+      </section>
+
+      <!-- Concluída -->
+      <section class="done" data-show="concluida" data-note="Encerramento curto, sem mensagem de desempenho. Oferece o próximo passo e uma presença breve do 'companheiro'." data-ref="§13.1 · §13.7">
+        <p class="label">Sessão concluída</p>
+        <h1 id="doneTitle">Preparar apresentação</h1>
+        <p class="meta" id="doneMeta">25 min</p>
+        <label class="check-row surface-glass"><input type="checkbox" id="doneCheck"> Marcar tarefa como concluída</label>
+        <div class="row">
+          <button class="btn btn-primary" id="breakBtn"><i class="ph ph-coffee" aria-hidden="true"></i>Pausa de 5 min</button>
+          <button class="btn btn-aux" data-goto="preparacao">Mais uma sessão</button>
+          <button class="btn btn-quiet" data-goto="repouso">Voltar ao início</button>
+        </div>
+        <p class="meta" id="nextUp">Depois: Revisar capítulo 3</p>
+        <div class="companion">
+          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21" fill="none" stroke="currentColor" stroke-opacity=".35"/><path d="M22 9v26M14 17h16" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/></svg>
+          <p>“Fazei o que estiver ao vosso alcance, e Deus fará o resto.” <span class="meta" style="font-style:normal">— São Francisco de Sales</span></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="gospel surface-glass" data-note="Evangelho com duas saídas distintas: ler aqui (interno) e liturgia completa (externo, com ↗)." data-ref="§5">
+        <span class="ref" id="gospelRef">Evangelho · Lc 6,12-19</span>
+        <a class="btn btn-quiet btn-sm" href="03-rezar.html#leitor-evangelho">Ler aqui</a>
+        <a class="btn btn-quiet btn-sm ext" href="#" onclick="return false">Liturgia completa</a>
+      </div>
+      <div class="quote" data-note="Frase espiritual com prioridade baixa; some quando a janela é pequena ou quando outro conteúdo devocional está em destaque." data-ref="§10">
+        <p>“Tarde te amei, ó beleza tão antiga e tão nova!”</p>
+        <span>Santo Agostinho</span>
+      </div>
+    </footer>
+
+    <!-- Painel de tarefas -->
+    <aside class="tasks surface-solid" id="tasks" aria-label="Tarefas de hoje" data-note="Lista completa em painel integrado: a composição abre espaço para ele em vez de ficar sobreposta. Em janelas pequenas vira folha lateral." data-ref="§10 · §10.1">
+      <div class="tasks-inner">
+        <header>
+          <h2>Tarefas de hoje</h2>
+          <button class="icon-btn" data-goto="repouso" aria-label="Fechar tarefas"><i class="ph ph-x"></i></button>
+        </header>
+        <form class="add" id="addForm">
+          <label for="addInput" class="sr-only">Nova tarefa</label>
+          <input class="input" id="addInput" placeholder="Adicionar tarefa" autocomplete="off">
+          <button class="btn btn-aux" type="submit">Adicionar</button>
+        </form>
+        <ul class="task-list" id="taskList" data-note="Título dominante, metadados secundários, início claro com rótulo. Editar fica em outro gesto (clicar no título), não na mesma linha." data-ref="§12 Tarefas"></ul>
+        <div class="empty" id="tasksEmpty" hidden>
+          <b>Nada para hoje ainda.</b>
+          <span>Escreva uma coisa que importa. Ela vira o próximo passo.</span>
+        </div>
+        <details>
+          <summary>Concluídas hoje (2)</summary>
+          <ul><li>Responder e-mail da coordenação</li><li>Ler artigo para o seminário</li></ul>
+        </details>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modal curto de confirmação -->
+  <div class="scrim" id="endModal" hidden>
+    <div class="modal surface-solid" role="alertdialog" aria-modal="true" aria-labelledby="endTitle" aria-describedby="endDesc" data-note="Ação destrutiva → modal curto, com o que será perdido e o que fica registrado." data-ref="§10.1">
+      <h2 id="endTitle">Encerrar a sessão agora?</h2>
+      <p class="meta" id="endDesc">Faltam 18 min. Os 7 min já feitos ficam registrados em Frutos.</p>
+      <div class="row">
+        <button class="btn btn-quiet" id="endCancel">Continuar foco</button>
+        <button class="btn btn-aux" id="endConfirm">Encerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estados de falha -->
+  <div class="status-msg stack" data-show="falhas" style="--gap:.5rem">
+    <div class="banner err" role="alert" data-note="Falha ao salvar: mensagem persistente com nova tentativa, não um aviso que some sozinho." data-ref="§15">
+      <i class="ph ph-warning-circle"></i>
+      <div><strong>Não foi possível salvar “Enviar documento”.</strong>O armazenamento do navegador recusou a gravação.
+        <div class="actions"><button class="btn btn-aux btn-sm">Tentar de novo</button></div></div>
+    </div>
+  </div>
+</div></div>
+
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const DEFAULT_TASKS = [
+    { id: 1, title: 'Preparar apresentação', min: 25, tag: 'Trabalho' },
+    { id: 2, title: 'Revisar capítulo 3', min: 50, tag: 'Estudo' },
+    { id: 3, title: 'Enviar documento para a secretaria', min: 15, tag: 'Pessoal' },
+  ];
+  let tasks = DEFAULT_TASKS.map((t) => ({ ...t }));
+  let editing = null;
+  let session = { title: 'Preparar apresentação', total: 25 * 60, left: 25 * 60, sound: 'Silêncio', intent: '', prot: true, taskId: 1 };
+  let tick = null;
+  let lastFocus = null;
+
+  /* ---------- Relógio do cenário ---------- */
+  let base = { h: 14, m: 22 };
+  const started = Date.now();
+  const pad = (n) => String(n).padStart(2, '0');
+  function nowMin() { return base.h * 60 + base.m + Math.floor((Date.now() - started) / 60000); }
+  function fmtTime(min) { min = ((min % 1440) + 1440) % 1440; return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
+  // Algarismos em caixas de largura fixa (ver .clock .dg em ora.css)
+  function setDigits(el, txt) { el.innerHTML = txt.replace(/\d/g, (d) => `<span class="dg">${d}</span>`); }
+  function measureDigits() {
+    const cs = getComputedStyle($('#clock'));
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = `${cs.fontWeight} 100px ${cs.fontFamily}`;
+    const w = Math.max(...'0123456789'.split('').map((d) => ctx.measureText(d).width)) / 100;
+    document.documentElement.style.setProperty('--dg-w', w.toFixed(3) + 'em');
+  }
+  document.fonts.ready.then(measureDigits);
+  function refitClock() {
+    requestAnimationFrame(() => {
+      const cs = getComputedStyle($('#clock'));
+      document.fonts.load(`${cs.fontWeight} 100px ${cs.fontFamily}`, '0123456789').then(measureDigits, measureDigits);
+    });
+  }
+  function renderClock() { setDigits($('#clock'), fmtTime(nowMin())); }
+  setInterval(renderClock, 5000);
+
+  /* ---------- Tarefas ---------- */
+  function nextTask() { return tasks.find((t) => !t.done); }
+  function renderTasks() {
+    const list = $('#taskList');
+    const open = tasks.filter((t) => !t.done).length;
+    $('#taskCount').textContent = open;
+    $('#tasksEmpty').hidden = tasks.length > 0;
+    const nx = nextTask();
+    list.innerHTML = '';
+    tasks.forEach((t) => {
+      const li = document.createElement('li');
+      li.className = 'task' + (t.done ? ' is-done' : '') + (nx && nx.id === t.id ? ' is-next' : '');
+      li.innerHTML = `
+        <div class="task-row">
+          <button class="check" aria-label="${t.done ? 'Reabrir' : 'Concluir'} “${t.title}”" aria-pressed="${!!t.done}">✓</button>
+          <div class="task-main">
+            <button class="task-title" aria-expanded="${editing === t.id}">${t.title}</button>
+            <span class="meta">${t.min} min · ${t.tag}</span>
+          </div>
+          ${t.done ? '' : `<button class="btn btn-sm btn-aux focus-btn" aria-label="Começar foco em ${t.title}"><i class="ph-fill ph-play" aria-hidden="true"></i>Focar</button>`}
+        </div>
+        ${editing === t.id ? `
+        <div class="task-edit">
+          <label class="field"><span>Título</span><input class="input ed-title" value="${t.title}"></label>
+          <div class="field"><span>Duração estimada</span>
+            <div class="seg ed-min">${[15, 25, 50, 90].map((m) => `<button aria-pressed="${m === t.min}" data-m="${m}">${m} min</button>`).join('')}</div></div>
+          <div class="row">
+            <button class="btn btn-primary btn-sm ed-save">Salvar</button>
+            <button class="btn btn-quiet btn-sm ed-cancel">Cancelar</button>
+            <span class="spacer"></span>
+            <button class="btn btn-quiet btn-sm ed-del" style="color:var(--err)">Excluir</button>
+          </div>
+        </div>` : ''}`;
+      li.querySelector('.check').onclick = () => { t.done = !t.done; renderTasks(); renderNext(); };
+      li.querySelector('.task-title').onclick = () => { editing = editing === t.id ? null : t.id; renderTasks(); li.ownerDocument.querySelector('.ed-title')?.focus(); };
+      li.querySelector('.focus-btn')?.addEventListener('click', () => { setSessionFromTask(t); Proto.setState('preparacao'); });
+      if (editing === t.id) {
+        let m = t.min;
+        li.querySelectorAll('.ed-min button').forEach((b) => b.onclick = () => { m = +b.dataset.m; li.querySelectorAll('.ed-min button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); });
+        li.querySelector('.ed-save').onclick = () => { t.title = li.querySelector('.ed-title').value.trim() || t.title; t.min = m; editing = null; renderTasks(); renderNext(); };
+        li.querySelector('.ed-cancel').onclick = () => { editing = null; renderTasks(); };
+        li.querySelector('.ed-del').onclick = () => { tasks = tasks.filter((x) => x !== t); editing = null; renderTasks(); renderNext(); Proto.toast('Tarefa excluída · Desfazer'); };
+      }
+      list.appendChild(li);
+    });
+  }
+  function renderNext() {
+    const nx = nextTask();
+    if (!nx) return;
+    $('#nextTitle').textContent = nx.title;
+    const idx = tasks.filter((t) => !t.done).indexOf(nx);
+    $('#nextMeta').textContent = `${nx.min} min · ${idx === 0 ? 'primeira da sua lista de hoje' : 'da sua lista de hoje'}`;
+    if (['repouso', 'tarefas', 'noite', 'falhas'].includes(Proto.state)) setSessionFromTask(nx);
+  }
+  function setSessionFromTask(t) {
+    session.title = t.title; session.taskId = t.id; session.total = session.left = t.min * 60;
+    $('#prepTitle').value = t.title;
+    selectDur(t.min);
+  }
+  $('#addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#addInput').value.trim();
+    if (!v) return;
+    tasks.push({ id: Date.now(), title: v, min: 25, tag: 'Sem categoria' });
+    $('#addInput').value = '';
+    renderTasks(); renderNext();
+  });
+  $('#quickForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#quickTask').value.trim() || 'Foco livre';
+    session.title = v; session.taskId = null; $('#prepTitle').value = v;
+    Proto.setState('preparacao');
+  });
+
+  /* ---------- Intenção do dia ---------- */
+  let dayIntent = '';
+  function renderIntent() {
+    $('#intentEdit').hidden = !!dayIntent;
+    $('#intentSet').hidden = !dayIntent;
+    $('#intentText').textContent = dayIntent;
+    $('#dayIntentHint').textContent = dayIntent
+      ? `Vale só para esta sessão. A intenção do dia (“${dayIntent}”) continua a mesma.`
+      : 'Vale só para esta sessão.';
+  }
+  $('#dayIntent').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.value.trim()) { dayIntent = e.target.value.trim(); renderIntent(); } });
+  $('#dayIntent').addEventListener('blur', (e) => { if (e.target.value.trim()) { dayIntent = e.target.value.trim(); renderIntent(); } });
+  $('#intentChange').onclick = () => { dayIntent = ''; renderIntent(); $('#dayIntent').focus(); };
+
+  /* ---------- Preparação ---------- */
+  function selectDur(min) {
+    document.querySelectorAll('#durSeg button').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.min === min)));
+    $('#startLabel').textContent = `Começar ${min} min`;
+    session.total = session.left = min * 60;
+  }
+  document.querySelectorAll('#durSeg button').forEach((b) => b.onclick = () => selectDur(+b.dataset.min));
+  document.querySelectorAll('#soundSeg button').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('#soundSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    session.sound = b.dataset.s;
+  });
+  $('#startBtn').onclick = () => {
+    session.title = $('#prepTitle').value.trim() || 'Foco livre';
+    session.intent = $('#sessIntent').value.trim();
+    session.prot = $('#protToggle').checked;
+    session.left = session.total;
+    session.startMin = nowMin();
+    Proto.setState('ativa');
+  };
+
+  /* ---------- Sessão ---------- */
+  function renderSession() {
+    const m = Math.floor(session.left / 60), s = session.left % 60;
+    setDigits($('#timer'), pad(m) + ':' + pad(s));
+    $('#progress').style.width = (100 * (1 - session.left / session.total)) + '%';
+    $('#sessTitle').textContent = session.title;
+    $('#sessIntentLine').hidden = !session.intent;
+    $('#sessIntentLine').textContent = session.intent ? `Oferecida ${session.intent.match(/^(por|pela|pelo|pelos|pelas)\b/i) ? '' : 'por '}${session.intent}` : '';
+    $('#soundText').textContent = session.sound === 'Silêncio' ? 'Silêncio · escolher som' : `${session.sound} · tocando`;
+    $('#protStatus').hidden = !session.prot;
+    const endAt = fmtTime(nowMin() + Math.ceil(session.left / 60));
+    $('#sessMeta').textContent = Proto.state === 'pausada' ? `restantes · pausada` : `restantes · termina às ${endAt}`;
+    $('#protStatus').lastChild.textContent = Proto.state === 'pausada' ? 'Distrações continuam bloqueadas' : `Distrações bloqueadas até ${endAt}`;
+  }
+  function startTick() {
+    stopTick();
+    tick = setInterval(() => {
+      session.left = Math.max(0, session.left - 1);
+      renderSession();
+      if (session.left === 0) { stopTick(); Proto.setState('concluida'); }
+    }, 1000);
+  }
+  function stopTick() { clearInterval(tick); tick = null; }
+  $('#pauseBtn').onclick = () => Proto.setState('pausada');
+  $('#resumeBtn').onclick = () => Proto.setState('ativa');
+  $('#soundChip').onclick = () => {
+    const order = ['Silêncio', 'Canto gregoriano', 'Chuva'];
+    session.sound = order[(order.indexOf(session.sound) + 1) % order.length];
+    renderSession();
+  };
+  // Encerrar → modal curto
+  $('#endBtn').onclick = () => {
+    lastFocus = document.activeElement;
+    const done = Math.round((session.total - session.left) / 60), left = Math.ceil(session.left / 60);
+    $('#endDesc').textContent = `Faltam ${left} min. ${done > 0 ? `Os ${done} min já feitos ficam registrados em Frutos.` : 'Nada será registrado.'}`;
+    $('#endModal').hidden = false;
+    $('#endCancel').focus();
+  };
+  const closeModal = () => { $('#endModal').hidden = true; lastFocus?.focus(); };
+  $('#endCancel').onclick = closeModal;
+  $('#endConfirm').onclick = () => { $('#endModal').hidden = true; Proto.setState('repouso'); Proto.toast('Sessão encerrada'); };
+
+  $('#breakBtn').onclick = () => { session.title = 'Pausa'; session.intent = ''; session.total = session.left = 5 * 60; Proto.setState('ativa'); };
+  $('#doneCheck').onchange = (e) => {
+    const t = tasks.find((x) => x.id === session.taskId);
+    if (t) { t.done = e.target.checked; renderTasks(); renderNext(); }
+    const nx = nextTask();
+    $('#nextUp').textContent = nx ? `Depois: ${nx.title}` : 'Lista de hoje concluída.';
+  };
+
+  /* ---------- Proteção (popover) ---------- */
+  $('#protChip').onclick = (e) => {
+    const pop = $('#protPop');
+    pop.hidden = !pop.hidden;
+    $('#protChip').setAttribute('aria-expanded', String(!pop.hidden));
+    if (!pop.hidden) pop.querySelector('a').focus();
+  };
+  $('#tasksBtn').onclick = () => Proto.setState(Proto.state === 'tarefas' ? 'repouso' : 'tarefas');
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!$('#endModal').hidden) return closeModal();
+    if (!$('#protPop').hidden) { $('#protPop').hidden = true; $('#protChip').setAttribute('aria-expanded', 'false'); return $('#protChip').focus(); }
+    if (Proto.state === 'preparacao' || Proto.state === 'tarefas') { Proto.setState('repouso'); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#protPop') && !e.target.closest('#protChip')) { $('#protPop').hidden = true; $('#protChip').setAttribute('aria-expanded', 'false'); }
+  });
+
+  /* ---------- Estados ---------- */
+  Proto.init({
+    id: 'hoje-assimetrica-cartao',
+    title: 'Hoje — E · Assimétrica com cartão',
+    refs: '§4 §5 §10 §12',
+    kind: 'extension',
+    photo: true,
+    initial: 'repouso',
+    variants: [
+      { file: '01-hoje-extensao.html', label: 'Protótipo atual (referência)' },
+      { file: '01a-hoje-recolhida.html', label: 'A · Recolhida — centro mínimo' },
+      { file: '01c-hoje-assimetrica.html', label: 'C · Assimétrica — eixo livre' },
+      { file: '01d-hoje-eixo.html', label: 'D · Eixo — três grupos, cartão mantido' },
+      { file: '01e-hoje-assimetrica-cartao.html', label: 'E · Assimétrica com cartão' },
+    ],
+    options: [
+      { id: 'relogio', label: 'Relógio', apply: refitClock, values: [
+        { v: 'cinzel-400', label: 'Cinzel 400' },
+        { v: 'cinzel-600', label: 'Cinzel 600' },
+        { v: 'literata-300', label: 'Literata 300 (protótipo)' },
+        { v: 'montserrat-300', label: 'Montserrat 300' },
+      ] },
+      { id: 'citacao', label: 'Citação', values: [
+        { v: 'montserrat', label: 'Montserrat itálico (atual)' },
+        { v: 'literata', label: 'Literata itálico (protótipo)' },
+        { v: 'cormorant', label: 'Cormorant Garamond' },
+        { v: 'eb-garamond', label: 'EB Garamond' },
+        { v: 'crimson', label: 'Crimson Pro' },
+        { v: 'baskerville', label: 'Libre Baskerville' },
+        { v: 'spectral', label: 'Spectral' },
+        { v: 'lora', label: 'Lora' },
+      ] },
+    ],
+    states: [
+      { id: 'repouso-vazio', group: 'Chegada', label: 'Sem tarefas', hint: 'Estado vazio. Digite algo em "O que você quer fazer agora?" e pressione Enter para seguir o fluxo.' },
+      { id: 'repouso', group: 'Chegada', label: 'Com prioridades', hint: 'Chegada padrão às 14h22. Teste: a próxima ação fica evidente em 3 segundos? Preencha a intenção do dia.' },
+      { id: 'tarefas', group: 'Chegada', label: 'Tarefas abertas', hint: 'Painel integrado: o centro se desloca em vez de ser coberto. Clique num título para editar; "Focar" leva à preparação. Teste também na janela 1024×640.' },
+      { id: 'noite', group: 'Chegada', label: 'Noite · convite', hint: '21h10. O espaço de convite mostra o encerramento do dia — um convite por vez.' },
+      { id: 'preparacao', group: 'Foco', label: 'Preparar', hint: 'Escolha duração, intenção da sessão, som e proteção. Esc cancela.' },
+      { id: 'ativa', group: 'Foco', label: 'Sessão ativa', hint: 'O cronômetro corre de verdade. Use "Simular" para avançar. Navegação continua no lugar, mas recua.' },
+      { id: 'pausada', group: 'Foco', label: 'Pausada', hint: 'Pausada deve ser inconfundível com encerrada. Retomar é a ação principal.' },
+      { id: 'concluida', group: 'Foco', label: 'Concluída', hint: 'Sem mensagem de desempenho. Marque a tarefa e veja o próximo passo mudar.' },
+      { id: 'falhas', group: 'Sistema', label: 'Erro e indisponível', hint: 'Evangelho de hoje indisponível (mostra a data do conteúdo), proteção sem permissão e falha persistente ao salvar.' },
+    ],
+    actions: [
+      { label: 'Avançar 5 min', run() { session.left = Math.max(1, session.left - 300); renderSession(); } },
+      { label: 'Terminar sessão em 3 s', run() { if (!['ativa', 'pausada'].includes(Proto.state)) Proto.setState('ativa'); session.left = 3; renderSession(); } },
+    ],
+    questions: [
+      { q: 'Ao abrir a aba, a próxima ação fica evidente em poucos segundos sem perder a sensação de recolhimento?', ref: '§2 §17' },
+      { q: 'A navegação Hoje · Rezar · Frutos, com Proteção como estado à parte, faz sentido para você?', ref: '§10' },
+      { q: 'A diferença entre intenção do dia e intenção da sessão está clara?', ref: '§10' },
+      { q: 'A preparação do foco reúne o necessário sem parecer um formulário?', ref: '§12 Foco' },
+      { q: 'Na sessão ativa, a atividade antes do tempo ajuda a manter o foco?', ref: '§4' },
+      { q: 'Pausada e encerrada estão inconfundíveis?', ref: '§15' },
+      { q: 'O painel de tarefas integrado é melhor que o painel sobreposto atual?', ref: '§10' },
+      { q: 'Um único espaço de convite é suficiente (Angelus, Terço, Exame)?', ref: '§10' },
+      { q: 'Em 1024×640 e com texto 200%, nada essencial ficou cortado?', ref: '§12.2 §16' },
+    ],
+    onState(id, prev) {
+      const dim = ['ativa', 'pausada', 'concluida'].includes(id);
+      $('#photo').classList.toggle('dim', dim || id === 'preparacao');
+      $('#tasksBtn').setAttribute('aria-expanded', String(id === 'tarefas'));
+      $('#endModal').hidden = true;
+
+      // Cenário de horário
+      base = id === 'noite' ? { h: 21, m: 10 } : { h: 14, m: 22 };
+      $('#greeting').textContent = id === 'noite' ? 'Boa noite, Arthur' : 'Boa tarde, Arthur';
+      renderClock();
+
+      // Tarefas vazias x preenchidas
+      if (id === 'repouso-vazio') tasks = [];
+      else if (!tasks.length) tasks = DEFAULT_TASKS.map((t) => ({ ...t }));
+      renderTasks(); renderNext();
+
+      // Falhas
+      const fail = id === 'falhas';
+      $('#gospelRef').textContent = fail ? 'Evangelho de ontem (27/10) · Lc 13,18-21' : 'Evangelho · Lc 6,12-19';
+      $('#protDot').className = 'dot' + (fail ? ' warn' : '');
+      $('#protLabel').innerHTML = fail ? 'Proteção <span class="chip-long">sem permissão</span>' : 'Proteção <span class="chip-long">ativa</span>';
+
+      // Sessão
+      if (id === 'ativa') { renderSession(); startTick(); }
+      else stopTick();
+      if (id === 'pausada') {
+        if (session.left === session.total) session.left = session.total - 412;
+        $('#sessStateText').textContent = 'Sessão pausada';
+        $('#sessDot').className = 'dot warn';
+        renderSession();
+      } else {
+        $('#sessStateText').textContent = 'Em foco';
+        $('#sessDot').className = 'dot';
+      }
+      if (id === 'concluida') {
+        $('#doneTitle').textContent = session.title;
+        const mins = Math.round(session.total / 60);
+        $('#doneMeta').textContent = session.intent ? `${mins} min · oferecidos ${session.intent}` : `${mins} min`;
+        $('#doneCheck').checked = false;
+        const nx = tasks.find((t) => !t.done && t.id !== session.taskId);
+        $('#nextUp').textContent = nx ? `Depois: ${nx.title}` : '';
+      }
+      if (id === 'preparacao') setTimeout(() => $('#prepTitle').focus(), 50);
+      if (id === 'tarefas') setTimeout(() => $('#addInput').focus(), 300);
+      if (prev === 'tarefas' && id === 'repouso') $('#tasksBtn').focus();
+    },
+  });
+})();
+</script>
+</body>
+</html>

@@ -22,6 +22,11 @@
     "js": ["scripts/youtube-adblocker.js"],
     "run_at": "document_start",
     "all_frames": true
+  }, {
+    "matches": ["https://arthurdouradodev.github.io/ora-player-relay/*"],
+    "js": ["scripts/sound-relay.js"],
+    "run_at": "document_end",
+    "all_frames": true
   }],
   "web_accessible_resources": [{
     "resources": ["blocked.html"],

@@ -64,7 +64,7 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 | `scripts/modules/links.js` | "Seus atalhos" on Hoje + manage dialog (`ora_quick_links`) |
 | `scripts/modules/rosary.js` | Rosary preparation and prayer subroutes, weekday mysteries, real saved position; also Divine Mercy Chaplet |
 | `scripts/modules/exam.js` | Examination subroutes, draft, confirmed logs and virtue checklist |
-| `scripts/modules/music.js` | YouTube/Spotify player with relay iframe workaround |
+| `scripts/modules/sound.js` | Som in Hoje and focus preparation, offline ambient mixes, and YouTube/Spotify embeds through the existing relay |
 | `scripts/modules/tasks.js` | Tasks side panel "Tarefas (n)": Hoje (ordered) and Depois, weekday recurrence, completed of the day |
 | `scripts/modules/rezar.js` | Rezar entry, saints, Gospel sources, Bible chapter selection and subroutes |
 | `scripts/modules/prayers.js` | Accent-insensitive library search, category and favorites scopes |

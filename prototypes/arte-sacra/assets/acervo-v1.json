@@ -1,0 +1,50 @@
+[
+  {
+    "id": "evangelho-pintura-v1",
+    "file": "evangelho-pintura-v1.png",
+    "version": 1,
+    "origin": "image_gen built-in",
+    "intervention": "new AI-generated illustration",
+    "reference": "Luke 6:12",
+    "art_direction": "../DIRECAO_ARTISTICA_PINTURA_MOSAICO.md",
+    "prompt_file": "../PROMPTS_REZAR_V3.json",
+    "status": "prototype study; user selection pending",
+    "review": "Checked composition, visible face and hands, halo, costume, lack of text and small-display crop; not a claim of historical authenticity."
+  },
+  {
+    "id": "evangelho-mosaico-v1",
+    "file": "evangelho-mosaico-v1.png",
+    "version": 1,
+    "origin": "image_gen built-in",
+    "intervention": "new AI-generated illustration",
+    "reference": "Luke 6:12",
+    "art_direction": "../DIRECAO_ARTISTICA_PINTURA_MOSAICO.md",
+    "prompt_file": "../PROMPTS_REZAR_V3.json",
+    "status": "prototype study; user selection pending",
+    "review": "Checked composition, visible face and hands, halo, costume, lack of text and small-display crop; not a claim of historical authenticity."
+  },
+  {
+    "id": "sao-judas-pintura-v1",
+    "file": "sao-judas-pintura-v1.png",
+    "version": 1,
+    "origin": "image_gen built-in",
+    "intervention": "new AI-generated illustration",
+    "reference": "Traditional devotional attributes of Saint Jude Thaddeus",
+    "art_direction": "../DIRECAO_ARTISTICA_PINTURA_MOSAICO.md",
+    "prompt_file": "../PROMPTS_REZAR_V3.json",
+    "status": "prototype study; user selection pending",
+    "review": "Checked composition, visible face and hands, halo, costume, lack of text and small-display crop; not a claim of historical authenticity."
+  },
+  {
+    "id": "sao-judas-mosaico-v1",
+    "file": "sao-judas-mosaico-v1.png",
+    "version": 1,
+    "origin": "image_gen built-in",
+    "intervention": "new AI-generated illustration",
+    "reference": "Traditional devotional attributes of Saint Jude Thaddeus",
+    "art_direction": "../DIRECAO_ARTISTICA_PINTURA_MOSAICO.md",
+    "prompt_file": "../PROMPTS_REZAR_V3.json",
+    "status": "prototype study; user selection pending",
+    "review": "Checked composition, visible face and hands, halo, costume, lack of text and small-display crop; not a claim of historical authenticity."
+  }
+]

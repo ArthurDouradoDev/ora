@@ -1,0 +1,60 @@
+/* ==========================================================================
+   Hoje · distribuição comum às cópias D e E
+   Leitura da tela noturna: ela é mais sóbria porque o eixo tem só três grupos
+   (chegada, próximo passo, convite). Aqui o dia também fica assim:
+   - Atalhos são utilitários: saem do eixo e vão para o alto, ao lado da marca
+     (onde a extensão original já tinha Liturgia e Música).
+   - Intenção do dia deixa de ser um bloco: vira uma linha da própria chegada,
+     logo abaixo da data, discreta até ser usada.
+   - Convite vira uma linha, sem cartão: o único cartão é o do próximo passo.
+   ========================================================================== */
+
+/* ---------- Atalhos no alto, ao lado da marca ---------- */
+.shortcuts {
+  position: absolute; top: 1rem; left: 5.5rem; z-index: 6;
+  justify-items: start;
+}
+.shortcuts .row { justify-content: flex-start; gap: 0.375rem; flex-wrap: nowrap; }
+.sc { font-size: 0.8125rem; padding: 0.3rem 0.75rem 0.3rem 0.375rem; gap: 0.375rem; }
+.sc .fav { width: 1.25rem; height: 1.25rem; font-size: 0.625rem; }
+.sc.ext::after { display: none; }
+/* "Adicionar" vira só o +, com nome acessível já no botão */
+.shortcuts button.sc { font-size: 0; padding: 0.3rem; gap: 0; }
+.shortcuts button.sc .fav { font-size: 0.75rem; }
+@container frame (max-width: 80rem) {
+  /* sem espaço para os nomes ao lado da navegação: só os ícones */
+  .sc { font-size: 0; padding: 0.3rem; gap: 0; }
+  .sc .fav { font-size: 0.625rem; }
+}
+@container frame (max-width: 54rem) {
+  .shortcuts { position: static; justify-items: center; }
+}
+
+/* ---------- Intenção como linha da chegada ---------- */
+.center > .arrival { order: 0; }
+.center > .intent { order: 1; margin-top: -1rem; }
+.center > .next { order: 2; }
+.center > .invite { order: 3; }
+.intent small { display: none !important; }
+.intent .line-input {
+  min-width: 16rem; padding: 0.25rem;
+  font-family: var(--f-read); font-style: italic; font-size: 1rem;
+  border-bottom-color: transparent; color: var(--text);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .7);
+}
+.intent .line-input::placeholder { color: var(--text-2); }
+.intent .line-input:hover { border-bottom-color: rgba(255, 255, 255, 0.25); }
+.intent .line-input:focus { border-bottom-color: var(--gold); }
+.intent-set { font-size: 1rem; font-style: italic; color: var(--text-2); }
+
+/* ---------- Convite em uma linha, sem cartão ---------- */
+.invite {
+  background: none; border: 0; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  width: auto; padding: 0; gap: 0.5rem; font-size: 0.875rem;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .6);
+}
+.invite i.lead { font-size: 1.125rem; }
+.invite .txt b { display: inline; font-weight: 500; }
+.invite .txt .meta { display: none; }
+.invite .btn-sm { min-height: 2rem; }

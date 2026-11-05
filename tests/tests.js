@@ -1148,6 +1148,70 @@
 
     }
 
+    group('SoundCore — links e preferências');
+    const video = { source: 'youtube', idType: 'video', externalId: 'c79SszUBZUE' };
+    const album = { source: 'spotify', idType: 'album', externalId: '0sNOF9WDwhWunNAHPD3Baj' };
+    assertEq('YouTube curto', SoundCore.parseLink('https://youtu.be/c79SszUBZUE?si=example'), video);
+    assertEq('YouTube Music prioriza a lista', SoundCore.parseLink('music.youtube.com/watch?v=c79SszUBZUE&list=PL_123'), {
+        source: 'youtube', idType: 'playlist', externalId: 'PL_123'
+    });
+    assertEq('Spotify aceita URI e URL localizada', [
+        SoundCore.parseLink('spotify:album:0sNOF9WDwhWunNAHPD3Baj'),
+        SoundCore.parseLink('https://open.spotify.com/intl-pt/album/0sNOF9WDwhWunNAHPD3Baj?si=example')
+    ], [album, album]);
+    assertEq('rejeita falso provedor e protocolos inválidos', [
+        SoundCore.parseLink('https://youtube.com.example/watch?v=c79SszUBZUE'),
+        SoundCore.parseLink('https://youtube.com@evil.test/watch?v=c79SszUBZUE'),
+        SoundCore.parseLink('ftp://open.spotify.com/track/x'),
+        SoundCore.parseLink('https://youtube.com/watch?v=short')
+    ], [null, null, null, null]);
+    const playlists = [{ id: 'old', ...video }];
+    assertEq('restaura identificador legado de playlist', SoundCore.preference('old', playlists).choice, { kind: 'playlist', id: 'old' });
+    assertEq('playlist removida volta ao silêncio', SoundCore.preference('removed', playlists).choice, { kind: 'silence' });
+    assertEq('restaura volume e restringe a mistura a três camadas válidas', SoundCore.preference({
+        choice: { kind: 'ambient', layers: [
+            { id: 'unknown', volume: 100 }, { id: 'rain', volume: -5 },
+            { id: 'rain', volume: 50 }, { id: 'bells', volume: 140 }, { id: 'fire', volume: 60 },
+            { id: 'church', volume: 30 }
+        ] }, volume: 42, pauseWithFocus: true
+    }, playlists), {
+        choice: { kind: 'ambient', layers: [{ id: 'rain', volume: 0 }, { id: 'bells', volume: 100 }, { id: 'fire', volume: 60 }] },
+        volume: 42, pauseWithFocus: true
+    });
+
+    group('SoundCore — ambientes e motor');
+    assert('ambientes usam só sons do catálogo e respeitam o limite',
+        SoundCore.SCENES.every(scene => scene.layers.length <= SoundCore.MAX_LAYERS
+            && scene.layers.every(layer => Object.hasOwn(SoundCore.AMBIENCES, layer.id))));
+    assert('cada ambiente tem uma combinação única de camadas',
+        SoundCore.SCENES.every((scene, i) => SoundCore.SCENES.findIndex(other => SoundCore.sameLayers(scene, other)) === i));
+    assertEq('ambiente reconhecido pelas camadas, em qualquer ordem e volume', SoundCore.sceneOf({
+        kind: 'ambient', layers: [{ id: 'rain', volume: 10 }, { id: 'church', volume: 90 }]
+    }), 'chapel_rain');
+    assertEq('som único é o próprio ambiente; mistura própria não tem ambiente', [
+        SoundCore.sceneOf({ kind: 'ambient', layers: [{ id: 'rain', volume: 50 }] }),
+        SoundCore.sceneOf({ kind: 'ambient', layers: [{ id: 'rain', volume: 50 }, { id: 'bells', volume: 50 }] }),
+        SoundCore.sceneOf({ kind: 'silence' })
+    ], ['rain', null, null]);
+    const lauds = SoundCore.sceneChoice('lauds');
+    lauds.layers[0].volume = 1;
+    assertEq('receita do ambiente é copiada (editar não altera o catálogo)',
+        SoundCore.sceneChoice('lauds').layers[0].volume, 70);
+    assertEq('ambiente desconhecido vira silêncio', SoundCore.sceneChoice('nada'), { kind: 'silence' });
+
+    const ramp = new Float32Array(1000).map((_, i) => i);
+    const [looped] = SoundCore.loopCrossfade([ramp], 100, 1);
+    assertEq('emenda encurta o trecho pelo tamanho do fade', looped.length, 900);
+    assert('emenda: o início continua o fim e o meio fica intacto',
+        Math.abs(looped[0] - 900) < 1e-3 && looped[100] === 100 && looped[899] === 899);
+    const short = [new Float32Array(3)];
+    assert('trecho curto demais volta sem mudança', SoundCore.loopCrossfade(short, 100, 1) === short);
+
+    const wav = SoundCore.silentWav(0.5, 8000);
+    const header = String.fromCharCode(...wav.slice(0, 4)) + String.fromCharCode(...wav.slice(8, 12));
+    assertEq('WAV de silêncio tem cabeçalho e amostras neutras',
+        [header, wav.length, wav[44], wav[wav.length - 1]], ['RIFFWAVE', 44 + 4000, 128, 128]);
+
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;
 

@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="styles/layout/grid.css">
     <link rel="stylesheet" href="styles/layout/shell.css">
     <link rel="stylesheet" href="styles/modules/protecao.css">
-    <link rel="stylesheet" href="styles/modules/music.css">
+    <link rel="stylesheet" href="styles/modules/sound.css">
     <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/modules/onboarding.css">
     <link rel="stylesheet" href="styles/modules/today.css">
@@ -71,52 +71,6 @@
             <button type="button" class="settings-btn" id="btn-settings" aria-label="Configurações" data-i18n-aria-label="settings.title" title="Configurações" data-i18n-title="settings.title"><i class="ph ph-gear" aria-hidden="true"></i></button>
         </div>
     </header>
-
-    <!-- Music Library Modal -->
-    <div id="music-library" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 data-i18n="music.library_title">Biblioteca</h3>
-            <button id="close-library-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-        
-        <div class="add-playlist-section">
-            <input type="text" id="playlist-input" placeholder="Link YouTube/Spotify..." data-i18n-placeholder="music.playlist_placeholder">
-            <button id="add-playlist-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
-        </div>
-
-        <div id="playlist-grid" class="playlist-grid grid-gallery"></div>
-    </div>
-
-    <!-- Mini Player - Fixed Position Left Side -->
-    <div id="mini-player" class="glass-panel modal modal-corner-left modal-fade" style="display: none;">
-        <div class="player-header">
-            <span id="now-playing-text" data-i18n="music.now_playing">Tocando...</span>
-            <div class="player-actions">
-                <button id="minimize-player-btn" class="icon-btn-sm" data-i18n-title="music.btn_minimize" title="Minimizar">
-                    <i class="ph ph-caret-down"></i>
-                </button>
-                <button id="open-external-btn" class="icon-btn-sm" data-i18n-title="music.btn_open_app" title="Abrir no app">
-                    <i class="ph ph-arrow-square-out"></i>
-                </button>
-                <button id="close-player-btn" class="icon-btn-sm" data-i18n-title="music.btn_close" title="Fechar">
-                    <i class="ph ph-x"></i>
-                </button>
-            </div>
-        </div>
-        <div class="iframe-container" id="iframe-container">
-            <iframe 
-                id="youtube-iframe" 
-                width="100%" 
-                height="352" 
-                src="" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
-                style="display: none; border-radius: 12px;">
-            </iframe>
-            
-            <iframe id="spotify-iframe" style="border-radius:12px; display: none;" src="" width="100%" height="352" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </div>
-    </div>
 
     <main class="view view-hoje" id="view-hoje" data-view="hoje">
         <div class="today" id="today">
@@ -196,10 +150,9 @@
                     <div class="two">
                         <div class="field">
                             <span id="today-sound-label" data-i18n="today.prep_sound">Som</span>
-                            <button type="button" class="chip sound-chip" id="today-sound-chip" aria-expanded="false" aria-controls="today-sound-list" aria-describedby="today-sound-label">
+                            <button type="button" class="chip sound-chip" id="today-sound-chip" aria-haspopup="dialog" aria-controls="sound-dialog" aria-describedby="today-sound-label">
                                 <i class="ph ph-music-notes" aria-hidden="true"></i><span id="today-sound-text"></span><i class="ph ph-caret-down" aria-hidden="true"></i>
                             </button>
-                            <ul class="sound-list" id="today-sound-list" aria-labelledby="today-sound-label" hidden></ul>
                         </div>
                         <div class="field">
                             <span data-i18n="today.prep_protection">Proteção</span>
@@ -229,7 +182,6 @@
                         <button type="button" class="btn btn-quiet" id="today-end"></button>
                     </div>
                     <div class="aux-row">
-                        <button type="button" class="chip surface-glass" id="today-session-sound"><i class="ph ph-music-notes" aria-hidden="true"></i><span id="today-session-sound-text"></span></button>
                         <span class="chip surface-glass chip-static" id="today-session-protect" hidden><span class="dot" aria-hidden="true"></span><span id="today-session-protect-text"></span></span>
                     </div>
                 </section>
@@ -254,6 +206,23 @@
                     </div>
                     <p class="meta" id="today-after" hidden></p>
                 </section>
+
+                <div class="sound-mini" id="sound-mini">
+                    <button type="button" class="chip surface-glass sound-chip" id="sound-open" aria-haspopup="dialog" aria-controls="sound-dialog">
+                        <i class="ph ph-music-notes" aria-hidden="true"></i><span class="sound-eq" aria-hidden="true"><span></span><span></span><span></span></span><span id="sound-name" data-i18n="sound.title">Som</span>
+                    </button>
+                    <button type="button" class="btn-icon" id="sound-toggle" hidden><i class="ph ph-pause" aria-hidden="true"></i></button>
+                    <label class="sound-volume" hidden>
+                        <i class="ph ph-speaker-high" aria-hidden="true"></i><span class="sr-only" data-i18n="sound.volume">Volume</span>
+                        <input type="range" id="sound-volume" value="65">
+                    </label>
+                    <button type="button" class="btn-icon" id="sound-stop" data-i18n-aria-label="sound.stop" data-i18n-title="sound.stop" hidden><i class="ph ph-stop" aria-hidden="true"></i></button>
+                </div>
+                <aside id="sound-remote" class="sound-remote surface-solid" hidden>
+                    <iframe id="sound-frame" title="Player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                    <p class="meta" id="sound-player-status" role="status" hidden></p>
+                    <a id="sound-external" class="btn btn-quiet btn-sm" target="_blank" rel="noopener"><i class="ph ph-arrow-square-out" aria-hidden="true"></i><span data-i18n="sound.open_provider">Abrir no serviço</span></a>
+                </aside>
 
                 <!-- Falhas: mensagem persistente com ação -->
                 <div class="today-alert" id="today-alert" hidden>
@@ -587,13 +556,71 @@
         </div>
     </main>
 
-    <!-- Gatilhos dos módulos da V0 (terço, orações, exame, música):
-         os destinos novos os acionam até cada tela ser refeita (fase 6) -->
+    <!-- Gatilhos dos módulos da V0 (terço, orações, exame):
+         os destinos novos os acionam até cada tela ser refeita -->
     <div class="legacy-triggers" hidden>
-        <button type="button" id="btn-music" tabindex="-1"></button>
         <button type="button" id="btn-rosary" tabindex="-1"></button>
         <button type="button" id="btn-prayers" tabindex="-1"></button>
         <button type="button" id="btn-exam" tabindex="-1"></button>
+    </div>
+
+    <div class="scrim sound-scrim" id="sound-dialog" hidden>
+        <section class="dialog surface-solid sound-dialog" role="dialog" aria-modal="true" aria-labelledby="sound-title">
+            <header class="sound-head">
+                <button type="button" class="btn-icon sm" id="sound-back" data-i18n-aria-label="sound.back" data-i18n-title="sound.back" hidden><i class="ph ph-arrow-left" aria-hidden="true"></i></button>
+                <h2 id="sound-title" data-i18n="sound.title">Som</h2>
+                <button type="button" class="btn btn-quiet btn-sm" id="sound-reset" data-i18n="sound.reset" hidden>Redefinir</button>
+                <button type="button" class="btn-icon sm" id="sound-add-open" data-i18n-aria-label="sound.add_music" data-i18n-title="sound.add_music"><i class="ph ph-plus" aria-hidden="true"></i></button>
+                <button type="button" class="btn-icon sm" data-dialog-close data-i18n-aria-label="today.close" data-i18n-title="today.close"><i class="ph ph-x" aria-hidden="true"></i></button>
+            </header>
+
+            <div class="sound-view" id="sound-view-library">
+                <div class="sound-bar">
+                    <div class="sound-filters" id="sound-filters" role="group" data-i18n-aria-label="sound.filter"></div>
+                    <button type="button" class="sound-now" id="sound-now" hidden>
+                        <span class="sound-eq" aria-hidden="true"><span></span><span></span><span></span></span><span class="sound-now-name"></span>
+                    </button>
+                </div>
+                <ul class="sound-grid" id="sound-grid"></ul>
+                <label class="toggle sound-setting"><input type="checkbox" id="sound-pause-with-focus"><span class="track"></span><span data-i18n="sound.pause_with_focus">Pausar o som junto com o foco</span></label>
+            </div>
+
+            <div class="sound-view" id="sound-view-mixer" hidden>
+                <p class="meta" data-i18n="sound.mixer_hint">Ligue até três sons e ajuste cada um. Funcionam sem internet.</p>
+                <div class="sound-layers" id="sound-layers"></div>
+                <p class="meta sound-credit"><a class="link-btn" href="https://commons.wikimedia.org/wiki/File:GloriaGregorianChant.ogg" target="_blank" rel="noopener" data-i18n="sound.gloria_credit">Glória por CyclePat · CC BY 3.0</a></p>
+            </div>
+
+            <div class="sound-view" id="sound-view-playlist" hidden>
+                <div class="sound-playlist-card">
+                    <span class="sound-cover" id="sound-playlist-cover"></span>
+                    <div>
+                        <p class="sound-playlist-meta" id="sound-playlist-meta"></p>
+                    </div>
+                </div>
+                <p class="meta" id="sound-playlist-hint" hidden></p>
+                <div class="row sound-playlist-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="sound-playlist-use"></button>
+                    <a class="btn btn-quiet btn-sm" id="sound-playlist-external" target="_blank" rel="noopener"><i class="ph ph-arrow-square-out" aria-hidden="true"></i><span data-i18n="sound.open_provider">Abrir no serviço</span></a>
+                    <button type="button" class="btn btn-quiet btn-sm sound-danger" id="sound-playlist-remove"><i class="ph ph-trash" aria-hidden="true"></i><span data-i18n="sound.remove_short">Remover</span></button>
+                </div>
+            </div>
+
+            <div class="sound-view" id="sound-view-add" hidden>
+                <form class="sound-add" id="sound-add-form">
+                    <label class="sr-only" for="playlist-input" data-i18n="sound.link_label">Link do YouTube ou Spotify</label>
+                    <input class="input" id="playlist-input" autocomplete="off" maxlength="500" data-i18n-placeholder="sound.link_placeholder">
+                    <button class="btn btn-primary" type="submit" data-i18n="sound.add">Adicionar</button>
+                </form>
+                <p class="meta" data-i18n="sound.add_hint">Vídeos e playlists do YouTube; playlists, álbuns e faixas do Spotify. Precisam de internet.</p>
+            </div>
+
+            <p class="meta" id="sound-status" role="status"></p>
+            <div class="row sound-footer" id="sound-footer" hidden>
+                <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.cancel">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="sound-apply"></button>
+            </div>
+        </section>
     </div>
 
     <div class="scrim" id="pray-confirm" hidden>
@@ -1094,6 +1121,7 @@
     <script src="scripts/shared/sessions-core.js" defer></script>
     <script src="scripts/shared/counter-core.js" defer></script>
     <script src="scripts/shared/migrate-core.js" defer></script>
+    <script src="scripts/shared/sound-core.js" defer></script>
     <script src="scripts/shared/today-core.js" defer></script>
     <script src="scripts/shared/reminders-core.js" defer></script>
     <script src="scripts/shared/search-core.js" defer></script>
@@ -1118,7 +1146,8 @@
     <script src="scripts/modules/rosary.js" defer></script>
     <script src="scripts/modules/reminders.js" defer></script>
     <script src="scripts/modules/background.js" defer></script>
-    <script src="scripts/modules/music.js" defer></script>
+    <script src="scripts/modules/sound-engine.js" defer></script>
+    <script src="scripts/modules/sound.js" defer></script>
     <script src="scripts/modules/exam.js" defer></script>
     <script src="scripts/modules/focus.js" defer></script>
     <script src="scripts/modules/tasks.js" defer></script>

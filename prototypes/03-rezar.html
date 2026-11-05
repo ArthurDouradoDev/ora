@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Rezar</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  .shell { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .view { flex: 1; min-height: 0; overflow: auto; }
+
+  /* ---------- Biblioteca ---------- */
+  .lib { max-width: 72rem; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .lib-head { display: flex; align-items: end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  .lib-head h1 { font-size: 2rem; font-weight: 600; flex: 1; }
+  .search { position: relative; width: min(26rem, 100%); }
+  .search i { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 1.125rem; }
+  .search .input { padding-left: 2.5rem; background: var(--surface-1); }
+  .lib-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 2rem; align-items: start; }
+  .col { display: grid; gap: 1rem; }
+  .col > .label { margin-top: 0.5rem; }
+  .card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.125rem 1.25rem; }
+  .card h3 { font-size: 1.0625rem; font-weight: 600; }
+  .card .row { margin-top: 0.75rem; flex-wrap: wrap; }
+  .card.feature h3 { font-family: var(--f-read); font-weight: 500; font-size: 1.375rem; margin: 0.25rem 0 0.375rem; }
+  .saint { display: flex; gap: 0.875rem; align-items: center; }
+  .saint .ic { width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; background: rgba(208,98,90,.15); color: var(--lit-vermelho); font-size: 1.25rem; flex: none; }
+  .continue { display: flex; gap: 1rem; align-items: center; }
+  .continue .bar { height: 4px; border-radius: 4px; background: var(--surface-3); margin-top: 0.5rem; overflow: hidden; }
+  .continue .bar span { display: block; height: 100%; background: var(--gold); }
+  .continue > div { flex: 1; min-width: 0; }
+  .favs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .fav-chip { display: inline-flex; gap: 0.5rem; align-items: center; min-height: 2.5rem; padding: 0.375rem 0.95rem; border-radius: 999px; border: 1px solid var(--line-strong); background: none; cursor: pointer; font-weight: 500; }
+  .fav-chip i { color: var(--gold); }
+  .cats { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+  /* Seleção é estado funcional, não dourado de marca (§8.1) */
+  .cats .btn[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .plist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-1); }
+  .plist li + li { border-top: 1px solid var(--line); }
+  .plist button { width: 100%; display: flex; align-items: center; gap: 0.875rem; padding: 0.875rem 1.125rem; background: none; border: 0; cursor: pointer; text-align: left; }
+  .plist button:hover { background: rgba(255,255,255,.03); }
+  .plist .tt { flex: 1; display: grid; gap: 0.125rem; }
+  .plist .tt b { font-weight: 500; font-size: 1rem; }
+  .plist .tt span { color: var(--text-3); font-size: 0.8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plist mark { background: var(--gold-soft); color: var(--text); border-radius: 3px; padding: 0 2px; }
+
+  /* ---------- Leitor ---------- */
+  .reader { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .reader-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--line); flex: none; }
+  .reader-bar .ctx { flex: 1; text-align: center; font-size: 0.875rem; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reader-progress { height: 3px; background: transparent; flex: none; }
+  .reader-progress span { display: block; height: 100%; background: var(--gold); width: 0; }
+  .reader-body { flex: 1; overflow: auto; scroll-behavior: smooth; }
+  .reader-inner { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.5rem 6rem; }
+  .reader-inner header { margin-bottom: 2rem; }
+  .reader-inner h1 { font-family: var(--f-brand); font-weight: 400; font-size: 1.75rem; letter-spacing: 0.03em; margin: 0.375rem 0 0.25rem; }
+  .reader-inner header.short { text-align: center; }
+  .read-col p { white-space: pre-line; }
+  .resume-banner { position: sticky; top: 0; z-index: 2; margin: -1rem auto 1.5rem; max-width: 44rem; }
+  .hl { background: var(--gold-soft); box-shadow: 0 0 0 0.35rem var(--gold-soft); border-radius: 2px; transition: background 1.5s, box-shadow 1.5s; }
+  .size-ctrl { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 999px; }
+  .size-ctrl button { width: 2.5rem; height: 2.375rem; border: 0; background: none; cursor: pointer; color: var(--text); font-family: var(--f-read); }
+  .size-ctrl button:first-child { font-size: 0.875rem; }
+  .size-ctrl button:last-child { font-size: 1.125rem; }
+  .size-ctrl span { font-size: 0.75rem; color: var(--text-3); min-width: 2.5rem; text-align: center; }
+  .reader.paper .reader-bar, .reader.paper .reader-body { background: var(--paper); color: var(--paper-ink); }
+  .reader.paper { --text: var(--paper-ink); --text-2: var(--paper-ink-2); --text-3: #7a6f60; --line: rgba(43,37,29,.14); --line-strong: rgba(43,37,29,.25); background: var(--paper); }
+  .reader.paper .resp { color: #8a6420; }
+  .reader.paper .icon-btn:hover { background: rgba(0,0,0,.06); }
+  .reader.paper .seg { background: rgba(0,0,0,.05); }
+  .reader.paper .seg button[aria-pressed="true"] { background: #fff; color: var(--paper-ink); }
+
+  /* Lectio: o texto bíblico continua acessível ao lado da orientação */
+  .lectio { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; flex: 1; min-height: 0; }
+  .lectio .reader-body { border-right: 1px solid var(--line); }
+  .lectio-guide { padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; overflow: auto; background: var(--surface-1); }
+  .lectio-steps { display: flex; gap: 0.375rem; }
+  .lectio-steps span { flex: 1; height: 4px; border-radius: 4px; background: var(--surface-3); }
+  .lectio-steps span.on { background: var(--gold); }
+  .lectio-guide h2 { font-family: var(--f-brand); font-weight: 400; font-size: 1.5rem; letter-spacing: 0.04em; }
+  .lectio-guide .reflect { font-size: 1.1875rem; }
+  @container frame (max-width: 56rem) {
+    .lectio { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .lectio-guide { max-height: 45%; border-top: 1px solid var(--line); }
+    .lib-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Terço ---------- */
+  .rosary { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .rosary-top { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; flex: none; }
+  .rosary-top .ctx { flex: 1; text-align: center; color: var(--text-2); font-size: 0.875rem; }
+  .rosary-main { flex: 1; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 1.5rem; padding: 1rem 1.5rem 2rem; text-align: center; }
+  .mysteries { display: flex; gap: 0.375rem; width: min(28rem, 100%); }
+  .mysteries button { flex: 1; height: 2rem; border: 0; background: none; cursor: pointer; padding: 0; display: grid; align-items: center; }
+  .mysteries button span { display: block; height: 4px; border-radius: 4px; background: var(--surface-3); }
+  .mysteries button.done span { background: rgba(216,176,97,.45); }
+  .mysteries button.cur span { background: var(--gold); height: 6px; }
+  .mystery-title { display: grid; gap: 0.375rem; }
+  .mystery-title h2 { font-family: var(--f-read); font-weight: 500; font-size: clamp(1.5rem, 4cqh, 2.125rem); line-height: 1.25; max-width: 32rem; }
+  .beads { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0; }
+  .bead { width: 2rem; height: 2.75rem; display: grid; place-items: center; border: 0; background: none; cursor: pointer; padding: 0; }
+  .bead i { width: 0.875rem; height: 0.875rem; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--line-strong); transition: transform var(--dur) var(--ease), background var(--dur); display: block; }
+  .bead.big i { width: 1.25rem; height: 1.25rem; border-radius: 4px; transform: rotate(45deg); }
+  .bead.done i { background: rgba(216,176,97,.55); border-color: transparent; }
+  .bead.cur i { background: var(--gold); border-color: var(--gold); transform: scale(1.45); box-shadow: 0 0 0 4px var(--gold-soft); }
+  .bead.big.cur i { transform: rotate(45deg) scale(1.2); }
+  .bead-sep { width: 1rem; height: 1px; background: var(--line-strong); }
+  .prayer-card { width: min(36rem, 100%); display: grid; gap: 0.75rem; }
+  .prayer-card .name { font-weight: 600; color: var(--text-2); font-size: 0.9375rem; }
+  .prayer-card .read-col { margin: 0 auto; text-align: center; white-space: pre-line; }
+  .rosary-ctrl { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .rosary-ctrl .btn { min-width: 9rem; }
+  .prep-terco { max-width: 40rem; margin: 0 auto; padding: 1rem 1.5rem 3rem; display: grid; gap: 1.25rem; }
+  .prep-terco h1 { font-size: 2rem; font-weight: 600; }
+  .prep-terco ol { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.375rem; font-family: var(--f-read); font-size: 1.0625rem; color: var(--text-2); }
+
+  /* ---------- Respiro ---------- */
+  .respiro { position: absolute; inset: 0; display: grid; place-items: center; padding: 1.5rem; }
+  .respiro .photo { filter: brightness(.35) blur(6px); transform: scale(1.05); }
+  .respiro-panel { position: relative; width: min(34rem, 100%); border-radius: var(--r-xl); padding: 1.75rem 1.75rem 1.5rem; display: grid; gap: 1.25rem; text-align: center; max-height: 100%; overflow: auto; }
+  .respiro-panel .exit { position: absolute; top: 0.75rem; right: 0.75rem; }
+  .respiro-panel .beads .bead { width: 1.75rem; }
+</style>
+</head>
+<body>
+<div class="proto-stage"><div class="proto-frame" id="app">
+  <div class="shell">
+    <header class="topbar" data-show="biblioteca retomada terco-preparacao">
+      <a class="brand" href="index.html">ORA</a>
+      <nav class="nav" aria-label="Principal">
+        <a href="01-hoje-extensao.html"><i class="ph ph-sun-horizon" aria-hidden="true"></i>Hoje</a>
+        <a href="03-rezar.html#biblioteca" aria-current="page"><i class="ph ph-hands-praying" aria-hidden="true"></i>Rezar</a>
+        <a href="05-frutos-ritual.html"><i class="ph ph-plant" aria-hidden="true"></i>Frutos</a>
+      </nav>
+      <div class="right">
+        <a class="chip" href="04-protecao.html"><span class="dot"></span>Proteção ativa</a>
+        <a class="settings-btn" href="06-ritmo-novenas.html#configuracoes" aria-label="Configurações"><i class="ph ph-gear" aria-hidden="true"></i></a>
+      </div>
+    </header>
+
+    <!-- ================= BIBLIOTECA ================= -->
+    <div class="view" data-show="biblioteca retomada">
+      <div class="lib">
+        <div class="lib-head">
+          <h1>Rezar</h1>
+          <label class="search" data-note="Biblioteca pesquisável no título e no texto da oração." data-ref="§12 Biblioteca">
+            <span class="sr-only">Buscar orações</span>
+            <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+            <input class="input" id="search" type="search" placeholder="Buscar orações — ex.: “Salve Rainha”, “anjo”" autocomplete="off">
+          </label>
+        </div>
+        <div class="lib-grid">
+          <div class="col">
+            <span class="label">Para hoje</span>
+            <div class="card feature" data-note="Leitura interna do Evangelho: abre o leitor do Ora. A página externa da liturgia é outro link, marcado com ↗." data-ref="§5">
+              <p class="label" style="color:var(--text-3)">Evangelho · Festa</p>
+              <h3>Lucas 6,12-19</h3>
+              <p class="meta">Jesus passa a noite em oração e escolhe os Doze.</p>
+              <div class="row">
+                <button class="btn btn-primary btn-sm" data-goto="leitor-evangelho">Ler</button>
+                <button class="btn btn-aux btn-sm" data-goto="lectio">Lectio Divina</button>
+                <a class="btn btn-quiet btn-sm ext" href="#" onclick="return false">Liturgia completa</a>
+              </div>
+            </div>
+            <div class="card saint" data-note="Santo do dia: pequeno destaque em Rezar, sem personagem fixo nem animação." data-ref="§13.7">
+              <span class="ic"><i class="ph ph-sparkle"></i></span>
+              <div><p class="label" style="color:var(--text-3)">Santo do dia</p><p>São Simão e São Judas, apóstolos</p></div>
+            </div>
+            <div class="card">
+              <h3>Terço de quarta-feira</h3>
+              <p class="meta">Mistérios gloriosos · cerca de 20 min</p>
+              <div class="row"><button class="btn btn-aux btn-sm" data-goto="terco-preparacao">Preparar</button></div>
+            </div>
+            <div class="card">
+              <h3>Respiro</h3>
+              <p class="meta">Uma dezena, sem pressa · cerca de 3 min</p>
+              <div class="row"><button class="btn btn-aux btn-sm" data-goto="respiro">Começar</button></div>
+            </div>
+          </div>
+
+          <div class="col">
+            <div data-show="retomada" class="stack" style="--gap:.75rem">
+              <span class="label">Continuar</span>
+              <div class="card continue" data-note="Retomada: o leitor guarda a posição de textos longos e oferece continuar exatamente dali." data-ref="§12 Leitor · §16">
+                <i class="ph ph-bookmark-simple" style="font-size:1.5rem;color:var(--gold)"></i>
+                <div>
+                  <b>Súplica aos Santos Anjos</b>
+                  <p class="meta">Você parou perto da metade · ontem, 22h14</p>
+                  <div class="bar"><span style="width:46%"></span></div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="resumeBtn">Continuar</button>
+              </div>
+              <div class="card continue">
+                <i class="ph ph-circles-four" style="font-size:1.5rem;color:var(--gold)"></i>
+                <div><b>Terço</b><p class="meta">3º mistério glorioso · 6ª Ave-Maria</p></div>
+                <button class="btn btn-aux btn-sm" id="resumeTerco">Retomar</button>
+              </div>
+            </div>
+
+            <span class="label">Favoritos</span>
+            <div class="favs" id="favs"></div>
+
+            <span class="label" id="allLabel">Todas as orações</span>
+            <div class="cats" role="group" aria-label="Categorias" id="cats"></div>
+            <ul class="plist" id="plist"></ul>
+            <p class="meta" id="noResults" hidden>Nenhuma oração encontrada. Tente outra palavra.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= LEITOR ================= -->
+    <div class="reader" id="reader" data-show="leitor-curto leitor-longo leitor-evangelho evangelho-indisponivel lectio">
+      <div class="reader-bar" data-note="Espaço dedicado de leitura: sem o cabeçalho do app, com tamanho ajustável e aparência escura ou papel." data-ref="§7 · §10.1 · §12 Leitor">
+        <button class="btn btn-quiet btn-sm" data-goto="biblioteca"><i class="ph ph-arrow-left"></i>Rezar</button>
+        <span class="ctx" id="readerCtx">Oração</span>
+        <div class="size-ctrl" role="group" aria-label="Tamanho do texto">
+          <button id="sizeDown" aria-label="Diminuir texto">A−</button><span id="sizeVal" class="tnum">19</span><button id="sizeUp" aria-label="Aumentar texto">A+</button>
+        </div>
+        <div class="seg" role="group" aria-label="Aparência">
+          <button aria-pressed="true" data-ap="escuro">Escuro</button>
+          <button aria-pressed="false" data-ap="papel">Papel</button>
+        </div>
+        <button class="icon-btn" id="favBtn" aria-pressed="false" aria-label="Favoritar"><i class="ph ph-star"></i></button>
+      </div>
+      <div class="reader-progress" aria-hidden="true"><span id="readerProgress"></span></div>
+
+      <div class="reader-body" id="readerBody" data-hide="lectio">
+        <div class="reader-inner" id="readerInner"></div>
+      </div>
+
+      <div class="lectio" data-show="lectio">
+        <div class="reader-body"><div class="reader-inner" id="lectioText"></div></div>
+        <aside class="lectio-guide" aria-live="polite" data-note="Lectio reaproveita o leitor: o texto bíblico fica sempre visível e só uma orientação breve aparece por vez." data-ref="§13.6">
+          <div class="lectio-steps" id="lectioSteps"><span></span><span></span><span></span><span></span></div>
+          <p class="label" id="lectioN">Etapa 1 de 4</p>
+          <h2 id="lectioH">Lectio</h2>
+          <p class="reflect" id="lectioP"></p>
+          <textarea class="textarea" id="lectioNote" placeholder="Anotação pessoal (opcional)" hidden></textarea>
+          <div class="row" style="margin-top:auto">
+            <button class="btn btn-quiet" id="lectioPrev">Anterior</button>
+            <span class="spacer"></span>
+            <button class="btn btn-primary" id="lectioNext">Próxima etapa</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ================= TERÇO: PREPARAÇÃO ================= -->
+    <div class="view" data-show="terco-preparacao">
+      <div class="prep-terco" data-note="Preparação breve e separada do modo de oração: mistérios do dia sugeridos, intenção opcional, retomada." data-ref="§12.1">
+        <div>
+          <button class="btn btn-quiet btn-sm" data-goto="biblioteca" style="margin-left:-.75rem"><i class="ph ph-arrow-left"></i>Rezar</button>
+          <h1 style="margin-top:.5rem">Terço</h1>
+          <p class="meta">Quarta-feira · sugerimos os mistérios gloriosos</p>
+        </div>
+        <div class="seg" role="group" aria-label="Mistérios" id="mysSeg">
+          <button data-m="gozosos" aria-pressed="false">Gozosos</button>
+          <button data-m="dolorosos" aria-pressed="false">Dolorosos</button>
+          <button data-m="gloriosos" aria-pressed="true">Gloriosos</button>
+          <button data-m="luminosos" aria-pressed="false">Luminosos</button>
+        </div>
+        <ol id="mysList"></ol>
+        <label class="field">
+          <span>Intenção <span class="muted">· opcional</span></span>
+          <input class="input" id="rosIntent" placeholder="Ex.: pela saúde da minha avó" autocomplete="off">
+        </label>
+        <div class="field">
+          <span>Texto das orações</span>
+          <div class="seg" role="group" aria-label="Texto das orações" id="textSeg">
+            <button data-t="full" aria-pressed="true">Completo</button>
+            <button data-t="name" aria-pressed="false">Só o nome (já sei de cor)</button>
+          </div>
+        </div>
+        <div class="banner info"><i class="ph ph-bookmark-simple"></i><div><strong>Você parou ontem no 3º mistério glorioso, 6ª Ave-Maria.</strong><div class="actions"><button class="btn btn-aux btn-sm" id="prepResume">Retomar dali</button></div></div></div>
+        <div class="row"><button class="btn btn-primary btn-lg" id="rosStart"><i class="ph-fill ph-play"></i>Começar do início</button></div>
+      </div>
+    </div>
+
+    <!-- ================= TERÇO: ORAÇÃO ================= -->
+    <div class="rosary" data-show="terco-oracao" id="rosary">
+      <div class="rosary-top">
+        <button class="btn btn-quiet btn-sm" id="rosExit"><i class="ph ph-x"></i>Sair</button>
+        <span class="ctx" id="rosCtx">Terço · Mistérios gloriosos</span>
+        <span class="meta" style="min-width:6rem;text-align:right" id="rosIntentLine"></span>
+      </div>
+      <div class="rosary-main">
+        <div class="mysteries" id="mysBar" data-note="Visão do terço inteiro: cinco mistérios, o atual em destaque. Tocar leva ao início de cada dezena." data-ref="§12.1"></div>
+        <div class="mystery-title"><p class="label" id="mysLabel">3º mistério glorioso</p><h2 id="mysName">A Descida do Espírito Santo</h2></div>
+        <div class="beads" id="beads" role="group" aria-label="Contas da dezena" data-note="Contas mantidas, mas cada uma com área de toque de 32×44 px — o ponto visual continua pequeno." data-ref="§12.1 · WCAG 2.5.8"></div>
+        <div class="prayer-card" aria-live="polite">
+          <p class="name" id="prName">Ave-Maria · 6 de 10</p>
+          <div class="read-col short" id="prText"></div>
+        </div>
+        <div class="rosary-ctrl" data-note="Anterior e Próxima são os controles principais. Teclado: ← → ou espaço." data-ref="§12.1">
+          <button class="btn btn-aux btn-lg" id="rosPrev"><i class="ph ph-arrow-left"></i>Anterior</button>
+          <button class="btn btn-primary btn-lg" id="rosNext">Próxima<i class="ph ph-arrow-right"></i></button>
+        </div>
+        <p class="meta"><kbd>←</kbd> <kbd>→</kbd> ou <kbd>espaço</kbd></p>
+      </div>
+    </div>
+
+    <!-- ================= RESPIRO ================= -->
+    <div class="respiro" data-show="respiro">
+      <div class="photo"></div>
+      <div class="respiro-panel surface-solid" role="dialog" aria-labelledby="respTitle" data-note="Respiro: sem cabeçalho de app, sem cronômetro, uma ação principal e saída simples. Ao concluir, nenhuma mensagem de desempenho." data-ref="§13.1">
+        <button class="icon-btn exit" id="respExit" aria-label="Sair do respiro"><i class="ph ph-x"></i></button>
+        <div>
+          <p class="label" id="respTitle">Respiro</p>
+          <p class="meta" style="margin-top:.25rem" id="respIntent">Por minha família</p>
+        </div>
+        <div class="beads" id="respBeads" aria-hidden="true"></div>
+        <div aria-live="polite" class="stack" style="--gap:.5rem">
+          <p class="name meta" id="respName">Pai-Nosso</p>
+          <div class="read-col short" id="respText" style="white-space:pre-line"></div>
+        </div>
+        <div class="stack" style="--gap:.5rem;justify-items:center">
+          <button class="btn btn-primary btn-lg" id="respNext" style="min-width:12rem">Próxima</button>
+          <p class="meta" id="respCount">1 de 12</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<script src="shared/data.js"></script>
+<script src="shared/proto.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const D = window.ORA_DATA;
+  const P = Object.fromEntries(D.prayers.map((p) => [p.id, p]));
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const LS = { get(k, d) { try { return JSON.parse(localStorage.getItem('ora-proto-reader-' + k)) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('ora-proto-reader-' + k, JSON.stringify(v)); } catch (e) {} } };
+
+  const CATS = {
+    'Básicas': ['pai-nosso', 'ave-maria', 'gloria', 'credo', 'ato-contricao', 'salve-rainha'],
+    'Proteção': ['sao-miguel', 'sao-bento', 'suplica-anjos'],
+    'Trabalho e estudo': ['oferecimento-obras', 'sao-tomas-estudo', 'trabalho-sao-jose', 'vinde-espirito-santo'],
+    'Ao longo do dia': ['angelus', 'fica-senhor-comigo', 'sao-carlo-acutis'],
+  };
+  const catOf = (id) => Object.entries(CATS).find(([, ids]) => ids.includes(id))?.[0] || 'Outras';
+
+  /* ---------------- Biblioteca ---------------- */
+  let favs = LS.get('favs', ['sao-miguel', 'angelus', 'vinde-espirito-santo']);
+  let cat = 'Todas';
+  function renderFavs() {
+    $('#favs').innerHTML = favs.map((id) => P[id] ? `<button class="fav-chip" data-open="${id}"><i class="ph-fill ph-star"></i>${esc(P[id].title)}</button>` : '').join('') || '<p class="meta">Toque na estrela de uma oração para guardá-la aqui.</p>';
+  }
+  function renderCats() {
+    $('#cats').innerHTML = ['Todas', ...Object.keys(CATS)].map((c) => `<button class="btn btn-sm btn-aux" aria-pressed="${c === cat}" data-cat="${c}">${c}</button>`).join('');
+  }
+  function renderList() {
+    const q = $('#search').value.trim().toLowerCase();
+    let items = D.prayers.filter((p) => cat === 'Todas' || catOf(p.id) === cat);
+    if (q) items = D.prayers.filter((p) => p.title.toLowerCase().includes(q) || p.text.toLowerCase().includes(q));
+    $('#allLabel').textContent = q ? `Resultados para “${q}”` : 'Todas as orações';
+    $('#cats').hidden = !!q;
+    $('#noResults').hidden = items.length > 0;
+    $('#plist').innerHTML = items.map((p) => {
+      let snippet = p.text.replace(/\s+/g, ' ').slice(0, 90) + '…';
+      if (q) {
+        const i = p.text.toLowerCase().indexOf(q);
+        if (i >= 0) {
+          const s = Math.max(0, i - 30);
+          const raw = p.text.replace(/\s+/g, ' ');
+          const j = raw.toLowerCase().indexOf(q, s);
+          snippet = (s > 0 ? '…' : '') + esc(raw.slice(s, j)) + '<mark>' + esc(raw.slice(j, j + q.length)) + '</mark>' + esc(raw.slice(j + q.length, j + q.length + 60)) + '…';
+        }
+      } else snippet = esc(snippet);
+      const mins = Math.max(1, Math.round(p.text.split(/\s+/).length / 130));
+      return `<li><button data-open="${p.id}"><span class="tt"><b>${esc(p.title)}</b><span>${snippet}</span></span><span class="meta">${mins} min</span><i class="ph ph-caret-right"></i></button></li>`;
+    }).join('');
+  }
+  $('#search').addEventListener('input', renderList);
+  document.addEventListener('click', (e) => {
+    const c = e.target.closest('[data-cat]');
+    if (c) { cat = c.dataset.cat; renderCats(); renderList(); }
+    const o = e.target.closest('[data-open]');
+    if (o) openPrayer(o.dataset.open);
+  });
+
+  /* ---------------- Leitor ---------------- */
+  let readSize = LS.get('size', 19);
+  let current = null; // { kind, id }
+  const GOSPEL = {
+    ref: 'Lucas 6,12-19', ctx: 'Evangelho · Festa de São Simão e São Judas',
+    verses: [
+      [12, 'Naqueles dias, Jesus foi à montanha para orar e passou a noite inteira em oração a Deus.'],
+      [13, 'Quando amanheceu, chamou seus discípulos e escolheu doze dentre eles, aos quais deu o nome de apóstolos:'],
+      [14, 'Simão, a quem chamou Pedro, e André, seu irmão; Tiago e João; Filipe e Bartolomeu;'],
+      [15, 'Mateus e Tomé; Tiago, filho de Alfeu, e Simão, chamado Zelota;'],
+      [16, 'Judas, filho de Tiago, e Judas Iscariotes, que se tornou o traidor.'],
+      [17, 'Descendo com eles, parou numa planície. Ali estavam muitos discípulos e uma grande multidão de toda a Judeia, de Jerusalém e do litoral de Tiro e de Sidônia.'],
+      [18, 'Tinham vindo para ouvi-lo e ser curados de suas doenças. Os que eram atormentados por espíritos impuros também ficavam curados.'],
+      [19, 'E toda a multidão procurava tocá-lo, porque dele saía uma força que curava a todos.'],
+    ],
+  };
+  const GOSPEL_OLD = {
+    ref: 'Lucas 13,18-21', ctx: 'Evangelho de terça-feira, 27 de outubro',
+    verses: [
+      [18, 'Jesus dizia: “A que é semelhante o Reino de Deus? Com que poderei compará-lo?'],
+      [19, 'É como um grão de mostarda que um homem tomou e semeou em sua horta. Ele cresceu, tornou-se árvore, e as aves do céu fizeram ninhos em seus ramos.”'],
+      [20, 'E disse ainda: “Com que compararei o Reino de Deus?'],
+      [21, 'É como o fermento que uma mulher tomou e misturou em três medidas de farinha, até que tudo ficasse fermentado.”'],
+    ],
+  };
+
+  function applySize() {
+    document.documentElement.style.setProperty('--read-size', (readSize / 16) + 'rem');
+    $('#sizeVal').textContent = readSize;
+    LS.set('size', readSize);
+  }
+  $('#sizeDown').onclick = () => { readSize = Math.max(15, readSize - 1); applySize(); };
+  $('#sizeUp').onclick = () => { readSize = Math.min(28, readSize + 1); applySize(); };
+  document.querySelectorAll('[data-ap]').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('[data-ap]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    $('#reader').classList.toggle('paper', b.dataset.ap === 'papel');
+    LS.set('ap', b.dataset.ap);
+  });
+  if (LS.get('ap') === 'papel') document.querySelector('[data-ap="papel"]').click();
+
+  function gospelHTML(g, opts = {}) {
+    return `<header><p class="label">${esc(g.ctx)}</p><h1>${esc(g.ref)}</h1></header>
+      ${opts.banner || ''}
+      <div class="read-col">${g.verses.map(([n, t]) => `<p><span class="verse">${n}</span>${esc(t)}</p>`).join('')}
+      <p style="margin-top:1.5em;color:var(--text-3);font-family:var(--f-ui);font-size:.8125rem">Tradução do protótipo para fins de teste de leitura.</p></div>`;
+  }
+  function prayerHTML(p) {
+    const short = p.text.length < 700;
+    const paras = p.text.split(/\n\n+/).map((par) => `<p>${esc(par)}</p>`).join('');
+    return `<header class="${short ? 'short' : ''}"><p class="label">Oração · ${esc(catOf(p.id))}</p><h1>${esc(p.title)}</h1></header>
+      <div class="read-col ${short ? 'short' : ''}" id="prayerText">${paras}</div>`;
+  }
+  function openPrayer(id) {
+    const p = P[id];
+    current = { kind: 'prayer', id };
+    Proto.setState(p.text.length < 700 ? 'leitor-curto' : 'leitor-longo');
+  }
+  function renderReader(state) {
+    const body = $('#readerBody');
+    let html = '';
+    if (state === 'leitor-evangelho') { current = { kind: 'gospel', id: 'today' }; html = gospelHTML(GOSPEL); $('#readerCtx').textContent = 'Evangelho do dia'; }
+    else if (state === 'evangelho-indisponivel') {
+      current = { kind: 'gospel', id: 'old' };
+      html = gospelHTML(GOSPEL_OLD, { banner: `<div class="banner warn" style="margin-bottom:2rem" data-note="Conteúdo indisponível: a data do texto mostrado fica explícita, com ação para tentar de novo." data-ref="§15"><i class="ph ph-cloud-slash"></i><div><strong>O Evangelho de hoje ainda não foi baixado.</strong>Você está sem conexão. Abaixo está o último disponível, de terça-feira (27/10).<div class="actions"><button class="btn btn-aux btn-sm" onclick="Proto.toast('Ainda sem conexão')">Tentar de novo</button></div></div></div>` });
+      $('#readerCtx').textContent = 'Evangelho · conteúdo de 27/10';
+    } else {
+      if (!current || current.kind !== 'prayer' || (state === 'leitor-curto' && P[current.id].text.length >= 700) || (state === 'leitor-longo' && P[current.id].text.length < 700)) {
+        current = { kind: 'prayer', id: state === 'leitor-curto' ? 'ave-maria' : 'suplica-anjos' };
+      }
+      const p = P[current.id];
+      html = prayerHTML(p);
+      $('#readerCtx').textContent = p.title;
+    }
+    $('#readerInner').innerHTML = html;
+    $('#favBtn').hidden = current.kind !== 'prayer';
+    syncFav();
+    body.scrollTop = 0;
+    updateProgress();
+  }
+  function syncFav() {
+    const on = current && favs.includes(current.id);
+    $('#favBtn').setAttribute('aria-pressed', String(!!on));
+    $('#favBtn').innerHTML = on ? '<i class="ph-fill ph-star" style="color:var(--gold)"></i>' : '<i class="ph ph-star"></i>';
+    $('#favBtn').setAttribute('aria-label', on ? 'Remover dos favoritos' : 'Favoritar');
+  }
+  $('#favBtn').onclick = () => {
+    if (!current) return;
+    favs = favs.includes(current.id) ? favs.filter((x) => x !== current.id) : [...favs, current.id];
+    LS.set('favs', favs); syncFav(); renderFavs();
+  };
+  function updateProgress() {
+    const b = $('#readerBody');
+    const max = b.scrollHeight - b.clientHeight;
+    $('#readerProgress').style.width = max > 0 ? (100 * b.scrollTop / max) + '%' : '0';
+    if (current?.kind === 'prayer' && max > 0) LS.set('pos-' + current.id, b.scrollTop / max);
+  }
+  $('#readerBody').addEventListener('scroll', updateProgress);
+
+  $('#resumeBtn').onclick = () => {
+    current = { kind: 'prayer', id: 'suplica-anjos' };
+    Proto.setState('leitor-longo');
+    const b = $('#readerBody');
+    const ratio = LS.get('pos-suplica-anjos', 0.46) || 0.46;
+    // Encontra o parágrafo na posição salva e destaca
+    requestAnimationFrame(() => {
+      b.style.scrollBehavior = 'auto';
+      b.scrollTop = ratio * (b.scrollHeight - b.clientHeight);
+      b.style.scrollBehavior = '';
+      const paras = [...document.querySelectorAll('#prayerText p')];
+      const top = b.getBoundingClientRect().top;
+      const target = paras.find((p) => p.getBoundingClientRect().top >= top + 40) || paras[0];
+      target?.classList.add('hl');
+      setTimeout(() => target?.classList.remove('hl'), 2500);
+      Proto.toast('Continuando de onde você parou');
+    });
+  };
+
+  /* ---------------- Lectio ---------------- */
+  const LECTIO = [
+    ['Lectio', 'Leia o texto devagar, talvez duas vezes. Que palavra ou frase chama sua atenção?'],
+    ['Meditatio', 'Fique com essa palavra. O que ela diz sobre a sua vida hoje?'],
+    ['Oratio', 'Responda a Deus com as suas palavras: agradecimento, pedido, perdão.'],
+    ['Contemplatio', 'Agora, apenas permaneça. Não é preciso dizer nada.'],
+  ];
+  let lectio = 0;
+  function renderLectio() {
+    $('#lectioText').innerHTML = gospelHTML(GOSPEL);
+    $('#lectioN').textContent = `Etapa ${lectio + 1} de 4`;
+    $('#lectioH').textContent = LECTIO[lectio][0];
+    $('#lectioP').textContent = LECTIO[lectio][1];
+    $('#lectioNote').hidden = !(lectio === 1 || lectio === 2);
+    document.querySelectorAll('#lectioSteps span').forEach((s, i) => s.classList.toggle('on', i <= lectio));
+    $('#lectioPrev').disabled = lectio === 0;
+    $('#lectioNext').textContent = lectio === 3 ? 'Concluir' : 'Próxima etapa';
+  }
+  $('#lectioPrev').onclick = () => { lectio = Math.max(0, lectio - 1); renderLectio(); };
+  $('#lectioNext').onclick = () => { if (lectio === 3) { Proto.setState('biblioteca'); Proto.toast('Lectio concluída'); lectio = 0; return; } lectio++; renderLectio(); };
+
+  /* ---------------- Terço ---------------- */
+  const ORD = ['1º', '2º', '3º', '4º', '5º'];
+  const MYS_LABEL = { gozosos: 'gozoso', dolorosos: 'doloroso', gloriosos: 'glorioso', luminosos: 'luminoso' };
+  let mys = 'gloriosos', textMode = 'full', rosIntent = '';
+  let steps = [], si = 0;
+  function buildSteps() {
+    const s = [];
+    const add = (o) => s.push(o);
+    add({ d: 0, bead: null, name: 'Sinal da cruz', text: D.extra['sinal-cruz'] });
+    add({ d: 0, bead: null, name: 'Creio', text: P.credo.text });
+    add({ d: 0, bead: 0, big: true, name: 'Pai-Nosso', text: P['pai-nosso'].text });
+    ['fé', 'esperança', 'caridade'].forEach((v, i) => add({ d: 0, bead: i + 1, name: `Ave-Maria · pela ${v}`, text: P['ave-maria'].text }));
+    add({ d: 0, bead: 4, name: 'Glória', text: P.gloria.text });
+    for (let d = 1; d <= 5; d++) {
+      add({ d, bead: null, announce: true, name: 'Anúncio do mistério', text: `No ${ORD[d - 1]} mistério ${MYS_LABEL[mys]}, contemplamos:\n${D.mysteries[mys][d - 1]}.` });
+      add({ d, bead: 0, big: true, name: 'Pai-Nosso', text: P['pai-nosso'].text });
+      for (let a = 1; a <= 10; a++) add({ d, bead: a, name: `Ave-Maria · ${a} de 10`, text: P['ave-maria'].text });
+      add({ d, bead: 11, name: 'Glória', text: P.gloria.text });
+      add({ d, bead: 11, name: 'Ó meu Jesus', text: D.extra.fatima });
+    }
+    add({ d: 6, bead: null, name: 'Salve-Rainha', text: P['salve-rainha'].text });
+    add({ d: 6, bead: null, name: 'Sinal da cruz', text: D.extra['sinal-cruz'] });
+    steps = s;
+  }
+  function renderMysList() {
+    $('#mysList').innerHTML = D.mysteries[mys].map((m) => `<li>${esc(m)}</li>`).join('');
+    document.querySelectorAll('#mysSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === mys)));
+  }
+  document.querySelectorAll('#mysSeg button').forEach((b) => b.onclick = () => { mys = b.dataset.m; renderMysList(); });
+  document.querySelectorAll('#textSeg button').forEach((b) => b.onclick = () => {
+    textMode = b.dataset.t;
+    document.querySelectorAll('#textSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  function jumpTo(d, ave) {
+    buildSteps();
+    si = steps.findIndex((s) => s.d === d && (ave == null ? s.announce : s.bead === ave && !s.big));
+    if (si < 0) si = 0;
+  }
+  $('#rosStart').onclick = () => { rosIntent = $('#rosIntent').value.trim(); buildSteps(); si = 0; Proto.setState('terco-oracao'); };
+  $('#prepResume').onclick = $('#resumeTerco').onclick = () => { rosIntent = $('#rosIntent').value.trim(); jumpTo(3, 6); Proto.setState('terco-oracao', { keep: true }); };
+  $('#rosExit').onclick = () => { Proto.setState('biblioteca'); Proto.toast('Posição guardada: você pode retomar depois'); };
+
+  function renderRosary() {
+    if (!steps.length) { buildSteps(); jumpTo(3, 6); }
+    const s = steps[si];
+    $('#rosCtx').textContent = `Terço · Mistérios ${mys}`;
+    $('#rosIntentLine').textContent = rosIntent ? `Por ${rosIntent}` : '';
+    // Barra dos mistérios
+    $('#mysBar').innerHTML = [1, 2, 3, 4, 5].map((d) => `<button class="${d < s.d ? 'done' : ''} ${d === s.d ? 'cur' : ''}" data-d="${d}" aria-label="Ir para o ${ORD[d - 1]} mistério: ${esc(D.mysteries[mys][d - 1])}" title="${esc(D.mysteries[mys][d - 1])}"><span></span></button>`).join('');
+    $('#mysBar').querySelectorAll('button').forEach((b) => b.onclick = () => { si = steps.findIndex((x) => x.d === +b.dataset.d && x.announce); renderRosary(); });
+    // Título
+    if (s.d === 0) { $('#mysLabel').textContent = 'Início'; $('#mysName').textContent = 'Orações iniciais'; }
+    else if (s.d === 6) { $('#mysLabel').textContent = 'Conclusão'; $('#mysName').textContent = 'Agradecimento'; }
+    else { $('#mysLabel').textContent = `${ORD[s.d - 1]} mistério ${MYS_LABEL[mys]}`; $('#mysName').textContent = D.mysteries[mys][s.d - 1]; }
+    // Contas
+    const count = s.d === 0 ? 5 : s.d === 6 ? 0 : 12;
+    let html = '';
+    for (let b = 0; b < count; b++) {
+      const big = b === 0 || (s.d > 0 && b === 11) || (s.d === 0 && b === 4);
+      const idx = steps.findIndex((x) => x.d === s.d && x.bead === b);
+      const done = s.bead != null ? b < s.bead : false;
+      const label = steps[idx]?.name || '';
+      html += `<button class="bead ${big ? 'big' : ''} ${s.bead === b ? 'cur' : ''} ${done ? 'done' : ''}" data-i="${idx}" aria-label="${esc(label)}" ${s.bead === b ? 'aria-current="step"' : ''}><i></i></button>`;
+      if (b === 0 || (s.d > 0 && b === 10) || (s.d === 0 && b === 3)) html += '<span class="bead-sep" aria-hidden="true"></span>';
+    }
+    $('#beads').innerHTML = html;
+    $('#beads').querySelectorAll('.bead').forEach((b) => b.onclick = () => { si = +b.dataset.i; renderRosary(); });
+    // Oração
+    $('#prName').textContent = s.name;
+    $('#prText').textContent = textMode === 'name' && !s.announce ? '' : s.text;
+    $('#prText').style.display = textMode === 'name' && !s.announce ? 'none' : '';
+    $('#rosPrev').disabled = si === 0;
+    $('#rosNext').innerHTML = si === steps.length - 1 ? 'Concluir' : 'Próxima<i class="ph ph-arrow-right"></i>';
+  }
+  $('#rosPrev').onclick = () => { si = Math.max(0, si - 1); renderRosary(); };
+  $('#rosNext').onclick = () => {
+    if (si === steps.length - 1) { Proto.setState('biblioteca'); Proto.toast('Terço concluído'); return; }
+    si++; renderRosary();
+  };
+
+  /* ---------------- Respiro ---------------- */
+  let rsteps = [], ri = 0;
+  function buildRespiro() {
+    rsteps = [{ name: 'Pai-Nosso', text: P['pai-nosso'].text }];
+    for (let i = 1; i <= 10; i++) rsteps.push({ name: `Ave-Maria · ${i} de 10`, text: P['ave-maria'].text, bead: i });
+    rsteps.push({ name: 'Glória', text: P.gloria.text });
+    rsteps.push({ end: true, name: '', text: 'Amém.' });
+    ri = 0;
+  }
+  function renderRespiro() {
+    const s = rsteps[ri];
+    $('#respName').textContent = s.name;
+    $('#respText').textContent = s.text;
+    $('#respText').style.fontSize = s.end ? '1.75rem' : '';
+    const ave = s.bead || (ri > 10 ? 11 : 0);
+    $('#respBeads').innerHTML = Array.from({ length: 10 }, (_, i) => `<span class="bead ${i + 1 < ave ? 'done' : ''} ${i + 1 === s.bead ? 'cur' : ''}"><i></i></span>`).join('');
+    $('#respBeads').hidden = !!s.end;
+    $('#respNext').textContent = s.end ? 'Voltar ao que estava fazendo' : 'Próxima';
+    $('#respCount').textContent = s.end ? '' : `${ri + 1} de ${rsteps.length - 1}`;
+  }
+  $('#respNext').onclick = () => {
+    if (rsteps[ri].end) { location.href = '01-hoje-extensao.html#repouso'; return; }
+    ri++; renderRespiro();
+  };
+  $('#respExit').onclick = () => Proto.setState('biblioteca');
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea') || e.altKey) return;
+    if (Proto.state === 'terco-oracao') {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); $('#rosNext').click(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); $('#rosPrev').click(); }
+      if (e.key === 'Escape') $('#rosExit').click();
+    }
+    if (Proto.state === 'respiro') {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); $('#respNext').click(); }
+      if (e.key === 'Escape') $('#respExit').click();
+    }
+  });
+
+  renderFavs(); renderCats(); renderList(); renderMysList(); applySize();
+
+  Proto.init({
+    id: 'rezar',
+    title: 'Rezar — biblioteca, leitor e terço',
+    refs: '§7 §12 §13.1 §13.6',
+    kind: 'extension',
+    photo: true,
+    initial: 'biblioteca',
+    states: [
+      { id: 'biblioteca', group: 'Biblioteca', label: 'Biblioteca', hint: 'Busque por "anjo" ou "pão" (busca no texto). Abra uma oração curta e uma longa.' },
+      { id: 'retomada', group: 'Biblioteca', label: 'Com retomada', hint: 'Use "Continuar" na Súplica aos Santos Anjos: o leitor volta à posição e destaca o trecho.' },
+      { id: 'leitor-curto', group: 'Leitor', label: 'Texto curto', hint: 'Oração curta: centralizada. Teste A−/A+ e a aparência Papel.' },
+      { id: 'leitor-longo', group: 'Leitor', label: 'Texto longo', hint: 'Texto longo (Súplica aos Santos Anjos): alinhado à esquerda, coluna de ~62 caracteres. Leia por 2 minutos.' },
+      { id: 'leitor-evangelho', group: 'Leitor', label: 'Evangelho', hint: 'Evangelho com versículos discretos.' },
+      { id: 'evangelho-indisponivel', group: 'Leitor', label: 'Evangelho indisponível', hint: 'Sem conexão: mostra o último conteúdo com a data explícita.' },
+      { id: 'lectio', group: 'Leitor', label: 'Lectio Divina', hint: 'Mesma base do leitor com uma orientação por vez.' },
+      { id: 'terco-preparacao', group: 'Terço', label: 'Preparação', hint: 'Escolha mistérios, intenção e modo de texto. Comece ou retome.' },
+      { id: 'terco-oracao', group: 'Terço', label: 'Modo de oração', hint: 'Use ← → ou espaço. Toque numa conta ou na barra de mistérios para pular.' },
+      { id: 'respiro', group: 'Respiro', label: 'Respiro', hint: 'Uma dezena, uma ação principal. No fim, nenhuma mensagem de desempenho.' },
+    ],
+    questions: [
+      { q: 'A biblioteca (buscar, continuar, favoritos, categorias) é melhor que o painel de canto atual?', ref: '§12' },
+      { q: 'A leitura longa em Literata, alinhada à esquerda, cansa menos que a Cinzel centralizada?', ref: '§7' },
+      { q: 'Centralizar só textos curtos faz sentido?', ref: '§7' },
+      { q: 'O controle de tamanho e a aparência Papel são suficientes?', ref: '§12 Leitor' },
+      { q: 'A retomada de texto longo é clara e confiável?', ref: '§16' },
+      { q: 'No terço, você sempre sabe em que mistério e conta está?', ref: '§12.1' },
+      { q: 'Anterior/Próxima como controles principais funciona melhor que tocar nas contas?', ref: '§12.1' },
+      { q: 'O Respiro parece um momento de oração, não uma tarefa cronometrada?', ref: '§13.1' },
+      { q: 'A Lectio, reaproveitando o leitor, ajuda sem distrair do texto?', ref: '§13.6' },
+    ],
+    onState(id, prev, opts) {
+      if (['leitor-curto', 'leitor-longo', 'leitor-evangelho', 'evangelho-indisponivel'].includes(id)) renderReader(id);
+      if (id === 'lectio') { lectio = 0; renderLectio(); $('#readerCtx').textContent = 'Lectio Divina · Lc 6,12-19'; $('#favBtn').hidden = true; }
+      if (id === 'terco-oracao') { if (!opts.keep && prev !== 'terco-preparacao') { buildSteps(); jumpTo(3, 6); } renderRosary(); setTimeout(() => $('#rosNext').focus(), 50); }
+      if (id === 'respiro') { buildRespiro(); renderRespiro(); setTimeout(() => $('#respNext').focus(), 50); }
+      if (id === 'biblioteca' || id === 'retomada') renderList();
+    },
+  });
+})();
+</script>
+</body>
+</html>

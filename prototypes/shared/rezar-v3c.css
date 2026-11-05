@@ -1,0 +1,13 @@
+/* 3c inherits the artwork and practice layout from 3b. */
+.editorial-home .personal-section.has-favorites {
+  margin:0 0 1.4rem;padding:.8rem 0;
+  border-top:0;border-bottom:1px solid var(--line);
+}
+.personal-section.has-favorites .section-head {margin-bottom:.35rem}
+.personal-section.has-favorites #personalHint {display:none}
+/* Preserve the full artwork at its natural proportions on every viewport. */
+.gospel-figure {aspect-ratio:auto;max-height:none}
+.gospel-figure img {height:auto;object-fit:contain}
+@container frame (max-width:34rem) {
+  .gospel-copy {grid-row:1}
+}

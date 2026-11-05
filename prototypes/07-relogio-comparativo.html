@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dia">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Comparativo do relógio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- ora.css já importa Cinzel 400/600 e Literata; aqui garantimos Montserrat 300. -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  body { background: var(--bg); color: var(--text); font-family: var(--f-ui); margin: 0; }
+
+  .bar {
+    display: flex; flex-wrap: wrap; gap: 1rem 1.75rem; align-items: end;
+    padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid var(--line);
+  }
+  .bar h1 { font-family: var(--f-brand); font-weight: 600; font-size: 1.125rem; letter-spacing: 0.08em; margin: 0 auto 0 0; }
+  .bar h1 small { display: block; font-family: var(--f-ui); font-weight: 400; letter-spacing: 0; font-size: 0.8125rem; color: var(--text-3); margin-top: 0.25rem; }
+  .ctl { display: grid; gap: 0.35rem; font-size: 0.8125rem; color: var(--text-2); }
+  .ctl > span { white-space: nowrap; }
+  .ctl input[type="range"] { width: 11rem; accent-color: var(--gold); }
+  .ctl input[type="time"] { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 0.35rem 0.5rem; }
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-sm); overflow: hidden; }
+  .seg button { font: inherit; color: var(--text-2); background: transparent; border: 0; padding: 0.4rem 0.75rem; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--gold-soft); color: var(--text); }
+
+  .grid {
+    display: grid; gap: 1rem; padding: 1rem 1.5rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(34rem, 100%), 1fr));
+  }
+  .panel { display: grid; gap: 0.5rem; }
+  .stage {
+    position: relative; overflow: hidden; border-radius: var(--r-lg);
+    aspect-ratio: 16 / 9; container-type: size;
+    display: grid; place-items: center;
+  }
+  .stage.full { position: fixed; inset: 0; z-index: 10; border-radius: 0; aspect-ratio: auto; }
+  .stage .arrival { position: relative; display: grid; gap: 0.75rem; justify-items: center; text-align: center; padding: 1rem; }
+  .stage .clock-v {
+    line-height: 1; white-space: nowrap;
+    text-shadow: 0 4px 30px rgba(0,0,0,.35);
+    font-variant-numeric: tabular-nums lining-nums;
+    position: relative;
+  }
+  /* Guias nas bordas do texto: tornam visível o deslocamento quando a largura muda. */
+  .guides .clock-v::before, .guides .clock-v::after {
+    content: ""; position: absolute; top: -6%; bottom: -6%; width: 1px; background: rgba(216,176,97,.7);
+  }
+  .guides .clock-v::before { left: 0; }
+  .guides .clock-v::after { right: 0; }
+  .stage .greeting { font-size: 1.375rem; font-weight: 500; margin: 0; }
+  .stage .day { color: var(--text-2); font-size: 0.9375rem; margin: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+  .tag {
+    position: absolute; top: 0.75rem; left: 0.75rem; z-index: 1;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.3rem 0.6rem; border-radius: 999px;
+    background: rgba(18,16,13,.55); backdrop-filter: blur(8px); color: var(--text);
+  }
+  .expand {
+    position: absolute; top: 0.6rem; right: 0.6rem; z-index: 1;
+    font: inherit; font-size: 0.8125rem; color: var(--text); cursor: pointer;
+    background: rgba(18,16,13,.55); backdrop-filter: blur(8px);
+    border: 1px solid var(--line-strong); border-radius: 999px; padding: 0.3rem 0.7rem;
+  }
+  .metrics { font-size: 0.8125rem; color: var(--text-3); display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; padding: 0 0.25rem; }
+  .metrics b { color: var(--text-2); font-weight: 600; }
+  .metrics .warn { color: var(--warn); }
+  .metrics .ok { color: var(--ok); }
+  .note { padding: 0 1.5rem 2rem; color: var(--text-3); font-size: 0.875rem; max-width: 60rem; line-height: 1.55; }
+  .note b { color: var(--text-2); }
+  .lit-dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--lit-vermelho); margin-right: 0.35rem; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <h1>Relógio · comparativo
+    <small>Mesma hora, mesma altura dos algarismos, sobre a foto atual do Hoje.</small>
+  </h1>
+  <label class="ctl">Hora
+    <input type="time" id="time" value="14:22">
+  </label>
+  <label class="ctl"><span>Altura dos algarismos: <span id="hOut">72</span> px</span>
+    <input type="range" id="height" min="36" max="120" step="2" value="72">
+  </label>
+  <div class="ctl">Modo
+    <div class="seg" role="group" aria-label="Modo">
+      <button type="button" data-mode="clock" aria-pressed="true">Relógio</button>
+      <button type="button" data-mode="timer" aria-pressed="false">Cronômetro 25:00</button>
+    </div>
+  </div>
+  <label class="ctl" style="grid-auto-flow: column; align-items: center; gap: 0.5rem;">
+    <input type="checkbox" id="guides"> Guias de largura
+  </label>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<p class="note">
+  <b>Como ler:</b> o tamanho de cada fonte é calculado para que o “0” tenha exatamente a altura escolhida — assim a comparação é de desenho, não de corpo.
+  <b>Variação</b> é a diferença de largura entre “00:00” e “11:11”: acima de ~2 px, o relógio se desloca a cada mudança de dígito.
+  O Cinzel tem algarismos proporcionais (o “1” é estreito como um I romano) e ignora <code>tabular-nums</code>;
+  a variante “dígitos fixos” coloca cada algarismo numa caixa da largura do mais largo — é como ficaria em produção.
+  No modo Cronômetro, ligue as guias para ver as bordas se movendo a cada segundo.
+  Referência atual em produção: Cinzel 700 a 8rem (≈ 90 px de algarismo).
+</p>
+
+<script>
+const VARIANTS = [
+  { id: 'cz4', label: 'Cinzel 400',     family: "'Cinzel', serif",     weight: 400, tracking: '0.02em' },
+  { id: 'cz6', label: 'Cinzel 600',     family: "'Cinzel', serif",     weight: 600, tracking: '0.02em' },
+  { id: 'cz4f', label: 'Cinzel 400 · dígitos fixos', family: "'Cinzel', serif", weight: 400, tracking: '0.02em', fixed: true },
+  { id: 'lt3', label: 'Literata 300',  family: "'Literata', serif",   weight: 300, tracking: '-0.01em' },
+  { id: 'ms3', label: 'Montserrat 300', family: "'Montserrat', sans-serif", weight: 300, tracking: '-0.01em' },
+];
+
+const $ = (s, r = document) => r.querySelector(s);
+const grid = $('#grid');
+const state = { mode: 'clock', height: 72, time: '14:22', timerLeft: 25 * 60 };
+
+grid.innerHTML = VARIANTS.map(v => `
+  <section class="panel" data-id="${v.id}">
+    <div class="stage">
+      <div class="photo"></div>
+      <span class="tag">${v.label}</span>
+      <button class="expand" type="button" aria-pressed="false">Ampliar</button>
+      <div class="arrival">
+        <time class="clock-v" style="font-family:${v.family};font-weight:${v.weight};letter-spacing:${v.tracking}">14:22</time>
+        <p class="greeting">Boa tarde, Arthur</p>
+        <p class="day"><span>Quarta-feira, 28 de outubro</span><span aria-hidden="true">·</span><span><span class="lit-dot"></span>São Simão e São Judas</span></p>
+      </div>
+    </div>
+    <div class="metrics" aria-live="off"></div>
+  </section>`).join('');
+
+// Altura do "0" por px de corpo, medida depois que a fonte carrega.
+const ratio = {};
+const digitEm = {};
+const widthRange = {};
+function measureRatios() {
+  const c = document.createElement('canvas').getContext('2d');
+  for (const v of VARIANTS) {
+    c.font = `${v.weight} 100px ${v.family}`;
+    ratio[v.id] = c.measureText('0').actualBoundingBoxAscent / 100;
+    digitEm[v.id] = Math.max(...'0123456789'.split('').map(d => c.measureText(d).width)) / 100;
+  }
+}
+
+// Cinzel não tem algarismos tabulares: cada dígito vai numa caixa da largura do mais largo.
+function setText(el, v, txt) {
+  if (!v.fixed) { el.textContent = txt; return; }
+  el.innerHTML = txt.split('').map(ch => /\d/.test(ch)
+    ? `<span style="display:inline-block;width:${digitEm[v.id].toFixed(3)}em;text-align:center">${ch}</span>`
+    : ch).join('');
+}
+
+function textWidth(el, v, txt) {
+  const prev = el.innerHTML; setText(el, v, txt);
+  const w = el.getBoundingClientRect().width;
+  el.innerHTML = prev; return w;
+}
+
+function fmtTimer(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+
+function render() {
+  const txt = state.mode === 'clock' ? state.time : fmtTimer(state.timerLeft);
+  for (const v of VARIANTS) {
+    const panel = grid.querySelector(`[data-id="${v.id}"]`);
+    const el = $('.clock-v', panel);
+    const size = state.height / (ratio[v.id] || 0.7);
+    el.style.fontSize = size.toFixed(1) + 'px';
+    setText(el, v, txt);
+    const w = el.getBoundingClientRect().width;
+    const r = widthRange[v.id] ||= { min: w, max: w };
+    r.min = Math.min(r.min, w); r.max = Math.max(r.max, w);
+    const swing = textWidth(el, v, '00:00') - textWidth(el, v, '11:11');
+    const cls = Math.abs(swing) > 2 ? 'warn' : 'ok';
+    $('.metrics', panel).innerHTML =
+      `<span>corpo <b>${size.toFixed(0)} px</b></span>` +
+      `<span>largura <b>${w.toFixed(0)} px</b></span>` +
+      `<span>variação 00:00 × 11:11 <b class="${cls}">${swing.toFixed(1)} px</b></span>` +
+      (state.mode === 'timer' ? `<span>oscilação observada <b class="${r.max - r.min > 2 ? 'warn' : 'ok'}">${(r.max - r.min).toFixed(1)} px</b></span>` : '');
+  }
+}
+
+function resetRanges() { for (const k in widthRange) delete widthRange[k]; }
+
+$('#height').addEventListener('input', e => { state.height = +e.target.value; $('#hOut').textContent = state.height; resetRanges(); render(); });
+$('#time').addEventListener('input', e => { if (e.target.value) { state.time = e.target.value; render(); } });
+$('#guides').addEventListener('change', e => grid.classList.toggle('guides', e.target.checked));
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+  state.mode = b.dataset.mode; state.timerLeft = 25 * 60; resetRanges();
+  document.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  render();
+}));
+grid.addEventListener('click', e => {
+  const btn = e.target.closest('.expand'); if (!btn) return;
+  const stage = btn.closest('.stage');
+  const on = stage.classList.toggle('full');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.textContent = on ? 'Fechar' : 'Ampliar';
+  resetRanges(); render();
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const open = $('.stage.full .expand'); if (open) open.click();
+});
+
+setInterval(() => {
+  if (state.mode !== 'timer') return;
+  state.timerLeft = state.timerLeft > 0 ? state.timerLeft - 1 : 25 * 60;
+  render();
+}, 1000);
+
+Promise.all(VARIANTS.map(v => document.fonts.load(`${v.weight} 100px ${v.family}`, '0123456789:')))
+  .catch(() => {})
+  .then(() => document.fonts.ready)
+  .then(() => { measureRatios(); render(); });
+</script>
+</body>
+</html>

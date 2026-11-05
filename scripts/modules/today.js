@@ -11,8 +11,6 @@ const TodaySystem = {
     INTENTION_KEY: 'ora_day_intention',
     GOSPEL_KEY: 'liturgy_gospel_cache',
     PROTECT_PREF_KEY: 'ora_focus_protect',
-    SOUND_PREF_KEY: 'ora_focus_sound',
-    SILENCE: 'silence',
     LIT_COLORS: { verde: 'lit-verde', roxo: 'lit-roxo', vermelho: 'lit-vermelho', rosa: 'lit-rosa', branco: 'lit-branco' },
 
     data: null,
@@ -23,7 +21,6 @@ const TodaySystem = {
     gospel: null,
     dayIntention: '',
     protectPref: true,
-    soundPref: 'silence',
 
     view: null,          // último resultado de TodayCore
     preparing: false,
@@ -45,11 +42,10 @@ const TodaySystem = {
         this.invite = window.ReminderSystem ? ReminderSystem.current : null;
         this.protection = window.ProtectionSystem ? ProtectionSystem.status() : null;
 
-        const stored = await chrome.storage.local.get([this.INTENTION_KEY, this.GOSPEL_KEY, this.PROTECT_PREF_KEY, this.SOUND_PREF_KEY]);
+        const stored = await chrome.storage.local.get([this.INTENTION_KEY, this.GOSPEL_KEY, this.PROTECT_PREF_KEY]);
         this.dayIntention = SessionsCore.dayIntention(stored[this.INTENTION_KEY], new Date());
         this.gospel = stored[this.GOSPEL_KEY] || null;
         this.protectPref = stored[this.PROTECT_PREF_KEY] !== false;
-        this.soundPref = stored[this.SOUND_PREF_KEY] || this.SILENCE;
 
         await this.setGreeting();
         await this.setQuote();
@@ -104,7 +100,6 @@ const TodaySystem = {
             prepIntentHint: $('today-prep-intent-hint'),
             soundChip: $('today-sound-chip'),
             soundText: $('today-sound-text'),
-            soundList: $('today-sound-list'),
             prepProtect: $('today-prep-protect'),
             prepProtectHint: $('today-prep-protect-hint'),
             prepRules: $('today-prep-rules'),
@@ -122,8 +117,6 @@ const TodaySystem = {
             pause: $('today-pause'),
             resume: $('today-resume'),
             end: $('today-end'),
-            sessionSound: $('today-session-sound'),
-            sessionSoundText: $('today-session-sound-text'),
             sessionProtect: $('today-session-protect'),
             sessionProtectText: $('today-session-protect-text'),
             done: $('today-done'),
@@ -223,13 +216,14 @@ const TodaySystem = {
                 this.startFromPrep();
             }
         });
-        el.soundChip.addEventListener('click', () => this.toggleSoundList());
-        el.soundList.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-sound]');
-            if (!btn || !this.prepDraft) return;
-            this.prepDraft.sound = btn.dataset.sound;
-            this.toggleSoundList(false);
-            el.soundChip.focus();
+        el.soundChip.addEventListener('click', () => {
+            SoundSystem.open(el.soundChip, {
+                choice: this.prepDraft.sound,
+                onChoose: choice => {
+                    this.prepDraft.sound = choice;
+                    this.renderPrepSound();
+                }
+            });
         });
         el.prepRules.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -242,7 +236,7 @@ const TodaySystem = {
         // (o mesmo clique que abriu a preparação ainda está subindo: é ignorado)
         document.addEventListener('click', (e) => {
             if (!this.preparing || performance.now() - this._prepOpenedAt < 100) return;
-            if (!el.prep.contains(e.target) && document.contains(e.target)) this.closePrep({ keepDraft: true });
+            if (DialogSystem.top()?.root === el.prep && !e.target.closest('#sound-dialog') && !el.prep.contains(e.target) && document.contains(e.target)) this.closePrep({ keepDraft: true });
         });
 
         // Sessão
@@ -252,10 +246,6 @@ const TodaySystem = {
         el.endConfirm.addEventListener('click', () => {
             DialogSystem.close(el.endDialog);
             this.command(() => FocusSystem.interrupt(), () => showToast(t('today.session_ended'), 'info'));
-        });
-        el.sessionSound.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.openSoundControls();
         });
 
         // Concluída
@@ -638,7 +628,7 @@ const TodaySystem = {
                 title: task ? task.title : (title || ''),
                 minutes: durations.includes(minutes) ? minutes : (durations.includes(estimate) ? estimate : FocusSystem.settings.focus),
                 intention: '',
-                sound: this.soundPref,
+                sound: SoundSystem.getChoice(),
                 protect: this.protectPref
             };
         }
@@ -651,7 +641,6 @@ const TodaySystem = {
             : t('today.prep_offer_hint');
         this.renderPrepDuration();
         this.renderPrepSound();
-        this.toggleSoundList(false);
         this.renderPrepProtection();
         window.LeaveGuard?.watchEditor('preparation', this.prepDraft,
             () => LeaveGuard.snapshot(el.prep) + JSON.stringify(this.prepDraft),
@@ -682,7 +671,6 @@ const TodaySystem = {
         this._prepRefocus = true;
         if (!this.prepStarting) this.syncDraft();
         this.preparing = false;
-        this.toggleSoundList(false);
         this.render();
         // Quem abriu pode ter ficado escondido durante a preparação
         if (refocus) {
@@ -722,47 +710,8 @@ const TodaySystem = {
         this.elements.prepStartLabel.textContent = t('today.prep_start', { n: draft.minutes });
     },
 
-    playlists: function() {
-        return window.MusicSystem && typeof MusicSystem.getPlaylists === 'function' ? MusicSystem.getPlaylists() : [];
-    },
-
-    soundName: function(soundId) {
-        if (!soundId || soundId === this.SILENCE) return t('today.sound_silence');
-        const playlist = this.playlists().find(p => p.id === soundId);
-        return playlist ? playlist.title : t('today.sound_silence');
-    },
-
     renderPrepSound: function() {
-        const current = this.playlists().some(p => p.id === this.prepDraft.sound) ? this.prepDraft.sound : this.SILENCE;
-        this.prepDraft.sound = current;
-        this.elements.soundText.textContent = this.soundName(current);
-
-        const items = [{ id: this.SILENCE, title: t('today.sound_silence') }].concat(this.playlists());
-        const fragment = document.createDocumentFragment();
-        items.forEach(item => {
-            const li = document.createElement('li');
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.dataset.sound = item.id;
-            btn.setAttribute('aria-pressed', String(item.id === current));
-            btn.textContent = item.title;
-            li.appendChild(btn);
-            fragment.appendChild(li);
-        });
-        this.elements.soundList.replaceChildren(fragment);
-    },
-
-    toggleSoundList: function(force) {
-        const list = this.elements.soundList;
-        const open = typeof force === 'boolean' ? force : list.hidden;
-        if (open && this.prepDraft) this.renderPrepSound();
-        else if (this.prepDraft) this.elements.soundText.textContent = this.soundName(this.prepDraft.sound);
-        list.hidden = !open;
-        this.elements.soundChip.setAttribute('aria-expanded', String(open));
-        if (open) {
-            const pressed = list.querySelector('[aria-pressed="true"]');
-            if (pressed) pressed.focus();
-        }
+        this.elements.soundText.textContent = SoundSystem.name(this.prepDraft.sound);
     },
 
     renderPrepProtection: function() {
@@ -804,8 +753,6 @@ const TodaySystem = {
             this.protectPref = draft.protect;
             AsyncStorage.set(this.PROTECT_PREF_KEY, draft.protect);
         }
-        this.soundPref = draft.sound;
-        AsyncStorage.set(this.SOUND_PREF_KEY, draft.sound);
 
         this.prepStarting = true;
         DialogSystem.close(this.elements.prep);
@@ -815,11 +762,10 @@ const TodaySystem = {
 
     beginFocus: async function(params, sound) {
         try {
-            await FocusSystem.startFocus(params);
+            const state = await FocusSystem.startFocus(params);
             this.prepDraft = null;
             this.elements.quickInput.value = '';
-            const playlist = sound && sound !== this.SILENCE ? this.playlists().find(p => p.id === sound) : null;
-            if (playlist && window.MusicSystem) MusicSystem.playPlaylist(playlist);
+            if (state?.session) SoundSystem.play(sound, state.session.id, { preservePause: true });
         } catch (e) {
             console.error('[Today] Could not start focus:', e);
             this.setError({ title: t('today.error_start'), detail: t('today.error_engine_detail'), retry: () => this.beginFocus(params, sound) });
@@ -871,8 +817,6 @@ const TodaySystem = {
         el.resume.hidden = !paused;
         el.end.textContent = t(focus ? 'today.end_session' : 'today.end_break');
 
-        const playing = window.MusicSystem && typeof MusicSystem.nowPlaying === 'function' ? MusicSystem.nowPlaying() : null;
-        el.sessionSoundText.textContent = playing ? t('today.sound_playing', { name: playing }) : t('today.sound_choose');
 
         el.sessionProtect.hidden = !(focus && s.protected);
         if (focus && s.protected) {
@@ -895,19 +839,6 @@ const TodaySystem = {
             ? t('today.end_desc', { left, done })
             : t('today.end_desc_none', { left });
         DialogSystem.open(this.elements.endDialog, { opener: this.elements.end });
-    },
-
-    // Som durante a sessão: o player atual (fase 6 traz o mini controle novo)
-    openSoundControls: function() {
-        if (!window.MusicSystem) return;
-        const playing = typeof MusicSystem.nowPlaying === 'function' && MusicSystem.nowPlaying();
-        if (playing && MusicSystem.dom && MusicSystem.dom.miniPlayer) {
-            animateModal(MusicSystem.dom.miniPlayer, true);
-            if (MusicSystem.state.isPlayerMinimized) MusicSystem.toggleMinimize();
-        } else {
-            const trigger = document.getElementById('btn-music');
-            if (trigger) trigger.click();
-        }
     },
 
     // --- Concluída ---
