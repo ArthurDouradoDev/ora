@@ -1,0 +1,596 @@
+/* ============================================================
+   PROTEÇÃO — resumo por perfil, editor integrado e prévia (Fase 4)
+   ============================================================ */
+
+html[data-view="protecao"] .topbar {
+    background: var(--bg);
+    box-shadow: inset 0 -1px 0 var(--line);
+}
+
+#protection-chip.current {
+    border-color: var(--line-strong);
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.view-protecao {
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+}
+
+.protecao-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    position: relative;
+}
+
+.protecao-main {
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
+}
+
+.protecao-wrap {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem 3rem;
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
+}
+
+.protecao-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.protecao-wrap h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ---------- Status ---------- */
+.protecao-status {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.125rem 1.25rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-1);
+    border: 1px solid var(--line);
+    flex-wrap: wrap;
+}
+
+.protecao-status .ic {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    flex: none;
+    background: var(--ok-bg);
+    color: var(--ok);
+}
+
+.protecao-status.warn .ic {
+    background: var(--warn-bg);
+    color: var(--warn);
+}
+
+.protecao-status.err .ic {
+    background: var(--err-bg);
+    color: var(--err);
+}
+
+.protecao-status.focus .ic {
+    background: var(--gold-soft);
+    color: var(--gold);
+}
+
+.protecao-status.off .ic {
+    background: var(--surface-3);
+    color: var(--text-3);
+}
+
+.protecao-status .tx {
+    flex: 1 1 14rem;
+    min-width: 0;
+    display: grid;
+    gap: 0.125rem;
+}
+
+.protecao-status .tx b {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.protecao-status .row {
+    flex-wrap: wrap;
+}
+
+/* ---------- Perfis ---------- */
+.protecao-profiles {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.protecao-profile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.125rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-1);
+    border: 1px solid var(--line);
+    transition: border-color var(--dur), opacity var(--dur);
+}
+
+.protecao-profile.is-editing {
+    border-color: var(--gold);
+}
+
+.protecao-profile.is-disabled {
+    opacity: 0.68;
+}
+
+.protecao-profile-lead {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.protecao-profile-check {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--gold);
+    cursor: pointer;
+    flex: none;
+}
+
+.protecao-profile .ic {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+    display: grid;
+    place-items: center;
+    font-size: 1.375rem;
+    color: var(--text-2);
+    flex: none;
+}
+
+.protecao-profile-body {
+    min-width: 0;
+}
+
+.protecao-profile h3 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.protecao-profile .rule {
+    color: var(--text-2);
+    margin: 0.15rem 0 0;
+    font-size: 0.9375rem;
+}
+
+.protecao-profile .sites {
+    color: var(--text-3);
+    font-size: 0.8125rem;
+    margin: 0.125rem 0 0;
+    overflow-wrap: anywhere;
+}
+
+.protecao-profile .side {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.protecao-pill {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: var(--surface-2);
+    color: var(--text-2);
+    white-space: normal;
+    text-align: center;
+}
+
+.protecao-pill.on {
+    background: var(--ok-bg);
+    color: var(--ok);
+}
+
+.protecao-pill.focus {
+    background: var(--gold-soft);
+    color: var(--gold);
+}
+
+.protecao-pill.warn {
+    background: var(--warn-bg);
+    color: var(--warn);
+}
+
+.protecao-pill.err {
+    background: var(--err-bg);
+    color: var(--err);
+}
+
+.protecao-meter-wrap {
+    margin-top: 0.5rem;
+    display: grid;
+    gap: 0.25rem;
+    max-width: 18rem;
+}
+
+.protecao-meter {
+    height: 6px;
+    border-radius: 6px;
+    background: var(--surface-3);
+    overflow: hidden;
+}
+
+.protecao-meter span {
+    display: block;
+    height: 100%;
+    background: var(--text-2);
+    transition: width var(--dur);
+}
+
+.protecao-meter.warn span {
+    background: var(--warn);
+}
+
+.protecao-add-profile {
+    justify-content: flex-start;
+    border-style: dashed;
+}
+
+/* ---------- Editor integrado ---------- */
+.protecao-editor {
+    width: 0;
+    overflow: hidden;
+    transition: width 280ms var(--ease);
+    border-left: 1px solid transparent;
+    background: var(--surface-1);
+    z-index: 25;
+}
+
+.view-protecao[data-editing="true"] .protecao-editor {
+    width: 28rem;
+    border-left-color: var(--line);
+}
+
+.protecao-editor-inner {
+    width: 28rem;
+    max-width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-1);
+}
+
+.protecao-editor header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem 0.5rem 1.5rem;
+}
+
+.protecao-editor header h2 {
+    flex: 1;
+    font-size: 1.25rem;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.protecao-editor .scroll {
+    flex: 1;
+    padding: 0.5rem 1.5rem 1.5rem;
+    display: grid;
+    gap: 1.15rem;
+    align-content: start;
+}
+
+.protecao-editor footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 0.75rem;
+}
+
+.protecao-site-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.protecao-site-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: var(--surface-3);
+    font-size: 0.875rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.protecao-site-chip button {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--text-3);
+    display: grid;
+    place-items: center;
+    flex: none;
+}
+
+.protecao-site-chip button:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.protecao-rule-block {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 0.875rem 1rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.protecao-rule-block .toggle {
+    justify-content: space-between;
+    width: 100%;
+}
+
+.protecao-rule-block .toggle > span:last-child {
+    order: -1;
+    font-weight: 500;
+}
+
+.protecao-days {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.protecao-days button {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.protecao-days button[aria-pressed="true"] {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+.protecao-time-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.protecao-time-row .input {
+    width: 7.5rem;
+}
+
+.protecao-consequence {
+    border-radius: var(--r-md);
+    padding: 0.875rem 1rem;
+    background: var(--info-bg);
+    border: 1px solid rgba(156, 195, 238, 0.3);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.protecao-consequence b {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.protecao-consequence ul {
+    margin: 0.375rem 0 0;
+    padding-left: 1.125rem;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.protecao-consequence .imm {
+    display: inline;
+    color: var(--warn);
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ---------- Prévia de interceptação ("Ver como aparece") ---------- */
+.protecao-preview-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 850;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(12, 10, 8, 0.78);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.protecao-block-card {
+    position: relative;
+    width: min(30rem, 100%);
+    max-height: calc(100vh - 3rem);
+    overflow: auto;
+    display: grid;
+    gap: 1.25rem;
+    text-align: center;
+    padding: 2rem 2rem 1.5rem;
+    border-radius: var(--r-xl);
+}
+
+.protecao-site-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-self: center;
+    padding: 0.375rem 0.875rem 0.375rem 0.5rem;
+    border-radius: 999px;
+    background: var(--surface-3);
+    font-weight: 500;
+}
+
+.protecao-site-badge .fav {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f58529, #dd2a7b 50%, #8134af);
+    display: grid;
+    place-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.protecao-block-card h2 {
+    font-size: 1.625rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.protecao-block-card .why {
+    color: var(--text-2);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.protecao-block-card .until {
+    font-family: var(--f-read);
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.protecao-block-card .temp-box {
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+    display: grid;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+/* ---------- Diálogos auxiliares (Pausa contemplativa, Trava, Novo perfil) ---------- */
+.protecao-verse-box {
+    padding: 0.875rem 1rem;
+    border-radius: var(--r-md);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line);
+    font-family: var(--f-read);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.protecao-preset-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.protecao-preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line-strong);
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--dur), background var(--dur);
+}
+
+.protecao-preset-btn:hover {
+    border-color: var(--gold);
+    background: var(--surface-3);
+}
+
+.protecao-preset-btn i {
+    font-size: 1.35rem;
+    color: var(--gold);
+}
+
+/* ---------- Responsividade (800×600 e Zoom 200%) ---------- */
+@media (max-width: 62rem) {
+    .protecao-editor {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 30;
+        box-shadow: -30px 0 60px rgba(0, 0, 0, 0.5);
+    }
+    .view-protecao[data-editing="true"] .protecao-editor {
+        width: min(28rem, 100%);
+    }
+    .protecao-editor-inner {
+        width: 100%;
+    }
+}
+
+@media (max-width: 54rem) {
+    html[data-view="protecao"] .topbar {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    html[data-view="protecao"] .topbar .right {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        min-width: 0;
+    }
+    html[data-view="protecao"] .topbar .chip {
+        white-space: normal;
+        max-width: 100%;
+    }
+    .protecao-wrap {
+        padding-inline: 1rem;
+    }
+    .protecao-profile {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .protecao-profile .side {
+        grid-column: 1 / -1;
+        justify-content: space-between;
+    }
+}

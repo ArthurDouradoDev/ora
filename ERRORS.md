@@ -8,10 +8,9 @@ Legenda de origem: **[código]** verificado no código da extensão · **[protó
 
 | ID | Pri. | Onde | Problema | Correção esperada |
 |---|---|---|---|---|
-| E14 | P3 | Permissões do manifesto | `<all_urls>` não é exigência geral de regras DNR dinâmicas; precisa ser justificado ou reduzido antes da publicação. | Revisar regras efetivamente usadas. |
 | E15 | P3 | `index.html` | Protótipo legado, fora do manifesto, aponta para `style.css` inexistente. | Arquivar ou remover após confirmação. |
 | E16 | P3 | Resumo de tempo de tela (não commitado) | Usa vermelho/verde para julgar e não abre pela pergunta (IDEAS.md §2). | Aplicar as correções antes de commitar. |
-| E18 | P2 | Modais da V0 restantes (configurações, bloqueador, música) | Continuam com `animateModal()`: sem foco contido nem fundo inerte (M09), e o vidro translúcido fica pouco legível sobre a tela Hoje nova. Fecham com qualquer clique fora, por isso os botões novos que os abrem precisam de `stopPropagation()`. | Leitor, terço e exame foram substituídos por subtelas na fase 3. Restam as fases 4 (bloqueador), 6 (música) e 7 (configurações). |
+| E18 | P2 | Modais da V0 restantes (configurações, música) | Continuam com `animateModal()`: sem foco contido nem fundo inerte (M09), e o vidro translúcido fica pouco legível sobre a tela Hoje nova. Fecham com qualquer clique fora, por isso os botões novos que os abrem precisam de `stopPropagation()`. | Leitor, terço e exame foram substituídos por subtelas na fase 3; bloqueador migrado para `#protecao` na fase 4. Restam as fases 6 (música) e 7 (configurações). |
 | E19 | P3 | `today.js` (provisórios da fase 2) | O convite "Encerrar o dia" ainda abre o exame da noite; o seletor de som da preparação lista só as playlists (YouTube/Spotify). Respiro e Evangelho por idioma foram implementados na fase 3. | Restam ritual da noite na fase 5 e Som na fase 6. |
 | E20 | P3 | Validação da fase 2 | A fase 2 foi validada num simulador das APIs `chrome.*` (página servida por http com o `sw.js` rodando num iframe), não na extensão carregada sem pacote. Sincronização entre duas abas reais, alarmes reais do SW, regras DNR aplicadas de fato e a notificação do Angelus não foram exercitadas. | Repetir o roteiro "Fluxo completo com sessão curta" do `PLANO_V1_ORA.md` com a extensão carregada. |
 | E17 | P3 | Sync | Mudança de idioma vinda de outro dispositivo só se aplica por completo na próxima abertura; limite "por hora" do bloqueador precisa de teste manual. | Teste manual com dois perfis. |
@@ -25,12 +24,9 @@ Valem como critério de aceitação ao reimplementar na extensão/app; não pres
 | M01 | P1 | Abrir sessão mobile pausada retoma a contagem. Somente "Retomar" pode reiniciar. |
 | M02 | P1 | Ritual matinal perde atividade e duração ao ir para Hoje/foco. |
 | M05 | P1 | Texto a 200% corta ação mobile, tarefas e controles do leitor; Lectio perde espaço útil. |
-| M06 | P1 | Prévia de proteção ignora os dias da regra e usa "amanhã" incorretamente. |
 | M07 | P2 | Destinos mobile abrem composições desktop e perdem contexto/sessão. |
 | M08 | P2 | "Escolher som" troca a opção imediatamente em vez de abrir seletor. |
 | M09 | P2 | Shift+Tab escapa do diálogo para painel fechado (foco não contido, fundo não inerte). |
-| M10 | P2 | Modelo parcial anuncia bloqueio de itens desmarcados. |
-| M11 | P2 | "Guardar/Salvo" não comprova persistência após recarga. |
 | M13 | P2 | Sessão ativa coexiste com "Começar foco" e proteção de repouso; estados incoerentes entre Hoje/resumo/Proteção. |
 
 Outros achados dos protótipos: busca em Rezar atualiza região fora da vista em tela estreita, ignora categoria e não normaliza acentos; atalho global de Espaço no terço/Respiro intercepta botões focados; histórico substituído a cada transição (Voltar do navegador); rascunho do ritual noturno se perde ao sair/reabrir; mensagem de erro de "salvar" aparece ao falhar exportação; rezar o 4º dia da novena não abre outro texto.
@@ -78,3 +74,7 @@ Não registrado como confirmado: "salto duplo" de Espaço no terço (não reprod
 | M03 | 03/11/2026 | `reader.js`, `reader-core.js` | Posição por oração/idioma (e Evangelho/data), restaurada após layout, fontes e arte, antes do registro de progresso; recarga na metade verificada na extensão real isolada. Mesmo commit da fase 3. |
 | M04 | 03/11/2026 | `rosary.js`, `rosary-core.js` | Posição, mistérios, intenção, idioma e modo de texto realmente persistidos. Retomada na 6ª Ave-Maria do 3º mistério em uma nova aba verificada; gravação rejeitada não avança a conta. Mesmo commit da fase 3. |
 | M12 | 03/11/2026 | `respiro.js`, `today.js`, `blocked.js` | Respiro sem cronômetro, com forma lembrada e origem no estado da aba. Retorno a Hoje, sessão concluída e tela de bloqueio verificado. Mesmo commit da fase 3. |
+| E14 | 04/11/2026 | `manifest.json` | `<all_urls>` substituído por `["https://*/*", "http://*/*"]` em `host_permissions` e `web_accessible_resources`, removendo esquemas não web (`file:///*`, `ftp://*/*`) e entradas redundantes. Fase 4. |
+| M06 | 04/11/2026 | `blocker-core.js`, `blocker.js` | `describeConsequence` e `consequenceDetails` respeitam `schedule.days`; regra de seg–sex avaliada na sexta à noite anuncia "segunda às 09:00" e nunca "amanhã". Fase 4. |
+| M10 | 04/11/2026 | `blocker-core.js`, `blocker.js` | Perfis com `enabled: false` nunca entram nas regras DNR (`buildRulesFromProfiles`) nem são anunciados como bloqueados. Fase 4. |
+| M11 | 04/11/2026 | `blocker.js` | `Salvo` (`#saved.show`) só aparece após `updateDynamicRules` e `chrome.storage.local.set` concluírem sem erro; falhas exibem `.banner.err` com `Tentar novamente` e preservam as regras anteriores. Fase 4. |

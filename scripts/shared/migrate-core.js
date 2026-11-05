@@ -2,15 +2,14 @@
 // MIGRATE CORE — dados da 1.1.5 (loja) e da 1.2.0 local → esquema 2
 // ============================================================
 // Pure functions only: no chrome.* calls, no DOM access.
-// Depende de TasksCore e PomodoroCore (carregar antes).
+// Depende de TasksCore, PomodoroCore e BlockerCore (carregar antes).
 //
 // migrate(snapshot, { now }) → { changes, removals, schemaVersion }
 //   snapshot — resultado de chrome.storage.local.get(null)
 //   changes  — chaves a gravar (só as que mudam)
 //   removals — chaves legadas já convertidas
 // Idempotente: aplicar o resultado e migrar de novo não muda mais nada.
-// Chaves desconhecidas nunca são apagadas. O bloqueador (blocker_config,
-// blocker_sites…) fica intacto até a fase 4, que define os perfis.
+// Chaves desconhecidas nunca são apagadas.
 (function (global) {
     'use strict';
 
@@ -298,6 +297,36 @@
             }
         }
 
+        // Bloqueador (1.1.5 / 1.2.0 → perfis da fase 4)
+        if (has('blocker_config') || has('blocker_sites') || has('blocker_enabled')) {
+            const rawCfg = has('blocker_config') ? parseStored(snap.blocker_config) : null;
+            const rawSites = has('blocker_sites') ? parseStored(snap.blocker_sites) : null;
+            if (rawCfg !== UNPARSEABLE) {
+                const cfgObj = rawCfg && typeof rawCfg === 'object' && !Array.isArray(rawCfg) ? rawCfg : null;
+                const sitesArr = Array.isArray(rawSites) ? rawSites : null;
+                if (cfgObj || sitesArr || has('blocker_enabled')) {
+                    const profiles = (cfgObj && Array.isArray(cfgObj.profiles))
+                        ? BlockerCore.normalizeProfiles(cfgObj.profiles)
+                        : BlockerCore.legacyToProfiles(cfgObj, sitesArr);
+                    const enabled = cfgObj && typeof cfgObj.enabled === 'boolean'
+                        ? cfgObj.enabled
+                        : (typeof snap.blocker_enabled === 'boolean' ? snap.blocker_enabled : Boolean(sitesArr && sitesArr.length));
+                    const reenableAt = cfgObj && Number.isFinite(Number(cfgObj.reenableAt)) && Number(cfgObj.reenableAt) > 0
+                        ? Number(cfgObj.reenableAt)
+                        : null;
+                    const rawLock = cfgObj && cfgObj.lock && typeof cfgObj.lock === 'object' ? cfgObj.lock : {};
+                    const lock = {
+                        enabled: Boolean(rawLock.enabled),
+                        verseIndex: Number.isFinite(Number(rawLock.verseIndex)) ? Number(rawLock.verseIndex) : 0,
+                        writeUnlockEnabled: Boolean(rawLock.writeUnlockEnabled)
+                    };
+                    set('blocker_config', { enabled, reenableAt, lock, profiles });
+                }
+                if (rawSites !== UNPARSEABLE) remove('blocker_sites');
+                remove('blocker_enabled');
+            }
+        }
+
         set(SCHEMA_KEY, SCHEMA_VERSION);
         for (const k of Object.keys(changes)) removals.delete(k);
 
@@ -313,7 +342,13 @@
     }
 
     function needsMigration(snapshot) {
-        return !snapshot || (Number(snapshot[SCHEMA_KEY]) || 0) < SCHEMA_VERSION;
+        if (!snapshot || (Number(snapshot[SCHEMA_KEY]) || 0) < SCHEMA_VERSION) return true;
+        if (Object.prototype.hasOwnProperty.call(snapshot, 'blocker_sites')) return true;
+        if (Object.prototype.hasOwnProperty.call(snapshot, 'blocker_enabled')) return true;
+        const cfg = snapshot.blocker_config;
+        if (typeof cfg === 'string') return true;
+        if (cfg && typeof cfg === 'object' && !Array.isArray(cfg.profiles)) return true;
+        return false;
     }
 
     global.MigrateCore = {

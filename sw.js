@@ -85,10 +85,12 @@ function refreshGospelCache() {
 chrome.runtime.onStartup.addListener(() => {
     chrome.alarms.create(GOSPEL_ALARM,{ periodInMinutes:60 });
     refreshGospelCache().catch(err => console.warn('[SW Gospel]',err));
+    ensureMigrated().then(() => syncBlockerRules()).catch(err => console.warn('[SW Blocker]', err));
 });
 chrome.runtime.onInstalled.addListener(() => {
     chrome.alarms.create(GOSPEL_ALARM,{ periodInMinutes:60 });
     refreshGospelCache().catch(err => console.warn('[SW Gospel]',err));
+    ensureMigrated().then(() => syncBlockerRules()).catch(err => console.warn('[SW Blocker]', err));
 });
 chrome.runtime.onMessage.addListener((message,sender,sendResponse) => {
     if (message?.type !== 'liturgy:refresh') return;
@@ -306,7 +308,9 @@ async function claimProtection(state, wanted) {
     try {
         const data = await chrome.storage.local.get(['blocker_config']);
         const cfg = data.blocker_config;
-        if (!cfg || !Array.isArray(cfg.sites) || !cfg.sites.length) return;
+        const profiles = BlockerCore.profilesFromConfig(cfg);
+        const sites = BlockerCore.flattenSites(profiles);
+        if (!cfg || !sites.length) return;
         if (cfg.enabled) {
             state.protection = { active: true, owned: false };
             return;
@@ -314,7 +318,6 @@ async function claimProtection(state, wanted) {
         const restoreReenableAt = cfg.reenableAt || null;
         const next = Object.assign({}, cfg, { enabled: true, reenableAt: null });
         await chrome.storage.local.set({ blocker_config: next });
-        await applyBlockerRulesFromConfig(next);
         await chrome.alarms.clear(BLOCKER_REENABLE_ALARM);
         state.protection = { active: true, owned: true, restoreReenableAt };
         console.log('[SW Focus] Protection turned on for the session');
@@ -336,7 +339,6 @@ async function releaseProtection(state) {
         if (reenableAt && reenableAt <= Date.now()) return;
         const next = Object.assign({}, cfg, { enabled: false, reenableAt: reenableAt || null });
         await chrome.storage.local.set({ blocker_config: next });
-        await applyBlockerRulesFromConfig(next);
         if (reenableAt) await chrome.alarms.create(BLOCKER_REENABLE_ALARM, { when: reenableAt });
         console.log('[SW Focus] Protection restored after the session');
     } catch (e) {
@@ -477,21 +479,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; 
     }
 
+    // ── Bloqueador: sincronização de regras e alarme de transição ──
+    if (message && message.action === 'blocker:sync') {
+        syncBlockerRules().then(() => sendResponse({ success: true })).catch(err => sendResponse({ error: err.message }));
+        return true;
+    }
+
     // ── Bloqueador: desativação temporizada (reativação automática) ──
-    if (message && message.action === 'blocker_schedule_reenable') {
-        const when = message.when;
+    if (message && (message.action === 'blocker_schedule_reenable' || message.action === 'blocker:scheduleReenable')) {
+        const when = message.reenableAt || message.when;
         const handle = async () => {
             if (typeof when === 'number' && when > Date.now()) {
                 await chrome.alarms.create(BLOCKER_REENABLE_ALARM, { when });
                 console.log(`[Blocker] Re-enable scheduled for ${new Date(when).toLocaleString()}`);
             }
+            await syncBlockerRules();
         };
-        handle().then(() => sendResponse({ success: true }));
+        handle().then(() => sendResponse({ success: true })).catch(err => sendResponse({ error: err.message }));
         return true;
     }
 
-    if (message && message.action === 'blocker_cancel_reenable') {
-        chrome.alarms.clear(BLOCKER_REENABLE_ALARM).then(() => sendResponse({ success: true }));
+    if (message && (message.action === 'blocker_cancel_reenable' || message.action === 'blocker:cancelReenable')) {
+        const handle = async () => {
+            await chrome.alarms.clear(BLOCKER_REENABLE_ALARM);
+            await syncBlockerRules();
+        };
+        handle().then(() => sendResponse({ success: true })).catch(err => sendResponse({ error: err.message }));
         return true;
     }
 
@@ -532,6 +545,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 state.isRunning = true;
                 state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
                 await saveState(state);
+                await syncBlockerRules(state);
                 await startAlarm(state);
                 return state;
             }
@@ -557,6 +571,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 state.isRunning = true;
                 state.expectedEndTime = now + (state.timeRemaining * 1000);
                 await saveState(state);
+                await syncBlockerRules(state);
                 await startAlarm(state);
                 return state;
             }
@@ -586,6 +601,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 PomodoroCore.resetToIdle(state);
                 await clearAlarm();
                 await saveState(state);
+                await syncBlockerRules(state);
                 return state;
             }
 
@@ -596,6 +612,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 PomodoroCore.resetToIdle(state);
                 await clearAlarm();
                 await saveState(state);
+                await syncBlockerRules(state);
                 return state;
             }
 
@@ -633,6 +650,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 state.totalDuration = state.timeRemaining;
                 await clearAlarm();
                 await saveState(state);
+                await syncBlockerRules(state);
                 return state;
             }
 
@@ -649,6 +667,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 await clearAlarm();
                 state = advancePhase(state);
                 await saveState(state);
+                await syncBlockerRules(state);
                 return state;
             }
 
@@ -770,12 +789,14 @@ async function runPomodoroTick() {
             state.isRunning = true;
             state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
             await saveState(state);
+            await syncBlockerRules(state);
             await startAlarm(state);
         } else {
             // Pause and wait for manual start
             state.isRunning = false;
             state.expectedEndTime = null;
             await saveState(state);
+            await syncBlockerRules(state);
             await clearAlarm();
         }
 
@@ -804,34 +825,95 @@ async function runPomodoroTick() {
 // ============================================================
 
 const BLOCKER_REENABLE_ALARM = 'blocker_reenable';
+const BLOCKER_SCHEDULE_ALARM = 'blocker_schedule_transition';
 
-// Rebuild the dynamic block rules from a config object. Mirrors
-// Blocker.updateRules() in the page, but runs in the SW so the blocker can
-// be re-enabled even with no Ora tab open.
-async function applyBlockerRulesFromConfig(cfg) {
-    const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-    // Only remove block rules (IDs < 1000); allow rules are session grants.
-    const oldRuleIds = oldRules.filter(rule => rule.id < 1000).map(rule => rule.id);
+function nextMidnightTimestamp(now = new Date()) {
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5, 0);
+    return next.getTime();
+}
 
-    const addRules = (cfg && cfg.enabled && Array.isArray(cfg.sites))
-        ? BlockerCore.buildBlockRules(cfg.sites, chrome.runtime.getURL('blocked.html'))
-        : [];
+// Rebuild the dynamic block rules from the current profiles and context
+// (focus session, schedule window, daily limit, contemplative pause), and
+// schedule the next schedule/midnight transition alarm so rules update even
+// with no Ora tab open.
+async function syncBlockerRules(pomodoroStateOverride) {
+    try {
+        await ensureMigrated();
+        const store = await chrome.storage.local.get(['blocker_config', POMODORO_STATE_KEY, SCREENTIME_KEY]);
+        const cfg = store.blocker_config || null;
+        const pomo = pomodoroStateOverride || store[POMODORO_STATE_KEY] || null;
+        const screentime = store[SCREENTIME_KEY] || {};
+        const profiles = BlockerCore.profilesFromConfig(cfg);
+        const now = new Date();
+        const enabled = Boolean(cfg && cfg.enabled !== false);
+        const pausedUntil = cfg && cfg.reenableAt ? cfg.reenableAt : 0;
+        const focusActive = Boolean(pomo && pomo.phase === 'focus' && (pomo.isRunning || pomo.session));
 
-    await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: oldRuleIds,
-        addRules
-    });
+        const addRules = BlockerCore.buildRulesFromProfiles(profiles, {
+            blockedPageUrl: chrome.runtime.getURL('blocked.html'),
+            now,
+            enabled,
+            pausedUntil,
+            focusActive,
+            screentime
+        });
+
+        const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+        // Only remove block rules (IDs < 1000); allow rules (>= 1000) are temporary session grants.
+        const oldRuleIds = oldRules.filter(rule => rule.id < 1000).map(rule => rule.id);
+
+        await chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: oldRuleIds,
+            addRules
+        });
+
+        // Schedule next transition alarm (schedule start/end or midnight reset)
+        let nextWhen = null;
+        if (enabled && profiles.some(p => p && p.enabled !== false)) {
+            const info = BlockerCore.nextChangeInfo(profiles, now, {
+                enabled,
+                pausedUntil,
+                focusActive,
+                screentime
+            });
+            if (info && typeof info.at === 'number' && info.at > now.getTime()) {
+                nextWhen = info.at;
+            }
+            const needsMidnight = profiles.some(p =>
+                p && p.enabled !== false && p.rules && (
+                    (p.rules.dailyLimitMin && p.rules.dailyLimitMin > 0) ||
+                    (p.rules.schedule && p.rules.schedule.enabled)
+                )
+            );
+            if (needsMidnight) {
+                const midnight = nextMidnightTimestamp(now);
+                if (!nextWhen || midnight < nextWhen) nextWhen = midnight;
+            }
+        }
+
+        if (nextWhen && nextWhen > now.getTime()) {
+            await chrome.alarms.create(BLOCKER_SCHEDULE_ALARM, { when: nextWhen });
+        } else {
+            await chrome.alarms.clear(BLOCKER_SCHEDULE_ALARM);
+        }
+    } catch (e) {
+        console.error('[SW Blocker] Failed to sync blocker rules:', e);
+    }
+}
+
+async function applyBlockerRulesFromConfig() {
+    await syncBlockerRules();
 }
 
 async function reenableBlocker() {
     const data = await chrome.storage.local.get(['blocker_config']);
     const cfg = data.blocker_config;
-    if (!cfg || cfg.enabled) return;
+    if (!cfg) return;
 
     cfg.enabled = true;
     cfg.reenableAt = null;
     await chrome.storage.local.set({ blocker_config: cfg });
-    await applyBlockerRulesFromConfig(cfg);
+    await syncBlockerRules();
     console.log('[Blocker] Pause period ended — blocker re-enabled');
 }
 
@@ -845,6 +927,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     // Handle Blocker: timed disable expired — turn the blocker back on
     if (alarm.name === BLOCKER_REENABLE_ALARM) {
         await reenableBlocker();
+        return;
+    }
+
+    // Handle Blocker: schedule window or midnight transition
+    if (alarm.name === BLOCKER_SCHEDULE_ALARM) {
+        await syncBlockerRules();
         return;
     }
 
@@ -930,21 +1018,25 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
     if (BlockerCore.isAuthWhitelisted(details.url)) return;
 
     try {
-        const cfg = _blockerCfg || (await chrome.storage.local.get(['blocker_config'])).blocker_config;
-        if (!cfg || !cfg.enabled || !cfg.sites || cfg.sites.length === 0) return;
+        const store = await chrome.storage.local.get(['blocker_config', POMODORO_STATE_KEY, SCREENTIME_KEY]);
+        const cfg = store.blocker_config || _blockerCfg;
+        if (!cfg || !cfg.enabled) return;
+
+        const profiles = BlockerCore.profilesFromConfig(cfg);
+        if (!profiles.length) return;
 
         const url = new URL(details.url);
         const hostname = url.hostname.replace(/^www\./, '');
 
-        // Find matching blocked site
-        let matchedSite = null;
-        for (const site of cfg.sites) {
-            if (BlockerCore.matchesSiteOrAlias(hostname, site)) {
-                matchedSite = site;
-                break;
-            }
-        }
-        if (!matchedSite) return;
+        const pomo = store[POMODORO_STATE_KEY] || null;
+        const focusActive = Boolean(pomo && pomo.phase === 'focus' && (pomo.isRunning || pomo.session));
+        const hit = BlockerCore.findBlockingProfile(profiles, hostname, {
+            enabled: cfg.enabled !== false,
+            pausedUntil: cfg.reenableAt || 0,
+            focusActive,
+            screentime: store[SCREENTIME_KEY] || {}
+        }, new Date());
+        if (!hit) return;
 
         // Check if this tab has an active allow session (user clicked "Continue")
         const sessionData = await chrome.storage.session.get('blocker_sessions');
@@ -962,7 +1054,9 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
 
         // Redirect to blocked page
         const blockedUrl = chrome.runtime.getURL('blocked.html')
-            + '?domain=' + encodeURIComponent(matchedSite.url)
+            + '?domain=' + encodeURIComponent(hit.site)
+            + '&profile=' + encodeURIComponent(hit.profile.id)
+            + '&reason=' + encodeURIComponent(hit.reason || 'focus')
             + '&url=' + encodeURIComponent(details.url);
         chrome.tabs.update(details.tabId, { url: blockedUrl });
         console.log(`[Blocker Fallback] Redirected tab ${details.tabId} from ${hostname} to blocked page`);
@@ -1058,6 +1152,23 @@ async function stAddSeconds(domain, seconds) {
     if (!store[today].domains) store[today].domains = {};
     store[today].domains[domain] = (store[today].domains[domain] || 0) + seconds;
     await chrome.storage.local.set({ [SCREENTIME_KEY]: store });
+
+    // If an active profile has a daily limit covering this domain and just reached it, sync DNR rules
+    try {
+        const cfg = _blockerCfg || (await chrome.storage.local.get(['blocker_config'])).blocker_config;
+        if (cfg && cfg.enabled) {
+            const profiles = BlockerCore.profilesFromConfig(cfg);
+            const now = new Date();
+            for (const p of profiles) {
+                if (!p || p.enabled === false || !p.rules || !(p.rules.dailyLimitMin > 0)) continue;
+                const matches = (p.sites || []).some(s => BlockerCore.matchesSiteOrAlias(domain, s));
+                if (matches && BlockerCore.profileMinutesUsedToday(p, store, now) >= p.rules.dailyLimitMin) {
+                    await syncBlockerRules();
+                    break;
+                }
+            }
+        }
+    } catch (e) { /* ignore */ }
 }
 
 // Liquida a sessão ativa (credita o tempo decorrido) e inicia uma nova.

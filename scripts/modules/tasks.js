@@ -8,7 +8,7 @@ const TaskSystem = {
 
     STORAGE_KEY: 'ora_tasks',
     HISTORY_KEY: 'ora_tasks_history',
-    ESTIMATES: [15, 25, 50, 90],
+    ESTIMATES: [15, 25, 50, 60, 90],
     TODAY_SOFT_MAX: TasksCore.HOME_MAX, // só apresentação: Hoje pode guardar mais
 
     tasks: [],    // inclui os modelos de rotina (escondidos) — ver TasksCore
@@ -265,13 +265,14 @@ const TaskSystem = {
             form.querySelector('[name="title"]').focus();
             return;
         }
-        const estimateBtn = form.querySelector('.ed-estimate [aria-pressed="true"]');
+        const estimateInput = form.querySelector('[name="estimate"]');
+        if (!estimateInput.checkValidity()) { estimateInput.reportValidity(); return; }
         const repeatInput = form.querySelector('[name="repeat"]'); // ausente em concluídas
         const days = Array.from(form.querySelectorAll('.days [aria-pressed="true"]')).map(b => Number(b.dataset.day));
 
         let next = TasksCore.updateTask(this.tasks, id, {
             title,
-            estimateMin: estimateBtn ? Number(estimateBtn.dataset.min) : null
+            estimateMin: estimateInput.value ? Number(estimateInput.value) : null
         });
         const currentDays = TasksCore.recurrenceDays(this.tasks, task);
         const templateId = task.fromRecurrence || null;
@@ -326,6 +327,7 @@ const TaskSystem = {
                 btn.parentElement.querySelectorAll('button').forEach(b => {
                     b.setAttribute('aria-pressed', String(b === btn && b.getAttribute('aria-pressed') !== 'true'));
                 });
+                btn.closest('.task-edit').querySelector('[name="estimate"]').value = btn.getAttribute('aria-pressed') === 'true' ? btn.dataset.min : '';
                 break;
             case 'day':
                 btn.setAttribute('aria-pressed', String(btn.getAttribute('aria-pressed') !== 'true'));
@@ -514,7 +516,7 @@ const TaskSystem = {
             <div class="field"><span id="${uid}-est">${esc(t('tasks.edit_estimate'))}</span>
                 <div class="seg ed-estimate" role="group" aria-labelledby="${uid}-est">
                     ${this.ESTIMATES.map(m => `<button type="button" data-action="estimate" data-min="${m}" aria-pressed="${task.estimateMin === m}">${esc(t('tasks.minutes', { n: m }))}</button>`).join('')}
-                </div></div>
+                </div><label class="task-custom-estimate"><span>${esc(t('tasks.custom_minutes'))}</span><input class="input tnum" type="number" name="estimate" min="1" step="1" inputmode="numeric" value="${task.estimateMin || ''}" placeholder="${esc(t('tasks.no_estimate'))}"></label></div>
             ${done ? '' : `<div class="field">
                 <label class="toggle"><input type="checkbox" name="repeat" ${days.length ? 'checked' : ''}><span class="track"></span><span>${esc(t('tasks.edit_repeat'))}</span></label>
                 <div class="days" role="group" aria-label="${esc(t('tasks.edit_days'))}" ${days.length ? '' : 'hidden'}>
@@ -538,6 +540,9 @@ const TaskSystem = {
                 <button type="button" class="btn btn-quiet btn-sm danger-text" data-action="delete">${esc(t('tasks.delete'))}</button>`}
             </div>`;
 
+        editor.querySelector('[name="estimate"]').addEventListener('input', e => {
+            editor.querySelectorAll('.ed-estimate button').forEach(button => button.setAttribute('aria-pressed', String(Number(e.target.value) === Number(button.dataset.min))));
+        });
         // Enter no título salva; Esc cancela a edição
         editor.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.target.name === 'title') {
@@ -552,6 +557,8 @@ const TaskSystem = {
                 this.focusRow(task.id, '[data-action="edit"]');
             }
         });
+        window.LeaveGuard?.watchEditor('task', editor,
+            () => LeaveGuard.snapshot(editor), () => editor.isConnected);
         return editor;
     }
 };

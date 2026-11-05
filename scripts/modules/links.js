@@ -92,7 +92,10 @@ const LinksSystem = {
 
     favicon: function(url) {
         try {
-            return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`;
+            const icon = new URL(chrome.runtime.getURL('/_favicon/'));
+            icon.searchParams.set('pageUrl', url);
+            icon.searchParams.set('size', '32');
+            return icon.href;
         } catch (e) {
             return null;
         }
@@ -111,10 +114,9 @@ const LinksSystem = {
         fav.setAttribute('aria-hidden', 'true');
         fav.textContent = this.initials(link.name);
         const src = this.favicon(link.url);
-        if (src && navigator.onLine !== false) {
+        if (src) {
             const img = new Image();
             img.alt = '';
-            img.loading = 'lazy';
             img.onload = () => fav.replaceChildren(img);
             img.src = src;
         }

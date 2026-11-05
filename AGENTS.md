@@ -58,7 +58,7 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 |------|---------|
 | `scripts/modules/today.js` | Hoje: arrival, next step, focus preparation/session/completion, day intention, gospel footer. State comes from `TodayCore.resolveTodayState` |
 | `scripts/modules/focus.js` | Focus engine in the page: mirrors the SW pomodoro state (`ora:pomodoro` event), sends commands, end tone, wake lock |
-| `scripts/modules/blocker.js` | Website blocker using Declarative Net Request (DNR); its V0 modal is opened by "Gerenciar proteção" until phase 4 |
+| `scripts/modules/blocker.js` | Subview `#protecao`: protection profiles, integrated rule editor, consequence preview, contemplative pause, verse lock, and DNR rule synchronization |
 | `scripts/modules/protection.js` | "Proteção" pill in the header (real state) and summary popover |
 | `scripts/modules/reminders.js` | The single invite space on Hoje (Angelus, Chaplet, midday exam, "Encerrar o dia", internet prayer), chosen by `RemindersCore` |
 | `scripts/modules/links.js` | "Seus atalhos" on Hoje + manage dialog (`ora_quick_links`) |
@@ -83,7 +83,7 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
   - `ora_day_intention` — intention of the day by date; a session's intention (and activity title) lives in the session.
   - Hoje: `ora_quick_links` (shortcuts), `ora_invites_handled` (invites done or postponed per time window), `ora_focus_protect` / `ora_focus_sound` (last choices in the preparation).
   - "Dias com Ora" (`counter-core.js`) is derived from sessions + completed tasks; it never resets.
-  - `scripts/shared/migrate-core.js` converts 1.1.5 / 1.2.0 data; it runs (idempotently) in the SW and in `main.js` before modules start. The blocker keys stay as-is until phase 4.
+  - `scripts/shared/migrate-core.js` converts 1.1.5 / 1.2.0 data (including `blocker_sites` + `blocker_config` → profile `"Meus sites"`); it runs (idempotently) in the SW and in `main.js` before modules start.
   - Sync carries only routine templates (`sync_routine`) and settings.
 
 ### i18n
@@ -107,3 +107,6 @@ CSS is organized under `styles/` into `base/`, `components/`, `layout/`, `module
 - Storage: `ora_prayer_favorites`, `ora_reader_preferences`, `ora_reader_position_<id>_<lang>`, `ora_lectio_<date>`, `ora_rosary_progress`, `ora_respiro_form`, `ora_exam_draft`, `ora_bible_last`. Existing `ora_exam_logs` and virtue keys are preserved.
 - Optional approved artwork is selected by pericope from `ora_acervo_url` on the already-permitted jsDelivr origin. No image means no reserved blank area. The 20 rosary image slots remain null until artwork is approved (phase 10).
 - Browser acceptance runner (preinstalled Playwright, isolated Chromium profile): `tests/phase3-browser.cjs`. Setup and evidence: `tests/FASE_3.md`. No new extension dependencies.
+
+### Proteção (phase 4)
+Subview `protecao` (`#view-protecao`, `styles/modules/protecao.css`) replaces the V0 blocker modal and `styles/modules/blocker.css`. Pure logic lives in `scripts/shared/blocker-core.js` (profile normalization, `buildRulesFromProfiles`, `describeConsequence` / `consequenceDetails`, `nextChangeInfo`, temporary access counters). `Blocker.applyAndSaveConfig` applies DNR rules and persists `blocker_config` before showing `Salvo` (M11). `sw.js` runs `syncBlockerRules` on focus start/end, schedule transitions (`blocker_schedule_transition`), pause expiry (`blocker_reenable`), and daily limit exhaustion. `blocked.html` + `scripts/blocked.js` render the interception card (`focus`, `schedule`, `limit`), temporary access confirmation (up to 3×/day), and `#blocked-respiro` return flow (M12). Browser acceptance runner: `tests/phase4-browser.cjs` (`tests/FASE_4.md`).

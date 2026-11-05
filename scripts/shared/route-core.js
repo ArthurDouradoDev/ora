@@ -1,5 +1,5 @@
 // ============================================================
-// ROUTE CORE — rotas da nova aba (Hoje · Rezar · Frutos)
+// ROUTE CORE — rotas da nova aba (Hoje · Rezar · Frutos · Proteção)
 // ============================================================
 // Pure functions only: no chrome.* calls, no DOM access.
 // Uma rota é { view, path }: view é o destino ("rezar"), path são as
@@ -7,7 +7,7 @@
 (function (global) {
     'use strict';
 
-    const VIEWS = ['hoje', 'rezar', 'frutos'];
+    const VIEWS = ['hoje', 'rezar', 'frutos', 'protecao'];
     const DEFAULT_VIEW = 'hoje';
 
     function normalizeViews(views) {

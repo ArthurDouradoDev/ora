@@ -117,6 +117,7 @@ async function initApp() {
     // ============================================================
     // SHELL: destinos (Hoje · Rezar · Frutos) e diálogos
     // ============================================================
+    if (window.LeaveGuard) LeaveGuard.init();
     if (window.DialogSystem) DialogSystem.init();
     if (window.RouterSystem) RouterSystem.init();
     bindShellHelpers();

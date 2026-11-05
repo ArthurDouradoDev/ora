@@ -192,3 +192,26 @@ html[data-prayer-mode="reading"] .topbar, html[data-prayer-mode="praying"] .topb
 .prayer-reader[data-appearance="papel"] .seg { background:#e7ddcc; }
 .prayer-reader[data-appearance="papel"] .seg button { color:var(--paper-ink); }
 .prayer-reader[data-appearance="papel"] .seg [aria-pressed="true"] { background:#805f24; color:#fff9ee; }
+
+/* One reading toolbar, with content language alongside reading controls. */
+.reading-context { min-width: 0; overflow-wrap: anywhere; }
+.reading-options { margin-left: auto; min-width: 0; }
+.reading-options .reader-language { padding: 0; margin: 0; }
+.reader-language .input { min-height: 2.75rem; max-width: 11rem; border-radius: 999px; padding: .5rem .875rem; background: rgba(0,0,0,.3); border-color: var(--line); font-size: .875rem; }
+.prayer-reader[data-appearance="papel"] .reader-language .input { background: var(--surface-2); }
+.reader-language option { background: var(--bg); color: var(--text); }
+@media (max-width: 48rem) {
+    .reading-bar { gap: .5rem; padding: .5rem .75rem; }
+    .reading-context { flex: 1; }
+    .reading-options { order: 3; flex: 1 0 100%; justify-content: flex-end; gap: .375rem; }
+    .reading-options .seg button { padding-inline: .625rem; }
+}
+@media (max-width: 25rem) {
+    .reading-options { justify-content: center; }
+    .reading-options { gap: .25rem; }
+    .reading-options .reader-language { flex: 0 1 7rem; min-width: 0; }
+    .reading-options .reader-language .input { width: 100%; min-width: 0; padding: .375rem .5rem; font-size: .75rem; min-height: 2.5rem; }
+    .reading-options .seg { padding: .125rem; }
+    .reading-options .seg button { padding: .375rem .5rem; min-height: 2.25rem; font-size: .75rem; }
+    .reading-options output { font-size: .75rem; padding: .125rem; }
+}

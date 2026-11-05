@@ -3,7 +3,11 @@ const path = require('node:path');
 const os = require('node:os');
 const assert = require('node:assert/strict');
 const http = require('node:http');
-const {chromium} = require(process.env.ORA_PLAYWRIGHT || 'playwright');
+let playwrightMod = process.env.ORA_PLAYWRIGHT || 'playwright';
+let chromium;
+try { ({chromium} = require(playwrightMod)); } catch {
+    ({chromium} = require(path.join(os.homedir(),'.cache','codex-runtimes','codex-primary-runtime','dependencies','node','node_modules','playwright')));
+}
 const root = path.resolve(__dirname,'..');
 const artifacts = fs.mkdtempSync(path.join(os.tmpdir(),'ora-phase3-qa-'));
 let checks = 0;
@@ -27,7 +31,7 @@ function check(name,condition) { assert.ok(condition,name); checks++; console.lo
     try {
         const suite = await context.newPage();
         await suite.goto(`http://127.0.0.1:${server.address().port}/tests/tests.html`);
-        await suite.waitForFunction(() => document.getElementById('summary').textContent.includes('306/306'));
+        await suite.waitForFunction(() => Array.isArray(window.__oraTestResults) && window.__oraTestResults.length >= 306 && document.getElementById('summary').classList.contains('ok'));
         check('browser pure-function suite passes with fixtures',await suite.evaluate(() => __oraTestResults.every(r => r.pass && !r.skipped)));
         await suite.close();
         let sw = context.serviceWorkers()[0] || await context.waitForEvent('serviceworker');

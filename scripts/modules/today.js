@@ -652,6 +652,9 @@ const TodaySystem = {
         this.renderPrepSound();
         this.toggleSoundList(false);
         this.renderPrepProtection();
+        window.LeaveGuard?.watchEditor('preparation', this.prepDraft,
+            () => LeaveGuard.snapshot(el.prep) + JSON.stringify(this.prepDraft),
+            () => !!this.prepDraft);
 
         this.prepOpener = opener || null;
         this.prepStarting = false;
@@ -766,14 +769,14 @@ const TodaySystem = {
         const st = this.protection || { key: 'empty', sites: [] };
         const toggle = this.elements.prepProtect;
         const hint = this.elements.prepProtectHint;
-        if (st.key === 'empty') {
+        if (st.key === 'empty' || st.key === 'no-perm') {
             toggle.checked = false;
             toggle.disabled = true;
-            hint.textContent = t('today.prep_protect_empty');
+            hint.textContent = t(st.key === 'no-perm' ? 'protection.summary_no_perm' : 'today.prep_protect_empty');
             this.elements.prepRules.textContent = t('today.prep_choose_sites');
-        } else if (st.key === 'active') {
-            toggle.checked = true;
-            toggle.disabled = true;
+        } else if (st.key === 'active' || st.key === 'focus') {
+            toggle.disabled = false;
+            toggle.checked = this.prepDraft.protect;
             hint.textContent = t('today.prep_protect_active', { n: st.sites.length });
             this.elements.prepRules.textContent = t('today.prep_rules');
         } else {
@@ -793,7 +796,7 @@ const TodaySystem = {
         // Mudar o nome da atividade desliga a sessão da tarefa
         const taskId = task && task.title === title ? task.id : null;
         const st = this.protection || { key: 'empty' };
-        const protect = st.key === 'active' || (st.key !== 'empty' && draft.protect);
+        const protect = st.key !== 'empty' && st.key !== 'no-perm' && Boolean(draft.protect);
         const params = { minutes: draft.minutes, taskId, title, intention: draft.intention.trim(), protect };
 
         if (!this.elements.prepProtect.disabled) {

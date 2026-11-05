@@ -4,7 +4,7 @@ const PrayUI = {
     e(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
     text(key, params) { return this.e(t('pray.' + key, params)); },
     title(p) { return p ? ((p.titles || {})[window._i18nLocale] || p.title || '') : ''; },
-    button(id, key, cls = 'btn-quiet', extra = '') { return `<button type="button" class="btn ${cls}" id="${id}" ${extra}>${this.text(key)}</button>`; },
+    button(id, key, cls = 'btn-quiet', extra = '') { if (key === 'back') return `<button type="button" class="btn back-button" id="${id}" aria-label="${this.text(key)}" title="${this.text(key)}" ${extra}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14"/></svg></button>`; return `<button type="button" class="btn ${cls}" id="${id}" ${extra}>${this.text(key)}</button>`; },
     link(url, label, cls = '') { return `<a class="text-link ext ${cls}" href="${this.e(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`; },
     on(id, event, callback) {
         const el = document.getElementById(id);

@@ -5,7 +5,7 @@
 // follow the user across machines:
 //
 //   - Settings        (locale, name, prayer lang, reminder toggles)
-//   - Blocker         (site list + lock config — NOT the enabled flag,
+//   - Blocker         (profiles/site list + lock config — NOT the enabled flag,
 //                      NOT daily counters, NOT timed-disable state)
 //   - Routine         (recurring task templates only — NOT one-off tasks,
 //                      NOT today's tasks or their completion)
@@ -41,18 +41,38 @@ const SyncSystem = {
     // ── Sanitizers (local → sync payload) ─────────────
 
     sanitizeBlockerConfig(config) {
-        if (!config || !Array.isArray(config.sites)) return null;
-        return {
-            lock: config.lock || { enabled: false, verseIndex: 0, writeUnlockEnabled: false },
-            sites: config.sites.map(s => ({
-                id: s.id,
-                url: s.url,
-                mode: s.mode,
-                accessLimit: s.accessLimit,
-                scheduleLimit: s.scheduleLimit,
-                writeUnlockEnabled: !!s.writeUnlockEnabled
-            }))
-        };
+        if (!config || typeof config !== 'object') return null;
+        const lock = config.lock || { enabled: false, verseIndex: 0, writeUnlockEnabled: false };
+
+        if (Array.isArray(config.profiles)) {
+            return {
+                lock,
+                profiles: BlockerCore.normalizeProfiles(config.profiles).map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    icon: p.icon,
+                    enabled: p.enabled !== false,
+                    sites: p.sites,
+                    rules: p.rules
+                }))
+            };
+        }
+
+        if (Array.isArray(config.sites)) {
+            return {
+                lock,
+                sites: config.sites.map(s => ({
+                    id: s.id,
+                    url: s.url,
+                    mode: s.mode,
+                    accessLimit: s.accessLimit,
+                    scheduleLimit: s.scheduleLimit,
+                    writeUnlockEnabled: !!s.writeUnlockEnabled
+                }))
+            };
+        }
+
+        return null;
     },
 
     // Only the routine templates travel; today's tasks and completions stay local.
@@ -68,13 +88,30 @@ const SyncSystem = {
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         })();
 
+        if (remote && Array.isArray(remote.profiles)) {
+            const localProfiles = (local && Array.isArray(local.profiles)) ? local.profiles : [];
+            return {
+                enabled: local ? !!local.enabled : false,
+                reenableAt: (local && local.reenableAt) || null,
+                lock: remote.lock || { enabled: false, verseIndex: 0, writeUnlockEnabled: false },
+                profiles: BlockerCore.normalizeProfiles(remote.profiles).map(p => {
+                    const localProfile = localProfiles.find(lp => lp && lp.id === p.id);
+                    const merged = Object.assign({}, p);
+                    if (localProfile && localProfile.tempAccess) {
+                        merged.tempAccess = localProfile.tempAccess;
+                    }
+                    return merged;
+                })
+            };
+        }
+
         const localSites = (local && local.sites) || [];
         return {
             // Device-local decisions stay local
             enabled: local ? !!local.enabled : false,
             reenableAt: (local && local.reenableAt) || null,
             lock: remote.lock,
-            sites: remote.sites.map(site => {
+            sites: (remote.sites || []).map(site => {
                 const localSite = localSites.find(s => s.url === site.url);
                 return {
                     ...site,

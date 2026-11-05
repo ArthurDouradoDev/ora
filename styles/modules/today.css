@@ -380,3 +380,40 @@ html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"],
     .prep-esc { display: none; }
     .today-foot { padding-inline: 1rem; justify-content: center; }
 }
+
+/* Compact arrival and shortcuts; retain the single primary emphasis. */
+.next { padding: .875rem 1.25rem; gap: .375rem; }
+.next .btn-lg { min-height: 2.75rem; padding: .5rem 1.25rem; font-size: .9375rem; }
+.next .row { margin-top: .25rem; gap: .5rem; }
+.sc { min-height: 2.25rem; padding: .3rem .625rem .3rem .375rem; gap: .375rem; font-size: .75rem; }
+.sc .fav { width: 1.25rem; height: 1.25rem; background: transparent; }
+.sc .fav img { width: 1rem; height: 1rem; }
+.shortcuts .row { gap: .375rem; }
+.task-edit { padding-left: .75rem; min-width: 0; }
+.task-edit .ed-estimate { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .375rem; padding: 0; border: 0; border-radius: 0; background: none; }
+.task-edit .ed-estimate button { min-width: 0; min-height: 2.5rem; padding: .375rem .25rem; border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
+.task-edit .ed-estimate button[aria-pressed="true"] { border-color: var(--gold); background: var(--gold-soft); }
+.task-custom-estimate { display: flex; align-items: center; gap: .75rem; margin-top: .375rem; font-size: .8125rem; color: var(--text-2); }
+.task-custom-estimate .input { width: 8rem; min-width: 0; margin-left: auto; }
+.task-edit > .row:last-of-type { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .25rem; }
+.task-edit > .row:last-of-type .spacer { display: none; }
+.task-edit > .row:last-of-type .meta { grid-column: 1 / -1; }
+.task-edit > .row:last-of-type .btn { padding-inline: .375rem; white-space: normal; }
+@media (max-height: 51rem) {
+    .today-center { gap: .875rem; }
+    .next { padding-block: .75rem; }
+    .arrival .clock { font-size: clamp(3rem, 11vh, 6rem); }
+}
+@media (max-width: 30rem) {
+    .tasks-head, .tasks-add { padding-inline: 1rem; }
+    .tasks-add .btn { flex: 1; }
+    .task-row { gap: .5rem; }
+    .task-row > .btn { padding-inline: .625rem; }
+    .next-title { font-size: 1.25rem; }
+}
+@media (pointer: coarse) { .sc { min-height: 2.75rem; } }
+
+@media (max-width: 68rem) {
+    .view-hoje[data-tasks-open] { z-index: 20; }
+    .tasks-panel { background: var(--surface-1); }
+}

@@ -489,7 +489,8 @@
         assert('registros de exame ganham id estável', after1.ora_exam_logs.every(l => /^exam-\d+$/.test(l.id)));
         assertEq('progresso do terço vira objeto', after1.ora_rosary_progress, { bead: 27, mystery: 'gloriosos', chapletType: 'terco', lang: 'pt' });
 
-        assertEq('chaves do bloqueador ficam intactas', after1.blocker_config, snap115.blocker_config);
+        assertEq('bloqueador da 1.1.5 vira perfil "Meus sites"', after1.blocker_config.profiles.map(p => [p.id, p.name, p.sites]), [['meus-sites', 'Meus sites', ['instagram.com', 'youtube.com']]]);
+        assert('bloqueador preserva enabled e trava de versículo', after1.blocker_config.enabled === true && after1.blocker_config.lock.enabled === true && after1.blocker_config.lock.verseIndex === 3);
         assert('nenhuma tarefa é inventada', !('ora_tasks' in after1));
         const unknownKeys = ['catholic_dash_date', 'catholic_dash_image', 'liturgy_gospel_cache', 'ora_exam_done_Sat Oct 31 2026',
             'ora_evening_done_Sat Oct 31 2026', 'ora_virtues_list', 'ora_virtues_log_Mon Nov 02 2026', 'ora_quote_index', 'ora_greeting_index'];
@@ -799,6 +800,180 @@
     assertEq('fonte en é USCCB',BibleCore.chapterURL(bibleBook,3,'en'),'https://bible.usccb.org/bible/john/3');
     assert('fonte es é Latinoamericana',BibleCore.chapterURL(bibleBook,3,'es').includes('es/biblia-latinoamericana/evangelio-segun-san-juan/3/'));
     assertEq('limites próprios da edição',BibleCore.chapterURL({...bibleBook,chaptersByLocale:{en:2}},3,'en'),null);
+
+    // ========================================================
+    group('BlockerCore — perfis');
+    // ========================================================
+
+    const socialProfile = BlockerCore.normalizeProfile({
+        id: 'social',
+        name: 'Redes sociais',
+        enabled: true,
+        sites: ['instagram.com', 'x.com', 'reddit.com', 'tiktok.com'],
+        rules: {
+            duringFocus: true,
+            schedule: { enabled: true, from: '22:00', to: '07:00', days: [1, 2, 3, 4, 5] },
+            dailyLimitMin: 30,
+            temporaryAccess: { enabled: true, minutes: 5, perDay: 3 }
+        }
+    });
+    const videoProfile = BlockerCore.normalizeProfile({
+        id: 'video',
+        name: 'Vídeos',
+        enabled: true,
+        sites: ['youtube.com', 'twitch.tv'],
+        rules: {
+            duringFocus: true,
+            schedule: { enabled: false, from: '22:00', to: '07:00', days: [0, 1, 2, 3, 4, 5, 6] },
+            dailyLimitMin: 45,
+            temporaryAccess: { enabled: false, minutes: 5, perDay: 3 }
+        }
+    });
+    const disabledProfile = BlockerCore.normalizeProfile({
+        id: 'news',
+        name: 'Notícias',
+        enabled: false,
+        sites: ['g1.globo.com', 'folha.uol.com.br'],
+        rules: { duringFocus: true }
+    });
+
+    // Construção de regras DNR a partir de múltiplos perfis; perfil desmarcado não gera regra (M10)
+    const rulesAllActive = BlockerCore.buildRulesFromProfiles([socialProfile, videoProfile, disabledProfile], 'chrome-extension://id/blocked.html');
+    const redirectedDomains = rulesAllActive
+        .filter(r => r.action && r.action.type === 'redirect')
+        .flatMap(r => r.condition.requestDomains);
+    assert('buildRulesFromProfiles inclui sites dos perfis marcados',
+        redirectedDomains.includes('instagram.com') && redirectedDomains.includes('youtube.com'));
+    assert('perfil desmarcado não gera regra DNR (M10)',
+        !redirectedDomains.includes('g1.globo.com') && !redirectedDomains.includes('folha.uol.com.br'));
+
+    // Construção contextual (quarta 14h20 sem foco: nada bloqueado; com foco: bloqueia)
+    const wedAfternoon = new Date(2026, 10, 4, 14, 20); // Quarta-feira 14:20
+    const rulesIdleAfternoon = BlockerCore.buildRulesFromProfiles([socialProfile, videoProfile, disabledProfile], {
+        blockedPageUrl: 'chrome-extension://id/blocked.html',
+        now: wedAfternoon,
+        focusActive: false
+    });
+    assertEq('fora do foco e fora do horário: zero regras de redirecionamento',
+        rulesIdleAfternoon.filter(r => r.action && r.action.type === 'redirect').length, 0);
+
+    const rulesFocusAfternoon = BlockerCore.buildRulesFromProfiles([socialProfile, videoProfile, disabledProfile], {
+        blockedPageUrl: 'chrome-extension://id/blocked.html',
+        now: wedAfternoon,
+        focusActive: true
+    });
+    const focusRedirectDomains = rulesFocusAfternoon
+        .filter(r => r.action && r.action.type === 'redirect')
+        .flatMap(r => r.condition.requestDomains);
+    assert('em foco: bloqueia perfis marcados com duringFocus e ignora perfil desmarcado',
+        focusRedirectDomains.includes('instagram.com') &&
+        focusRedirectDomains.includes('youtube.com') &&
+        !focusRedirectDomains.includes('g1.globo.com'));
+
+    // Consequência respeita os dias da semana do horário (M06: sexta à noite com regra seg–sex diz segunda, nunca amanhã)
+    const friNight = new Date(2026, 10, 6, 20, 0); // Sexta-feira 20:00
+    const satMorning = new Date(2026, 10, 7, 10, 30); // Sábado 10:30
+    const friWeekdayProfile = BlockerCore.normalizeProfile({
+        id: 'work',
+        name: 'Redes sociais',
+        enabled: true,
+        sites: ['instagram.com'],
+        rules: {
+            duringFocus: false,
+            schedule: { enabled: true, from: '09:00', to: '18:00', days: [1, 2, 3, 4, 5] },
+            dailyLimitMin: null,
+            temporaryAccess: { enabled: false }
+        }
+    });
+    assert('regra de horário só de segunda a sexta não bloqueia no sábado',
+        !BlockerCore.isScheduleBlocking(friWeekdayProfile.rules.schedule, satMorning) &&
+        !BlockerCore.evaluateProfile(friWeekdayProfile, {}, satMorning).blocked);
+    const friConseq = BlockerCore.describeConsequence(friWeekdayProfile, friNight);
+    assert('sexta à noite com regra seg–sex diz "segunda às 09:00" (M06)',
+        friConseq.includes('segunda às 09:00') && !friConseq.includes('amanhã'));
+
+    // Limite diário atingido bloqueia até 0h
+    const limitReachedEval = BlockerCore.evaluateProfile(videoProfile, { usageByProfile: { video: 45 } }, wedAfternoon);
+    assert('limite diário atingido bloqueia até 0h',
+        limitReachedEval.blocked && limitReachedEval.reason === 'limit' && limitReachedEval.untilTime === '0:00');
+
+    // Horário cruzando a meia-noite
+    const wedLate = new Date(2026, 10, 4, 23, 15); // Quarta 23:15
+    const thuEarly = new Date(2026, 10, 5, 6, 30); // Quinta 06:30
+    assert('horário cruzando meia-noite bloqueia às 23:15',
+        BlockerCore.isScheduleBlocking(socialProfile.rules.schedule, wedLate));
+    assert('horário cruzando meia-noite bloqueia às 06:30',
+        BlockerCore.isScheduleBlocking(socialProfile.rules.schedule, thuEarly));
+    assert('horário cruzando meia-noite libera às 12:00',
+        !BlockerCore.isScheduleBlocking(socialProfile.rules.schedule, wedAfternoon));
+
+    // nextChange retorna a próxima transição
+    const nextAtAfternoon = BlockerCore.nextChange([socialProfile, videoProfile], wedAfternoon);
+    assertEq('nextChange anuncia próximo bloqueio às 22h',
+        nextAtAfternoon, 'Redes sociais serão bloqueadas às 22h');
+    const nextAtNight = BlockerCore.nextChange([socialProfile], wedLate);
+    assertEq('nextChange dentro da janela anuncia liberação às 7h',
+        nextAtNight, 'Redes sociais serão liberadas às 7h');
+
+    // Contador de acessos temporários por dia (3º permitido, 4º negado)
+    let tempProf = BlockerCore.normalizeProfile(socialProfile);
+    assertEq('começa com 3 acessos restantes', BlockerCore.remainingTemporaryAccesses(tempProf, wedAfternoon), 3);
+    assert('1º acesso permitido', BlockerCore.canUseTemporaryAccess(tempProf, wedAfternoon));
+    let rTemp = BlockerCore.consumeTemporaryAccess(tempProf, wedAfternoon, 'responder mensagem');
+    assert('1º consumo aprovado', rTemp.allowed && rTemp.remaining === 2);
+    tempProf = rTemp.profile;
+    rTemp = BlockerCore.consumeTemporaryAccess(tempProf, wedAfternoon);
+    assert('2º consumo aprovado', rTemp.allowed && rTemp.remaining === 1);
+    tempProf = rTemp.profile;
+    assert('3º acesso ainda é permitido', BlockerCore.canUseTemporaryAccess(tempProf, wedAfternoon));
+    rTemp = BlockerCore.consumeTemporaryAccess(tempProf, wedAfternoon);
+    assert('3º consumo aprovado e zera restantes', rTemp.allowed && rTemp.remaining === 0);
+    tempProf = rTemp.profile;
+    assert('4º acesso no mesmo dia é negado', !BlockerCore.canUseTemporaryAccess(tempProf, wedAfternoon));
+    rTemp = BlockerCore.consumeTemporaryAccess(tempProf, wedAfternoon);
+    assert('4º consumo retorna allowed: false', !rTemp.allowed && rTemp.remaining === 0);
+    const nextDayMorning = new Date(2026, 10, 5, 9, 0);
+    assert('no dia seguinte o contador volta a permitir (3 restantes)',
+        BlockerCore.canUseTemporaryAccess(tempProf, nextDayMorning) &&
+        BlockerCore.remainingTemporaryAccesses(tempProf, nextDayMorning) === 3);
+
+    // ========================================================
+    group('MigrateCore — bloqueador');
+    // ========================================================
+
+    const legacyBlockerSnap = {
+        blocker_sites: ['reddit.com', 'https://www.tiktok.com/'],
+        blocker_config: {
+            enabled: true,
+            reenableAt: null,
+            lock: { enabled: true, verseIndex: 2 },
+            sites: [
+                { id: 1, url: 'instagram.com', mode: 'always', accessLimit: { enabled: false }, scheduleLimit: { enabled: false } },
+                {
+                    id: 2,
+                    url: 'youtube.com',
+                    mode: 'limited',
+                    accessLimit: { enabled: true, count: 3, period: 'day' },
+                    scheduleLimit: { enabled: true, fromHour: 22, fromMinute: 0, toHour: 7, toMinute: 0 },
+                    todayAccesses: 1,
+                    lastAccessDate: '2026-11-03'
+                }
+            ]
+        }
+    };
+    const migBlocker = MigrateCore.migrate(legacyBlockerSnap, { now: NOW2 });
+    const afterBlocker = MigrateCore.apply(legacyBlockerSnap, migBlocker);
+    assert('remove blocker_sites após migrar para perfis', !('blocker_sites' in afterBlocker) && migBlocker.removals.includes('blocker_sites'));
+    assertEq('cria o perfil único "Meus sites"', afterBlocker.blocker_config.profiles.length, 1);
+    const meusSites = afterBlocker.blocker_config.profiles[0];
+    assertEq('nome e id do perfil migrado', [meusSites.id, meusSites.name], ['meus-sites', 'Meus sites']);
+    assertEq('une sites de blocker_config e blocker_sites sem duplicatas',
+        meusSites.sites, ['instagram.com', 'youtube.com', 'reddit.com', 'tiktok.com']);
+    assertEq('converte janela de horário para HH:MM',
+        [meusSites.rules.schedule.enabled, meusSites.rules.schedule.from, meusSites.rules.schedule.to],
+        [true, '22:00', '07:00']);
+    assertEq('preserva acessos temporários usados no dia',
+        [meusSites.tempAccess.date, meusSites.tempAccess.count], ['2026-11-03', 1]);
 
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;

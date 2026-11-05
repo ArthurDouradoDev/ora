@@ -12,13 +12,10 @@
   "background": {
     "service_worker": "sw.js"
   },
-  "permissions": ["storage", "declarativeNetRequest", "alarms", "tabs", "webNavigation", "notifications", "idle"],
+  "permissions": ["favicon", "storage", "declarativeNetRequest", "alarms", "tabs", "webNavigation", "notifications", "idle"],
   "host_permissions": [
-    "<all_urls>",
-    "https://*.unsplash.com/*",
-    "https://*.google.com/*",
-    "https://*.youtube.com/*",
-    "https://*.spotify.com/*"
+    "https://*/*",
+    "http://*/*"
   ],
   "content_scripts": [{
     "matches": ["https://www.youtube-nocookie.com/*"],
@@ -28,7 +25,7 @@
   }],
   "web_accessible_resources": [{
     "resources": ["blocked.html"],
-    "matches": ["<all_urls>"]
+    "matches": ["https://*/*", "http://*/*"]
   }],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com; frame-src https://www.youtube.com https://open.spotify.com https://*.github.io; connect-src https://api.unsplash.com https://www.google.com https://noembed.com https://images.unsplash.com https://plus.unsplash.com https://cdn.jsdelivr.net https://*.gstatic.com https://img.youtube.com https://i.ytimg.com https://*.ytimg.com https://liturgia.up.railway.app https://cpbjr.github.io; img-src 'self' https: data:; default-src 'self'; upgrade-insecure-requests;"

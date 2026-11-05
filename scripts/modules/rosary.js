@@ -67,6 +67,9 @@ const RosarySystem = {
             return ok;
         };
         u.on('rosary-start','click', () => resumable ? u.confirm('restart_title','restart_body',begin) : begin());
+        const preparation = u.root.querySelector('.rosary-preparation');
+        window.LeaveGuard?.watchEditor('rosary', preparation,
+            () => LeaveGuard.snapshot(preparation), () => preparation.isConnected);
     },
     renderMysteries() {
         const locale = window._i18nLocale || 'pt', mysteries = this.data.rosary.mysteries[this.prep.mystery];

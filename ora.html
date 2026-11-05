@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="styles/layout/main.css">
     <link rel="stylesheet" href="styles/layout/grid.css">
     <link rel="stylesheet" href="styles/layout/shell.css">
-    <link rel="stylesheet" href="styles/modules/blocker.css">
+    <link rel="stylesheet" href="styles/modules/protecao.css">
     <link rel="stylesheet" href="styles/modules/music.css">
     <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/modules/onboarding.css">
@@ -348,6 +348,175 @@
             </div>
         </section>
     </main>
+    <!-- Proteção: resumo por perfil, editor integrado e prévia (Fase 4) -->
+    <main class="view view-protecao" id="view-protecao" data-view="protecao" hidden>
+        <div class="protecao-body">
+            <div class="protecao-main">
+                <div class="protecao-wrap">
+                    <div class="protecao-header-row">
+                        <h1 data-route-focus data-i18n="protection.title">Proteção</h1>
+                        <div class="row">
+                            <button type="button" class="btn btn-quiet btn-sm" id="protecao-lock-btn">
+                                <i class="ph ph-lock-key" aria-hidden="true"></i>
+                                <span id="protecao-lock-btn-text" data-i18n="protection.lock_btn">Trava de versículo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status: o que está protegido agora e até quando -->
+                    <div class="protecao-status" id="status">
+                        <span class="ic"><i class="ph ph-shield-check" id="statusIcon" aria-hidden="true"></i></span>
+                        <div class="tx">
+                            <b id="statusTitle"></b>
+                            <span class="meta" id="statusText"></span>
+                        </div>
+                        <div class="row" id="statusActions"></div>
+                    </div>
+
+                    <!-- Sem permissão -->
+                    <div class="banner err" id="protecao-perm-banner" role="alert" hidden>
+                        <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                        <div>
+                            <strong data-i18n="protection.perm_banner_title">A proteção está desligada porque falta uma permissão do navegador.</strong>
+                            <span data-i18n="protection.perm_banner_desc">Sem a permissão de bloqueio de solicitações, o Ora não consegue redirecionar os sites da sua lista. Nenhum site está sendo bloqueado agora.</span>
+                            <div class="actions">
+                                <button type="button" class="btn btn-aux btn-sm" id="grantBtn" data-i18n="protection.perm_open_settings">Abrir configurações da extensão</button>
+                                <button type="button" class="btn btn-quiet btn-sm" id="whyPermBtn" data-i18n="protection.perm_why">Por que essa permissão é necessária?</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Falha ao salvar na lista -->
+                    <div class="banner err" id="protecao-list-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                        <div>
+                            <strong data-i18n="protection.save_err_title">As regras não foram salvas.</strong>
+                            <span data-i18n="protection.save_err_desc">O navegador recusou a atualização do bloqueio. As regras anteriores continuam valendo.</span>
+                            <div class="actions">
+                                <button type="button" class="btn btn-aux btn-sm" id="listRetryBtn" data-i18n="protection.retry">Tentar de novo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Perfis -->
+                    <section class="stack" style="--gap:0.75rem" aria-labelledby="protecao-profiles-heading">
+                        <div class="row">
+                            <h2 id="protecao-profiles-heading" style="font-size:1.125rem;flex:1" data-i18n="protection.profiles_label">Seus perfis</h2>
+                            <span class="saved" id="listSaved" role="status"><i class="ph ph-check" aria-hidden="true"></i><span data-i18n="protection.saved">Salvo</span></span>
+                        </div>
+                        <div class="protecao-profiles" id="profiles"></div>
+                        <button type="button" class="btn btn-aux protecao-add-profile" id="addProfileBtn">
+                            <i class="ph ph-plus" aria-hidden="true"></i>
+                            <span data-i18n="protection.add_profile">Adicionar site ou perfil</span>
+                        </button>
+                    </section>
+
+                    <!-- Ver como aparece (sem a tela "No iPhone") -->
+                    <section class="stack" style="--gap:0.5rem" aria-labelledby="protecao-preview-heading">
+                        <h2 id="protecao-preview-heading" style="font-size:1.125rem" data-i18n="protection.preview_label">Ver como aparece:</h2>
+                        <div class="row wrap">
+                            <button type="button" class="btn btn-quiet btn-sm" data-preview-block="focus" data-i18n="protection.preview_focus">Durante o foco</button>
+                            <button type="button" class="btn btn-quiet btn-sm" data-preview-block="schedule" data-i18n="protection.preview_schedule">Fora do horário</button>
+                            <button type="button" class="btn btn-quiet btn-sm" data-preview-block="limit" data-i18n="protection.preview_limit">Limite atingido</button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Editor de perfil integrado -->
+            <aside class="protecao-editor" id="protecao-editor" aria-labelledby="editorTitle" inert>
+                <div class="protecao-editor-inner">
+                    <header>
+                        <h2 id="editorTitle"></h2>
+                        <button type="button" class="btn btn-quiet btn-sm" id="editorCloseBtn" aria-label="Fechar edição" data-i18n-aria-label="protection.editor_close">
+                            <i class="ph ph-x" aria-hidden="true"></i>
+                        </button>
+                    </header>
+                    <div class="scroll">
+                        <label class="field">
+                            <span data-i18n="protection.profile_name_label">Nome do perfil</span>
+                            <input class="input" id="editorProfileName" maxlength="40" autocomplete="off">
+                        </label>
+
+                        <div class="field">
+                            <span data-i18n="protection.sites_label">Sites deste perfil</span>
+                            <div class="protecao-site-chips" id="siteChips"></div>
+                            <form class="row" id="siteForm" novalidate>
+                                <label class="sr-only" for="siteInput" data-i18n="protection.add_site_label">Adicionar domínio</label>
+                                <input class="input" id="siteInput" autocomplete="off" placeholder="Adicionar site (ex.: linkedin.com)" data-i18n-placeholder="protection.add_site_placeholder">
+                                <button class="btn btn-aux btn-sm" type="submit" data-i18n="protection.add_site_btn">Adicionar</button>
+                            </form>
+                        </div>
+
+                        <div class="protecao-rule-block">
+                            <label class="toggle">
+                                <input type="checkbox" id="rFocus" checked>
+                                <span class="track"></span>
+                                <span data-i18n="protection.rule_focus_title">Durante sessões de foco</span>
+                            </label>
+                            <small class="meta" data-i18n="protection.rule_focus_desc">Bloqueia sempre que um foco estiver ativo em Hoje.</small>
+                        </div>
+
+                        <div class="protecao-rule-block">
+                            <label class="toggle">
+                                <input type="checkbox" id="rSched">
+                                <span class="track"></span>
+                                <span data-i18n="protection.rule_schedule_title">Em um horário</span>
+                            </label>
+                            <div class="protecao-time-row" id="schedFields">
+                                <label class="sr-only" for="tFrom" data-i18n="protection.schedule_from">Das</label>
+                                <input class="input tnum" type="time" id="tFrom" value="22:00">
+                                <span class="meta" data-i18n="protection.schedule_to">Até</span>
+                                <label class="sr-only" for="tTo" data-i18n="protection.schedule_to">Até</label>
+                                <input class="input tnum" type="time" id="tTo" value="07:00">
+                            </div>
+                            <div class="protecao-days" id="days" role="group" aria-label="Dias da semana" data-i18n-aria-label="protection.schedule_days_aria"></div>
+                        </div>
+
+                        <div class="protecao-rule-block">
+                            <label class="toggle">
+                                <input type="checkbox" id="rLimit">
+                                <span class="track"></span>
+                                <span data-i18n="protection.rule_limit_title">Limite diário</span>
+                            </label>
+                            <div class="protecao-time-row" id="limitFields" hidden>
+                                <input class="input tnum" type="number" id="limitMin" value="30" min="5" max="720" step="5" aria-label="Tempo máximo por dia" data-i18n-aria-label="protection.limit_max_label">
+                                <span class="meta" data-i18n="protection.limit_min_unit">min por dia</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <span id="tempSegLabel" data-i18n="protection.temp_access_label">Acesso temporário na tela de bloqueio</span>
+                            <div class="seg" id="tempSeg" role="group" aria-labelledby="tempSegLabel">
+                                <button type="button" data-t="none" aria-pressed="false" data-i18n="protection.temp_access_disallow">Não permitir</button>
+                                <button type="button" data-t="3x" aria-pressed="true" data-i18n="protection.temp_access_allow">5 min, até 3× por dia</button>
+                            </div>
+                        </div>
+
+                        <div class="protecao-consequence" id="consequence" aria-live="polite"></div>
+                    </div>
+                    <footer>
+                        <div class="banner err" id="editorErrorBanner" role="alert" hidden>
+                            <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                            <div>
+                                <strong data-i18n="protection.save_err_title">As regras não foram salvas.</strong>
+                                <span data-i18n="protection.save_err_desc">O navegador recusou a atualização do bloqueio. As regras anteriores continuam valendo.</span>
+                                <div class="actions">
+                                    <button type="button" class="btn btn-aux btn-sm" id="retryBtn" data-i18n="protection.retry">Tentar de novo</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row wrap">
+                            <button type="button" class="btn btn-primary" id="saveBtn" data-i18n="protection.save_rules">Salvar regras</button>
+                            <button type="button" class="btn btn-quiet" id="cancelEditBtn" data-i18n="protection.cancel">Cancelar</button>
+                            <button type="button" class="btn btn-danger btn-sm" id="deleteProfileBtn" data-i18n="protection.delete_profile">Excluir perfil</button>
+                            <span class="saved" id="saved" role="status"><i class="ph ph-check" aria-hidden="true"></i><span data-i18n="protection.saved">Salvo</span></span>
+                        </div>
+                    </footer>
+                </div>
+            </aside>
+        </div>
+    </main>
 
     <!-- Gatilhos dos módulos da V0 (terço, orações, exame, tempo de tela, música):
          os destinos novos os acionam até cada tela ser refeita (fases 3, 5 e 6) -->
@@ -366,153 +535,137 @@
         </section>
     </div>
 
-    <!-- Site Blocker Modal -->
-    <div id="blocker-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <!-- Lock Overlay (shown when lock is active) -->
-        <div id="blocker-lock-overlay" class="blocker-lock-overlay" style="display: none;">
-            <div class="lock-overlay-content">
-                <i class="ph ph-lock"></i>
-                <p class="lock-overlay-title" data-i18n="blocker.lock_overlay_title">Bloqueador Travado</p>
-                <p class="lock-overlay-subtitle" data-i18n="blocker.lock_overlay_subtitle">Digite o versículo abaixo para desbloquear:</p>
-                <div class="lock-verse-ref" id="lock-verse-ref"></div>
-                <div class="lock-verse-display" id="lock-verse-display"></div>
-                <input type="text" id="lock-verse-input" class="lock-verse-input" placeholder="Comece a digitar..." autocomplete="off" spellcheck="false" data-i18n-placeholder="blocker.lock_input_placeholder">
-                <div class="lock-progress-bar">
-                    <div class="lock-progress-fill" id="lock-progress-fill"></div>
-                </div>
-                <button id="lock-cancel-btn" class="icon-btn-sm lock-cancel-btn" data-i18n="blocker.lock_cancel">Cancelar</button>
+    <!-- Diálogos da Proteção (Fase 4) -->
+    <!-- Pausa contemplativa antes de pausar a proteção -->
+    <div class="scrim" id="protection-pause-dialog" hidden>
+        <section class="dialog surface-solid" role="dialog" aria-modal="true" aria-labelledby="protection-pause-title" style="width:min(28rem,100%)">
+            <h2 id="protection-pause-title" data-i18n="blocker.friction_title">Um momento de pausa</h2>
+            <p class="meta" data-i18n="blocker.friction_subtitle">Respire fundo. Por que você quer desativar o bloqueio agora?</p>
+            <div class="protecao-verse-box">
+                <p id="friction-verse-text" style="margin:0 0 0.35rem"></p>
+                <small class="meta" id="friction-verse-ref"></small>
             </div>
-        </div>
-
-        <!-- Friction Overlay (contemplative pause before a timed disable) -->
-        <div id="blocker-friction-overlay" class="blocker-lock-overlay" style="display: none;">
-            <div class="lock-overlay-content friction-content">
-                <i class="ph ph-hands-praying"></i>
-                <p class="lock-overlay-title" data-i18n="blocker.friction_title">Um momento de pausa</p>
-                <p class="lock-overlay-subtitle" data-i18n="blocker.friction_subtitle">Respire fundo. Por que você quer desativar o bloqueio agora?</p>
-                <div class="lock-preview-card friction-verse-card">
-                    <i class="ph ph-book-open-text"></i>
-                    <p class="lock-preview-verse" id="friction-verse-text"></p>
-                    <span class="lock-preview-ref" id="friction-verse-ref"></span>
-                </div>
-                <p class="friction-duration-label" data-i18n="blocker.friction_duration_label">Por quanto tempo você precisa desativar?</p>
-                <div class="friction-duration-options">
-                    <button class="friction-duration-btn" data-minutes="15">15 min</button>
-                    <button class="friction-duration-btn" data-minutes="30">30 min</button>
-                    <button class="friction-duration-btn" data-minutes="60" data-i18n="blocker.friction_1h">1 hora</button>
-                    <button class="friction-duration-btn" data-minutes="eod" data-i18n="blocker.friction_eod">Resto do dia</button>
-                </div>
-                <p class="friction-note" data-i18n="blocker.friction_note">O bloqueador será reativado automaticamente ao fim do período.</p>
-                <div class="friction-actions">
-                    <button id="friction-keep-btn" class="friction-keep-btn" data-i18n="blocker.friction_keep">Manter bloqueio</button>
-                    <button id="friction-confirm-btn" class="friction-confirm-btn" disabled></button>
+            <div class="field">
+                <span data-i18n="blocker.friction_duration_label">Por quanto tempo você precisa desativar?</span>
+                <div class="seg" id="friction-duration-seg" role="group" aria-label="Duração da pausa">
+                    <button type="button" data-minutes="15" aria-pressed="true">15 min</button>
+                    <button type="button" data-minutes="30" aria-pressed="false">30 min</button>
+                    <button type="button" data-minutes="60" aria-pressed="false" data-i18n="blocker.friction_1h">1 hora</button>
+                    <button type="button" data-minutes="eod" aria-pressed="false" data-i18n="blocker.friction_eod">Resto do dia</button>
                 </div>
             </div>
-        </div>
-
-        <div class="modal-header">
-            <h3 data-i18n="blocker.modal_title">Bloqueador de Sites</h3>
-            <div class="blocker-header-actions">
-                <div class="blocker-status">
-                    <span id="blocker-status-text" data-i18n="blocker.status_inactive">Inativo</span>
-                    <label class="switch">
-                        <input type="checkbox" id="blocker-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <button id="close-blocker-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            <p class="meta" data-i18n="blocker.friction_note">O bloqueador será reativado automaticamente ao fim do período.</p>
+            <div class="row">
+                <button type="button" class="btn btn-primary" id="friction-keep-btn" data-dialog-close data-i18n="blocker.friction_keep">Manter bloqueio</button>
+                <button type="button" class="btn btn-aux" id="friction-confirm-btn" disabled></button>
             </div>
-        </div>
+        </section>
+    </div>
 
-        <!-- Tab Bar -->
-        <div class="blocker-tabs">
-            <button class="blocker-tab-btn active" data-tab="sites" data-i18n-html="blocker.tab_sites"><i class="ph ph-globe"></i> Sites</button>
-            <button class="blocker-tab-btn" data-tab="limits" data-i18n-html="blocker.tab_limits"><i class="ph ph-hash"></i> Limites</button>
-            <button class="blocker-tab-btn" data-tab="time" data-i18n-html="blocker.tab_time"><i class="ph ph-clock-countdown"></i> Horário</button>
-            <button class="blocker-tab-btn" data-tab="lock" data-i18n-html="blocker.tab_lock"><i class="ph ph-lock"></i> Trava</button>
-        </div>
-
-        <!-- Tab Panels -->
-        <div class="blocker-tab-content">
-            <!-- Tab: Sites -->
-            <div id="tab-sites" class="blocker-tab-panel active">
-                <div class="add-site-section">
-                    <input type="text" id="blocked-site-input" placeholder="ex: facebook.com" data-i18n-placeholder="blocker.site_placeholder">
-                    <button id="add-blocked-site-btn" class="glass-panel-sm"><i class="ph ph-plus"></i></button>
+    <!-- Trava de versículo (configurar ou destravar) -->
+    <div class="scrim" id="protection-lock-dialog" hidden>
+        <section class="dialog surface-solid" role="dialog" aria-modal="true" aria-labelledby="protection-lock-title" style="width:min(28rem,100%)">
+            <h2 id="protection-lock-title" data-i18n="blocker.lock_title">Trava de Segurança</h2>
+            <div id="protection-lock-config-view" class="stack" style="--gap:0.75rem">
+                <p class="meta" data-i18n="blocker.lock_subtitle">Quando ativada, será necessário digitar um versículo bíblico para alterar as configurações do bloqueador.</p>
+                <label class="toggle">
+                    <input type="checkbox" id="lock-toggle">
+                    <span class="track"></span>
+                    <span data-i18n="blocker.lock_title">Trava de Segurança</span>
+                </label>
+                <div class="protecao-verse-box" id="lock-preview" hidden>
+                    <p id="lock-preview-verse" style="margin:0 0 0.35rem"></p>
+                    <small class="meta" id="lock-preview-ref"></small>
                 </div>
-                <div id="blocked-sites-list" class="blocked-sites-list">
-                    <!-- Items injected by JS -->
-                </div>
-                <div class="blocker-empty-state" id="blocker-empty-sites" style="display: none;">
-                    <i class="ph ph-shield-slash"></i>
-                    <p data-i18n="blocker.empty_sites">Nenhum site bloqueado ainda.</p>
+                <div class="row">
+                    <button type="button" class="btn btn-primary" data-dialog-close data-i18n="today.close">Fechar</button>
                 </div>
             </div>
-
-            <!-- Tab: Limites de Acesso -->
-            <div id="tab-limits" class="blocker-tab-panel">
-                <p class="tab-description" data-i18n="blocker.limits_description">Defina quantas vezes cada site pode ser acessado por dia ou por hora.</p>
-                <div id="limits-sites-list" class="blocker-config-list">
-                    <!-- Items injected by JS -->
+            <div id="protection-lock-challenge-view" class="stack" style="--gap:0.75rem" hidden>
+                <p class="meta" data-i18n="blocker.lock_overlay_subtitle">Digite o versículo abaixo para desbloquear:</p>
+                <div class="protecao-verse-box">
+                    <strong id="lock-verse-ref" style="display:block;font-family:var(--f-ui);font-size:0.8125rem;margin-bottom:0.25rem"></strong>
+                    <div id="lock-verse-display"></div>
                 </div>
-                <div class="blocker-empty-state" id="blocker-empty-limits" style="display: none;">
-                    <i class="ph ph-list-dashes"></i>
-                    <p data-i18n="blocker.empty_limits">Adicione sites na aba "Sites" primeiro.</p>
-                </div>
-            </div>
-
-            <!-- Tab: Horário de Bloqueio -->
-            <div id="tab-time" class="blocker-tab-panel">
-                <p class="tab-description" data-i18n="blocker.time_description">Defina um horário em que o site ficará completamente bloqueado (ex.: das 22:00 às 08:00).</p>
-                <div id="time-sites-list" class="blocker-config-list">
-                    <!-- Items injected by JS -->
-                </div>
-                <div class="blocker-empty-state" id="blocker-empty-time" style="display: none;">
-                    <i class="ph ph-hourglass"></i>
-                    <p data-i18n="blocker.empty_time">Adicione sites na aba "Sites" primeiro.</p>
+                <input type="text" class="input" id="lock-verse-input" autocomplete="off" spellcheck="false" placeholder="Comece a digitar..." data-i18n-placeholder="blocker.lock_input_placeholder">
+                <div class="protecao-meter"><span id="lock-progress-fill" style="width:0%"></span></div>
+                <div class="row">
+                    <button type="button" class="btn btn-quiet" id="lock-cancel-btn" data-dialog-close data-i18n="blocker.lock_cancel">Cancelar</button>
                 </div>
             </div>
+        </section>
+    </div>
 
-            <!-- Tab: Trava -->
-            <div id="tab-lock" class="blocker-tab-panel">
-                <div class="lock-section">
-                    <div class="lock-header-row">
-                        <div class="lock-info">
-                            <i class="ph ph-lock-key"></i>
-                            <div>
-                                <p class="lock-title" data-i18n="blocker.lock_title">Trava de Segurança</p>
-                                <p class="lock-subtitle" data-i18n="blocker.lock_subtitle">Quando ativada, será necessário digitar um versículo bíblico para alterar as configurações do bloqueador.</p>
-                            </div>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="lock-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                    <div class="lock-preview" id="lock-preview" style="display: none;">
-                        <div class="lock-preview-card">
-                            <i class="ph ph-book-open-text"></i>
-                            <p class="lock-preview-verse" id="lock-preview-verse"></p>
-                            <span class="lock-preview-ref" id="lock-preview-ref"></span>
-                        </div>
-                        <p class="lock-preview-hint" data-i18n="blocker.lock_hint">Este versículo será solicitado na próxima vez que você abrir o bloqueador.</p>
-                    </div>
+    <!-- Adicionar perfil -->
+    <div class="scrim" id="protection-add-dialog" hidden>
+        <section class="dialog surface-solid" role="dialog" aria-modal="true" aria-labelledby="protection-add-title" style="width:min(27rem,100%)">
+            <h2 id="protection-add-title" data-i18n="protection.new_profile_title">Adicionar perfil de proteção</h2>
+            <p class="label" data-i18n="protection.new_profile_presets">Sugestões prontas</p>
+            <div class="protecao-preset-grid" id="protection-preset-list"></div>
+            <hr class="divider">
+            <form id="protection-custom-profile-form" class="stack" style="--gap:0.625rem" novalidate>
+                <label class="field">
+                    <span data-i18n="protection.new_profile_custom">Ou crie um perfil personalizado</span>
+                    <input class="input" id="custom-profile-name" maxlength="40" autocomplete="off" placeholder="Ex.: Jogos, Compras..." data-i18n-placeholder="protection.profile_name_placeholder">
+                </label>
+                <div class="row">
+                    <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="protection.cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="protection.create_profile_btn">Criar perfil</button>
                 </div>
+            </form>
+        </section>
+    </div>
 
-                <div class="lock-section lock-section-separator">
-                    <div class="lock-header-row">
-                        <div class="lock-info">
-                            <i class="ph ph-key"></i>
-                            <div>
-                                <p class="lock-title">Acesso a sites bloqueados</p>
-                                <p class="lock-subtitle">Quando ativada, será possível acessar sites sempre bloqueados digitando o evangelho do dia.</p>
-                            </div>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="lock-write-unlock-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
+    <!-- Confirmar exclusão de perfil -->
+    <div class="scrim" id="protection-delete-dialog" hidden>
+        <section class="dialog surface-solid" role="alertdialog" aria-modal="true" aria-labelledby="protection-delete-title" aria-describedby="protection-delete-body">
+            <h2 id="protection-delete-title"></h2>
+            <p class="meta" id="protection-delete-body" data-i18n="protection.delete_confirm_body">Os sites deste perfil deixarão de ser bloqueados por ele.</p>
+            <div class="row">
+                <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="protection.cancel">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="protection-delete-confirm" data-i18n="protection.delete_profile">Excluir perfil</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Explicação da permissão -->
+    <div class="scrim" id="protection-why-perm-dialog" hidden>
+        <section class="dialog surface-solid" role="dialog" aria-modal="true" aria-labelledby="protection-why-perm-title">
+            <h2 id="protection-why-perm-title" data-i18n="protection.perm_why_title">Por que o Ora pede permissão nos sites?</h2>
+            <p class="meta" data-i18n="protection.perm_why_body">Para redirecionar um site bloqueado para a tela de pausa do Ora, o navegador exige permissão de regras de rede nos endereços HTTP e HTTPS. O Ora não lê mensagens, senhas nem conteúdo das páginas: apenas verifica o domínio na sua lista local.</p>
+            <div class="row">
+                <button type="button" class="btn btn-primary" data-dialog-close data-i18n="today.close">Fechar</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Prévia de interceptação ("Ver como aparece") -->
+    <div class="protecao-preview-scrim" id="protection-preview-scrim" hidden>
+        <div class="protecao-block-card surface-solid" role="dialog" aria-modal="true" aria-labelledby="preview-blk-title">
+            <span class="protecao-site-badge"><span class="fav" id="preview-blk-fav">I</span><span id="preview-blk-site">instagram.com</span></span>
+            <div class="stack" style="--gap:0.375rem">
+                <p class="label" id="preview-blk-kicker"></p>
+                <h2 id="preview-blk-title"></h2>
+                <p class="why" id="preview-blk-why"></p>
+            </div>
+            <p class="until" id="preview-blk-until"></p>
+
+            <div class="stack" style="--gap:0.5rem" id="preview-blk-actions">
+                <button type="button" class="btn btn-primary btn-lg btn-block" id="preview-blk-primary" data-dialog-close></button>
+                <button type="button" class="btn btn-quiet" id="preview-blk-temp" data-i18n="blocked.access_5min">Acessar por 5 minutos</button>
+                <button type="button" class="btn btn-quiet btn-sm" id="preview-blk-respiro"><i class="ph ph-wind" aria-hidden="true"></i><span data-i18n="blocked.do_respiro">Fazer um respiro</span></button>
+            </div>
+
+            <div class="temp-box" id="preview-blk-temp-box" hidden>
+                <b id="preview-temp-title"></b>
+                <p class="meta" id="preview-temp-note" style="margin:0"></p>
+                <label class="field">
+                    <span data-i18n="blocked.temp_reason_label">Para quê? (opcional — fica só neste computador)</span>
+                    <input class="input" id="preview-temp-reason" autocomplete="off" placeholder="Ex.: responder uma mensagem específica" data-i18n-placeholder="blocked.temp_reason_placeholder">
+                </label>
+                <div class="row wrap">
+                    <button type="button" class="btn btn-primary" id="preview-temp-back"></button>
+                    <button type="button" class="btn btn-aux" id="preview-temp-open" data-dialog-close></button>
                 </div>
             </div>
         </div>
@@ -896,6 +1049,7 @@
     <script src="scripts/shared/bible-core.js" defer></script>
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>
+    <script src="scripts/ui/leave-guard.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
     <script src="scripts/ui/prayer-ui.js" defer></script>
     <script src="scripts/modules/prayers.js" defer></script>

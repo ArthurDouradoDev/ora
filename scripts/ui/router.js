@@ -31,6 +31,7 @@ const RouterSystem = {
     cacheDOM: function() {
         this.elements.views = Array.from(document.querySelectorAll('.view[data-view]'));
         this.elements.links = Array.from(document.querySelectorAll('[data-route]'));
+        this.elements.protectionChip = document.getElementById('protection-chip');
     },
 
     bindEvents: function() {
@@ -75,6 +76,13 @@ const RouterSystem = {
             if (linkView === route.view) link.setAttribute('aria-current', 'page');
             else link.removeAttribute('aria-current');
         });
+
+        if (this.elements.protectionChip) {
+            const isProtecao = route.view === 'protecao';
+            this.elements.protectionChip.classList.toggle('current', isProtecao);
+            if (isProtecao) this.elements.protectionChip.setAttribute('aria-current', 'page');
+            else this.elements.protectionChip.removeAttribute('aria-current');
+        }
 
         // Leva o foco ao título do destino para que leitores de tela anunciem a troca
         if (focus && active) {

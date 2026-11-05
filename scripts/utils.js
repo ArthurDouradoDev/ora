@@ -141,12 +141,17 @@ const AsyncStorage = {
     },
 
     set: async (key, value) => {
+        const save = window.LeaveGuard?.initialized ? LeaveGuard.beginSave(key, value) : null;
+        let saved = false;
         try {
             await chrome.storage.local.set({ [key]: value });
+            saved = true;
             return true;
         } catch (e) {
             console.error(`[AsyncStorage] Error setting '${key}':`, e);
             return false;
+        } finally {
+            window.LeaveGuard?.endSave(save, saved);
         }
     },
 
