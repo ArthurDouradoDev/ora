@@ -30,6 +30,9 @@ const FILES = [
     'scripts/shared/liturgy-core.js',
     'scripts/shared/saints-core.js',
     'scripts/shared/bible-core.js',
+    'scripts/shared/frutos-core.js',
+    'scripts/shared/rituals-core.js',
+    'scripts/shared/screentime-core.js',
     'scripts/modules/sync.js',
     'tests/tests.js'
 ];

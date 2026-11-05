@@ -464,6 +464,8 @@ O tema do Advento e a migração **não** entram no corte.
 
 ## Fase 5 — Frutos, rituais e tempo de tela
 
+**Implementada em 04/11/2026.** Evidências, decisões e instruções de verificação em `tests/FASE_5.md`.
+
 **Em resumo:** o destino **Frutos** passa a mostrar a semana ou o mês com base no que de fato aconteceu no Ora: minutos de foco, dias com terço ou oração, exames, contador de dias e o bloco de tempo de tela, sempre com uma pergunta para refletir e sem julgar. Entram também os rituais da manhã e da noite, como convites e nunca como interrupção.
 
 ### Escopo

@@ -12,10 +12,12 @@
     'use strict';
 
     // [início, fim) em horas locais
+    // A manhã vem antes: é o primeiro convite da primeira aba do dia (fase 5)
     const INVITES = [
+        { id: 'morning', setting: 'morning', windows: [[4, 12, 'manha']] },
         { id: 'angelus', setting: 'angelus', windows: [[6, 8, 'manha'], [12, 14, 'meio-dia'], [18, 21, 'tarde']] },
         { id: 'mercy', setting: 'mercy', windows: [[15, 16, '15h']] },
-        { id: 'closeDay', setting: 'evening', windows: [[21, 24, 'noite']] },
+        { id: 'closeDay', setting: 'evening', windows: [[21, 24, 'noite'], [0, 4, 'madrugada']] },
         { id: 'midday', setting: 'midday', windows: [[11, 14, 'meio-dia']] },
         // Oração para usar a internet: uma vez por sessão do navegador, a qualquer hora
         { id: 'carlo', setting: 'carlo', perBrowserSession: true }
@@ -46,6 +48,8 @@
      *   handled       — mapa de convites já atendidos/adiados
      *   carloPending  — a oração de abertura ainda não foi vista nesta sessão do navegador
      *   sessionActive — há foco ou pausa em andamento (nenhum convite)
+     *   skip          — ids que não devem aparecer agora (ex.: ritual já feito,
+     *                   RitualsCore.hiddenInvites)
      * Devolve { id, window, key } ou null.
      */
     function pickInvite(opts) {
@@ -54,8 +58,9 @@
         const date = toDate(o.now);
         const enabled = o.enabled || {};
         const handled = o.handled || {};
+        const skip = Array.isArray(o.skip) ? o.skip : [];
         for (const def of INVITES) {
-            if (enabled[def.setting] === false) continue;
+            if (enabled[def.setting] === false || skip.includes(def.id)) continue;
             if (def.perBrowserSession) {
                 if (o.carloPending) return { id: def.id, window: 'sessao', key: null };
                 continue;

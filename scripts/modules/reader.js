@@ -24,6 +24,8 @@ const ReaderSystem = {
         await this.present({ id: prayer.id, title: u.title(prayer), lang: this.lang,
             content: `<h1 tabindex="-1" data-route-focus>${u.e(u.title(prayer))}</h1>${text ? `<div class="prayer-prose" lang="${u.e(this.lang)}">${u.e(text)}</div>` : `<p>${u.text('translation_missing')}</p>`}`,
             languages: Object.keys(prayer.text).filter(lang => prayer.text[lang]?.trim()), favorite: true });
+        // Frutos: oração aberta no leitor (uma vez por oração e por dia)
+        if (text && this.prayer === prayer && window.PracticeLog) PracticeLog.record('prayer', { id: prayer.id });
     },
     async renderGospel(lectio) {
         this.prayer = null;
@@ -116,7 +118,7 @@ const ReaderSystem = {
         guide.innerHTML = `<div class="lectio-steps" aria-hidden="true">${names.map((_,n) => `<span class="${n <= step ? 'filled' : ''}"></span>`).join('')}</div><p class="label">${u.text('stage',{n:step + 1,total:4})}</p><h2>${names[step]}</h2><p class="reflect">${u.text('lectio_' + step)}</p>${[1,2].includes(step) ? `<label class="field"><span>${u.text('note')}</span><textarea class="textarea" id="lectio-note" maxlength="5000">${u.e(this.lectio.notes[step] || '')}</textarea></label>` : ''}<p id="lectio-status" role="status" class="meta"></p><div class="row">${u.button('lectio-prev','previous','btn-quiet',step === 0 ? 'disabled' : '')}${u.button('lectio-next',step === 3 ? 'finish' : 'next_stage','btn-primary')}</div>`;
         u.on('lectio-note','input', e => { this.lectio.notes[step] = e.target.value; return this.saveLectio(); });
         u.on('lectio-prev','click', async () => { if (await this.saveLectio(step - 1)) { this.renderGuide(); document.getElementById('lectio-guide').focus(); } });
-        u.on('lectio-next','click', async () => { if (await this.saveLectio(step === 3 ? 0 : step + 1)) { if (step === 3) RouterSystem.navigate('rezar'); else { this.renderGuide(); document.getElementById('lectio-guide').focus(); } } });
+        u.on('lectio-next','click', async () => { if (await this.saveLectio(step === 3 ? 0 : step + 1)) { if (step === 3) { if (window.PracticeLog) PracticeLog.record('lectio'); RouterSystem.navigate('rezar'); } else { this.renderGuide(); document.getElementById('lectio-guide').focus(); } } });
     },
     saveLectio(step = this.lectio.step) {
         const next = { ...this.lectio, step, notes: { ...this.lectio.notes } }, key = 'ora_lectio_' + this.lectioDate;

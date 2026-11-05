@@ -195,7 +195,7 @@ const TodaySystem = {
         // fora deles: o clique que os abre não pode subir até o documento
         el.inviteGo.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (window.ReminderSystem) ReminderSystem.act(this.invite);
+            if (window.ReminderSystem) ReminderSystem.act(this.invite, el.inviteGo);
         });
         el.inviteLater.addEventListener('click', async () => {
             if (!window.ReminderSystem) return;
@@ -619,7 +619,8 @@ const TodaySystem = {
 
     // --- Preparação ---
 
-    openPrep: function({ taskId, title, opener }) {
+    // minutes: duração já escolhida (ritual da manhã, M02)
+    openPrep: function({ taskId, title, opener, minutes }) {
         const v = this.resolve();
         if (v.session) {
             showToast(t('today.session_running'), 'info');
@@ -628,14 +629,14 @@ const TodaySystem = {
         const task = taskId && window.TaskSystem ? TaskSystem.taskById(taskId) : null;
         const durations = FocusSystem.durations();
         const draft = this.prepDraft;
-        if (draft && draft.taskId === (task ? task.id : null) && (!title || title === draft.title)) {
+        if (draft && !minutes && draft.taskId === (task ? task.id : null) && (!title || title === draft.title)) {
             // Volta ao rascunho (ex.: depois de "ver regras")
         } else {
             const estimate = task && task.estimateMin;
             this.prepDraft = {
                 taskId: task ? task.id : null,
                 title: task ? task.title : (title || ''),
-                minutes: durations.includes(estimate) ? estimate : FocusSystem.settings.focus,
+                minutes: durations.includes(minutes) ? minutes : (durations.includes(estimate) ? estimate : FocusSystem.settings.focus),
                 intention: '',
                 sound: this.soundPref,
                 protect: this.protectPref

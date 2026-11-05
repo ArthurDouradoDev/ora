@@ -43,7 +43,7 @@ async function loadAppData() {
             quotes: [{ text: { pt: "Fiat Voluntas Tua", en: "Thy Will Be Done", es: "Hágase Tu Voluntad" }, author: "" }],
             greetings: [{ pt: "Fiat Voluntas Tua", en: "Thy Will Be Done", es: "Hágase Tu Voluntad" }],
             rosary: { structure: [], mysteries: {}, extraPrayers: {} },
-            exam: { types: {}, defaultVirtues: [], pomodoroCheckin: {} }
+            exam: { types: {}, defaultVirtues: [] }
         };
     }
 }
@@ -183,9 +183,9 @@ async function initApp() {
         console.error('[Ora] RosarySystem not loaded!');
     }
 
-    // Screen Time Reflection (popup de reflexão sobre o uso digital)
-    if (window.ScreenTimeSystem) {
-        window.ScreenTimeSystem.init();
+    // Registro de práticas para Frutos (terço, leitor, exame, rituais)
+    if (window.PracticeLog) {
+        window.PracticeLog.init();
     }
     // Conta esta nova aba para o relatório de tempo de tela (SW é o escritor)
     try {
@@ -235,6 +235,10 @@ async function initApp() {
     if (window.LinksSystem) {
         await window.LinksSystem.init();
     }
+    // Rituais antes dos convites: eles dizem quais convites já não cabem hoje
+    if (window.RitualsSystem) {
+        await window.RitualsSystem.init();
+    }
     if (window.ReminderSystem) {
         await window.ReminderSystem.init({ prayers: data.prayers });
     }
@@ -245,6 +249,13 @@ async function initApp() {
     // ============================================================
     // Rezar renders the restored route after all its modules are ready.
     await RezarSystem.init(data);
+    // Frutos (com o bloco de tempo de tela) lê sessões, práticas e exames já migrados
+    if (window.ScreenTimeSystem) {
+        await window.ScreenTimeSystem.init();
+    }
+    if (window.FrutosSystem) {
+        await window.FrutosSystem.init();
+    }
 
     // 11. CROSS-DEVICE SYNC (after all modules, so merges land on
     //     fully-migrated data)
@@ -280,16 +291,6 @@ async function runMigration() {
 
 // Atalhos provisórios do shell enquanto as telas da V0 convivem com as novas
 function bindShellHelpers() {
-    // Botões de Rezar/Frutos que abrem os módulos antigos (terço, orações, exame, tempo de tela)
-    document.querySelectorAll('[data-legacy-open]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            // Sem propagar: os módulos antigos fecham seus painéis em qualquer clique fora do próprio botão
-            e.stopPropagation();
-            const legacy = document.getElementById(btn.dataset.legacyOpen);
-            if (legacy) legacy.click();
-        });
-    });
-
     // Botões antigos feitos de <div role="button">: Enter e Espaço acionam o clique
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;

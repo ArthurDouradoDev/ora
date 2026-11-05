@@ -631,10 +631,11 @@
 
     const R = (h, m) => new Date(2026, 10, 4, h, m || 0);
     assertEq('12h30: Angelus tem prioridade sobre o exame do meio-dia', RemindersCore.pickInvite({ now: R(12, 30) }).id, 'angelus');
-    assertEq('11h30: só o exame do meio-dia', RemindersCore.pickInvite({ now: R(11, 30) }).id, 'midday');
+    const morningDone = ['morning']; // ritual da manhã já feito (fase 5)
+    assertEq('11h30: só o exame do meio-dia', RemindersCore.pickInvite({ now: R(11, 30), skip: morningDone }).id, 'midday');
     assertEq('15h10: Terço da Misericórdia', RemindersCore.pickInvite({ now: R(15, 10) }).id, 'mercy');
     assertEq('21h10: Encerrar o dia', RemindersCore.pickInvite({ now: R(21, 10) }).id, 'closeDay');
-    assertEq('10h: nenhum convite', RemindersCore.pickInvite({ now: R(10) }), null);
+    assertEq('10h: nenhum convite', RemindersCore.pickInvite({ now: R(10), skip: morningDone }), null);
     assertEq('sessão ativa: nenhum convite', RemindersCore.pickInvite({ now: R(12, 30), sessionActive: true }), null);
 
     const angelusNoon = RemindersCore.pickInvite({ now: R(12, 30) });
@@ -645,7 +646,7 @@
     assertEq('"Agora não" adia só até o próximo horário (18h)', RemindersCore.pickInvite({ now: R(18, 5), handled }).id, 'angelus');
     assertEq('desligado nas configurações não aparece', RemindersCore.pickInvite({ now: R(15, 10), enabled: { mercy: false } }), null);
     assertEq('oração de abertura espera um convite com horário', RemindersCore.pickInvite({ now: R(12, 30), carloPending: true }).id, 'angelus');
-    assertEq('oração de abertura aparece fora dos horários', RemindersCore.pickInvite({ now: R(10), carloPending: true }).id, 'carlo');
+    assertEq('oração de abertura aparece fora dos horários', RemindersCore.pickInvite({ now: R(10), carloPending: true, skip: morningDone }).id, 'carlo');
     const oldHandled = RemindersCore.dismiss({ '2026-10-01:angelus:manha': true }, null, R(9));
     assertEq('registros antigos são descartados', Object.keys(oldHandled).length, 0);
     assertEq('marcar pelo id (exame feito por outro caminho)', RemindersCore.pickInvite({ now: R(21, 20), handled: RemindersCore.dismissById({}, 'closeDay', R(21, 15)) }), null);
@@ -974,6 +975,178 @@
         [true, '22:00', '07:00']);
     assertEq('preserva acessos temporários usados no dia',
         [meusSites.tempAccess.date, meusSites.tempAccess.count], ['2026-11-03', 1]);
+
+    { // fase 5: escopo próprio para os nomes locais
+    // ========================================================
+    group('FrutosCore — períodos');
+    // ========================================================
+
+    const FC = FrutosCore;
+    const WED = new Date(2026, 10, 4, 10, 0); // quarta, 04/11/2026
+    const week = FC.periodRange('semana', WED, 0);
+    assertEq('semana vai de segunda a domingo', [week.startIso, week.lastIso, week.days.length], ['2026-11-02', '2026-11-08', 7]);
+    assertEq('semana anterior', FC.periodRange('semana', WED, -1).startIso, '2026-10-26');
+    const october = FC.periodRange('mes', WED, -1);
+    assertEq('mês anterior é outubro inteiro', [october.startIso, october.lastIso, october.days.length], ['2026-10-01', '2026-10-31', 31]);
+    const march = FC.periodRange('mes', new Date(2026, 2, 15), 0);
+    assertEq('março (virada do horário de verão nos EUA/Europa) tem 31 dias distintos', [march.days.length, new Set(march.days).size], [31, 31]);
+    const dstWeek = FC.periodRange('semana', new Date(2026, 9, 28), 0);
+    assertEq('semana com fim do horário de verão (01/11) tem 7 dias distintos', [dstWeek.days.length, new Set(dstWeek.days).size, dstWeek.lastIso], [7, 7, '2026-11-01']);
+    const febLeap = FC.periodRange('mes', new Date(2028, 1, 10), 0);
+    assertEq('fevereiro de ano bissexto', febLeap.days.length, 29);
+
+    // ========================================================
+    group('FrutosCore — síntese e dias');
+    // ========================================================
+
+    const at10 = (d, h, m) => new Date(2026, 10, d, h || 10, m || 0).getTime();
+    const emptyWeek = FC.summarize(week, { sessions: [], practices: [], exams: [], screentime: {}, now: WED });
+    assert('semana sem registros → síntese vazia', emptyWeek.empty && FC.synthesisParts(emptyWeek).length === 0);
+    assert('dias passados sem registro ficam neutros ("none")', emptyWeek.days.slice(0, 3).every(d => d.none && !d.future));
+    assertEq('dias depois de hoje são futuros', emptyWeek.days.map(d => d.future), [false, false, false, true, true, true, true]);
+    assert('hoje é marcado', emptyWeek.days[2].today);
+
+    const sessionsWeek = [
+        { id: 's1', startedAt: at10(2, 9), endedAt: at10(2, 9, 25), plannedMin: 25, focusedMin: 25, status: 'completed' },
+        { id: 's2', startedAt: at10(3, 14), endedAt: at10(3, 14, 12), plannedMin: 25, focusedMin: 12, status: 'interrupted' },
+        { id: 's3', startedAt: at10(4, 8), endedAt: at10(4, 8, 50), plannedMin: 50, focusedMin: 50, status: 'completed' },
+        { id: 'old', startedAt: at10(1, 9), plannedMin: 25, focusedMin: 25, status: 'completed' } // domingo da semana anterior
+    ];
+    const withSessions = FC.summarize(week, { sessions: sessionsWeek, now: WED });
+    assertEq('sessão interrompida soma os minutos focados', [withSessions.totals.focusMin, withSessions.totals.sessions, withSessions.totals.interrupted], [87, 3, 1]);
+    assertEq('minutos por dia', withSessions.days.slice(0, 3).map(d => d.focusMin), [25, 12, 50]);
+    assertEq('síntese: sessões e minutos', FC.synthesisParts(withSessions), [{ kind: 'sessions', n: 3, minutes: 87 }]);
+
+    const imported = FC.summarize(week, { sessions: [{ id: 'imported-2026-11-02', imported: true, date: '2026-11-02', startedAt: null, focusedMin: 40, status: 'completed' }], now: WED });
+    assertEq('totais importados da 1.1.5 contam minutos, não sessões', [imported.totals.focusMin, imported.totals.sessions], [40, 0]);
+    assertEq('síntese sem sessões contadas usa só o tempo', FC.synthesisParts(imported), [{ kind: 'focus', minutes: 40 }]);
+
+    const rosaryTwice = FC.summarize(week, { practices: [{ type: 'rosary', at: at10(3, 7) }, { type: 'rosary', at: at10(3, 21) }], now: WED });
+    assertEq('terço em 2 momentos do mesmo dia conta 1 dia', [rosaryTwice.totals.rosaryDays, rosaryTwice.totals.prayerDays], [1, 1]);
+    const prayersMix = FC.summarize(week, { practices: [{ type: 'rosary', at: at10(2) }, { type: 'prayer', id: 'angelus', at: at10(3) }, { type: 'respiro', at: at10(4) }], now: WED });
+    assertEq('outras orações aparecem além do terço', FC.synthesisParts(prayersMix), [{ kind: 'rosary', n: 1 }, { kind: 'prayer', n: 3 }]);
+
+    const examLogs = [{ id: 'exam-1', type: 'night', date: new Date(at10(2, 22)).toISOString() }, { id: 'exam-old', type: 'night', date: '2026-10-20T22:00:00.000Z' }];
+    const examPractices = [{ type: 'exam', ref: 'exam-1', at: at10(2, 22) }, { type: 'night', at: at10(2, 22, 30) }, { type: 'night', at: at10(3, 22) }];
+    const exams = FC.summarize(week, { practices: examPractices, exams: examLogs, now: WED });
+    assertEq('exame no log e no registro conta uma vez; ritual da noite no mesmo dia não soma outro', exams.totals.exams, 2);
+    assertEq('ritual da noite sozinho conta como exame da noite', [exams.days[1].exam, exams.days[1].exams], [true, 1]);
+
+    const screenOnly = FC.summarize(week, { screentime: { '2026-11-02': { domains: { 'a.com': 600 } } }, now: WED });
+    assert('tempo de tela sozinho não transforma o dia em registro', screenOnly.empty && screenOnly.days[0].none && screenOnly.days[0].screenSec === 600);
+
+    const novMonth = FC.periodRange('mes', WED, 0);
+    const monthSummary = FC.summarize(novMonth, { sessions: sessionsWeek, now: WED });
+    assertEq('mês: nível do foco por dia, sem nota', [FC.monthLevel(monthSummary.days[1]), FC.monthLevel(monthSummary.days[2]), FC.monthLevel(monthSummary.days[3]), FC.monthLevel(emptyWeek.days[0]), FC.monthLevel(monthSummary.days[10])], ['f1', 'f1', 'f2', 'none', 'fut']);
+    assertEq('"Dias com Ora" vem do contador que nunca zera', FC.summarize(week, { sessions: sessionsWeek, tasks: [{ id: 't', completedAt: at10(5) }], now: WED }).daysWithOra, 5);
+
+    // ========================================================
+    group('FrutosCore — registro de práticas e reflexões');
+    // ========================================================
+
+    let log = FC.appendPractice([], { type: 'prayer', id: 'angelus', at: at10(4, 12) });
+    log = FC.appendPractice(log, { type: 'prayer', id: 'angelus', at: at10(4, 18) });
+    log = FC.appendPractice(log, { type: 'prayer', id: 'salve-rainha', at: at10(4, 18) });
+    assertEq('a mesma oração aberta duas vezes no dia vira um registro', log.length, 2);
+    log = FC.appendPractice(log, { type: 'rosary', at: at10(4, 19) });
+    log = FC.appendPractice(log, { type: 'rosary', at: at10(4, 20) });
+    assertEq('terços do mesmo dia ficam registrados (o dia conta uma vez)', log.filter(e => e.type === 'rosary').length, 2);
+    log = FC.appendPractice(log, { type: 'night', at: at10(4, 22) });
+    log = FC.appendPractice(log, { type: 'night', at: at10(4, 23) });
+    assertEq('ritual da noite: um por dia', log.filter(e => e.type === 'night').length, 1);
+    assertEq('tipo desconhecido é ignorado', FC.appendPractice(log, { type: 'xyz', at: at10(4) }).length, log.length);
+    assert('evento guarda só { type, at, id?, ref? }', Object.keys(log[0]).every(k => ['type', 'at', 'id', 'ref'].includes(k)));
+
+    const key = FC.reflectionKey(week);
+    assertEq('chave da reflexão pelo período', key, 'semana:2026-11-02');
+    let reflections = FC.upsertReflection([], { key, kind: 'semana', start: week.startIso, last: week.lastIso, question: 'Q1', text: '  Primeira  ', savedAt: 1 });
+    reflections = FC.upsertReflection(reflections, { key, kind: 'semana', start: week.startIso, last: week.lastIso, question: 'Q2', text: 'Revista', savedAt: 2 });
+    assertEq('guardar de novo substitui a reflexão do mesmo período', [reflections.length, reflections[0].text, reflections[0].question], [1, 'Revista', 'Q2']);
+    reflections = FC.upsertReflection(reflections, { key: 'semana:2026-10-26', kind: 'semana', start: '2026-10-26', last: '2026-11-01', question: 'Q', text: 'Anterior' });
+    reflections = FC.upsertReflection(reflections, { key: 'semana:2026-10-19', kind: 'semana', start: '2026-10-19', last: '2026-10-25', question: 'Q', text: 'Mais antiga' });
+    assertEq('semanas anteriores: mais recente primeiro, sem a atual', FC.pastReflections(reflections, key).map(r => r.text), ['Anterior', 'Mais antiga']);
+    assertEq('texto vazio apaga a reflexão do período', FC.upsertReflection(reflections, { key, text: '   ' }).length, 2);
+    assertEq('a pergunta é a mesma durante a semana', FC.questionIndex(week, 6), FC.questionIndex(FC.periodRange('semana', new Date(2026, 10, 8), 0), 6));
+    assert('"Outra pergunta" troca a pergunta', FC.questionIndex(week, 6, 1) !== FC.questionIndex(week, 6, 0));
+
+    // ========================================================
+    group('RitualsCore — convites e rascunhos');
+    // ========================================================
+
+    const RC = RitualsCore;
+    const N = (d, h, m) => new Date(2026, 10, d, h, m || 0);
+    assert('manhã: convite às 7h', RC.morningInvite({ now: N(4, 7) }));
+    assert('manhã: some com sessão ativa', !RC.morningInvite({ now: N(4, 7), sessionActive: true }));
+    assert('manhã: some depois de um foco hoje', !RC.morningInvite({ now: N(4, 9), focusedToday: true }));
+    assert('manhã: some depois das 12h', !RC.morningInvite({ now: N(4, 12) }));
+    let rituals = RC.markDone({}, 'manha', N(4, 7, 30), { priority: 'Relatório', minutes: 50 });
+    assert('manhã: não volta depois de feita', !RC.morningInvite({ now: N(4, 8), rituals }));
+    assert('noite: não aparece às 20h', !RC.nightInvite({ now: N(4, 20) }));
+    assert('noite: aparece depois das 21h', RC.nightInvite({ now: N(4, 21, 30) }));
+    rituals = RC.markDone(rituals, 'noite', N(4, 22), { gratitude: 'O café', reflection: '' });
+    assert('noite: não aparece se o ritual já foi feito', !RC.nightInvite({ now: N(4, 23), rituals }));
+    assert('noite: de madrugada ainda vale o dia anterior (já feito)', !RC.nightInvite({ now: N(5, 1), rituals }));
+    assert('noite: madrugada sem ritual feito ainda convida', RC.nightInvite({ now: N(6, 1), rituals }));
+    assertEq('ritualDay: 1h pertence ao dia anterior', RC.ritualDay(N(5, 1)), '2026-11-04');
+    assertEq('convites escondidos pelos rituais feitos', RC.hiddenInvites({ now: N(4, 22), rituals }), ['morning', 'closeDay']);
+    assertEq('com o ritual da manhã escondido, o convite das 7h passa para o Angelus',
+        RemindersCore.pickInvite({ now: N(4, 7), skip: RC.hiddenInvites({ now: N(4, 7), rituals }) }).id, 'angelus');
+    assertEq('sem ritual feito, o convite das 7h é o da manhã', RemindersCore.pickInvite({ now: N(4, 7) }).id, 'morning');
+    assertEq('ritual da noite feito esconde "Encerrar o dia"',
+        RemindersCore.pickInvite({ now: N(4, 22), skip: RC.hiddenInvites({ now: N(4, 22), rituals }) }), null);
+    assertEq('reflexões da noite ficam guardadas', RC.nightEntries(rituals).map(e => e.noite.gratitude), ['O café']);
+
+    let drafts = RC.withDraft({}, 'noite', N(4, 21, 40), { step: 1, answers: ['Pela família', 'Na conversa'] });
+    assertEq('rascunho restaurado ao reabrir no mesmo dia', RC.draftFor(drafts, 'noite', N(4, 23, 50)).answers, ['Pela família', 'Na conversa']);
+    assertEq('rascunho da noite continua de madrugada', RC.draftFor(drafts, 'noite', N(5, 0, 30)).step, 1);
+    assertEq('rascunho de outro dia não volta', RC.draftFor(drafts, 'noite', N(5, 21, 30)), null);
+    assertEq('rascunho removido depois de concluir', RC.draftFor(RC.withoutDraft(drafts, 'noite'), 'noite', N(4, 22)), null);
+
+    // ========================================================
+    group('RitualsCore — prioridade da manhã e proteção da noite');
+    // ========================================================
+
+    const morningTasks = [
+        { id: 'a', title: 'Ler e-mails', list: 'hoje', order: 0, createdAt: 1 },
+        { id: 'b', title: 'Relatório', list: 'hoje', order: 1, createdAt: 2 },
+        { id: 'c', title: 'Ligar', list: 'depois', order: 0, createdAt: 3 }
+    ];
+    const moved = RC.applyMorningPriority(morningTasks, { taskId: 'b', title: 'Relatório', minutes: 50 }, N(4, 7));
+    assertEq('a prioridade escolhida vira o próximo passo com a duração escolhida (M02)',
+        [TasksCore.nextStep(moved.tasks).id, TasksCore.nextStep(moved.tasks).estimateMin, moved.taskId], ['b', 50, 'b']);
+    const created = RC.applyMorningPriority(morningTasks, { title: 'Preparar aula', minutes: 25, id: 'task-new' }, N(4, 7));
+    assertEq('"Outra coisa" cria a tarefa no topo de Hoje', [TasksCore.nextStep(created.tasks).title, TasksCore.nextStep(created.tasks).estimateMin, created.taskId], ['Preparar aula', 25, 'task-new']);
+    assertEq('prioridade vazia não cria nada', RC.applyMorningPriority(morningTasks, { title: '  ' }, N(4, 7)).tasks.length, 3);
+
+    const nightProfiles = [
+        { id: 'redes', name: 'Redes sociais', enabled: true, sites: ['instagram.com'], rules: { schedule: { enabled: true, from: '22:00', to: '07:00', days: [0, 1, 2, 3, 4, 5, 6] } } },
+        { id: 'off', name: 'Desligado', enabled: false, sites: ['x.com'], rules: { schedule: { enabled: true, from: '22:00', to: '07:00', days: [0, 1, 2, 3, 4, 5, 6] } } },
+        { id: 'manha', name: 'Notícias', enabled: true, sites: ['g1.com'], rules: { schedule: { enabled: true, from: '09:00', to: '12:00', days: [0, 1, 2, 3, 4, 5, 6] } } }
+    ];
+    assertEq('21h30: redes começam às 22h e vão até 7h', RC.nightProtection(nightProfiles, N(4, 21, 30)), [{ name: 'Redes sociais', active: false, from: '22:00', to: '07:00' }]);
+    assertEq('23h: regra em vigor até 7h', RC.nightProtection(nightProfiles, N(4, 23)).map(p => [p.active, p.to]), [[true, '07:00']]);
+    assertEq('Proteção desligada: nada a anunciar', RC.nightProtection(nightProfiles, N(4, 23), { enabled: false }), []);
+
+    // ========================================================
+    group('ScreentimeCore — por domínio e período');
+    // ========================================================
+
+    const stStore = {
+        '2026-11-02': { domains: { 'youtube.com': 1800, 'docs.google.com': 600 }, newTabs: 5 },
+        '2026-11-03': { domains: { 'youtube.com': 600, 'wikipedia.org': 300 }, newTabs: 2 },
+        '2026-10-20': { domains: { 'old.com': 9999 }, newTabs: 1 }
+    };
+    const agg = ScreentimeCore.aggregate(stStore, week.days);
+    assertEq('soma por domínio só dentro do período', agg.domains.map(d => [d.domain, d.sec]), [['youtube.com', 2400], ['docs.google.com', 600], ['wikipedia.org', 300]]);
+    assertEq('total, dias com registro, média e novas abas', [agg.totalSec, agg.recordedDays, agg.avgSec, agg.newTabs], [3300, 2, 1650, 7]);
+    const allowedKeys = ['domain', 'sec', 'share'];
+    assert('sem classificar domínios em bom/ruim nem comparar com metas', agg.domains.every(d => Object.keys(d).every(k => allowedKeys.includes(k))) && !('delta' in agg) && !('status' in agg));
+    const top = ScreentimeCore.topDomains(agg.domains, 2);
+    assertEq('demais domínios somados em "outros"', [top.top.length, top.otherSec, top.otherCount], [2, 300, 1]);
+    assertEq('período sem dados', ScreentimeCore.aggregate({}, week.days).totalSec, 0);
+    assertEq('poda mantém os últimos 62 dias', Object.keys(ScreentimeCore.prune({ '2026-09-03': {}, '2026-09-04': {}, '2026-11-04': {} }, new Date(2026, 10, 4))), ['2026-09-04', '2026-11-04']);
+
+    }
 
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;

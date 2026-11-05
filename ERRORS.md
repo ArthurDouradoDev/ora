@@ -9,9 +9,9 @@ Legenda de origem: **[código]** verificado no código da extensão · **[protó
 | ID | Pri. | Onde | Problema | Correção esperada |
 |---|---|---|---|---|
 | E15 | P3 | `index.html` | Protótipo legado, fora do manifesto, aponta para `style.css` inexistente. | Arquivar ou remover após confirmação. |
-| E16 | P3 | Resumo de tempo de tela (não commitado) | Usa vermelho/verde para julgar e não abre pela pergunta (IDEAS.md §2). | Aplicar as correções antes de commitar. |
 | E18 | P2 | Modais da V0 restantes (configurações, música) | Continuam com `animateModal()`: sem foco contido nem fundo inerte (M09), e o vidro translúcido fica pouco legível sobre a tela Hoje nova. Fecham com qualquer clique fora, por isso os botões novos que os abrem precisam de `stopPropagation()`. | Leitor, terço e exame foram substituídos por subtelas na fase 3; bloqueador migrado para `#protecao` na fase 4. Restam as fases 6 (música) e 7 (configurações). |
-| E19 | P3 | `today.js` (provisórios da fase 2) | O convite "Encerrar o dia" ainda abre o exame da noite; o seletor de som da preparação lista só as playlists (YouTube/Spotify). Respiro e Evangelho por idioma foram implementados na fase 3. | Restam ritual da noite na fase 5 e Som na fase 6. |
+| E19 | P3 | `today.js` (provisórios da fase 2) | O seletor de som da preparação lista só as playlists (YouTube/Spotify). Respiro, Evangelho por idioma (fase 3) e ritual da noite (fase 5) já foram implementados. | Resta o Som na fase 6. |
+| E21 | P3 | Cabeçalho (`shell.css`) | Em 800×600 com texto a 200%, o botão de Configurações fica cortado na borda direita do `.topbar` (visto na validação da fase 5; não é de Frutos). | Revisar o cabeçalho estreito na fase 7 (Configurações). |
 | E20 | P3 | Validação da fase 2 | A fase 2 foi validada num simulador das APIs `chrome.*` (página servida por http com o `sw.js` rodando num iframe), não na extensão carregada sem pacote. Sincronização entre duas abas reais, alarmes reais do SW, regras DNR aplicadas de fato e a notificação do Angelus não foram exercitadas. | Repetir o roteiro "Fluxo completo com sessão curta" do `PLANO_V1_ORA.md` com a extensão carregada. |
 | E17 | P3 | Sync | Mudança de idioma vinda de outro dispositivo só se aplica por completo na próxima abertura; limite "por hora" do bloqueador precisa de teste manual. | Teste manual com dois perfis. |
 
@@ -22,7 +22,6 @@ Valem como critério de aceitação ao reimplementar na extensão/app; não pres
 | ID | Pri. | Problema |
 |---|---|---|
 | M01 | P1 | Abrir sessão mobile pausada retoma a contagem. Somente "Retomar" pode reiniciar. |
-| M02 | P1 | Ritual matinal perde atividade e duração ao ir para Hoje/foco. |
 | M05 | P1 | Texto a 200% corta ação mobile, tarefas e controles do leitor; Lectio perde espaço útil. |
 | M07 | P2 | Destinos mobile abrem composições desktop e perdem contexto/sessão. |
 | M08 | P2 | "Escolher som" troca a opção imediatamente em vez de abrir seletor. |
@@ -77,4 +76,6 @@ Não registrado como confirmado: "salto duplo" de Espaço no terço (não reprod
 | E14 | 04/11/2026 | `manifest.json` | `<all_urls>` substituído por `["https://*/*", "http://*/*"]` em `host_permissions` e `web_accessible_resources`, removendo esquemas não web (`file:///*`, `ftp://*/*`) e entradas redundantes. Fase 4. |
 | M06 | 04/11/2026 | `blocker-core.js`, `blocker.js` | `describeConsequence` e `consequenceDetails` respeitam `schedule.days`; regra de seg–sex avaliada na sexta à noite anuncia "segunda às 09:00" e nunca "amanhã". Fase 4. |
 | M10 | 04/11/2026 | `blocker-core.js`, `blocker.js` | Perfis com `enabled: false` nunca entram nas regras DNR (`buildRulesFromProfiles`) nem são anunciados como bloqueados. Fase 4. |
+| E16 | 04/11/2026 | `screentime.js`, `screentime-core.js` | Tempo de tela virou bloco de Frutos: abre pela pergunta, números atrás de "Ver o tempo de tela", barras neutras, sem `st-up`/`st-down` nem comparação com a média; `screentime.css` e o modal removidos. Fase 5. |
+| M02 | 04/11/2026 | `rituals.js`, `rituals-core.js`, `today.js` | A prioridade e a duração escolhidas no ritual da manhã viram o próximo passo de Hoje (topo da lista, com a estimativa) e chegam à preparação (`openPrep({ minutes })`); verificado na extensão real (`tests/phase5-browser.cjs`). Fase 5. |
 | M11 | 04/11/2026 | `blocker.js` | `Salvo` (`#saved.show`) só aparece após `updateDynamicRules` e `chrome.storage.local.set` concluírem sem erro; falhas exibem `.banner.err` com `Tentar novamente` e preservam as regras anteriores. Fase 4. |

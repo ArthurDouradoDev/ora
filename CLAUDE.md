@@ -75,6 +75,10 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 | `scripts/modules/tasks.js` | Tasks side panel "Tarefas (n)": Hoje (ordered) and Depois, weekday recurrence, completed of the day |
 | `scripts/modules/prayers.js` | Prayer library with full-text search |
 | `scripts/modules/settings.js` | User preferences UI |
+| `scripts/modules/frutos.js` | Frutos: week/month, synthesis (`FrutosCore.summarize`), "Sem registro" days, "Dias com Ora", reflection, usage details |
+| `scripts/modules/screentime.js` | Screen time block of Frutos: opens with the question, neutral per-domain list (`ScreentimeCore`) |
+| `scripts/modules/rituals.js` | Morning and night rituals (`#ritual` dialog), opened only from the Hoje invite; rules in `RitualsCore` |
+| `scripts/modules/practices.js` | `PracticeLog.record(type)` → `ora_practice_log` |
 | `scripts/utils.js` | Shared utilities: i18n, storage helpers, UI helpers |
 
 ### Storage
@@ -86,6 +90,7 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
   - `ora_sessions` — focus sessions, written **only by the SW** (`sessions-core.js`): paused time does not count, interrupted sessions keep the minutes focused, focus without a task is allowed.
   - `ora_day_intention` — intention of the day by date; a session's intention (and activity title) lives in the session.
   - Hoje: `ora_quick_links` (shortcuts), `ora_invites_handled` (invites done or postponed per time window), `ora_focus_protect` / `ora_focus_sound` (last choices in the preparation).
+  - Frutos (phase 5): `ora_practice_log` (events `{ type, at, id?, ref? }` written by `PracticeLog.record`: rosary, chaplet, prayer opened in the reader, lectio, respiro, exam, morning/night rituals), `ora_reflections` ("Para refletir" per week/month, kept indefinitely), `ora_rituals` (done rituals and night answers by day) and `ora_ritual_draft` (draft restored on reopening the same day). `ora_screentime` (SW only) keeps 62 days.
   - "Dias com Ora" (`counter-core.js`) is derived from sessions + completed tasks; it never resets.
   - `scripts/shared/migrate-core.js` converts 1.1.5 / 1.2.0 data; it runs (idempotently) in the SW and in `main.js` before modules start. The blocker keys stay as-is until phase 4.
   - Sync carries only routine templates (`sync_routine`) and settings.

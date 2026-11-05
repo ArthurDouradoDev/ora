@@ -131,6 +131,8 @@ const RosarySystem = {
         const last = this.state.bead === allowed[allowed.length - 1];
         const next = delta > 0 && last ? { ...this.state, completed:true } : RosaryCore.move(this.state,delta,this.structure);
         if (await this.persist(next)) {
+            // Frutos: terço (ou terço da misericórdia) rezado até o fim
+            if (next.completed && window.PracticeLog) PracticeLog.record(next.chapletType === 'misericordia' ? 'chaplet' : 'rosary');
             this.renderPrayer();
             document.getElementById(delta > 0 ? 'rosary-next' : 'rosary-previous')?.focus({ preventScroll:true });
         }

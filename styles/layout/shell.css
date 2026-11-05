@@ -95,30 +95,6 @@ html[data-view="rezar"] .topbar {
 }
 .view:focus { outline: none; }
 
-/* Rezar e Frutos (provisório): estado vazio honesto até as fases 3 e 5 */
-.view-placeholder {
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    overflow-y: auto;
-}
-.placeholder-card {
-    width: min(32rem, 100%);
-    border-radius: var(--r-xl);
-    padding: 1.75rem;
-    display: grid;
-    gap: 0.875rem;
-    text-align: center;
-    justify-items: center;
-}
-.placeholder-card h1 {
-    font-family: var(--f-read);
-    font-weight: 400;
-    font-size: 1.75rem;
-    line-height: 1.2;
-}
-.placeholder-card p { color: var(--text-2); max-width: 26rem; }
-.placeholder-card .row { justify-content: center; flex-wrap: wrap; margin-top: 0.25rem; }
 
 /* Keep Rezar usable with text enlargement and narrow windows. */
 @media (max-width: 30rem) {

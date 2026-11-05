@@ -222,6 +222,14 @@ const TaskSystem = {
         }
     },
 
+    // Ritual da manhã: a prioridade vai para o topo de Hoje com a duração escolhida
+    applyMorningPriority: async function(choice) {
+        const result = RitualsCore.applyMorningPriority(this.tasks, Object.assign({ id: 'task-' + Date.now() }, choice), Date.now());
+        if (!result.taskId) return null;
+        const ok = await this.commit(result.tasks, choice.title, () => this.applyMorningPriority(choice));
+        return ok ? { taskId: result.taskId } : null;
+    },
+
     setDone: async function(id, done) {
         const task = this.taskById(id);
         if (!task) return false;

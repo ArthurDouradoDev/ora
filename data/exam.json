@@ -51,18 +51,5 @@
     { "id": "temperanca", "name": { "pt": "Temperança", "en": "Temperance", "es": "Templanza" }, "icon": "ph-scales" },
     { "id": "foco", "name": { "pt": "Foco", "en": "Focus", "es": "Enfoque" }, "icon": "ph-crosshair" },
     { "id": "humildade", "name": { "pt": "Humildade", "en": "Humility", "es": "Humildad" }, "icon": "ph-hand-heart" }
-  ],
-  "pomodoroCheckin": {
-    "message": { "pt": "Pause para refletir: Como está seu coração agora?", "en": "Pause to reflect: How is your heart right now?", "es": "Haz una pausa para reflexionar: ¿Cómo está tu corazón ahora?" },
-    "options": [
-      { "id": "peace", "emoji": "😌", "label": { "pt": "Em paz", "en": "At peace", "es": "En paz" } },
-      { "id": "neutral", "emoji": "😐", "label": { "pt": "Neutro", "en": "Neutral", "es": "Neutro" } },
-      { "id": "heavy", "emoji": "😟", "label": { "pt": "Pesado", "en": "Heavy", "es": "Pesado" } }
-    ],
-    "microPrayers": [
-      { "id": "breath", "label": { "pt": "Respiração", "en": "Breathing", "es": "Respiración" }, "icon": "ph-wind", "text": { "pt": "Inspire... Senhor, tenha piedade.\nExpire... Cristo, tenha piedade.\nInspire... Senhor, tenha piedade.", "en": "Breathe in... Lord, have mercy.\nBreathe out... Christ, have mercy.\nBreathe in... Lord, have mercy.", "es": "Inspira... Señor, ten piedad.\nExpira... Cristo, ten piedad.\nInspira... Señor, ten piedad." } },
-      { "id": "pai-nosso", "label": { "pt": "Pai Nosso", "en": "Our Father", "es": "Padre Nuestro" }, "icon": "ph-hands-praying", "text": "prayer:pai-nosso" },
-      { "id": "silence", "label": { "pt": "Só silêncio", "en": "Just silence", "es": "Solo silencio" }, "icon": "ph-ear", "text": { "pt": "Fique em silêncio por um momento.\nDeixe Deus falar ao seu coração.\n\n\"Aquietai-vos e sabei que eu sou Deus.\" — Sl 46,10", "en": "Be silent for a moment.\nLet God speak to your heart.\n\n\"Be still, and know that I am God.\" — Ps 46:10", "es": "Quédate en silencio por un momento.\nDeja que Dios hable a tu corazón.\n\n\"Estad quietos, y conoced que yo soy Dios.\" — Sal 46,10" } }
-    ]
-  }
+  ]
 }

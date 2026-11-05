@@ -80,6 +80,11 @@ Decisões que continuam valendo:
 - Convite "Encerrar o dia" a partir das 21h (antes o exame noturno aparecia às 18h). Sugestão de terço após o pomodoro saiu das Configurações.
 - Configurações do foco (durações, som, avançar sozinho, tela acesa) foram para o modal de Configurações até a fase 7.
 
+## Frutos e rituais (implementados na fase 5, 04/11/2026)
+
+- Detalhes e verificação em `tests/FASE_5.md`. Decisões a confirmar com o usuário: semana de segunda a domingo; ritual da noite concluído conta como exame da noite (um por dia); "oração" em Frutos inclui terço, leitor, Lectio e Respiro; convite da manhã vem antes do Angelus; "Sair" do ritual guarda rascunho e mantém o convite; Encerramento usa só as duas frases das Completas do protótipo.
+- Reflexões (`ora_reflections`) e respostas da noite (`ora_rituals`) ficam guardadas indefinidamente, só no navegador; Exportar/Apagar reflexões ficam para a fase 7.
+
 ## Roteiro recomendado
 
 1. Estado e continuidade (sessão, ritual matinal, retomadas, persistência).

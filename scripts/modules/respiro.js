@@ -36,7 +36,7 @@ const RespiroSystem = {
             const form = document.querySelector('input[name="respiro-form"]:checked').value;
             if (await u.save('ora_respiro_form',form,document.getElementById('respiro-status'))) { this.state = { form,index:0,practicing:true }; this.render(); document.querySelector('[data-route-focus]').focus(); }
         });
-        u.on('respiro-next','click', () => { if (this.state.index === sequence.length - 1) this.exit(); else { this.state.index++; this.render(); document.getElementById('respiro-next').focus(); } });
+        u.on('respiro-next','click', () => { if (this.state.index === sequence.length - 1) { if (window.PracticeLog) PracticeLog.record('respiro'); this.exit(); } else { this.state.index++; this.render(); document.getElementById('respiro-next').focus(); } });
         u.on('respiro-choose','click', () => { this.state.practicing = false; this.state.index = 0; this.render(); });
     },
     exit() {

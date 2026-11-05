@@ -5,6 +5,7 @@ const SettingsSystem = {
         USER_NAME: 'ora_user_name',
         PRAYER_LANG: 'ora_prayer_lang',
         REMINDER_CARLO: 'ora_reminder_carlo',
+        REMINDER_MORNING: 'ora_reminder_morning',
         REMINDER_ANGELUS: 'ora_reminder_angelus',
         REMINDER_MERCY: 'ora_reminder_mercy',
         REMINDER_MIDDAY: 'ora_reminder_midday',
@@ -19,6 +20,7 @@ const SettingsSystem = {
         prayerLang: 'pt',
         reminders: {
             carlo: true,
+            morning: true,
             angelus: true,
             mercy: true,
             midday: true,
@@ -42,6 +44,7 @@ const SettingsSystem = {
         this.state.userName = await AsyncStorage.get(this.KEYS.USER_NAME, '');
         this.state.prayerLang = await AsyncStorage.get(this.KEYS.PRAYER_LANG, 'pt');
         this.state.reminders.carlo = await AsyncStorage.get(this.KEYS.REMINDER_CARLO, true);
+        this.state.reminders.morning = await AsyncStorage.get(this.KEYS.REMINDER_MORNING, true);
         this.state.reminders.angelus = await AsyncStorage.get(this.KEYS.REMINDER_ANGELUS, true);
         this.state.reminders.mercy = await AsyncStorage.get(this.KEYS.REMINDER_MERCY, true);
         this.state.reminders.midday = await AsyncStorage.get(this.KEYS.REMINDER_MIDDAY, true);
@@ -57,6 +60,7 @@ const SettingsSystem = {
         this.elements.userNameInput = document.getElementById('settings-user-name');
         this.elements.prayerLangBtns = document.querySelectorAll('#settings-modal [data-prayer-lang]');
         this.elements.toggleCarlo = document.getElementById('toggle-reminder-carlo');
+        this.elements.toggleMorning = document.getElementById('toggle-reminder-morning');
         this.elements.toggleAngelus = document.getElementById('toggle-reminder-angelus');
         this.elements.toggleMercy = document.getElementById('toggle-reminder-mercy');
         this.elements.toggleMidday = document.getElementById('toggle-reminder-midday');
@@ -144,6 +148,7 @@ const SettingsSystem = {
         // Reminder toggles
         const toggleMap = {
             toggleCarlo: { key: this.KEYS.REMINDER_CARLO, prop: 'carlo' },
+            toggleMorning: { key: this.KEYS.REMINDER_MORNING, prop: 'morning' },
             toggleAngelus: { key: this.KEYS.REMINDER_ANGELUS, prop: 'angelus' },
             toggleMercy: { key: this.KEYS.REMINDER_MERCY, prop: 'mercy' },
             toggleMidday: { key: this.KEYS.REMINDER_MIDDAY, prop: 'midday' },
@@ -173,6 +178,7 @@ const SettingsSystem = {
         });
 
         if (this.elements.toggleCarlo) this.elements.toggleCarlo.checked = this.state.reminders.carlo;
+        if (this.elements.toggleMorning) this.elements.toggleMorning.checked = this.state.reminders.morning;
         if (this.elements.toggleAngelus) this.elements.toggleAngelus.checked = this.state.reminders.angelus;
         if (this.elements.toggleMercy) this.elements.toggleMercy.checked = this.state.reminders.mercy;
         if (this.elements.toggleMidday) this.elements.toggleMidday.checked = this.state.reminders.midday;

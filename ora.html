@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="styles/modules/settings.css">
     <link rel="stylesheet" href="styles/modules/onboarding.css">
     <link rel="stylesheet" href="styles/modules/today.css">
-    <link rel="stylesheet" href="styles/modules/screentime.css">
+    <link rel="stylesheet" href="styles/modules/frutos.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
 </head>
@@ -337,16 +337,85 @@
     <!-- Rezar: entrada e subtelas renderizadas pelos módulos da fase 3 -->
     <main class="view view-rezar" id="view-rezar" data-view="rezar" hidden></main>
 
-    <!-- Frutos provisório: substituído na fase 5 -->
-    <main class="view view-placeholder" id="view-frutos" data-view="frutos" hidden>
-        <section class="placeholder-card surface-light">
-            <p class="label" data-i18n="nav.fruits">Frutos</p>
-            <h1 data-route-focus data-i18n="views.fruits_title">O que ficou do seu tempo</h1>
-            <p data-i18n="views.fruits_desc">Aqui vão aparecer seus registros de foco, oração e exame. Por enquanto, o resumo de tempo de tela continua disponível.</p>
-            <div class="row">
-                <button type="button" class="btn btn-aux" data-legacy-open="btn-screentime"><i class="ph ph-chart-bar" aria-hidden="true"></i><span data-i18n="views.open_screentime">Tempo de tela</span></button>
+    <!-- Frutos: o que de fato aconteceu no Ora, por semana ou mês (fase 5) -->
+    <main class="view view-frutos" id="view-frutos" data-view="frutos" hidden>
+        <div class="frutos-scroll" id="frutos-scroll">
+            <div class="frutos-wrap">
+                <div class="frutos-head">
+                    <h1 data-route-focus data-i18n="frutos.title">Frutos</h1>
+                    <div class="seg" id="frutos-period" role="group" aria-label="Período" data-i18n-aria-label="frutos.period_label">
+                        <button type="button" data-period="semana" aria-pressed="true" data-i18n="frutos.week">Semana</button>
+                        <button type="button" data-period="mes" aria-pressed="false" data-i18n="frutos.month">Mês</button>
+                    </div>
+                    <div class="frutos-range">
+                        <button type="button" class="btn-icon" id="frutos-prev" aria-label="Período anterior" data-i18n-aria-label="frutos.prev"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
+                        <span class="frutos-range-label" id="frutos-range-label" aria-live="polite"></span>
+                        <button type="button" class="btn-icon" id="frutos-next" aria-label="Próximo período" data-i18n-aria-label="frutos.next"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+
+                <div class="frutos-cols">
+                    <section class="frutos-panel" aria-labelledby="frutos-synth-label">
+                        <p class="label" id="frutos-synth-label" data-i18n="frutos.synth_label">Síntese</p>
+                        <p class="frutos-synth" id="frutos-synth"></p>
+                        <p class="meta frutos-empty-hint" id="frutos-empty-hint" data-i18n="frutos.empty_hint" hidden>Eles aparecem quando você usa foco, terço ou exame no Ora. A pergunta ao lado continua valendo.</p>
+                        <div class="frutos-chart" id="frutos-chart"></div>
+                        <ul class="frutos-legend" aria-label="Legenda" data-i18n-aria-label="frutos.legend_label">
+                            <li><i class="sw sw-focus" aria-hidden="true"></i><span data-i18n="frutos.legend_focus">Minutos de foco</span></li>
+                            <li><i class="sw sw-prayer" aria-hidden="true"></i><span data-i18n="frutos.legend_prayer">Terço ou oração</span></li>
+                            <li><i class="sw sw-exam" aria-hidden="true"></i><span data-i18n="frutos.legend_exam">Exame</span></li>
+                            <li><i class="sw sw-none" aria-hidden="true"></i><span data-i18n="frutos.legend_none">Sem registro</span></li>
+                        </ul>
+                        <p class="frutos-measured"><i class="ph ph-info" aria-hidden="true"></i><span data-i18n="frutos.measured">O Ora registra só o que acontece aqui: sessões de foco, orações abertas no app e exames. Um dia sem registro não diz nada sobre o seu dia.</span></p>
+                        <p class="frutos-counter" id="frutos-counter" hidden><span class="frutos-counter-n tnum" id="frutos-counter-n"></span><span><b data-i18n="frutos.counter_title">Dias com Ora</b> <span class="meta" data-i18n="frutos.counter_hint">Dias com uma sessão de foco ou uma tarefa concluída, desde o começo. O contador não zera.</span></span></p>
+                        <details class="frutos-usage" id="frutos-usage">
+                            <summary><i class="ph ph-caret-right" aria-hidden="true"></i><span data-i18n="frutos.usage">Detalhes de uso</span></summary>
+                            <div class="frutos-table-wrap"><table id="frutos-usage-table"></table></div>
+                        </details>
+                    </section>
+
+                    <section class="frutos-panel" aria-labelledby="frutos-reflect-label">
+                        <p class="label" id="frutos-reflect-label" data-i18n="frutos.reflect_label">Para refletir</p>
+                        <p class="reflect" id="frutos-question"></p>
+                        <label class="sr-only" for="frutos-reflection" data-i18n="frutos.reflect_field">Sua reflexão</label>
+                        <textarea class="textarea frutos-reflection" id="frutos-reflection" maxlength="5000" aria-describedby="frutos-question" placeholder="Escreva com calma. Só você vê isso." data-i18n-placeholder="frutos.reflect_placeholder"></textarea>
+                        <div class="row wrap">
+                            <button type="button" class="btn btn-aux" id="frutos-save" data-i18n="frutos.save">Guardar</button>
+                            <button type="button" class="btn btn-quiet" id="frutos-other" data-i18n="frutos.other_question">Outra pergunta</button>
+                            <span class="saved" id="frutos-saved" role="status"><i class="ph ph-check" aria-hidden="true"></i><span id="frutos-saved-text"></span></span>
+                        </div>
+                        <div class="banner err" id="frutos-save-error" role="alert" hidden>
+                            <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                            <div>
+                                <strong data-i18n="frutos.save_failed">A reflexão não foi guardada.</strong><span data-i18n="frutos.save_failed_detail">O navegador recusou a gravação. O texto continua aqui.</span>
+                                <div class="actions"><button type="button" class="btn btn-aux btn-sm" id="frutos-save-retry" data-i18n="today.retry">Tentar de novo</button></div>
+                            </div>
+                        </div>
+                        <p class="meta" data-i18n="frutos.reflect_retention">Suas reflexões ficam guardadas só neste navegador.</p>
+                        <div class="frutos-past" id="frutos-past" hidden>
+                            <p class="label" id="frutos-past-label"></p>
+                            <div class="frutos-past-list" id="frutos-past-list"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Tempo de tela: abre pela pergunta, sem cor de julgamento (E16) -->
+                <section class="frutos-panel frutos-screen" id="frutos-screen" aria-labelledby="frutos-screen-label" tabindex="-1">
+                    <div class="frutos-screen-intro">
+                        <p class="label" id="frutos-screen-label" data-i18n="frutos.st_label">Tempo de tela</p>
+                        <p class="reflect" id="frutos-screen-question"></p>
+                        <p class="meta" data-i18n="frutos.st_hint">Só o tempo em sites, com a janela em foco, medido neste navegador. Sem metas e sem comparação.</p>
+                    </div>
+                    <button type="button" class="btn btn-aux frutos-screen-toggle" id="frutos-screen-toggle" aria-expanded="false" aria-controls="frutos-screen-body"><i class="ph ph-caret-down" aria-hidden="true"></i><span id="frutos-screen-toggle-label"></span></button>
+                    <div class="frutos-screen-body" id="frutos-screen-body" hidden>
+                        <dl class="frutos-screen-stats" id="frutos-screen-stats"></dl>
+                        <ol class="frutos-domains" id="frutos-domains" aria-label="Tempo por site" data-i18n-aria-label="frutos.st_domains"></ol>
+                        <p class="meta" id="frutos-screen-empty" data-i18n="frutos.st_empty" hidden>Ainda não há tempo de tela registrado neste período.</p>
+                        <p class="meta" data-i18n="frutos.st_retention">O Ora guarda o tempo de tela dos últimos 60 dias, só neste navegador.</p>
+                    </div>
+                </section>
             </div>
-        </section>
+        </div>
     </main>
     <!-- Proteção: resumo por perfil, editor integrado e prévia (Fase 4) -->
     <main class="view view-protecao" id="view-protecao" data-view="protecao" hidden>
@@ -518,14 +587,13 @@
         </div>
     </main>
 
-    <!-- Gatilhos dos módulos da V0 (terço, orações, exame, tempo de tela, música):
-         os destinos novos os acionam até cada tela ser refeita (fases 3, 5 e 6) -->
+    <!-- Gatilhos dos módulos da V0 (terço, orações, exame, música):
+         os destinos novos os acionam até cada tela ser refeita (fase 6) -->
     <div class="legacy-triggers" hidden>
         <button type="button" id="btn-music" tabindex="-1"></button>
         <button type="button" id="btn-rosary" tabindex="-1"></button>
         <button type="button" id="btn-prayers" tabindex="-1"></button>
         <button type="button" id="btn-exam" tabindex="-1"></button>
-        <button type="button" id="btn-screentime" tabindex="-1"></button>
     </div>
 
     <div class="scrim" id="pray-confirm" hidden>
@@ -741,6 +809,14 @@
                 <span data-i18n="settings.reminder_midday">Exame Meridiano</span>
                 <label class="switch">
                     <input type="checkbox" id="toggle-reminder-midday" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-row settings-toggle-row">
+                <span data-i18n="settings.reminder_morning">Convite para começar o dia (manhã)</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-reminder-morning" checked>
                     <span class="slider round"></span>
                 </label>
             </div>
@@ -995,39 +1071,18 @@
         </div>
     </div>
 
-    <!-- Screen Time Reflection Modal -->
-    <div id="screentime-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 id="screentime-title">Um momento de reflexão</h3>
-            <button id="close-screentime-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-
-        <p id="screentime-subtitle" class="st-subtitle"></p>
-
-        <div class="st-stats">
-            <div class="st-stat">
-                <span id="screentime-total" class="st-stat-value">—</span>
-                <span class="st-stat-label" data-i18n="screentime.total_label">Tempo de tela hoje</span>
+    <!-- Rituais da manhã e da noite: tela própria, uma pergunta por etapa (fase 5) -->
+    <div class="ritual" id="ritual" data-dismiss-on-scrim="false" hidden>
+        <div class="ritual-panel" role="dialog" aria-modal="true" aria-labelledby="ritual-title">
+            <div class="ritual-top">
+                <button type="button" class="btn btn-quiet btn-sm" id="ritual-exit"><i class="ph ph-x" aria-hidden="true"></i><span id="ritual-exit-label"></span></button>
+                <div class="ritual-ttl">
+                    <b id="ritual-title"></b>
+                    <div class="ritual-steps" id="ritual-steps" aria-hidden="true"><span></span><span></span><span></span></div>
+                </div>
+                <span class="meta ritual-count" id="ritual-count"></span>
             </div>
-            <div class="st-stat">
-                <span id="screentime-newtabs" class="st-stat-value">0</span>
-                <span class="st-stat-label" data-i18n="screentime.newtabs_label">Novas abas abertas</span>
-            </div>
-        </div>
-
-        <p id="screentime-compare" class="st-compare"></p>
-
-        <div class="st-section">
-            <h4 class="st-section-title" data-i18n="screentime.bars_title">Tempo por site</h4>
-            <div id="screentime-bars" class="st-bars"></div>
-            <p id="screentime-empty" class="st-empty" style="display: none;" data-i18n="screentime.empty">
-                Ainda não há tempo registrado hoje.
-            </p>
-        </div>
-
-        <div class="st-section">
-            <h4 class="st-section-title" data-i18n="screentime.questions_title">Para refletir</h4>
-            <div id="screentime-questions" class="st-questions"></div>
+            <div class="ritual-body" id="ritual-body"><div class="ritual-card" id="ritual-card"></div></div>
         </div>
     </div>
 
@@ -1047,6 +1102,9 @@
     <script src="scripts/shared/liturgy-core.js" defer></script>
     <script src="scripts/shared/saints-core.js" defer></script>
     <script src="scripts/shared/bible-core.js" defer></script>
+    <script src="scripts/shared/frutos-core.js" defer></script>
+    <script src="scripts/shared/rituals-core.js" defer></script>
+    <script src="scripts/shared/screentime-core.js" defer></script>
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>
     <script src="scripts/ui/leave-guard.js" defer></script>
@@ -1069,7 +1127,10 @@
     <script src="scripts/modules/settings.js" defer></script>
     <script src="scripts/modules/onboarding.js" defer></script>
     <script src="scripts/modules/sync.js" defer></script>
+    <script src="scripts/modules/practices.js" defer></script>
     <script src="scripts/modules/screentime.js" defer></script>
+    <script src="scripts/modules/frutos.js" defer></script>
+    <script src="scripts/modules/rituals.js" defer></script>
     <script src="scripts/main.js" defer></script>
     <script src="scripts/sw-init.js" defer></script>
 </body>

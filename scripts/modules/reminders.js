@@ -1,10 +1,11 @@
 const ReminderSystem = {
-    // Um único espaço de convite em Hoje (Angelus, Terço da Misericórdia,
-    // exame do meio-dia, Encerrar o dia, oração ao abrir o navegador), com
-    // "Agora não". A escolha do convite é de RemindersCore; esta camada lê as
-    // preferências e o que já foi atendido, e avisa Hoje ('ora:invite').
+    // Um único espaço de convite em Hoje (Começar o dia, Angelus, Terço da
+    // Misericórdia, exame do meio-dia, Encerrar o dia, oração ao abrir o
+    // navegador), com "Agora não". A escolha do convite é de RemindersCore; esta
+    // camada lê as preferências, o que já foi atendido e os rituais já feitos
+    // (RitualsSystem), e avisa Hoje ('ora:invite').
     // Dependencies: AsyncStorage, RemindersCore, SettingsSystem, PrayerSystem,
-    // RosarySystem, ExamSystem.
+    // RosarySystem, ExamSystem, RitualsSystem.
 
     HANDLED_KEY: 'ora_invites_handled',
     CARLO_SESSION_KEY: 'carlo_acutis_shown', // chrome.storage.session
@@ -49,7 +50,7 @@ const ReminderSystem = {
     enabledMap: function() {
         const s = window.SettingsSystem;
         const on = (key) => !s || s.isReminderEnabled(key);
-        return { angelus: on('angelus'), mercy: on('mercy'), midday: on('midday'), evening: on('evening'), carlo: on('carlo') };
+        return { morning: on('morning'), angelus: on('angelus'), mercy: on('mercy'), midday: on('midday'), evening: on('evening'), carlo: on('carlo') };
     },
 
     // Hoje informa se há foco ou pausa em andamento (nenhum convite)
@@ -65,8 +66,11 @@ const ReminderSystem = {
             enabled: this.enabledMap(),
             handled: this.handled,
             carloPending: this.carloPending,
-            sessionActive: this.sessionActive
+            sessionActive: this.sessionActive,
+            skip: window.RitualsSystem ? RitualsSystem.hiddenInvites() : []
         });
+        // O texto do botão muda quando há um ritual começado ("Continuar")
+        if (invite) invite.resume = !!(window.RitualsSystem && this.ritualKind(invite.id) && RitualsSystem.hasDraft(this.ritualKind(invite.id)));
         const changed = JSON.stringify(invite) !== JSON.stringify(this.current);
         this.current = invite;
         if (changed) {
@@ -75,10 +79,15 @@ const ReminderSystem = {
         }
     },
 
+    ritualKind: function(id) {
+        return id === 'morning' ? 'manha' : (id === 'closeDay' ? 'noite' : null);
+    },
+
     // Texto e ícone de cada convite
     describe: function(invite) {
         if (!invite) return null;
         const map = {
+            morning: { icon: 'ph-sun-horizon', go: 'invites.start' },
             angelus: { icon: 'ph-bell-ringing', go: 'invites.pray' },
             mercy: { icon: 'ph-drop', go: 'invites.pray' },
             midday: { icon: 'ph-sun-horizon', go: 'invites.start' },
@@ -90,7 +99,7 @@ const ReminderSystem = {
             icon: d.icon,
             title: t(`invites.${invite.id}_title`),
             meta: t(`invites.${invite.id}_meta`),
-            go: t(d.go)
+            go: t(invite.resume ? 'invites.continue' : d.go)
         };
     },
 
@@ -114,8 +123,14 @@ const ReminderSystem = {
         this.refresh();
     },
 
-    act: async function(invite) {
+    act: async function(invite, opener) {
         if (!invite) return;
+        // Rituais: o convite fica até o ritual ser concluído (sair guarda o rascunho)
+        const kind = this.ritualKind(invite.id);
+        if (kind && window.RitualsSystem) {
+            RitualsSystem.open(kind, { opener });
+            return;
+        }
         await this.dismiss(invite);
         const prayer = (id) => this.prayers.find(p => p.id === id);
         switch (invite.id) {
@@ -131,11 +146,7 @@ const ReminderSystem = {
                 }
                 break;
             case 'midday':
-                // O ritual da noite (fase 5) substitui o exame noturno avulso
                 if (window.ExamSystem) ExamSystem.startExam('midday');
-                break;
-            case 'closeDay':
-                if (window.ExamSystem) ExamSystem.startExam('night');
                 break;
         }
     },

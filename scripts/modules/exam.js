@@ -79,6 +79,9 @@ const ExamSystem = {
             // One confirmed transaction: no completion flag unless the log is also saved.
             await chrome.storage.local.set({ora_exam_logs:logs.slice(-this.EXAM_LOGS_MAX),['ora_exam_done_' + now.toDateString()]:'true',ora_exam_draft:null});
             const type = this.draft.type; this.draft = null;
+            if (window.PracticeLog) PracticeLog.record('exam', { ref: log.id });
+            // Aberto pelo ritual da noite: volta para o Encerramento, que conclui o dia
+            if (window.RitualsSystem && RitualsSystem.resumeAfterExam(type)) { showToast(t('pray.exam_done')); return; }
             if (window.ReminderSystem && ['night','midday'].includes(type)) await ReminderSystem.markDoneById(type === 'night' ? 'closeDay' : 'midday');
             RouterSystem.navigate('rezar'); showToast(t('pray.exam_done'));
         } catch (err) { console.error(err); PrayUI.error(); }

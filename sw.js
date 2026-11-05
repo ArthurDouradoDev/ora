@@ -1070,11 +1070,12 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
 // ============================================================
 // Coleta o tempo gasto por domínio (somente aba ativa, janela focada e
 // usuário presente) e dispara dois momentos de reflexão por dia (~13h e ~19h)
-// via notificação do sistema. Tudo fica no dispositivo; histórico podado a 14 dias.
+// via notificação do sistema, que abre o bloco "Tempo de tela" de Frutos.
+// Tudo fica no dispositivo; histórico podado a 62 dias (a visão por mês de Frutos).
 
 const SCREENTIME_KEY = 'ora_screentime';
 const SCREENTIME_ACTIVE_KEY = 'ora_screentime_active'; // storage.session
-const SCREENTIME_MAX_AGE_DAYS = 14;
+const SCREENTIME_MAX_AGE_DAYS = 62;
 const SCREENTIME_MAX_DELTA_MS = 2 * 60 * 60 * 1000; // descarta deltas > 2h (sleep/suspensão)
 const SCREENTIME_SETTING_KEY = 'ora_reminder_screentime';
 
@@ -1284,16 +1285,15 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     else if (alarm.name === REFLECT_EVENING_ALARM) stFireReflection('evening');
 });
 
-// ── Clique na notificação → abre a nova aba já no popup de reflexão ──
+// ── Clique na notificação → abre Frutos já no bloco de tempo de tela ──
 chrome.notifications.onClicked.addListener((notificationId) => {
     if (!notificationId.startsWith('ora_reflect_')) return;
-    const moment = notificationId.slice('ora_reflect_'.length);
-    const url = chrome.runtime.getURL('ora.html') + '?reflect=' + encodeURIComponent(moment);
+    const url = chrome.runtime.getURL('ora.html') + '#frutos/tela';
     chrome.tabs.create({ url });
     chrome.notifications.clear(notificationId);
 });
 
-// ── Mensagens da página (contagem de novas abas e relatório) ──
+// ── Mensagens da página (contagem de novas abas e medição em curso) ──
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!message || !message.type || !message.type.startsWith('screentime:')) return false;
 
@@ -1308,33 +1308,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 return { ok: true };
             }
 
-            case 'screentime:getReport': {
-                // Liquida a sessão em curso para o relatório refletir o agora.
+            // Frutos lê ora_screentime direto: só precisa creditar a medição em curso
+            case 'screentime:flush': {
                 await stOnActivity();
-
-                const store = await stPruneAndGet();
-                const today = stDateStr();
-                const todayData = store[today] || { domains: {}, newTabs: 0 };
-
-                // Média por domínio e total diário médio dos dias anteriores (exclui hoje).
-                const prevDays = Object.keys(store).filter(k => k !== today);
-                const domainTotals = {};
-                let prevTotal = 0;
-                for (const k of prevDays) {
-                    const doms = store[k].domains || {};
-                    for (const d of Object.keys(doms)) {
-                        domainTotals[d] = (domainTotals[d] || 0) + doms[d];
-                        prevTotal += doms[d];
-                    }
-                }
-                const nPrev = prevDays.length;
-                const averages = {};
-                for (const d of Object.keys(domainTotals)) {
-                    averages[d] = domainTotals[d] / nPrev;
-                }
-                const avgDailyTotal = nPrev ? prevTotal / nPrev : 0;
-
-                return { today: todayData, averages, avgDailyTotal, prevDaysCount: nPrev };
+                return { ok: true };
             }
 
             default:

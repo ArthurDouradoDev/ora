@@ -1,0 +1,300 @@
+/* ============================================================
+   FRUTOS — período, síntese, reflexão e tempo de tela (fase 5)
+   RITUAIS — manhã e noite, uma pergunta por etapa
+   Referência: prototypes/05-frutos-ritual.html
+   Cor: só o dourado do tempo oferecido e o roxo do exame, sempre com
+   legenda; "Sem registro" é tracejado neutro, nunca vermelho.
+   ============================================================ */
+
+html[data-view="frutos"] .topbar {
+    background: var(--bg);
+    box-shadow: inset 0 -1px 0 var(--line);
+}
+
+.view-frutos {
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+}
+.frutos-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.frutos-wrap {
+    max-width: 68rem;
+    margin: 0 auto;
+    padding: 0.5rem 1.5rem 3rem;
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* ---------- Cabeçalho: período ---------- */
+.frutos-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+}
+.frutos-head h1 { font-size: 2rem; font-weight: 600; flex: 1; min-width: 8rem; }
+.frutos-range { display: flex; align-items: center; gap: 0.25rem; }
+.frutos-range-label { min-width: 10rem; text-align: center; font-weight: 500; }
+
+/* ---------- Colunas ---------- */
+.frutos-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+.frutos-panel {
+    background: var(--surface-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 1.5rem;
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+.frutos-panel:focus { outline: none; }
+.frutos-panel:focus-visible { box-shadow: 0 0 0 2px var(--gold); }
+
+.frutos-synth {
+    font-family: var(--f-read);
+    font-size: 1.375rem;
+    line-height: 1.45;
+}
+.frutos-synth b { font-weight: 600; }
+.frutos-empty-hint { margin-top: -0.75rem; font-size: 0.9375rem; }
+
+/* ---------- Semana: uma faixa por dia ---------- */
+.frutos-strip {
+    list-style: none; margin: 0; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+.frutos-day {
+    display: grid;
+    grid-template-rows: 7rem auto auto;
+    gap: 0.375rem;
+    justify-items: center;
+}
+.frutos-day .barbox {
+    width: 100%; max-width: 3rem; height: 7rem;
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    display: flex; align-items: flex-end;
+    overflow: hidden;
+}
+.frutos-day .barbox span {
+    display: block; width: 100%;
+    background: linear-gradient(180deg, var(--gold-hover), var(--gold));
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+}
+.frutos-day.none .barbox { background: transparent; border: 1px dashed var(--line-strong); }
+.frutos-day.future .barbox { background: transparent; border: 1px solid var(--line); opacity: 0.5; }
+.frutos-day .marks { display: flex; gap: 0.25rem; min-height: 0.75rem; }
+.frutos-day .lbl { font-size: 0.75rem; color: var(--text-3); font-weight: 500; white-space: nowrap; }
+.frutos-day.is-today .lbl { color: var(--text); font-weight: 600; }
+.frutos-day.future .lbl { opacity: 0.6; }
+
+.m-prayer, .sw-prayer { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--text-2); display: block; }
+.m-exam, .sw-exam { width: 0.625rem; height: 0.625rem; border-radius: 2px; background: var(--lit-roxo); display: block; }
+
+/* ---------- Mês: calendário ---------- */
+.frutos-month-head, .frutos-month {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.375rem;
+}
+.frutos-month-head { margin-bottom: 0.375rem; }
+.frutos-month-head span { font-size: 0.6875rem; color: var(--text-3); text-align: center; font-weight: 600; text-transform: lowercase; }
+.frutos-month { list-style: none; margin: 0; padding: 0; }
+.frutos-month li {
+    aspect-ratio: 1;
+    min-height: 1.75rem;
+    border-radius: var(--r-sm);
+    display: grid; place-items: center;
+    font-size: 0.75rem; color: var(--text-3);
+    position: relative;
+}
+.frutos-month .c.p0 { background: var(--surface-2); color: var(--text-2); }
+.frutos-month .c.f1 { background: rgba(216, 176, 97, 0.18); color: var(--text-2); }
+.frutos-month .c.f2 { background: rgba(216, 176, 97, 0.38); color: var(--text); }
+.frutos-month .c.f3 { background: rgba(216, 176, 97, 0.62); color: var(--on-gold); }
+.frutos-month .c.none { border: 1px dashed var(--line-strong); }
+.frutos-month .c.fut { opacity: 0.35; }
+.frutos-month .c.is-today { box-shadow: inset 0 0 0 1px var(--text-2); }
+.frutos-month .c.p::after {
+    content: ''; position: absolute; bottom: 4px; left: calc(50% - 2px);
+    width: 4px; height: 4px; border-radius: 50%; background: currentColor;
+}
+.frutos-month .c.x::before {
+    content: ''; position: absolute; top: 4px; right: 4px;
+    width: 5px; height: 5px; border-radius: 1px; background: var(--lit-roxo);
+}
+
+/* ---------- Legenda, medição e contador ---------- */
+.frutos-legend {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; gap: 0.5rem 1.25rem; flex-wrap: wrap;
+    font-size: 0.8125rem; color: var(--text-2);
+}
+.frutos-legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.frutos-legend .sw { flex: none; }
+.sw-focus { width: 0.75rem; height: 0.75rem; border-radius: 3px; background: var(--gold); display: block; }
+.sw-none { width: 0.75rem; height: 0.75rem; border-radius: 3px; border: 1px dashed var(--text-3); display: block; }
+.frutos-measured { font-size: 0.875rem; color: var(--text-2); display: flex; gap: 0.625rem; align-items: flex-start; }
+.frutos-measured i { color: var(--info); font-size: 1.125rem; margin-top: 0.1rem; flex: none; }
+.frutos-counter {
+    display: flex; gap: 0.875rem; align-items: center;
+    padding-top: 1rem; border-top: 1px solid var(--line);
+}
+.frutos-counter-n { font-family: var(--f-brand); font-weight: 600; font-size: 1.75rem; color: var(--gold); line-height: 1; }
+.frutos-counter b { font-weight: 600; }
+.frutos-counter .meta { display: block; font-size: 0.8125rem; }
+
+/* ---------- Detalhes de uso ---------- */
+.frutos-usage summary {
+    cursor: pointer; font-weight: 500;
+    min-height: 2.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    list-style: none;
+    border-radius: var(--r-sm);
+}
+.frutos-usage summary::-webkit-details-marker { display: none; }
+.frutos-usage summary i { transition: transform var(--dur) var(--ease); }
+.frutos-usage[open] summary i { transform: rotate(90deg); }
+.frutos-usage summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.frutos-table-wrap { overflow-x: auto; margin-top: 0.5rem; }
+.frutos-usage table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.frutos-usage th, .frutos-usage td { text-align: left; padding: 0.5rem 0.375rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.frutos-usage thead th { color: var(--text-3); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.frutos-usage tbody th { font-weight: 500; color: var(--text-2); }
+.frutos-usage td.na { color: var(--text-3); font-style: italic; }
+
+/* ---------- Para refletir ---------- */
+.frutos-reflection { font-family: var(--f-read); font-size: 1.0625rem; min-height: 8rem; }
+.frutos-past { display: grid; gap: 0.875rem; }
+.frutos-past .label { color: var(--text-3); }
+.frutos-past-list { display: grid; gap: 0.875rem; }
+.frutos-past article { border-left: 2px solid var(--line-strong); padding-left: 0.875rem; display: grid; gap: 0.25rem; }
+.frutos-past article p { font-family: var(--f-read); color: var(--text-2); white-space: pre-line; overflow-wrap: anywhere; }
+
+/* ---------- Tempo de tela: abre pela pergunta (E16) ---------- */
+.frutos-screen {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+}
+.frutos-screen-intro { display: grid; gap: 0.5rem; }
+.frutos-screen-toggle i { transition: transform var(--dur) var(--ease); }
+.frutos-screen-toggle[aria-expanded="true"] i { transform: rotate(180deg); }
+.frutos-screen-body { grid-column: 1 / -1; display: grid; gap: 1rem; }
+.frutos-screen-body[hidden] { display: none; }
+.frutos-screen-stats {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.75rem;
+}
+.frutos-screen-stats div { background: var(--surface-2); border-radius: var(--r-md); padding: 0.75rem 0.875rem; display: grid; gap: 0.25rem; }
+.frutos-screen-stats dt { font-size: 0.75rem; color: var(--text-3); font-weight: 500; }
+.frutos-screen-stats dd { margin: 0; font-size: 1.125rem; font-weight: 600; color: var(--text); }
+.frutos-domains { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.frutos-domain-head { display: flex; gap: 0.75rem; align-items: baseline; font-size: 0.9375rem; }
+.frutos-domain-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.frutos-domain-time { color: var(--text-2); white-space: nowrap; }
+.frutos-domain-track { height: 6px; border-radius: 999px; background: var(--surface-2); margin-top: 0.375rem; overflow: hidden; }
+/* Neutro: tempo de tela é contexto, não réu */
+.frutos-domain-track span { display: block; height: 100%; border-radius: inherit; background: var(--text-3); }
+
+@media (max-width: 56rem) {
+    .frutos-cols { grid-template-columns: 1fr; }
+}
+@media (max-width: 40rem) {
+    .frutos-wrap { padding-inline: 1rem; }
+    .frutos-head h1 { font-size: 1.625rem; }
+    .frutos-panel { padding: 1.125rem; }
+    .frutos-screen { grid-template-columns: 1fr; }
+    .frutos-day { grid-template-rows: 5rem auto auto; }
+    .frutos-day .barbox { height: 5rem; }
+    .frutos-day .lbl { font-size: 0.6875rem; }
+    .frutos-range-label { min-width: 0; }
+}
+
+/* ============================================================
+   RITUAIS
+   ============================================================ */
+.ritual {
+    position: fixed; inset: 0; z-index: 950;
+    display: flex;
+    background: rgba(18, 16, 13, 0.9);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    color: var(--text);
+}
+.ritual[hidden] { display: none; }
+[data-theme="noite"] .ritual { background: rgba(14, 13, 18, 0.93); }
+@supports not ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+    .ritual { background: var(--bg); }
+}
+.ritual-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ritual-panel:focus { outline: none; }
+.ritual-top { display: flex; align-items: center; padding: 1rem 1.25rem; gap: 1rem; }
+.ritual-ttl { flex: 1; text-align: center; }
+.ritual-ttl b { display: block; font-family: var(--f-brand); font-weight: 400; letter-spacing: 0.08em; }
+.ritual-steps { display: flex; gap: 0.375rem; justify-content: center; margin-top: 0.375rem; }
+.ritual-steps span { width: 2rem; height: 4px; border-radius: 4px; background: var(--surface-3); transition: background var(--dur); }
+.ritual-steps span.on { background: var(--gold); }
+.ritual-count { min-width: 4.5rem; text-align: right; }
+.ritual-body {
+    flex: 1; min-height: 0;
+    overflow: auto;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: safe center;
+    padding: 1.5rem;
+}
+.ritual-card { width: min(36rem, 100%); display: grid; gap: 1.25rem; }
+.ritual-card:focus { outline: none; }
+.ritual-card .q { font-family: var(--f-read); font-size: clamp(1.5rem, 3.2vw, 2rem); line-height: 1.3; font-weight: 400; overflow-wrap: anywhere; }
+.ritual-card .q:focus { outline: none; }
+.ritual-card .help { color: var(--text-2); }
+.ritual-card .ritual-offer { font-family: var(--f-read); font-style: italic; }
+.ritual-card .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.ritual-text { min-height: 8rem; font-family: var(--f-read); font-size: 1.0625rem; background: rgba(0, 0, 0, 0.25); }
+.ritual-line { font-family: var(--f-read); font-size: 1.125rem; min-height: 3.25rem; }
+.ritual-exam { justify-self: start; }
+.ritual-status:empty { display: none; }
+.ritual-error[hidden] { display: none; }
+.ritual-center { text-align: center; }
+.ritual-final { text-align: center; display: grid; gap: 1rem; }
+.ritual-final .actions { justify-content: center; }
+
+.choices { display: grid; gap: 0.5rem; }
+.choice {
+    display: flex; align-items: center; gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--line-strong);
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+.choice input[type="radio"] { width: 1.125rem; height: 1.125rem; accent-color: var(--gold); flex: none; margin: 0; }
+.choice:has(input[type="radio"]:checked) { border-color: var(--text-2); background: var(--surface-2); }
+.choice:has(input[type="radio"]:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+.choice .m { margin-left: auto; color: var(--text-3); font-size: 0.875rem; white-space: nowrap; }
+.choice > span:not(.m) { overflow-wrap: anywhere; min-width: 0; }
+.choice-other .input { flex: 1; min-width: 0; min-height: 2.25rem; border: 0; background: none; padding: 0; box-shadow: none; }
+
+.prayer-short { font-family: var(--f-read); font-size: 1.25rem; line-height: 1.7; text-align: center; color: var(--text); }
+.prayer-short .resp { font-size: 1.0625rem; }
+
+@media (max-width: 40rem) {
+    .ritual-top { padding: 0.75rem 1rem; gap: 0.5rem; }
+    .ritual-count { min-width: 0; }
+    .ritual-body { padding: 1rem; justify-content: flex-start; }
+}
