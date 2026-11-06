@@ -90,7 +90,7 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
   - `ora_tasks` — tasks (`scripts/shared/tasks-core.js`); a task with `recurrence` is a routine template that generates the day's task. Completed tasks move to `ora_tasks_history` at day rollover.
   - `ora_sessions` — focus sessions, written **only by the SW** (`sessions-core.js`): paused time does not count, interrupted sessions keep the minutes focused, focus without a task is allowed.
   - `ora_day_intention` — intention of the day by date; a session's intention (and activity title) lives in the session.
-  - Hoje: `ora_quick_links` (shortcuts), `ora_invites_handled` (invites done or postponed per time window), `ora_focus_protect` / `ora_focus_sound` (last choices in the preparation).
+  - Hoje: `ora_quick_links` (shortcuts), `ora_invites_handled` (invites done or postponed per time window), `ora_focus_protect` / `ora_focus_sound` (last choices in the preparation), `ora_sound_artwork` (covers and titles from the YouTube/Spotify oEmbed, by `SoundCore.mediaKey`).
   - Frutos (phase 5): `ora_practice_log` (events `{ type, at, id?, ref? }` written by `PracticeLog.record`: rosary, chaplet, prayer opened in the reader, lectio, respiro, exam, morning/night rituals), `ora_reflections` ("Para refletir" per week/month, kept indefinitely), `ora_rituals` (done rituals and night answers by day) and `ora_ritual_draft` (draft restored on reopening the same day). `ora_screentime` (SW only) keeps 62 days.
   - "Dias com Ora" (`counter-core.js`) is derived from sessions + completed tasks; it never resets.
   - `scripts/shared/migrate-core.js` converts 1.1.5 / 1.2.0 data; it runs (idempotently) in the SW and in `main.js` before modules start. The blocker keys stay as-is until phase 4.
@@ -103,7 +103,7 @@ Use the global `t(key, params?)` function from `utils.js`. Keys use dot-notation
 - `https://liturgia.up.railway.app/v2/` — Daily gospel (cached in storage)
 - Unsplash — Daily background images
 - YouTube (via `youtube-nocookie`) and Spotify (via iframe embeds)
-- **Note:** YouTube embeds use a relay iframe hosted on GitHub Pages to work around CORS
+- **Note:** YouTube/Spotify embeds use a relay page on GitHub Pages (`ora-player-relay` repo), because the embeds reject a `chrome-extension://` origin. `/ora-player-relay/v2/` drives the official YouTube IFrame / Spotify iFrame APIs (protocol `{ oraRelay: 2 }`, see the page header); `/ora-player-relay/` (v1) is the fallback, driven by the `scripts/sound-relay.js` content script
 
 ### Styling
 CSS is organized under `styles/` into `base/`, `components/`, `layout/`, `modules/`, and `utils/`. Design tokens (from `prototypes/00-sistema.html`) live in `styles/base/variables.css`; V1 components in `styles/components/ui.css`; shell layout in `styles/layout/shell.css`. Fonts are bundled locally (`assets/fonts/`, declared in `styles/base/fonts.css`): Cinzel for brand/clock, Montserrat for UI, Literata for reading. Design language: glassmorphism with delimited roles (glass for navigation over the photo, solid for organizing, read surfaces for long text). Legacy class names that collide with V1 components keep the legacy meaning until that screen is replaced (the V1 switch is `.toggle`).

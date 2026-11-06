@@ -209,10 +209,11 @@
                     </nav>
                     <div class="sound-mini" id="sound-mini">
                         <button type="button" class="chip surface-glass sound-chip" id="sound-open" aria-haspopup="dialog" aria-controls="sound-dialog">
-                            <i class="ph ph-music-notes" aria-hidden="true"></i><span class="sound-eq" aria-hidden="true"><span></span><span></span><span></span></span><span id="sound-name" data-i18n="sound.title">Som</span>
+                            <i class="ph ph-music-notes" aria-hidden="true"></i><img class="sound-chip-cover" id="sound-chip-cover" alt="" referrerpolicy="no-referrer" hidden><span class="sound-eq" aria-hidden="true"><span></span><span></span><span></span></span><span id="sound-name" data-i18n="sound.title">Som</span>
                         </button>
                         <div class="sound-controls" id="sound-controls" hidden>
                             <button type="button" class="btn-icon" id="sound-toggle"><i class="ph ph-pause" aria-hidden="true"></i></button>
+                            <button type="button" class="btn-icon" id="sound-next" data-i18n-aria-label="sound.next" data-i18n-title="sound.next" hidden><i class="ph ph-skip-forward" aria-hidden="true"></i></button>
                             <label class="sound-volume">
                                 <i class="ph ph-speaker-high" aria-hidden="true"></i><span class="sr-only" data-i18n="sound.volume">Volume</span>
                                 <input type="range" id="sound-volume" value="65">

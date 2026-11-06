@@ -824,6 +824,7 @@
     "play": "Play",
     "pause": "Pause sound",
     "stop": "Stop sound",
+    "next": "Next track",
     "choose": "Use for focus",
     "volume": "Volume",
     "pause_with_focus": "Pause sound when focus pauses",

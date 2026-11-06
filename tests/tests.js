@@ -1180,6 +1180,30 @@
     });
     assertEq('lembra o player oculto', SoundCore.preference({ playerHidden: true }, playlists).playerHidden, true);
 
+    group('SoundCore — capas');
+    const spotifyList = { source: 'spotify', idType: 'playlist', externalId: '37i9dQZF1DWZeKCadgRdKQ' };
+    const ytVideo = { source: 'youtube', idType: 'video', externalId: 'c79SszUBZUE' };
+    assertEq('oEmbed do Spotify', SoundCore.oembedUrl(spotifyList),
+        'https://open.spotify.com/oembed?url=' + encodeURIComponent('https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ'));
+    assertEq('oEmbed do YouTube', SoundCore.oembedUrl(ytVideo),
+        'https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=c79SszUBZUE'));
+    assertEq('chave da mídia', SoundCore.mediaKey(ytVideo), 'youtube:video:c79SszUBZUE');
+    assertEq('capa do Spotify aceita', SoundCore.coverUrl('https://i.scdn.co/image/ab67'), 'https://i.scdn.co/image/ab67');
+    assertEq('capa de álbum aceita', SoundCore.coverUrl('https://image-cdn-ak.spotifycdn.com/image/x'), 'https://image-cdn-ak.spotifycdn.com/image/x');
+    assertEq('YouTube troca hqdefault por mqdefault', SoundCore.coverUrl('https://i.ytimg.com/vi/abc/hqdefault.jpg'), 'https://i.ytimg.com/vi/abc/mqdefault.jpg');
+    assertEq('host desconhecido recusado', SoundCore.coverUrl('https://evil.example/x.jpg'), null);
+    assertEq('http recusado', SoundCore.coverUrl('http://i.scdn.co/image/x'), null);
+    assertEq('lixo recusado', SoundCore.coverUrl(undefined), null);
+    assertEq('resultado do oEmbed', SoundCore.artwork(spotifyList, { title: ' Deep Focus ', thumbnail_url: 'https://i.scdn.co/image/a' }, 5),
+        { cover: 'https://i.scdn.co/image/a', title: 'Deep Focus', at: 5 });
+    assertEq('vídeo sem oEmbed usa a miniatura direta', SoundCore.artwork(ytVideo, null, 5).cover, 'https://i.ytimg.com/vi/c79SszUBZUE/mqdefault.jpg');
+    assertEq('playlist sem oEmbed fica sem capa', SoundCore.artwork(spotifyList, null, 5), { cover: null, title: '', at: 5 });
+    const artDay = 24 * 60 * 60 * 1000;
+    assert('sem registro busca', SoundCore.artworkStale(undefined, 0));
+    assert('capa vale 30 dias', !SoundCore.artworkStale({ cover: 'x', at: 0 }, 29 * artDay) && SoundCore.artworkStale({ cover: 'x', at: 0 }, 31 * artDay));
+    assert('falha tenta de novo no dia seguinte', !SoundCore.artworkStale({ cover: null, at: 0 }, artDay / 2) && SoundCore.artworkStale({ cover: null, at: 0 }, 2 * artDay));
+    assert('data no futuro busca de novo', SoundCore.artworkStale({ cover: 'x', at: 10 * artDay }, artDay));
+
     group('SoundCore — ambientes e motor');
     assert('ambientes usam só sons do catálogo e respeitam o limite',
         SoundCore.SCENES.every(scene => scene.layers.length <= SoundCore.MAX_LAYERS

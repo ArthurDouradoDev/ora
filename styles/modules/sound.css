@@ -99,6 +99,11 @@
     overflow: hidden;
     transition: transform 160ms var(--ease), filter 160ms var(--ease);
 }
+.sound-cover > img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
 .sound-cover::after {
     content: ''; position: absolute; inset: 0;
     background: radial-gradient(120% 80% at 20% 0%, rgba(255, 255, 255, 0.16), transparent 60%);
@@ -222,6 +227,13 @@
 .sound-chip > span:not(.sound-eq) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12rem; }
 .sound-chip .sound-eq { display: none; color: var(--gold); }
 .sound-mini.is-playing .sound-chip .ph-music-notes { display: none; }
+.sound-chip-cover {
+    width: 1.375rem; height: 1.375rem; flex: none;
+    border-radius: 0.3rem;
+    object-fit: cover;
+}
+.sound-chip-cover[hidden] { display: none; }
+.sound-mini.has-cover .sound-chip .ph-music-notes { display: none; }
 .sound-mini.is-playing .sound-chip .sound-eq { display: inline-flex; }
 .sound-controls { display: inline-flex; align-items: center; gap: 0.25rem; }
 .sound-controls[hidden] { display: none; }

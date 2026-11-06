@@ -824,6 +824,7 @@
     "play": "Tocar",
     "pause": "Pausar som",
     "stop": "Parar som",
+    "next": "Próxima faixa",
     "choose": "Usar no foco",
     "volume": "Volume",
     "pause_with_focus": "Pausar o som junto com o foco",

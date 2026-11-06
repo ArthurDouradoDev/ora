@@ -122,6 +122,49 @@
         });
     }
 
+    // --- Capas (oEmbed público do YouTube e do Spotify, sem chave) ---
+
+    function mediaKey(item) {
+        return item.source + ':' + item.idType + ':' + item.externalId;
+    }
+
+    function oembedUrl(item) {
+        const url = encodeURIComponent(mediaUrl(item));
+        return item.source === 'spotify'
+            ? 'https://open.spotify.com/oembed?url=' + url
+            : 'https://www.youtube.com/oembed?format=json&url=' + url;
+    }
+
+    const COVER_HOST = /^(i\.scdn\.co|mosaic\.scdn\.co|[a-z0-9-]+\.spotifycdn\.com|i[0-9]?\.ytimg\.com)$/;
+
+    // Só aceita imagens https dos CDNs conhecidos. No YouTube usa a mqdefault
+    // (16:9 sem as faixas pretas da hqdefault).
+    function coverUrl(value) {
+        let url;
+        try { url = new URL(String(value ?? '')); } catch { return null; }
+        if (url.protocol !== 'https:' || !COVER_HOST.test(url.hostname)) return null;
+        if (url.hostname.endsWith('ytimg.com')) url.pathname = url.pathname.replace(/\/(hq|sd|maxres)?default\.jpg$/, '/mqdefault.jpg');
+        return url.href;
+    }
+
+    // Resultado de uma busca: data é o JSON do oEmbed ou null (mídia privada, removida...).
+    function artwork(item, data, now = Date.now()) {
+        let cover = coverUrl(data?.thumbnail_url);
+        if (!cover && item.source === 'youtube' && item.idType === 'video') {
+            cover = 'https://i.ytimg.com/vi/' + item.externalId + '/mqdefault.jpg';
+        }
+        const title = typeof data?.title === 'string' ? data.title.trim().slice(0, 120) : '';
+        return { cover, title, at: now };
+    }
+
+    const DAY = 24 * 60 * 60 * 1000;
+
+    // Capa encontrada vale 30 dias (a de playlist muda); falha tenta de novo no dia seguinte.
+    function artworkStale(entry, now = Date.now()) {
+        if (!entry || typeof entry.at !== 'number' || entry.at > now) return true;
+        return now - entry.at > (entry.cover ? 30 : 1) * DAY;
+    }
+
     // WAV PCM 8 bits, mono, em silêncio: mantém a sessão de mídia do navegador ativa
     // enquanto o Web Audio toca (teclas de mídia e controles do Chrome).
     function silentWav(seconds = 1, sampleRate = 8000) {
@@ -140,6 +183,7 @@
 
     global.SoundCore = {
         AMBIENCES, MAX_LAYERS, SCENES, media, parseLink, mediaUrl, level, choice, preference,
-        sameLayers, sceneOf, sceneChoice, loopCrossfade, silentWav
+        sameLayers, sceneOf, sceneChoice, loopCrossfade, silentWav,
+        mediaKey, oembedUrl, coverUrl, artwork, artworkStale
     };
 })(typeof window !== 'undefined' ? window : globalThis);

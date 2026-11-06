@@ -824,6 +824,7 @@
     "play": "Reproducir",
     "pause": "Pausar sonido",
     "stop": "Detener sonido",
+    "next": "Siguiente pista",
     "choose": "Usar durante el enfoque",
     "volume": "Volumen",
     "pause_with_focus": "Pausar el sonido al pausar el enfoque",

@@ -14,6 +14,7 @@ Legenda de origem: **[código]** verificado no código da extensão · **[protó
 | E21 | P3 | Cabeçalho (`shell.css`) | Em 800×600 com texto a 200%, o botão de Configurações fica cortado na borda direita do `.topbar` (visto na validação da fase 5; não é de Frutos). | Revisar o cabeçalho estreito na fase 7 (Configurações). |
 | E20 | P3 | Validação da fase 2 | A fase 2 foi validada num simulador das APIs `chrome.*` (página servida por http com o `sw.js` rodando num iframe), não na extensão carregada sem pacote. Sincronização entre duas abas reais, alarmes reais do SW, regras DNR aplicadas de fato e a notificação do Angelus não foram exercitadas. | Repetir o roteiro "Fluxo completo com sessão curta" do `PLANO_V1_ORA.md` com a extensão carregada. |
 | E22 | P2 | `sound.js` / `sound-engine.js` | O som vive na página da nova aba: se a pessoa digita um endereço nessa mesma aba (ou a fecha), o som para. Acontece também no Momentum. | Tocar os sons do Ora num documento `chrome.offscreen` (motivo `AUDIO_PLAYBACK`) comandado pelo SW; verificar antes se YouTube/Spotify funcionam fora da aba. |
+| E24 | P2 | Relay v2 (`ora-player-relay/v2/`) | A página do relay v2 existe só na pasta local `ora-player-relay/v2/` (sem commit nem push). Até ser publicada no GitHub Pages, cada aba espera 5 s pelo v2 antes de cair no v1. Validado num simulador http (relay em outra origem), não na extensão carregada. | Publicar o repositório `ora-player-relay` e testar com a extensão carregada sem pacote (YouTube, Spotify, troca, Próxima, player oculto). |
 | E23 | P3 | Ícones (Phosphor via CDN em `ora.html`) | Sem internet, os ícones somem; as capas do Som continuam coloridas e com título, mas sem o desenho. Vale para toda a interface. | Empacotar o Phosphor localmente (como as fontes em `assets/fonts/`). |
 | E17 | P3 | Sync | Mudança de idioma vinda de outro dispositivo só se aplica por completo na próxima abertura; limite "por hora" do bloqueador precisa de teste manual. | Teste manual com dois perfis. |
 
@@ -56,6 +57,7 @@ Não registrado como confirmado: "salto duplo" de Espaço no terço (não reprod
 
 | ID | Data | Onde | Resolução |
 |---|---|---|---|
+| E25 | 06/11/2026 | `sound.js` | Com "Ocultar player" ligado, escolher ou retomar uma playlist não tocava: o início esperava o iframe ficar visível. Agora o pedido vai direto; se não começar em 4 s, o player aparece para um toque no play (e se esconde de novo quando toca). |
 | E08 | 02/11/2026 | `styles/modules/prayers.css` | Regra inválida `#prayer-reader:hover { transform: -50%, -50% }` removida; com E09 o leitor não reage mais a hover. Fase 0 do `PLANO_V1_ORA.md`. |
 | E09 | 02/11/2026 | `styles/components/glass-panels.css` | Hover só em `.glass-panel` interativos (`a`, `button`, `[role="button"]`, `.action-btn`). Os `#…:hover { transform }` compensatórios dos modais ficaram redundantes e saem quando cada tela for migrada. Fase 0. |
 | E10 | 02/11/2026 | `styles/utils/animations.css` | `prefers-reduced-motion` e `html[data-motion="reduce"]` reduzem animações e transições a corte simples. Fase 0. |
