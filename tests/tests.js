@@ -1176,8 +1176,9 @@
         ] }, volume: 42, pauseWithFocus: true
     }, playlists), {
         choice: { kind: 'ambient', layers: [{ id: 'rain', volume: 0 }, { id: 'bells', volume: 100 }, { id: 'fire', volume: 60 }] },
-        volume: 42, pauseWithFocus: true
+        volume: 42, pauseWithFocus: true, playerHidden: false
     });
+    assertEq('lembra o player oculto', SoundCore.preference({ playerHidden: true }, playlists).playerHidden, true);
 
     group('SoundCore — ambientes e motor');
     assert('ambientes usam só sons do catálogo e respeitam o limite',

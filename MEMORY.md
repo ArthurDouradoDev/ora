@@ -74,7 +74,7 @@ Decisões que continuam valendo:
 ## Tela Hoje (implementada na fase 2, 03/11/2026)
 
 - Referência: `01d-hoje-melhorada`. Estados vêm de `TodayCore.resolveTodayState` (ver `CLAUDE.md`).
-- **Atalhos ficaram no eixo central**, como no `01d-hoje-melhorada` ("favoritos voltam ao eixo"), e não "no alto, ao lado da marca" como diz o texto do plano. Confirmar com o usuário.
+- **Atalhos e Som no canto superior esquerdo (05/11/2026, pedido do usuário: "tudo muito condensado no meio"):** atalhos em lista vertical sob a marca (como os links do Momentum), mini controle do Som e player logo abaixo; o centro fica com chegada, intenção, próximo passo e convite. Quando .today tem menos de 68rem (janela estreita ou Tarefas aberto em tela média) voltam ao eixo (container query em today.css). Durante a sessão o canto mostra só o Som. No canto, com algo tocando ou pausado, fica só o chip com o nome (cortado com reticências); tocar/pausar, volume, mostrar/ocultar player e parar aparecem numa linha ao lado no hover ou foco por teclado (sempre visíveis em telas de toque e no eixo). O player do YouTube/Spotify pode ser ocultado (`playerHidden` na preferência do Som): sai da vista sem descarregar o iframe, então a música continua.
 - **Saudação**: mantidas as saudações devocionais de `data/greetings.json` (+ nome), em vez de "Bom dia/Boa tarde" do protótipo. Confirmar.
 - "Bloquear distrações" na preparação liga o bloqueador atual só durante a sessão (e devolve o estado anterior, inclusive uma pausa contemplativa em curso); com o bloqueador já ligado, o switch aparece marcado e travado. Perfis e "durante o foco" de verdade são da fase 4.
 - Mudar o nome da atividade na preparação desliga a sessão da tarefa (foco livre com o novo nome).

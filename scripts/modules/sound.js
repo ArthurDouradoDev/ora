@@ -49,6 +49,8 @@ const SoundSystem = {
         this.mini = $('sound-mini');
         this.toggle = $('sound-toggle');
         this.volume = $('sound-volume');
+        this.controls = $('sound-controls');
+        this.playerToggle = $('sound-player-toggle');
         this.remote = $('sound-remote');
         this.frame = $('sound-frame');
         this.external = $('sound-external');
@@ -100,6 +102,11 @@ const SoundSystem = {
             this.applyVolume();
         });
         this.volume.addEventListener('change', () => this.savePreference(this.preference));
+        this.playerToggle.addEventListener('click', () => this.setPlayerHidden(!this.preference.playerHidden));
+        document.getElementById('sound-player-hide').addEventListener('click', () => {
+            this.setPlayerHidden(true);
+            this.playerToggle.focus();
+        });
 
         this.back.addEventListener('click', () => this.setView('library'));
         this.addOpen.addEventListener('click', () => this.setView('add'));
@@ -249,8 +256,20 @@ const SoundSystem = {
         this.setView('library', { focus: false });
         DialogSystem.open(this.root, { opener, onClose: () => { this.editor = null; } });
         this.position();
+        // Só depois de visível: com o popup oculto, scrollTop não tem efeito.
+        this.views.library.scrollTop = 0;
         const selected = this.grid.querySelector('.sound-tile-main[aria-pressed="true"]');
-        (selected || this.grid.querySelector('.sound-tile-main'))?.focus({ preventScroll: true });
+        this.focusTile(selected || this.grid.querySelector('.sound-tile-main'));
+    },
+
+    // Foca a capa e rola a vista só o necessário para mostrá-la.
+    focusTile(tile) {
+        if (!tile) return;
+        tile.focus({ preventScroll: true });
+        const view = this.views.library;
+        const top = tile.getBoundingClientRect().top - view.getBoundingClientRect().top + view.scrollTop;
+        const bottom = top + tile.offsetHeight;
+        if (bottom > view.scrollTop + view.clientHeight) view.scrollTop = bottom - view.clientHeight + 8;
     },
 
     setView(view, { focus = true, returnKey = null } = {}) {
@@ -258,6 +277,8 @@ const SoundSystem = {
         const previous = editor.view;
         editor.view = view;
         for (const [name, el] of Object.entries(this.views)) el.hidden = name !== view;
+        // Cada vista começa do topo (filtros e cabeçalho à vista).
+        this.views[view].scrollTop = 0;
         this.setStatus('');
         this.renderEditor();
         this.position();
@@ -265,7 +286,7 @@ const SoundSystem = {
         if (view === 'library') {
             const key = returnKey || editor.returnKey;
             const tile = key && [...this.grid.querySelectorAll('[data-sound-focus]')].find(el => el.dataset.soundFocus === key);
-            (tile || this.grid.querySelector('.sound-tile-main'))?.focus({ preventScroll: true });
+            this.focusTile(tile || this.grid.querySelector('.sound-tile-main'));
         } else if (view === 'add') {
             this.input.focus();
         } else if (previous !== view) {
@@ -638,6 +659,11 @@ const SoundSystem = {
         }
     },
 
+    setPlayerHidden(hidden) {
+        this.savePreference({ ...this.preference, playerHidden: hidden });
+        this.render();
+    },
+
     savePreference(preference) {
         this.preference = preference;
         chrome.storage.local.set({ [this.PREF]: preference }).catch(error => {
@@ -841,8 +867,9 @@ const SoundSystem = {
         const name = player ? this.name(player.choice) : t('sound.title');
         document.getElementById('sound-name').textContent = name;
         this.mini.classList.toggle('surface-glass', !!player);
+        this.mini.classList.toggle('is-active', !!player);
         this.mini.classList.toggle('is-playing', !!player && !player.paused);
-        this.toggle.hidden = !player;
+        this.controls.hidden = !player;
         this.toggle.disabled = !!playlist && !player.ready;
         const paused = player?.paused;
         this.toggle.setAttribute('aria-label', t(paused ? 'sound.play' : 'sound.pause'));
@@ -850,8 +877,16 @@ const SoundSystem = {
         this.toggle.firstElementChild.className = paused ? 'ph-fill ph-play' : 'ph ph-pause';
         this.volume.parentElement.hidden = !player || playlist?.source === 'spotify';
         this.volume.value = this.preference.volume;
-        document.getElementById('sound-stop').hidden = !player;
+        // O player só some da vista: o iframe continua carregado e tocando.
+        const hidden = !!playlist && this.preference.playerHidden;
+        this.playerToggle.hidden = !playlist;
+        this.playerToggle.setAttribute('aria-expanded', String(!!playlist && !hidden));
+        const playerLabel = t(hidden ? 'sound.player_show' : 'sound.player_hide');
+        this.playerToggle.setAttribute('aria-label', playerLabel);
+        this.playerToggle.title = playerLabel;
         this.remote.hidden = !playlist;
+        this.remote.classList.toggle('is-concealed', hidden);
+        this.remote.inert = hidden;
         this.frame.hidden = !playlist || !navigator.onLine;
         if (playlist) this.frame.title = t('sound.provider_player', { provider: this.provider(playlist) });
         const status = document.getElementById('sound-player-status');

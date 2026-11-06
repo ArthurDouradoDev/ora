@@ -839,6 +839,8 @@
     "play_error": "No se pudo reproducir el sonido. Inténtalo de nuevo.",
     "provider_player": "Reproductor de {provider}",
     "open_provider": "Abrir en el servicio",
+    "player_hide": "Ocultar reproductor",
+    "player_show": "Mostrar reproductor",
     "provider_error": "Si el reproductor falla aquí, ábrelo en el servicio.",
     "spotify_hint": "La reproducción completa depende de Spotify y del navegador.",
     "media_playlist": "Lista de {provider}",

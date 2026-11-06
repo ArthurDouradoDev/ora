@@ -117,11 +117,6 @@
                     <p class="meta" data-i18n="today.just_stay">Ou apenas fique aqui um instante.</p>
                 </section>
 
-                <!-- Seus atalhos -->
-                <nav class="shortcuts" id="shortcuts" aria-label="Seus atalhos" data-i18n-aria-label="shortcuts.label">
-                    <ul class="row" id="shortcuts-list"></ul>
-                </nav>
-
                 <!-- Espaço único de convite -->
                 <div class="invite surface-light" id="today-invite" hidden>
                     <i class="ph ph-bell lead" id="today-invite-icon" aria-hidden="true"></i>
@@ -207,22 +202,34 @@
                     <p class="meta" id="today-after" hidden></p>
                 </section>
 
-                <div class="sound-mini" id="sound-mini">
-                    <button type="button" class="chip surface-glass sound-chip" id="sound-open" aria-haspopup="dialog" aria-controls="sound-dialog">
-                        <i class="ph ph-music-notes" aria-hidden="true"></i><span class="sound-eq" aria-hidden="true"><span></span><span></span><span></span></span><span id="sound-name" data-i18n="sound.title">Som</span>
-                    </button>
-                    <button type="button" class="btn-icon" id="sound-toggle" hidden><i class="ph ph-pause" aria-hidden="true"></i></button>
-                    <label class="sound-volume" hidden>
-                        <i class="ph ph-speaker-high" aria-hidden="true"></i><span class="sr-only" data-i18n="sound.volume">Volume</span>
-                        <input type="range" id="sound-volume" value="65">
-                    </label>
-                    <button type="button" class="btn-icon" id="sound-stop" data-i18n-aria-label="sound.stop" data-i18n-title="sound.stop" hidden><i class="ph ph-stop" aria-hidden="true"></i></button>
+                <!-- Canto: atalhos e som (no eixo em telas estreitas) -->
+                <div class="today-corner" id="today-corner">
+                    <nav class="shortcuts" id="shortcuts" aria-label="Seus atalhos" data-i18n-aria-label="shortcuts.label">
+                        <ul class="row" id="shortcuts-list"></ul>
+                    </nav>
+                    <div class="sound-mini" id="sound-mini">
+                        <button type="button" class="chip surface-glass sound-chip" id="sound-open" aria-haspopup="dialog" aria-controls="sound-dialog">
+                            <i class="ph ph-music-notes" aria-hidden="true"></i><span class="sound-eq" aria-hidden="true"><span></span><span></span><span></span></span><span id="sound-name" data-i18n="sound.title">Som</span>
+                        </button>
+                        <div class="sound-controls" id="sound-controls" hidden>
+                            <button type="button" class="btn-icon" id="sound-toggle"><i class="ph ph-pause" aria-hidden="true"></i></button>
+                            <label class="sound-volume">
+                                <i class="ph ph-speaker-high" aria-hidden="true"></i><span class="sr-only" data-i18n="sound.volume">Volume</span>
+                                <input type="range" id="sound-volume" value="65">
+                            </label>
+                            <button type="button" class="btn-icon" id="sound-player-toggle" aria-controls="sound-remote" hidden><i class="ph ph-monitor-play" aria-hidden="true"></i></button>
+                            <button type="button" class="btn-icon" id="sound-stop" data-i18n-aria-label="sound.stop" data-i18n-title="sound.stop"><i class="ph ph-stop" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                    <aside id="sound-remote" class="sound-remote surface-solid" hidden>
+                        <iframe id="sound-frame" title="Player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                        <p class="meta" id="sound-player-status" role="status" hidden></p>
+                        <div class="sound-remote-actions">
+                            <a id="sound-external" class="btn btn-quiet btn-sm" target="_blank" rel="noopener"><i class="ph ph-arrow-square-out" aria-hidden="true"></i><span data-i18n="sound.open_provider">Abrir no serviço</span></a>
+                            <button type="button" class="btn btn-quiet btn-sm" id="sound-player-hide"><i class="ph ph-caret-up" aria-hidden="true"></i><span data-i18n="sound.player_hide">Ocultar player</span></button>
+                        </div>
+                    </aside>
                 </div>
-                <aside id="sound-remote" class="sound-remote surface-solid" hidden>
-                    <iframe id="sound-frame" title="Player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                    <p class="meta" id="sound-player-status" role="status" hidden></p>
-                    <a id="sound-external" class="btn btn-quiet btn-sm" target="_blank" rel="noopener"><i class="ph ph-arrow-square-out" aria-hidden="true"></i><span data-i18n="sound.open_provider">Abrir no serviço</span></a>
-                </aside>
 
                 <!-- Falhas: mensagem persistente com ação -->
                 <div class="today-alert" id="today-alert" hidden>
