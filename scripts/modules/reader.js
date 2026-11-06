@@ -1,7 +1,12 @@
 const ReaderSystem = {
     state: { size: 19, appearance: 'escuro' }, token: 0, active: null, custom: {}, returnRoute: 'rezar',
     async init() {
-        this.state = ReaderCore.preferences(await AsyncStorage.get('ora_reader_preferences', {}));
+        this.state = ReaderCore.preferences(await AsyncStorage.get(SettingsCore.READER_KEY, {}));
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'local' && changes[SettingsCore.READER_KEY]) {
+                this.applyPreferences(ReaderCore.preferences(changes[SettingsCore.READER_KEY].newValue || {}));
+            }
+        });
         window.addEventListener('pagehide', () => this.leave());
         this.cacheDOM(); this.bindEvents();
     },
@@ -96,21 +101,35 @@ const ReaderSystem = {
     async preference(changes) {
         if (!this.active || this.prefSaving) return;
         this.prefSaving = true;
+        const status = document.getElementById('reader-status');
+        status.textContent = t('pray.saving');
         try {
-            const ratio = this.ratio(), next = ReaderCore.preferences({ ...this.state, ...changes });
-            if (!await PrayUI.save('ora_reader_preferences',next,document.getElementById('reader-status'))) return;
-            this.state = next;
-            if (!this.active) return;
-            this.active.ready = false;
-            document.querySelector('.prayer-reader').dataset.appearance = next.appearance;
-            document.querySelector('.reading-inner').style.setProperty('--read-size', `${next.size / 16}rem`);
-            document.getElementById('reader-size').textContent = next.size;
-            for (const ap of ['escuro','papel']) document.getElementById('reader-' + ap).setAttribute('aria-pressed',ap === next.appearance);
-            await new Promise(resolve => requestAnimationFrame(resolve));
-            if (!this.active) return;
-            const s = this.active.scroll; s.scrollTop = ReaderCore.restore(ratio,s.scrollHeight,s.clientHeight);
-            this.active.ready = true; this.progress(ratio);
+            await SettingsSystem.setReader(changes);
+            status.textContent = t('pray.saved');
+        } catch (error) {
+            console.error('[Ora Reader]', error);
+            status.textContent = t('pray.error');
         } finally { this.prefSaving = false; }
+    },
+    applyPreferences(next) {
+        this.state = next;
+        const active = this.active;
+        if (!active) return;
+        const ratio = this.ratio();
+        const ready = active.ready;
+        active.ready = false;
+        document.querySelector('.prayer-reader').dataset.appearance = next.appearance;
+        document.querySelector('.reading-inner').style.setProperty('--read-size', (next.size / 16) + 'rem');
+        document.getElementById('reader-size').textContent = next.size;
+        for (const appearance of ['escuro', 'papel']) {
+            document.getElementById('reader-' + appearance).setAttribute('aria-pressed', appearance === next.appearance);
+        }
+        if (ready) {
+            const scroll = active.scroll;
+            scroll.scrollTop = ReaderCore.restore(ratio, scroll.scrollHeight, scroll.clientHeight);
+            active.ready = true;
+            this.progress(ratio);
+        }
     },
     renderGuide() {
         const u = PrayUI, step = this.lectio.step, names = ['Lectio','Meditatio','Oratio','Contemplatio'];

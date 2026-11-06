@@ -4,7 +4,7 @@
 // Conservative, last-write-wins sync for the data that makes sense to
 // follow the user across machines:
 //
-//   - Settings        (locale, name, prayer lang, reminder toggles)
+//   - Settings        (preferences with individual storage keys)
 //   - Blocker         (profiles/site list + lock config — NOT the enabled flag,
 //                      NOT daily counters, NOT timed-disable state)
 //   - Routine         (recurring task templates only — NOT one-off tasks,
@@ -27,11 +27,7 @@ const SyncSystem = {
     META_KEY: 'ora_sync_meta',
     TASKS_KEY: 'ora_tasks',
 
-    SETTINGS_KEYS: [
-        'ora_locale', 'ora_user_name', 'ora_prayer_lang',
-        'ora_reminder_carlo', 'ora_reminder_angelus', 'ora_reminder_mercy',
-        'ora_reminder_midday', 'ora_reminder_evening', 'ora_reminder_morning'
-    ],
+    SETTINGS_KEYS: SettingsCore.KEYS,
 
     _meta: {},
     _lastPushed: {},   // group → JSON string of last pushed/applied payload
@@ -206,9 +202,9 @@ const SyncSystem = {
             const local = await chrome.storage.local.get(this.SETTINGS_KEYS);
             const toWrite = {};
             for (const key of this.SETTINGS_KEYS) {
-                if (key in entry.data && JSON.stringify(local[key]) !== JSON.stringify(entry.data[key])) {
-                    toWrite[key] = entry.data[key];
-                }
+                if (!(key in entry.data)) continue;
+                const value = SettingsCore.sanitize(key, entry.data[key]);
+                if (local[key] !== value) toWrite[key] = value;
             }
             if (Object.keys(toWrite).length > 0) {
                 await chrome.storage.local.set(toWrite);
@@ -290,7 +286,7 @@ const SyncSystem = {
             const json = JSON.stringify(data);
             if (json === this._lastPushed[group]) return; // nothing new
 
-            const updatedAt = Date.now();
+            const updatedAt = Math.max(Date.now(), (this._meta[group] || 0) + 1);
             await chrome.storage.sync.set({
                 ['sync_' + group]: { v: this.VERSION, updatedAt, data }
             });

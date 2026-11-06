@@ -50,9 +50,8 @@ const LeaveGuard = {
         const transient = ['tasks-add-input', 'tasks-later-input', 'today-quick-input',
             'playlist-input', 'shortcut-name', 'shortcut-url', 'custom-profile-name', 'virtue-name'];
         let savedValue = null, currentSaved = null, trim = false;
-        const timerSetting = { 'setting-focus': 'focus', 'setting-pause': 'pause', 'setting-long-pause': 'longPause' }[id];
-        if (timerSetting) {
-            currentSaved = () => String(window.FocusSystem?.settings[timerSetting] ?? element.value);
+        if (id === 'setting-longPause') {
+            currentSaved = () => String(window.FocusSystem?.settings.longPause ?? element.value);
         } else if (id === 'settings-user-name') {
             trim = true;
             savedValue = (key, value) => key === 'ora_user_name' ? String(value) : undefined;
@@ -69,6 +68,14 @@ const LeaveGuard = {
         } else if (!transient.includes(id)) return; // Search/filter/preferences are not drafts.
         const read = () => trim ? element.value.trim() : element.value;
         this.fields.set(element, { read, baseline: read(), savedValue, currentSaved, lastSaved: 0, failed: false });
+    },
+
+    acceptField(element) {
+        const field = this.fields.get(element);
+        if (!field) return;
+        field.baseline = field.read();
+        field.failed = false;
+        this.refresh();
     },
 
     snapshot(root) {

@@ -327,6 +327,7 @@
             }
         }
 
+        if (OnboardingCore.isLegacy(snap)) set(OnboardingCore.UPDATE_KEY, true);
         set(SCHEMA_KEY, SCHEMA_VERSION);
         for (const k of Object.keys(changes)) removals.delete(k);
 

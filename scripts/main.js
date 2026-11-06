@@ -99,17 +99,8 @@ async function initApp() {
     // LOAD i18n LOCALE (must happen before any module init)
     // ============================================================
     try {
-        const savedLocale = await AsyncStorage.get('ora_locale', 'pt');
-        window._i18nLocale = savedLocale;
-        const [localeStrings, fallbackStrings] = await Promise.all([
-            loadJSON(`data/i18n/${savedLocale}.json`).catch(() => null),
-            savedLocale !== 'pt' ? loadJSON('data/i18n/pt.json').catch(() => ({})) : Promise.resolve(null)
-        ]);
-        window._i18nStrings = localeStrings || {};
-        window._i18nFallback = fallbackStrings || localeStrings || {};
-        if (savedLocale === 'pt') window._i18nFallback = window._i18nStrings;
-        applyI18n();
-        console.log(`[Ora] i18n loaded: ${savedLocale}`);
+        const savedLocale = SettingsCore.sanitize('ora_locale', await AsyncStorage.get('ora_locale', 'pt'));
+        await SettingsSystem.applyLocale(savedLocale, false);
     } catch (e) {
         console.warn('[Ora] i18n load failed, using defaults:', e);
     }

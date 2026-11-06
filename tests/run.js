@@ -21,6 +21,7 @@ const FILES = [
     'scripts/shared/tasks-core.js',
     'scripts/shared/sessions-core.js',
     'scripts/shared/counter-core.js',
+    'scripts/shared/onboarding-core.js',
     'scripts/shared/migrate-core.js',
     'scripts/shared/today-core.js',
     'scripts/shared/sound-core.js',
@@ -29,6 +30,7 @@ const FILES = [
     'scripts/shared/reader-core.js',
     'scripts/shared/rosary-core.js',
     'scripts/shared/liturgy-core.js',
+    'scripts/shared/settings-core.js',
     'scripts/shared/saints-core.js',
     'scripts/shared/bible-core.js',
     'scripts/shared/frutos-core.js',
@@ -58,6 +60,7 @@ const context = {
     },
     URL,
     URLSearchParams,
+    TextEncoder,
     setTimeout,
     clearTimeout
 };

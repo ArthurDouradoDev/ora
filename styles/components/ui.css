@@ -262,6 +262,18 @@
 .saved.show { opacity: 1; }
 .offline-tag { display: inline-flex; gap: 0.35rem; align-items: center; font-size: 0.8125rem; color: var(--text-3); }
 
+/* Avisos breves ficam fora do fluxo da tela. */
+#toast-container {
+    position: fixed; inset-inline-end: 1rem; bottom: 1rem; z-index: 950;
+    display: grid; gap: .5rem; max-width: min(26rem, calc(100% - 2rem)); pointer-events: none;
+}
+.toast {
+    display: flex; align-items: center; gap: .55rem; padding: .65rem .85rem;
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+}
+.toast-success i { color: var(--ok); }
+.toast-error i { color: var(--err); }
+
 /* ---------- Diálogo curto e popover ---------- */
 .scrim {
     position: fixed; inset: 0; z-index: 900;

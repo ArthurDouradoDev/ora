@@ -115,7 +115,13 @@ const FrutosSystem = {
         const watched = new Set(Object.values(this.KEYS));
         chrome.storage.onChanged.addListener((changes, area) => {
             if (area !== 'local') return;
-            let changed = false;
+            const cleared = !!changes.ora_reflections_cleared_at;
+            if (cleared) {
+                this.unsaved = {};
+                this.elements.reflection.value = '';
+                this.elements.saved.classList.remove('show');
+            }
+            let changed = cleared;
             for (const [key, change] of Object.entries(changes)) {
                 if (!watched.has(key)) continue;
                 const name = Object.keys(this.KEYS).find(k => this.KEYS[k] === key);

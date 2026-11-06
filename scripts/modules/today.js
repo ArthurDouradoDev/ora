@@ -328,6 +328,7 @@ const TodaySystem = {
                 this.dayIntention = SessionsCore.dayIntention(changes[this.INTENTION_KEY].newValue, new Date());
                 this.renderIntention();
             }
+            if (changes[this.PROTECT_PREF_KEY]) this.protectPref = changes[this.PROTECT_PREF_KEY].newValue !== false;
             if (changes[this.GOSPEL_KEY]) {
                 this.gospel = changes[this.GOSPEL_KEY].newValue || null;
                 if (window.RezarSystem) RezarSystem.cache = this.gospel;

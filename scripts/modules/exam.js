@@ -8,6 +8,12 @@ const ExamSystem = {
     cacheDOM() {},
     bindEvents() {
         document.getElementById('btn-exam')?.addEventListener('click', () => this.openExamTypeModal());
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area !== 'local' || changes.ora_exam_draft?.newValue !== null || this.busy) return;
+            this.draft = null;
+            const route = RouterSystem.current();
+            if (route.view === 'rezar' && route.path[0] === 'exame' && route.path[1]) RouterSystem.navigate('rezar/exame');
+        });
         window.addEventListener('ora:start-exam',e => { if (e.detail?.type) this.startExam(e.detail.type); });
     },
     openExamTypeModal() { RouterSystem.navigate('rezar/exame'); },

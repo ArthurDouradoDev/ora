@@ -25,7 +25,8 @@ const RespiroSystem = {
         switch (this.state.form) {
             case 'three': return Array.from({length:3},() => prayer('ave-maria'));
             case 'decade': return [prayer('pai-nosso'),...Array.from({length:10},() => prayer('ave-maria')),prayer('gloria')];
-            default: return [{ title:t('pray.' + this.state.form), text:t('pray.' + (this.state.form === 'rest' ? 'rest_text' : 'brief_text')), lang:window._i18nLocale }];
+            case 'rest': return [{ title: t('pray.rest'), text: t('pray.rest_text'), lang: getLocale() }];
+            default: return [{ title: t('pray.brief'), ...SettingsSystem.prayerText('pray', 'brief_text') }];
         }
     },
     render() {

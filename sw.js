@@ -5,6 +5,7 @@ importScripts(
     'scripts/shared/pomodoro-core.js',
     'scripts/shared/tasks-core.js',
     'scripts/shared/sessions-core.js',
+    'scripts/shared/onboarding-core.js',
     'scripts/shared/migrate-core.js',
     'scripts/shared/liturgy-core.js'
 );
@@ -26,17 +27,23 @@ const LITURGY_API = 'https://liturgia.up.railway.app/v2/';
 const GOSPEL_ALARM = 'gospel_daily_refresh';
 
 let gospelRefresh = null;
+let gospelRefreshForced = false;
 async function fetchLiturgyJSON(url) {
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!response.ok) throw new Error(`Liturgy HTTP ${response.status}`);
     return response.json();
 }
-function refreshGospelCache() {
-    if (gospelRefresh) return gospelRefresh;
+function refreshGospelCache(force = false) {
+    if (gospelRefresh) {
+        return force && !gospelRefreshForced
+            ? gospelRefresh.catch(() => {}).then(() => refreshGospelCache(true))
+            : gospelRefresh;
+    }
+    gospelRefreshForced = force;
     gospelRefresh = (async () => {
         const now = new Date(), dates = LiturgyCore.days(now), updates = {};
         const stored = await chrome.storage.local.get(GOSPEL_CACHE_KEY), cache = stored[GOSPEL_CACHE_KEY];
-        const missingPT = dates.filter(date => !LiturgyCore.read(cache,date,'pt')?.text);
+        const missingPT = dates.filter(date => force || !LiturgyCore.read(cache,date,'pt')?.text);
         if (missingPT.length) {
             try {
                 const json = await fetchLiturgyJSON(LITURGY_API + '?periodo=7');
@@ -77,7 +84,7 @@ function refreshGospelCache() {
             const latest = (await chrome.storage.local.get(GOSPEL_CACHE_KEY))[GOSPEL_CACHE_KEY];
             await chrome.storage.local.set({ [GOSPEL_CACHE_KEY]:LiturgyCore.merge(latest,updates,now) });
         }
-        return { success:true };
+        return { success: true, updatedPortuguese: dates.filter(date => updates[date]?.pt).length };
     })().finally(() => { gospelRefresh = null; });
     return gospelRefresh;
 }
@@ -87,14 +94,17 @@ chrome.runtime.onStartup.addListener(() => {
     refreshGospelCache().catch(err => console.warn('[SW Gospel]',err));
     ensureMigrated().then(() => syncBlockerRules()).catch(err => console.warn('[SW Blocker]', err));
 });
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(details => {
+    if (details.previousVersion === '1.1.5') {
+        chrome.storage.local.set({ [OnboardingCore.UPDATE_KEY]: true }).catch(err => console.warn('[SW Onboarding]', err));
+    }
     chrome.alarms.create(GOSPEL_ALARM,{ periodInMinutes:60 });
     refreshGospelCache().catch(err => console.warn('[SW Gospel]',err));
     ensureMigrated().then(() => syncBlockerRules()).catch(err => console.warn('[SW Blocker]', err));
 });
 chrome.runtime.onMessage.addListener((message,sender,sendResponse) => {
     if (message?.type !== 'liturgy:refresh') return;
-    refreshGospelCache().then(sendResponse).catch(err => sendResponse({error:err.message}));
+    refreshGospelCache(message.force === true).then(sendResponse).catch(err => sendResponse({error:err.message}));
     return true;
 });
 
@@ -1266,6 +1276,7 @@ async function stFireReflection(moment) {
     await stMarkShown(moment);
 
     const locale = await stGetLocale();
+    const { ora_notification_sound } = await chrome.storage.local.get('ora_notification_sound');
     const strings = (ST_NOTIF_STRINGS[locale] || ST_NOTIF_STRINGS.pt)[moment];
     try {
         chrome.notifications.create(`ora_reflect_${moment}`, {
@@ -1273,7 +1284,8 @@ async function stFireReflection(moment) {
             iconUrl: chrome.runtime.getURL('assets/icon.png'),
             title: strings.title,
             message: strings.message,
-            priority: 2
+            priority: 2,
+            silent: ora_notification_sound !== true
         });
     } catch (e) {
         console.error('[SW ScreenTime] Failed to create notification:', e);

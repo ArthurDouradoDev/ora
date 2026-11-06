@@ -35,7 +35,7 @@ html[data-view="rezar"] .topbar {
     display: flex; align-items: center; justify-content: center;
     min-width: 2.75rem; min-height: 2.5rem;
     padding: 10px 12px;
-    font: inherit; font-size: 1.1rem; line-height: normal;
+    font: inherit; font-size: 1.1rem; line-height: normal; text-decoration: none;
     color: var(--text); cursor: pointer;
     background: rgba(20, 20, 20, 0.4);
     -webkit-backdrop-filter: blur(12px);

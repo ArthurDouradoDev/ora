@@ -7,6 +7,8 @@ window._i18nStrings = {};
 window._i18nFallback = {};
 window._i18nLocale = 'pt';
 
+function getLocale() { return window._i18nLocale; }
+
 /**
  * Get a translated string by dot-notation key.
  * Supports template interpolation: t('toast.link_name_max', { max: 20 })
@@ -53,6 +55,7 @@ window.t = t;
  * - data-i18n-html="key" → sets innerHTML (for elements with icons)
  */
 function applyI18n() {
+    document.title = t('main.new_tab_title');
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (key) el.textContent = t(key);
@@ -226,13 +229,14 @@ function showToast(message, type = 'success') {
     else if (type === 'error') icon = 'ph-warning-circle';
     else icon = 'ph-info';
 
-    toast.innerHTML = `<i class="ph ${icon}"></i><span>${message}</span>`;
+    const indicator = document.createElement('i');
+    indicator.className = 'ph ' + icon;
+    indicator.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.textContent = message;
+    toast.append(indicator, text);
     container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('hide');
-        toast.addEventListener('animationend', () => toast.remove());
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // Expose globally (explicitly, though const/function in root scope usually does this in non-module scripts)

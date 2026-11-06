@@ -23,6 +23,7 @@ const TaskSystem = {
     init: async function() {
         this.cacheDOM();
         this.bindEvents();
+        window.addEventListener('ora:locale-changed', () => this.renderLocale());
         await this.loadData();
         await this.applyDayRollover();
         this.render();
@@ -391,6 +392,34 @@ const TaskSystem = {
     },
 
     // --- Render ---
+
+    renderLocale: function() {
+        const selector = '.task-edit';
+        const editor = document.querySelector(selector);
+        const fields = editor ? [...editor.querySelectorAll('input, button')] : [];
+        const focused = fields.indexOf(document.activeElement);
+        const selection = focused >= 0 ? [fields[focused].selectionStart, fields[focused].selectionEnd] : null;
+
+        this.render();
+
+        const updated = document.querySelector(selector);
+        if (!editor || !updated) return;
+        const controls = [...updated.querySelectorAll('input, button')];
+        controls.forEach((control, i) => {
+            const previous = fields[i];
+            if (!previous) return;
+            if (control.type === 'checkbox') control.checked = previous.checked;
+            else if (control.tagName === 'INPUT') control.value = previous.value;
+            else if (previous.hasAttribute('aria-pressed')) control.setAttribute('aria-pressed', previous.getAttribute('aria-pressed'));
+        });
+        const repeat = updated.querySelector('[name="repeat"]');
+        if (repeat) updated.querySelector('.days').hidden = !repeat.checked;
+        const target = controls[focused];
+        if (target) {
+            target.focus({ preventScroll: true });
+            if (selection[0] !== null && selection[0] !== undefined) target.setSelectionRange(...selection);
+        }
+    },
 
     render: function() {
         const visible = TasksCore.visibleTasks(this.tasks);

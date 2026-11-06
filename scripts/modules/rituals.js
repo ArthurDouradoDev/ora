@@ -57,7 +57,12 @@ const RitualsSystem = {
             if (area !== 'local') return;
             let refresh = false;
             if (changes[this.KEYS.rituals]) { this.rituals = changes[this.KEYS.rituals].newValue || {}; refresh = true; }
-            if (changes[this.KEYS.drafts] && !this.kind) { this.drafts = changes[this.KEYS.drafts].newValue || {}; refresh = true; }
+            const drafts = changes[this.KEYS.drafts];
+            if (drafts && (!this.kind || (this.kind === 'noite' && drafts.oldValue?.noite && !drafts.newValue?.noite))) {
+                this.drafts = drafts.newValue || {};
+                if (this.kind === 'noite' && !this.busy && !this.finished) this.close({ saveDraft: false });
+                refresh = true;
+            }
             if (changes[this.KEYS.sessions]) { this.sessions = changes[this.KEYS.sessions].newValue || []; refresh = true; }
             if (changes[this.KEYS.blocker]) this.blockerConfig = changes[this.KEYS.blocker].newValue || null;
             // Outra aba concluiu o ritual aberto aqui
@@ -66,6 +71,9 @@ const RitualsSystem = {
             if (refresh && window.ReminderSystem) ReminderSystem.refresh();
         });
         window.addEventListener('ora:locale-changed', () => { if (this.kind) this.render(); });
+        window.addEventListener('ora:settings-changed', event => {
+            if (event.detail.key === 'prayerLang' && this.kind === 'noite' && this.state?.step === 2) this.render();
+        });
     },
 
     // --- Convites ---
@@ -428,12 +436,12 @@ const RitualsSystem = {
             return;
         }
 
-        const lines = t('rituals.n_prayer');
+        const { text: lines, lang } = SettingsSystem.prayerText('rituals', 'n_prayer');
         const prayer = (Array.isArray(lines) ? lines : [String(lines)]).map(line => e(line)).join('<br>');
         const protect = this.protectionText();
         card.innerHTML = `<p class="label ritual-center">${e(t('rituals.n_closing_label'))}</p>
             <h2 class="sr-only" id="ritual-q">${e(t('rituals.n_closing_label'))}</h2>
-            <p class="prayer-short" lang="${e(window._i18nLocale || 'pt')}">${prayer}</p>
+            <p class="prayer-short" lang="${e(lang)}">${prayer}</p>
             ${protect ? `<div class="banner info"><i class="ph ph-moon" aria-hidden="true"></i><div>${e(protect)}</div></div>` : ''}
             <div class="banner err" id="ritual-error" role="alert" hidden><i class="ph ph-warning-circle" aria-hidden="true"></i><div><strong>${e(t('rituals.save_failed'))}</strong><span>${e(t('rituals.save_failed_detail'))}</span></div></div>
             ${this.actions([

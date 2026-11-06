@@ -351,7 +351,7 @@ function check(name, condition) {
         const fixture115 = JSON.parse(fs.readFileSync(path.join(root, 'tests', 'fixtures', 'storage-1.1.5.json'), 'utf8'));
         await sw.evaluate(async (fixture) => {
             await chrome.storage.local.clear();
-            await chrome.storage.local.set(Object.assign({}, fixture, { ora_onboarding_done: true }));
+            await chrome.storage.local.set(Object.assign({}, fixture, { ora_onboarding_done: true, ora_onboarding_v1_done: true }));
             migrationPromise = null;
             await ensureMigrated();
             await syncBlockerRules();

@@ -1237,6 +1237,59 @@
     assertEq('WAV de silêncio tem cabeçalho e amostras neutras',
         [header, wav.length, wav[44], wav[wav.length - 1]], ['RIFFWAVE', 44 + 4000, 128, 128]);
 
+    group('SettingsCore — preferências e dados');
+    const preferences = SettingsCore;
+    assertEq('preferências ausentes recebem os padrões', [
+        preferences.sanitize('ora_locale'), preferences.sanitize('ora_prayer_lang'), preferences.sanitize('ora_show_saint'),
+        preferences.sanitize('ora_reduce_motion'), preferences.sanitize('ora_notification_sound')
+    ], ['pt', 'pt', true, false, false]);
+    assertEq('idioma de oração pode ser latim, idioma da interface não', [
+        preferences.sanitize('ora_locale', 'la'), preferences.sanitize('ora_prayer_lang', 'la')
+    ], ['pt', 'la']);
+    assertEq('durações fora das opções voltam ao padrão', [
+        preferences.duration('focus', 42), preferences.duration('pause', '999'), preferences.duration('longPause', -2)
+    ], [25, 5, 15]);
+    assertEq('durações válidas são aceitas', [
+        preferences.duration('focus', '90'), preferences.duration('pause', 10), preferences.duration('longPause', 20)
+    ], [90, 10, 20]);
+    const savedData = {
+        ora_tasks: [{ id: 'a' }], ora_sessions: [{ id: 'b' }], ora_reflections: [{ text: 'Reflexão' }],
+        blocker_config: { profiles: [{ id: 'p', sites: ['example.com'], tempAccess: { count: 2 } }] },
+        liturgy_gospel_cache: { fake: true }, ora_sync_meta: { settings: 1 }, catholic_dash_image: 'cache'
+    };
+    const exported = preferences.exportData(savedData, new Date('2026-11-06T10:00:00Z')).data;
+    assertEq('exporta tarefas, sessões, reflexões e perfis', [
+        exported.ora_tasks, exported.ora_sessions, exported.ora_reflections, exported.blocker_config.profiles.map(p => p.id)
+    ], [savedData.ora_tasks, savedData.ora_sessions, savedData.ora_reflections, ['p']]);
+    assert('exportação exclui caches, metadados de sincronização e desbloqueios temporários',
+        !('liturgy_gospel_cache' in exported) && !('ora_sync_meta' in exported) &&
+        !('catholic_dash_image' in exported) && !('tempAccess' in exported.blocker_config.profiles[0]));
+    const cleaned = preferences.clearReflections({
+        ora_rituals: { '2026-11-06': { manha: { doneAt: 1 }, noite: { doneAt: 2, gratitude: 'x', reflection: 'y' } } },
+        ora_ritual_draft: { manha: { step: 1 }, noite: { answers: ['x'] } },
+        ora_exam_logs: [{ id: 'x', type: 'night', date: '2026-11-06', answers: ['x'] }]
+    });
+    assertEq('exclui respostas e rascunhos preservando conclusões', cleaned, {
+        ora_reflections: [], ora_rituals: { '2026-11-06': { manha: { doneAt: 1 }, noite: { doneAt: 2 } } },
+        ora_ritual_draft: { manha: { step: 1 } },
+        ora_exam_logs: [{ id: 'x', type: 'night', date: '2026-11-06T00:00:00.000Z' }], ora_exam_draft: null
+    });
+    const offlineDate = new Date(2026, 10, 6);
+    const offlineDay = LiturgyCore.dateKey(offlineDate);
+    const offlineCache = LiturgyCore.merge(null, { [offlineDay]: { pt: { date: offlineDay, text: 'João', ref: 'Jo 1' } } }, offlineDate);
+    const offline = preferences.offlineInfo(offlineCache, offlineDate);
+    assertEq('cache offline conta somente os dias com texto', [offline.available, offline.total], [1, 7]);
+    assert('tamanho usa bytes UTF-8', offline.bytes > JSON.stringify(offlineCache).length);
+
+    group('OnboardingCore — instalação e atualização');
+    assertEq('instalação limpa apresenta as cinco etapas', OnboardingCore.mode({ ora_schema_version: 2 }), 'full');
+    const old = { ora_onboarding_done: true, ora_focus_settings: '{"focus":25}' };
+    const upgraded = MigrateCore.apply(old, MigrateCore.migrate(old));
+    assertEq('atualização conserva a indicação depois da migração', OnboardingCore.mode(upgraded), 'update');
+    assertEq('concluído não abre novamente', OnboardingCore.mode({ ...upgraded, [OnboardingCore.DONE_KEY]: true }), null);
+    assertEq('exame atual não é confundido com atualização da 1.1.5',
+        OnboardingCore.mode({ ora_onboarding_done: true, ora_schema_version: 2, 'ora_exam_done_Fri Nov 06 2026': true }), null);
+
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;
 

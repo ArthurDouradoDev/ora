@@ -7,7 +7,7 @@
 (function (global) {
     'use strict';
 
-    const VIEWS = ['hoje', 'rezar', 'frutos', 'protecao'];
+    const VIEWS = ['hoje', 'rezar', 'frutos', 'protecao', 'configuracoes'];
     const DEFAULT_VIEW = 'hoje';
 
     function normalizeViews(views) {

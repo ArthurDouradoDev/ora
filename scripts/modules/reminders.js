@@ -156,7 +156,7 @@ const ReminderSystem = {
         const key = 'angelus_notif_' + invite.window + '_' + new Date().toDateString();
         if (await AsyncStorage.get(key)) return; // Already sent
         try {
-            new Notification(t('invites.angelus_title'), { body: t('invites.angelus_notification'), icon: 'assets/icon.png' });
+            new Notification(t('invites.angelus_title'), { body: t('invites.angelus_notification'), icon: 'assets/icon.png', silent: !SettingsSystem.get('ora_notification_sound') });
             await AsyncStorage.set(key, 'true');
         } catch (e) {
             console.warn('[Ora] Notification failed:', e);

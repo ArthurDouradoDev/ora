@@ -30,8 +30,7 @@
     <link rel="stylesheet" href="styles/layout/shell.css">
     <link rel="stylesheet" href="styles/modules/protecao.css">
     <link rel="stylesheet" href="styles/modules/sound.css">
-    <link rel="stylesheet" href="styles/modules/settings.css">
-    <link rel="stylesheet" href="styles/modules/onboarding.css">
+    <link rel="stylesheet" href="styles/modules/preferences.css">
     <link rel="stylesheet" href="styles/modules/today.css">
     <link rel="stylesheet" href="styles/modules/frutos.css">
     <link rel="stylesheet" href="styles/components/loading.css">
@@ -68,7 +67,7 @@
                     <button type="button" class="btn btn-aux btn-sm" id="protection-manage" data-i18n="protection.manage">Gerenciar proteção</button>
                 </div>
             </div>
-            <button type="button" class="settings-btn" id="btn-settings" aria-label="Configurações" data-i18n-aria-label="settings.title" title="Configurações" data-i18n-title="settings.title"><i class="ph ph-gear" aria-hidden="true"></i></button>
+            <a href="#configuracoes" data-route="configuracoes" class="settings-btn" id="btn-settings" aria-label="Configurações" data-i18n-aria-label="settings.title" title="Configurações" data-i18n-title="settings.title"><i class="ph ph-gear" aria-hidden="true"></i></a>
         </div>
     </header>
 
@@ -394,6 +393,21 @@
             </div>
         </div>
     </main>
+    <main class="view view-settings" id="view-configuracoes" data-view="configuracoes" hidden>
+        <div class="preferences-wrap">
+            <header class="preferences-heading">
+                <h1 tabindex="-1" data-route-focus data-i18n="settings.title">Configurações</h1>
+                <a class="btn btn-quiet" href="#protecao" data-route="protecao">
+                    <span data-i18n="preferences.protection">Proteção</span><i class="ph ph-arrow-up-right" aria-hidden="true"></i>
+                </a>
+            </header>
+            <div class="preferences-layout">
+                <nav class="preferences-nav" id="settings-nav" data-i18n-aria-label="preferences.sections" aria-label="Seções"></nav>
+                <div class="preferences-panels" id="settings-panels"></div>
+            </div>
+        </div>
+    </main>
+
     <!-- Proteção: resumo por perfil, editor integrado e prévia (Fase 4) -->
     <main class="view view-protecao" id="view-protecao" data-view="protecao" hidden>
         <div class="protecao-body">
@@ -774,308 +788,93 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="glass-panel modal modal-center modal-scale" style="display: none;">
-        <div class="modal-header">
-            <h3 data-i18n="settings.title">Configurações</h3>
-            <button id="close-settings-btn" class="icon-btn"><i class="ph ph-x"></i></button>
-        </div>
-
-        <!-- Language -->
-        <div class="settings-section">
-            <h4 class="settings-section-title" data-i18n="settings.language_label">Idioma</h4>
-            <div class="settings-row">
-                <select id="settings-locale" class="settings-select">
-                    <option value="pt">Português</option>
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                </select>
+    <div class="scrim" id="settings-delete-dialog" data-dismiss-on-scrim="false" hidden>
+        <div class="dialog surface-solid" role="alertdialog" aria-modal="true" aria-labelledby="settings-delete-title" aria-describedby="settings-delete-description">
+            <h2 id="settings-delete-title" data-i18n="preferences.delete"></h2>
+            <p id="settings-delete-description" class="meta" data-i18n="preferences.delete_confirm"></p>
+            <p id="settings-delete-status" class="meta" role="status"></p>
+            <div class="row">
+                <button type="button" class="btn btn-aux" data-dialog-close data-i18n="preferences.cancel"></button>
+                <button type="button" class="btn btn-danger" id="settings-delete-confirm" data-i18n="preferences.action_delete_confirm"></button>
             </div>
-        </div>
-
-        <!-- User Name -->
-        <div class="settings-section">
-            <h4 class="settings-section-title" data-i18n="settings.name_label">Seu nome</h4>
-            <div class="settings-row">
-                <input type="text" id="settings-user-name" placeholder="Seu nome..." maxlength="30" data-i18n-placeholder="settings.name_placeholder">
-            </div>
-        </div>
-
-        <!-- Default Prayer Language -->
-        <div class="settings-section">
-            <h4 class="settings-section-title" data-i18n="settings.prayer_lang_label">Idioma padrão das orações</h4>
-            <div class="settings-row">
-                <div class="lang-toggle">
-                    <button class="lang-btn" data-prayer-lang="pt" data-i18n="prayers.lang_portuguese">Português</button>
-                    <button class="lang-btn" data-prayer-lang="la" data-i18n="prayers.lang_latin">Latim</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reminder Toggles -->
-        <div class="settings-section">
-            <h4 class="settings-section-title" data-i18n="settings.reminders_label">Lembretes</h4>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_carlo">Oração ao abrir (Carlo Acutis)</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-carlo" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_angelus">Angelus</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-angelus" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_mercy">Hora da Misericórdia</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-mercy" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_midday">Exame Meridiano</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-midday" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_morning">Convite para começar o dia (manhã)</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-morning" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_evening">Exame Noturno</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-evening" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="settings.reminder_screentime">Reflexão sobre tempo de tela (13h e 19h)</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-reminder-screentime" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- Focus (moved from the old fullscreen timer until phase 7) -->
-        <div class="settings-section">
-            <h4 class="settings-section-title" data-i18n="focus.settings_title">Foco</h4>
-            <div class="settings-row settings-toggle-row">
-                <label for="setting-focus" data-i18n="focus.setting_focus_min">Duração padrão (min)</label>
-                <input type="number" id="setting-focus" class="settings-number" min="1" max="120" value="25">
-            </div>
-            <div class="settings-row settings-toggle-row">
-                <label for="setting-pause" data-i18n="focus.setting_pause_min">Pausa curta (min)</label>
-                <input type="number" id="setting-pause" class="settings-number" min="1" max="30" value="5">
-            </div>
-            <div class="settings-row settings-toggle-row">
-                <label for="setting-long-pause" data-i18n="focus.setting_long_pause_min">Pausa longa (min)</label>
-                <input type="number" id="setting-long-pause" class="settings-number" min="1" max="60" value="15">
-            </div>
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="focus.setting_sound">Som ao terminar</span>
-                <label class="switch"><input type="checkbox" id="setting-sound" checked><span class="slider round"></span></label>
-            </div>
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="focus.setting_auto_next">Avançar automaticamente</span>
-                <label class="switch"><input type="checkbox" id="setting-auto-next"><span class="slider round"></span></label>
-            </div>
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="focus.setting_continuous_alarm">Alarme contínuo</span>
-                <label class="switch"><input type="checkbox" id="setting-continuous-alarm"><span class="slider round"></span></label>
-            </div>
-            <div class="settings-row settings-toggle-row">
-                <span data-i18n="focus.setting_wake_lock">Manter a tela acesa</span>
-                <label class="switch"><input type="checkbox" id="setting-wake-lock"><span class="slider round"></span></label>
-            </div>
-        </div>
-
-        <!-- Replay Onboarding -->
-        <div class="settings-section">
-            <button id="settings-replay-onboarding" class="settings-replay-btn">
-                <i class="ph ph-presentation"></i>
-                <span data-i18n="onboarding.settings_replay">Rever apresentação inicial</span>
-            </button>
         </div>
     </div>
 
-    <!-- Onboarding (first run) -->
-    <div id="onboarding-overlay">
-        <div class="onboarding-card">
-            <button id="onboarding-skip" class="onboarding-skip" data-i18n="onboarding.btn_skip">Pular apresentação</button>
-
-            <!-- Step 1: Language -->
-            <div class="onboarding-step active" data-step="0">
-                <img src="assets/icon.png" alt="Ora" class="onboarding-logo">
-                <h2 class="onboarding-title" data-i18n="onboarding.language_title">Bem-vindo ao Ora</h2>
-                <p class="onboarding-subtitle" data-i18n="onboarding.language_subtitle">Em qual idioma você prefere usar o Ora?</p>
-                <div class="onboarding-step-body">
-                    <div class="onboarding-lang-grid">
-                        <button class="onboarding-lang-card selected" data-locale="pt"><span class="onboarding-lang-flag">🇧🇷</span> Português</button>
-                        <button class="onboarding-lang-card" data-locale="en"><span class="onboarding-lang-flag">🇺🇸</span> English</button>
-                        <button class="onboarding-lang-card" data-locale="es"><span class="onboarding-lang-flag">🇪🇸</span> Español</button>
-                    </div>
-                </div>
+    <div class="scrim" id="onboarding-dialog" data-dismiss-on-scrim="false" hidden>
+        <div class="dialog surface-solid intro-dialog" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+            <div class="intro-head">
+                <span class="label" id="intro-title" data-i18n="introduction.label"></span>
+                <span class="meta" id="intro-progress"></span>
             </div>
-
-            <!-- Step 2: Name -->
-            <div class="onboarding-step" data-step="1">
-                <h2 class="onboarding-title" data-i18n="onboarding.name_title">Como podemos te chamar?</h2>
-                <p class="onboarding-subtitle" data-i18n="onboarding.name_subtitle">Seu nome aparecerá nas saudações diárias. Você pode deixar em branco, se preferir.</p>
-                <div class="onboarding-step-body">
-                    <i class="ph ph-hand-waving onboarding-name-icon"></i>
-                    <input type="text" id="onboarding-name-input" class="onboarding-name-input" maxlength="30" placeholder="Seu nome..." data-i18n-placeholder="onboarding.name_placeholder">
-                    <p id="onboarding-name-preview" class="onboarding-name-preview"></p>
-                </div>
-            </div>
-
-            <!-- Step 3: Features tour -->
-            <div class="onboarding-step" data-step="2">
-                <h2 class="onboarding-title" data-i18n="onboarding.features_title">O que o Ora oferece</h2>
-                <p class="onboarding-subtitle" data-i18n="onboarding.features_subtitle">Cada nova aba é um convite à oração e ao foco.</p>
-                <div class="onboarding-step-body">
-                <div class="onboarding-features-grid">
-                    <div class="onboarding-feature">
-                        <i class="ph ph-timer"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_focus_title">Pomodoro</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_focus_desc">Ciclos de foco e pausa, com sons ambiente e ofertas de intenção.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-shield-slash"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_blocker_title">Bloqueador de Sites</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_blocker_desc">Bloqueie distrações, com modo foco e fricção para desbloquear.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-cross"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_rosary_title">Terço Interativo</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_rosary_desc">Reze o terço conta a conta, com os mistérios de cada dia.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-hands-praying"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_prayers_title">Orações</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_prayers_desc">Biblioteca de orações com busca, em português e latim.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-heart"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_exam_title">Exame de Consciência</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_exam_desc">Exames guiados para o meio-dia e o fim do dia.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-book-open-text"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_liturgy_title">Liturgia Diária</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_liturgy_desc">Evangelho do dia e acesso rápido à Bíblia.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-music-notes"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_music_title">Música</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_music_desc">Playlists de YouTube e Spotify para acompanhar o estudo.</p>
-                        </div>
-                    </div>
-                    <div class="onboarding-feature">
-                        <i class="ph ph-check-square"></i>
-                        <div>
-                            <p class="onboarding-feature-title" data-i18n="onboarding.feature_tasks_title">Tarefas</p>
-                            <p class="onboarding-feature-desc" data-i18n="onboarding.feature_tasks_desc">Planeje o dia com ritual matinal, rotinas e sequências.</p>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-
-            <!-- Step 4: Preferences -->
-            <div class="onboarding-step" data-step="3">
-                <h2 class="onboarding-title" data-i18n="onboarding.prefs_title">Ajuste sua experiência</h2>
-                <p class="onboarding-subtitle" data-i18n="onboarding.prefs_subtitle">Tudo isso pode ser alterado depois nas configurações.</p>
-                <div class="onboarding-step-body">
-                <div class="onboarding-prefs">
-                    <div class="settings-section">
-                        <h4 class="settings-section-title" data-i18n="onboarding.prefs_prayer_lang">Idioma das orações</h4>
-                        <div class="settings-row">
-                            <div class="lang-toggle">
-                                <button class="lang-btn active" data-ob-prayer-lang="pt" data-i18n="prayers.lang_portuguese">Português</button>
-                                <button class="lang-btn" data-ob-prayer-lang="la" data-i18n="prayers.lang_latin">Latim</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h4 class="settings-section-title" data-i18n="onboarding.prefs_reminders">Lembretes</h4>
-                        <div class="settings-row settings-toggle-row">
-                            <span data-i18n="settings.reminder_carlo">Oração ao abrir (Carlo Acutis)</span>
-                            <label class="switch"><input type="checkbox" id="ob-reminder-carlo" checked><span class="slider round"></span></label>
-                        </div>
-                        <div class="settings-row settings-toggle-row">
-                            <span data-i18n="settings.reminder_angelus">Angelus</span>
-                            <label class="switch"><input type="checkbox" id="ob-reminder-angelus" checked><span class="slider round"></span></label>
-                        </div>
-                        <div class="settings-row settings-toggle-row">
-                            <span data-i18n="settings.reminder_mercy">Hora da Misericórdia</span>
-                            <label class="switch"><input type="checkbox" id="ob-reminder-mercy" checked><span class="slider round"></span></label>
-                        </div>
-                        <div class="settings-row settings-toggle-row">
-                            <span data-i18n="settings.reminder_midday">Exame Meridiano</span>
-                            <label class="switch"><input type="checkbox" id="ob-reminder-midday" checked><span class="slider round"></span></label>
-                        </div>
-                        <div class="settings-row settings-toggle-row">
-                            <span data-i18n="settings.reminder_evening">Exame Noturno</span>
-                            <label class="switch"><input type="checkbox" id="ob-reminder-evening" checked><span class="slider round"></span></label>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-
-            <!-- Step 5: Done -->
-            <div class="onboarding-step" data-step="4">
-                <div class="onboarding-step-body">
-                    <i class="ph ph-hands-praying onboarding-done-icon"></i>
-                    <h2 class="onboarding-title" data-i18n="onboarding.done_title">Tudo pronto!</h2>
-                    <p class="onboarding-subtitle" data-i18n="onboarding.done_subtitle">Que cada nova aba seja uma oportunidade de rezar e focar no que importa.</p>
-                    <p class="onboarding-done-quote" data-i18n="onboarding.done_quote">"Ora et labora." — São Bento</p>
-                </div>
-            </div>
-
-            <!-- Footer: progress dots + navigation -->
-            <div class="onboarding-footer">
-                <div class="onboarding-dots" id="onboarding-dots"></div>
-                <div class="onboarding-nav">
-                    <button id="onboarding-back" class="onboarding-btn onboarding-btn-ghost" style="display: none;" data-i18n="onboarding.btn_back">Voltar</button>
-                    <button id="onboarding-next" class="onboarding-btn onboarding-btn-primary">Continuar</button>
-                </div>
+            <section class="intro-step" data-intro-step hidden>
+                <h2 tabindex="-1" data-i18n="onboarding.language_title"></h2>
+                <p class="meta" data-i18n="introduction.identity"></p>
+                <label class="field">
+                    <span data-i18n="preferences.interface_language"></span>
+                    <select class="input" id="intro-locale">
+                        <option value="pt">Português</option>
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span data-i18n="settings.name_label"></span>
+                    <input class="input" type="text" id="intro-name" maxlength="30" autocomplete="given-name">
+                </label>
+            </section>
+            <section class="intro-step" data-intro-step hidden>
+                <h2 tabindex="-1" data-i18n="introduction.tour"></h2>
+                <ul class="intro-features">
+                    <li><i class="ph ph-sun-horizon" aria-hidden="true"></i><b data-i18n="nav.today"></b><p class="meta" data-i18n="introduction.today"></p></li>
+                    <li><i class="ph ph-hands-praying" aria-hidden="true"></i><b data-i18n="nav.pray"></b><p class="meta" data-i18n="introduction.pray"></p></li>
+                    <li><i class="ph ph-plant" aria-hidden="true"></i><b data-i18n="nav.fruits"></b><p class="meta" data-i18n="introduction.fruits"></p></li>
+                    <li><i class="ph ph-shield-check" aria-hidden="true"></i><b data-i18n="preferences.protection"></b><p class="meta" data-i18n="introduction.protection"></p></li>
+                </ul>
+            </section>
+            <section class="intro-step" data-intro-step hidden>
+                <h2 tabindex="-1" data-i18n="introduction.sites"></h2>
+                <p class="meta" data-i18n="introduction.sites_hint"></p>
+                <p class="meta" id="intro-protection-locked" data-i18n="introduction.protection_locked" hidden></p>
+                <div class="intro-options" id="intro-profiles"></div>
+                <label class="field">
+                    <span data-i18n="introduction.other_sites"></span>
+                    <input class="input" type="text" id="intro-sites" inputmode="url" maxlength="500" placeholder="example.com" autocomplete="off">
+                </label>
+            </section>
+            <section class="intro-step" data-intro-step hidden>
+                <h2 tabindex="-1" data-i18n="preferences.reminders"></h2>
+                <p class="meta" data-i18n="introduction.reminders_hint"></p>
+                <div class="intro-options" id="intro-reminders"></div>
+            </section>
+            <section class="intro-step" data-intro-step hidden>
+                <h2 tabindex="-1" data-i18n="introduction.permissions"></h2>
+                <ul class="intro-permissions meta">
+                    <li data-i18n="introduction.permissions_storage"></li>
+                    <li data-i18n="introduction.permissions_sites"></li>
+                    <li data-i18n="introduction.permissions_timer"></li>
+                </ul>
+            </section>
+            <section class="intro-step" data-intro-update hidden>
+                <h2 tabindex="-1" data-i18n="introduction.update_title"></h2>
+                <p class="meta" data-i18n="introduction.update_body"></p>
+                <ul class="intro-permissions meta">
+                    <li data-i18n="introduction.update_today"></li>
+                    <li data-i18n="introduction.update_pray"></li>
+                    <li data-i18n="introduction.update_fruits"></li>
+                    <li data-i18n="introduction.update_protection"></li>
+                </ul>
+            </section>
+            <p class="meta" id="intro-status" role="status"></p>
+            <div class="intro-footer">
+                <button class="btn btn-quiet" type="button" id="intro-skip" data-i18n="onboarding.btn_skip"></button>
+                <button class="btn btn-aux" type="button" id="intro-back" data-i18n="onboarding.btn_back" hidden></button>
+                <button class="btn btn-primary" type="button" id="intro-next"></button>
             </div>
         </div>
     </div>
 
     <!-- Toast Container -->
-    <div id="toast-container"></div>
+    <div id="toast-container" role="status"></div>
 
     <!-- Seus atalhos -->
     <div class="scrim" id="shortcuts-dialog" hidden>
@@ -1128,6 +927,7 @@
     <script src="scripts/shared/tasks-core.js" defer></script>
     <script src="scripts/shared/sessions-core.js" defer></script>
     <script src="scripts/shared/counter-core.js" defer></script>
+    <script src="scripts/shared/onboarding-core.js" defer></script>
     <script src="scripts/shared/migrate-core.js" defer></script>
     <script src="scripts/shared/sound-core.js" defer></script>
     <script src="scripts/shared/today-core.js" defer></script>
@@ -1135,6 +935,7 @@
     <script src="scripts/shared/search-core.js" defer></script>
     <script src="scripts/shared/reader-core.js" defer></script>
     <script src="scripts/shared/rosary-core.js" defer></script>
+    <script src="scripts/shared/settings-core.js" defer></script>
     <script src="scripts/shared/liturgy-core.js" defer></script>
     <script src="scripts/shared/saints-core.js" defer></script>
     <script src="scripts/shared/bible-core.js" defer></script>

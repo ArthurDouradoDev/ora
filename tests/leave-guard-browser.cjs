@@ -52,6 +52,13 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         check('opening an unchanged editor is clean', !await protectedNow());
         await page.locator('.task-edit input[name=title]').fill('Titulo alterado');
         check('task editor changes are protected', await protectedNow());
+        const draftTitle = await page.locator('.task-edit [name="title"]').inputValue();
+        await page.evaluate(() => SettingsSystem.set('ora_locale', 'en'));
+        await page.waitForFunction(() => document.documentElement.lang === 'en');
+        check('live translation preserves the task draft and warning',
+            await page.locator('.task-edit [name="title"]').inputValue() === draftTitle && await protectedNow());
+        await page.evaluate(() => SettingsSystem.set('ora_locale', 'pt'));
+        await page.waitForFunction(() => document.documentElement.lang === 'pt-BR');
         const dialogSeen = new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Native beforeunload dialog did not appear')), 5000);
             page.once('dialog', async dialog => {
@@ -91,7 +98,7 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         check('paused or ended audio is clean', !await protectedNow());
         await page.evaluate(() => { SoundSystem.active = null; LeaveGuard.refresh(); });
         // Exercise the actual persistence hook with writes completing after newer typing.
-        await page.evaluate(() => { document.getElementById('settings-modal').style.display = 'block'; });
+        await page.locator('#btn-settings').click();
         await page.locator('#settings-user-name').focus();
         const race = await page.evaluate(() => {
             const field = document.getElementById('settings-user-name');
@@ -113,9 +120,9 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         check('successful retry removes protection', race.clean);
         await page.locator('#settings-user-name').fill('Nome gravado');
         check('debounced name edit is protected before saving', await protectedNow());
-        await page.waitForFunction(() => SettingsSystem.state.userName === 'Nome gravado' && !LeaveGuard.pendingWrites);
+        await page.waitForFunction(() => SettingsSystem.getUserName() === 'Nome gravado' && !LeaveGuard.pendingWrites);
         check('real autosave removes confirmation', !await protectedNow());
-        await page.evaluate(() => { document.getElementById('settings-modal').style.display = 'none'; RouterSystem.navigate('protecao'); });
+        await page.locator('.preferences-heading a').click();
         await page.evaluate(() => Blocker.openEditor(Blocker.config.profiles[0]));
         check('unchanged protection editor is clean', !await protectedNow());
         await page.locator('#editorProfileName').fill('Perfil modificado');

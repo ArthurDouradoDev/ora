@@ -27,19 +27,28 @@ const RosarySystem = {
     },
     open() { RouterSystem.navigate('rezar/terco'); },
     async startChaplet(type) {
-        this.prep = { ...this.state, chapletType: type, bead: 0, completed: false };
+        this.prep = { ...this.newPrayerDefaults(), chapletType: type, bead: 0, completed: false };
         if (await this.persist(this.prep)) RouterSystem.navigate('rezar/terco/oracao');
     },
     render(praying) {
         if (!this.structure.length) { PrayUI.mount(`<div class="pray-wrap">${PrayUI.heading(PrayUI.text('rosary'))}</div>`); PrayUI.back(); return; }
         if (praying) this.renderPrayer(); else this.renderPreparation();
     },
+    newPrayerDefaults() {
+        return {
+            ...this.state,
+            mystery: SettingsSystem.get('ora_rosary_weekday') ? RosaryCore.mysteryForDay(new Date()) : this.state.mystery,
+            lang: SettingsSystem.getPrayerLang(),
+            textMode: SettingsSystem.get('ora_rosary_text_mode')
+        };
+    },
     renderPreparation() {
         const u = PrayUI;
-        this.prep = { ...this.state, mystery: RosaryCore.mysteryForDay(new Date()), chapletType: 'terco', completed: false };
+        const daily = SettingsSystem.get('ora_rosary_weekday');
+        this.prep = { ...this.newPrayerDefaults(), chapletType: 'terco', completed: false };
         const resumable = this.saved && !this.saved.completed && this.saved.bead > 0;
         const position = resumable ? this.describe(this.saved) : null;
-        u.mount(`<div class="pray-wrap pray-narrow rosary-preparation">${u.heading(u.text('prepare'))}<p class="meta">${u.text('suggested',{mystery:t('pray.' + this.prep.mystery)})}</p>
+        u.mount(`<div class="pray-wrap pray-narrow rosary-preparation">${u.heading(u.text('prepare'))}${daily ? `<p class="meta">${u.text('suggested',{mystery:t('pray.' + this.prep.mystery)})}</p>` : ''}
             <div class="seg" role="group" aria-label="${u.text('rosary')}"><button id="rosary-type-terco" aria-pressed="true">${u.text('rosary')}</button><button id="rosary-type-misericordia" aria-pressed="false">${u.text('mercy')}</button></div>
             <div id="rosary-mystery-fields"><div class="seg" role="group" aria-label="${u.text('mysteries')}">${RosaryCore.MYSTERIES.map(m => `<button data-mystery="${m}" aria-pressed="${m === this.prep.mystery}">${u.text(m)}</button>`).join('')}</div><ol id="rosary-mystery-list"></ol></div>
             <label class="field"><span>${u.text('intention')}</span><input class="input" id="rosary-intention" maxlength="240" value="${u.e(this.prep.intention)}" autocomplete="off"></label>

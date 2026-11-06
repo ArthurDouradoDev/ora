@@ -1,0 +1,60 @@
+/* Configurações e apresentação inicial usam as superfícies e controles da V1. */
+.view-settings {
+    overflow: auto;
+    background: var(--bg);
+    color: var(--text);
+}
+html[data-view="configuracoes"] .topbar { background: var(--bg); box-shadow: inset 0 -1px 0 var(--line); }
+.settings-btn[aria-current="page"] { color: var(--gold); border-color: var(--line-strong); }
+.preferences-wrap { width: min(100%, 62rem); margin-inline: auto; padding: 1.75rem 1.5rem 3rem; }
+.preferences-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.preferences-heading h1 { font-size: 1.75rem; font-weight: 600; }
+.preferences-layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 2rem; }
+.preferences-nav { display: grid; gap: .15rem; align-content: start; }
+.preferences-nav a { text-decoration: none; display: flex; align-items: center; gap: .65rem; padding: .65rem .85rem; border-radius: var(--r-md); color: var(--text-2); }
+.preferences-nav a:hover { background: var(--surface-2); }
+.preferences-nav a[aria-current="page"] { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.preferences-nav a[aria-current="page"] i { color: var(--gold); }
+.preferences-panels h2 { font-size: 1.35rem; margin-bottom: .65rem; }
+.preference-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .65rem 1rem; padding: .95rem 0; border-bottom: 1px solid var(--line); }
+.preference-copy { display: grid; gap: .2rem; }
+.preference-copy > :first-child { font-weight: 500; }
+.preference-copy p:empty { display: none; }
+.preference-row .input { width: auto; max-width: 100%; color-scheme: dark; }
+.preference-row input[type="number"] { width: 5.25rem; }
+.preference-row input[type="text"] { width: min(13rem, 100%); }
+.preference-toggle { min-height: 2.75rem; justify-content: end; }
+.preference-toggle .track { flex: none; }
+.preference-status { color: var(--gold); }
+.preference-status.is-error { color: var(--err); }
+.preferences-panels details { margin-top: 1.15rem; }
+.preferences-panels summary { color: var(--text-2); cursor: pointer; padding-block: .3rem; }
+
+.intro-dialog { width: min(100%, 38rem); background: var(--surface-1); }
+.intro-step h2:focus { outline: none; }
+.intro-head { display: flex; gap: .75rem; align-items: center; justify-content: space-between; }
+.intro-step { display: grid; gap: .8rem; }
+.intro-step h2 { line-height: 1.3; }
+.intro-features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; padding: 0; list-style: none; }
+.intro-features li { padding: .75rem; border: 1px solid var(--line); border-radius: var(--r-md); }
+.intro-features i { color: var(--gold); margin-inline-end: .4rem; }
+.intro-features .meta { margin-top: .25rem; }
+.intro-options { display: grid; gap: .45rem; }
+.intro-options label { min-height: 2.5rem; }
+.intro-options label:has(input:disabled) { opacity: .55; cursor: default; }
+.intro-options small { display: block; overflow-wrap: anywhere; }
+.intro-dialog .input { color-scheme: dark; }
+.intro-footer { display: flex; gap: .55rem; flex-wrap: wrap; justify-content: flex-end; }
+.intro-permissions { padding-inline-start: 1.15rem; display: grid; gap: .45rem; }
+
+@media (max-width: 48rem) {
+    .preferences-layout { grid-template-columns: minmax(0, 1fr); gap: 1.35rem; }
+    .preferences-nav { display: flex; flex-wrap: wrap; }
+}
+@media (max-width: 30rem) {
+    .preferences-wrap { padding-inline: 1rem; }
+    .preference-row { grid-template-columns: minmax(0, 1fr); }
+    .preference-toggle { justify-content: start; }
+    .preference-row > :last-child { justify-self: start; }
+    .intro-features { grid-template-columns: 1fr; }
+}

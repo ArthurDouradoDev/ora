@@ -203,6 +203,7 @@
     }
 
     global.PomodoroCore = {
+        LIMITS,
         LONG_PAUSE_EVERY,
         getDefaultSettings,
         sanitizeSettings,

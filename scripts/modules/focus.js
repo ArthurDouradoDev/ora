@@ -6,7 +6,7 @@ const FocusSystem = {
     POMODORO_STATE_KEY: 'ora_pomodoro_state',
     // Duração de teste de 1 min: só em extensão sem pacote e com esta chave ligada
     DEBUG_SHORT_KEY: 'ora_debug_short_focus',
-    DURATIONS: [15, 25, 50, 90],
+    DURATIONS: SettingsCore.FOCUS_DURATIONS,
 
     state: null,          // último estado vindo do SW
     settings: PomodoroCore.getDefaultSettings(),
@@ -17,11 +17,8 @@ const FocusSystem = {
     continuousAlarmInterval: null,
     audioContext: null,
 
-    elements: { settings: {} },
-
     init: async function() {
-        this.cacheDOM();
-        this.bindEvents();
+        document.body.addEventListener('click', () => this.stopContinuousAlarm());
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && this.isTimerRunning && this.settings.wakeLock) {
@@ -95,7 +92,6 @@ const FocusSystem = {
         if (this.isTimerRunning !== wasRunning || this.isTimerRunning) {
             this.manageWakeLock(this.isTimerRunning);
         }
-        this.loadSettingsUI();
         window.dispatchEvent(new CustomEvent('ora:pomodoro', { detail: state }));
     },
 
@@ -134,58 +130,6 @@ const FocusSystem = {
             if (this.settings.continuousAlarm) this.startContinuousAlarm();
         }
         window.dispatchEvent(new CustomEvent('ora:phase-complete', { detail: { phase: completedPhase } }));
-    },
-
-    // --- Settings (in the settings modal until phase 7) ---
-
-    cacheDOM: function() {
-        this.elements.settings = {
-            focusInput: document.getElementById('setting-focus'),
-            pauseInput: document.getElementById('setting-pause'),
-            longPauseInput: document.getElementById('setting-long-pause'),
-            soundInput: document.getElementById('setting-sound'),
-            autoNextInput: document.getElementById('setting-auto-next'),
-            continuousAlarmInput: document.getElementById('setting-continuous-alarm'),
-            wakeLockInput: document.getElementById('setting-wake-lock')
-        };
-    },
-
-    bindEvents: function() {
-        Object.values(this.elements.settings).forEach(input => {
-            if (input) input.addEventListener('change', () => this.saveSettings());
-        });
-        // Qualquer clique silencia o alarme contínuo
-        document.body.addEventListener('click', () => this.stopContinuousAlarm());
-    },
-
-    loadSettingsUI: function() {
-        const el = this.elements.settings;
-        if (!el.focusInput) return;
-        el.focusInput.value = this.settings.focus;
-        el.pauseInput.value = this.settings.pause;
-        el.longPauseInput.value = this.settings.longPause;
-        el.soundInput.checked = this.settings.sound !== false;
-        el.autoNextInput.checked = this.settings.autoNext === true;
-        el.continuousAlarmInput.checked = this.settings.continuousAlarm === true;
-        el.wakeLockInput.checked = this.settings.wakeLock === true;
-    },
-
-    saveSettings: function() {
-        const el = this.elements.settings;
-        // Limits and defaults (long pause: 15 min) live in PomodoroCore
-        const settings = PomodoroCore.sanitizeSettings({
-            focus: el.focusInput.value,
-            pause: el.pauseInput.value,
-            longPause: el.longPauseInput.value,
-            sound: el.soundInput.checked,
-            autoNext: el.autoNextInput.checked,
-            continuousAlarm: el.continuousAlarmInput.checked,
-            wakeLock: el.wakeLockInput.checked
-        });
-        this.sendCommand('pomodoro:updateSettings', { settings }).catch(() => {
-            showToast(t('today.save_failed_settings'), 'error');
-            this.loadSettingsUI();
-        });
     },
 
     // --- Audio & Wake Lock ---
