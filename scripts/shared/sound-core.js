@@ -84,7 +84,7 @@
     }
 
     function preference(value, playlists) {
-        return { choice: choice(value?.choice ?? value, playlists), volume: level(value?.volume), pauseWithFocus: value?.pauseWithFocus === true, playerHidden: value?.playerHidden === true };
+        return { choice: choice(value?.choice ?? value, playlists), volume: level(value?.volume), pauseWithFocus: value?.pauseWithFocus === true };
     }
 
     function sameLayers(first, second) {

@@ -1184,9 +1184,9 @@
         ] }, volume: 42, pauseWithFocus: true
     }, playlists), {
         choice: { kind: 'ambient', layers: [{ id: 'rain', volume: 0 }, { id: 'bells', volume: 100 }, { id: 'fire', volume: 60 }] },
-        volume: 42, pauseWithFocus: true, playerHidden: false
+        volume: 42, pauseWithFocus: true
     });
-    assertEq('lembra o player oculto', SoundCore.preference({ playerHidden: true }, playlists).playerHidden, true);
+    assertEq('ignora o antigo player oculto', 'playerHidden' in SoundCore.preference({ playerHidden: true }, playlists), false);
 
     group('SoundCore — capas');
     const spotifyList = { source: 'spotify', idType: 'playlist', externalId: '37i9dQZF1DWZeKCadgRdKQ' };

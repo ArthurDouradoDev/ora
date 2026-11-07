@@ -15,8 +15,21 @@
     /* Cabeçalho, aviso e rodapé ficam fixos; só a vista rola. */
     display: flex; flex-direction: column;
     overflow: hidden;
+    position: relative; /* referência das vistas estacionadas */
 }
 .sound-dialog > * { flex: none; }
+/* Popup adormecido: fechado com uma playlist ativa. Continua renderizado (o
+   player do YouTube/Spotify mora nele e um iframe oculto ou movido pode parar),
+   mas invisível, sem cliques e inerte (sound.js: park). */
+.sound-scrim.is-dormant { opacity: 0; pointer-events: none; background: transparent; }
+.sound-scrim.is-dormant > .sound-dialog { transform: translateY(8px) scale(0.98); opacity: 0; box-shadow: none; }
+/* Vista da playlist e player estacionados: fora da vista, com tamanho real. */
+.sound-view.is-parked, .sound-stage.is-parked {
+    position: absolute; top: 0; left: 0; right: 0;
+    opacity: 0; pointer-events: none;
+    clip-path: inset(50%);
+}
+.sound-dialog > .sound-view.is-parked { overflow: hidden; margin: 0; }
 .sound-dialog > .sound-view {
     flex: 0 1 auto; min-height: 0;
     overflow-y: auto; overscroll-behavior: contain;
@@ -145,7 +158,7 @@
 .sound-tile-more:focus-visible { opacity: 1; }
 @media (hover: none) { .sound-tile-more { opacity: 1; } }
 
-/* Equalizador "tocando" (capa, botão Tocando agora e mini controle) */
+/* Equalizador "tocando" (capas e botão Tocando agora, dentro do popup) */
 .sound-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 0.8rem; }
 .sound-eq > span {
     width: 3px; height: 100%;
@@ -201,6 +214,21 @@
 .sound-playlist-card .sound-cover { font-size: 1.5rem; }
 .sound-playlist-meta { margin: 0; color: var(--text-2); }
 .sound-playlist-actions { flex-wrap: wrap; gap: 0.5rem; }
+/* Player no detalhe da playlist que toca: YouTube em 16:9 na largura do popup;
+   Spotify no formato completo (352 px, com a lista de faixas) ou no compacto
+   (152 px) para faixa/episódio e telas baixas, os dois tamanhos do embed. */
+.sound-stage { display: grid; gap: 0.5rem; min-width: 0; }
+.sound-stage iframe {
+    display: block; width: 100%; aspect-ratio: 16 / 9;
+    border: 0; border-radius: var(--r-md);
+    background: #000;
+}
+.sound-stage[data-source="spotify"] iframe { aspect-ratio: auto; height: 352px; background: none; }
+.sound-stage[data-source="spotify"]:is([data-type="track"], [data-type="episode"]) iframe { height: 152px; }
+@media (max-height: 40rem) {
+    .sound-stage[data-source="spotify"] iframe { height: 152px; }
+}
+.sound-stage .meta { margin: 0; }
 .sound-danger:hover:not(:disabled) { color: var(--err); }
 
 /* Adicionar música */
@@ -211,7 +239,11 @@
     .sound-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Mini controle em Hoje */
+/* Mini controle em Hoje: sem nada tocando, o chip "♫ Som"; com som, uma
+   pílula só com a capa (ou o ícone do ambiente) e tocar/pausar. Volume,
+   próxima e player aparecem ao lado no hover ou foco por teclado. Sem
+   equalizador: o botão tocar/pausar já diz o estado, e nada se anima dentro
+   do vidro durante o foco (ANALISE_ANIMACOES_ORA.md §9). */
 .sound-mini {
     display: flex;
     align-items: center;
@@ -219,44 +251,42 @@
     flex-wrap: wrap;
     gap: 0.25rem;
     max-width: 100%;
-    border-radius: var(--r-lg);
+    border-radius: 999px;
 }
 .sound-mini.surface-glass { padding: 0.25rem; }
 .sound-chip { justify-self: start; max-width: 100%; }
-.sound-chip > span:not(.sound-eq) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12rem; }
-.sound-chip .sound-eq { display: none; color: var(--gold); }
-.sound-mini.is-playing .sound-chip .ph-music-notes { display: none; }
+.sound-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12rem; }
 .sound-chip-cover {
     width: 1.375rem; height: 1.375rem; flex: none;
     border-radius: 0.3rem;
     object-fit: cover;
 }
 .sound-chip-cover[hidden] { display: none; }
-.sound-mini.has-cover .sound-chip .ph-music-notes { display: none; }
-.sound-mini.is-playing .sound-chip .sound-eq { display: inline-flex; }
-.sound-mini .sound-eq > span { animation-iteration-count: 3; }
-.sound-mini .sound-eq > span:nth-child(1) { transform: scaleY(0.55); }
-.sound-mini .sound-eq > span:nth-child(3) { transform: scaleY(0.75); }
+.sound-mini.has-cover .sound-chip-icon { display: none; }
+/* Com som: o chip vira só a capa, sem vidro próprio (a pílula já é de vidro). */
+.sound-mini.is-active .sound-chip {
+    min-height: 0; padding: 0.25rem;
+    background: none; border-color: transparent;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.sound-mini.is-active .sound-chip:hover { background: rgba(255, 255, 255, 0.08); }
+.sound-mini.is-active .sound-chip > span {
+    position: absolute; width: 1px; height: 1px; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.sound-mini.is-active .sound-chip-cover { width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; }
+.sound-mini.is-active .sound-chip-icon {
+    display: inline-grid; place-items: center;
+    width: 1.75rem; height: 1.75rem;
+    font-size: 1.125rem; color: var(--gold);
+}
+.sound-mini.is-active.has-cover .sound-chip-icon { display: none; }
+.sound-toggle { border-radius: 999px; }
+.sound-toggle[hidden] { display: none; }
+.sound-mini.is-playing .sound-toggle { background: rgba(255, 255, 255, 0.1); }
 .sound-controls { display: inline-flex; align-items: center; gap: 0.25rem; }
 .sound-controls[hidden] { display: none; }
 .sound-volume { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0 0.25rem; }
 .sound-volume input { width: 5rem; }
 .sound-mini input { accent-color: var(--gold); }
-.sound-remote {
-    display: grid;
-    justify-items: center;
-    gap: 0.25rem;
-    width: min(30rem, 100%);
-    padding: 0.5rem;
-    border-radius: var(--r-lg);
-}
-.sound-remote iframe { display: block; width: 100%; height: 17rem; border: 0; border-radius: var(--r-md); }
-.sound-remote-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem; }
-/* Player oculto: sai da vista sem descarregar o iframe (a música continua). */
-.sound-remote.is-concealed {
-    position: absolute; top: 0; left: 0;
-    width: 20rem;
-    opacity: 0; pointer-events: none;
-    clip-path: inset(50%);
-}
 html[data-today="preparacao"] #sound-mini { display: none; }

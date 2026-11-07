@@ -120,7 +120,7 @@ const DialogSystem = {
 
     focusables: function(container) {
         return Array.from(container.querySelectorAll(this.FOCUSABLE))
-            .filter(el => !el.hidden && el.tabIndex >= 0 && el.offsetParent !== null);
+            .filter(el => !el.hidden && el.tabIndex >= 0 && el.offsetParent !== null && !el.closest('[inert]'));
     },
 
     trapTab: function(e, root) {

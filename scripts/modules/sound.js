@@ -6,6 +6,10 @@
 // Em Hoje, escolher na biblioteca toca na hora. Na preparação do foco
 // (options.onChoose), a escolha é um rascunho confirmado em "Usar no foco".
 // Os sons do Ora tocam pelo SoundEngine (Web Audio); YouTube e Spotify pelo relay.
+// O player do relay (#sound-frame) mora na vista da playlist e nunca muda de
+// lugar: mover um iframe recarrega a página dele. Com o popup fechado e uma
+// playlist ativa, o popup fica adormecido (.is-dormant: invisível, inerte e
+// ainda renderizado) em vez de [hidden], para a música seguir tocando.
 
 const SoundSystem = {
     PREF: 'ora_focus_sound',
@@ -14,7 +18,7 @@ const SoundSystem = {
     ARTWORK: 'ora_sound_artwork',   // { 'fonte:tipo:id': { cover, title, at } } do oEmbed
     RELAY: 'https://arthurdouradodev.github.io',
     RELAY_HELLO_TIMEOUT: 5000,
-    REVEAL_TIMEOUT: 4000,
+    BLOCKED_TIMEOUT: 4000,
     relay: null,            // página no iframe: 0 = v2 abrindo, 2 = v2, 1 = v1, null = nenhuma
     relayV2Missing: false,
     ICONS: {
@@ -60,12 +64,12 @@ const SoundSystem = {
         this.nextButton = $('sound-next');
         this.volume = $('sound-volume');
         this.controls = $('sound-controls');
-        this.playerToggle = $('sound-player-toggle');
-        this.remote = $('sound-remote');
+        this.stage = $('sound-stage');
         this.frame = $('sound-frame');
-        this.external = $('sound-external');
+        this.playlistCard = $('sound-playlist-card');
         this.chipCover = $('sound-chip-cover');
         this.chipCover.addEventListener('error', () => { this.chipCover.dataset.failed = this.chipCover.getAttribute('src'); this.render(); });
+        this.chipIcon = $('sound-chip-icon');
 
         this.bind();
         this.bindMediaSession();
@@ -112,20 +116,11 @@ const SoundSystem = {
         choose.addEventListener('click', () => this.open(choose));
         this.toggle.addEventListener('click', () => this.togglePlayback());
         this.nextButton.addEventListener('click', () => this.next());
-        document.getElementById('sound-stop').addEventListener('click', () => {
-            this.stop();
-            choose.focus();
-        });
         this.volume.addEventListener('input', () => {
             this.preference.volume = this.volume.valueAsNumber;
             this.applyVolume();
         });
         this.volume.addEventListener('change', () => this.savePreference(this.preference));
-        this.playerToggle.addEventListener('click', () => this.setPlayerHidden(!this.preference.playerHidden));
-        document.getElementById('sound-player-hide').addEventListener('click', () => {
-            this.setPlayerHidden(true);
-            this.playerToggle.focus();
-        });
 
         this.back.addEventListener('click', () => this.setView('library'));
         this.addOpen.addEventListener('click', () => this.setView('add'));
@@ -160,10 +155,6 @@ const SoundSystem = {
         });
         window.addEventListener('message', event => this.onPlayerMessage(event));
         window.addEventListener('resize', () => { if (this.editor) this.position(); });
-        new IntersectionObserver(([entry]) => {
-            this.frameVisible = entry.intersectionRatio >= 0.5;
-            this.startVisiblePlayer();
-        }, { threshold: [0, 0.5] }).observe(this.frame);
         window.addEventListener('offline', () => { this.render(); if (this.editor) this.renderEditor(); });
         window.addEventListener('online', () => { this.render(); if (this.editor) this.renderEditor(); });
     },
@@ -327,7 +318,10 @@ const SoundSystem = {
         this.input.value = '';
         this.setView('library', { focus: false });
         this.ensureArtwork(this.playlists);
-        DialogSystem.open(this.root, { opener, onClose: () => { this.editor = null; } });
+        // Adormecido, o popup já está no DOM: só volta a responder.
+        this.root.classList.remove('is-dormant');
+        this.root.inert = false;
+        DialogSystem.open(this.root, { opener, onClose: () => { this.editor = null; this.renderStage(); this.park(); } });
         this.position();
         // Só depois de visível: com o popup oculto, scrollTop não tem efeito.
         this.views.library.scrollTop = 0;
@@ -349,7 +343,14 @@ const SoundSystem = {
         const editor = this.editor;
         const previous = editor.view;
         editor.view = view;
-        for (const [name, el] of Object.entries(this.views)) el.hidden = name !== view;
+        for (const [name, el] of Object.entries(this.views)) {
+            const shown = name === view;
+            // A vista da playlist guarda o player: estaciona em vez de sumir.
+            if (name === 'playlist') {
+                el.classList.toggle('is-parked', !shown);
+                el.inert = !shown;
+            } else el.hidden = !shown;
+        }
         // Cada vista começa do topo (filtros e cabeçalho à vista).
         this.views[view].scrollTop = 0;
         this.setStatus('');
@@ -436,6 +437,7 @@ const SoundSystem = {
         if (view === 'library') this.renderLibrary();
         else if (view === 'mixer') this.renderMixer();
         else if (view === 'playlist') this.renderPlaylist(target);
+        this.renderStage();
 
         if (focusKey) [...this.panel.querySelectorAll('[data-sound-focus]')]
             .find(el => el.dataset.soundFocus === focusKey)?.focus({ preventScroll: true });
@@ -582,16 +584,20 @@ const SoundSystem = {
         return li;
     },
 
-    // Clique num item da biblioteca. Em Hoje toca (ou pausa o que já toca);
-    // na preparação só marca o rascunho.
+    // Clique num item da biblioteca. Em Hoje, um ambiente toca (ou pausa o que
+    // já toca) e a grade continua; uma playlist toca e abre o player. Na
+    // preparação só marca o rascunho.
     pick(item) {
         const editor = this.editor;
-        if (!editor.onChoose && this.active && this.matches(item, this.active.choice)) {
+        const live = !editor.onChoose && this.active && this.matches(item, this.active.choice);
+        if (live && item.kind === 'playlist') {
+            this.openDetail(item.choice, item.key);
+        } else if (live) {
             this.togglePlayback();
             this.renderEditor();
-            return;
+        } else if (this.choose(item.choice) && !editor.onChoose && item.kind === 'playlist') {
+            this.openDetail(item.choice, item.key);
         }
-        this.choose(item.choice);
     },
 
     choose(value) {
@@ -671,6 +677,36 @@ const SoundSystem = {
         }
     },
 
+    // O player só aparece no detalhe da playlist que está tocando; nos outros
+    // casos fica estacionado (fora da vista, ainda carregado).
+    renderStage() {
+        const player = this.active;
+        const playlist = this.playlist(player?.choice);
+        const editor = this.editor;
+        const shown = !!playlist && editor?.view === 'playlist' && editor.target === playlist.id;
+        this.stage.classList.toggle('is-parked', !shown);
+        if (this.stage.inert !== !shown) this.stage.inert = !shown;
+        this.playlistCard.hidden = shown;
+        if (playlist) Object.assign(this.stage.dataset, { source: playlist.source, type: playlist.idType });
+        this.frame.hidden = !playlist || !navigator.onLine;
+        if (playlist) this.frame.title = t('sound.provider_player', { provider: this.provider(playlist) });
+        const status = document.getElementById('sound-player-status');
+        status.textContent = !playlist ? '' : player.failed ? t('sound.provider_error')
+            : player.blocked ? t('sound.tap_play') : '';
+        status.hidden = !status.textContent;
+    },
+
+    // Popup fechado com playlist ativa: adormece em vez de sumir. Sem playlist,
+    // volta a ficar oculto como os outros diálogos.
+    park() {
+        if (this.editor) return;
+        const keep = this.active?.choice.kind === 'playlist';
+        if (keep === this.root.classList.contains('is-dormant')) return;
+        this.root.classList.toggle('is-dormant', keep);
+        this.root.hidden = !keep;
+        this.root.inert = keep;
+    },
+
     renderPlaylist(item) {
         if (!item) return;
         const editor = this.editor;
@@ -716,6 +752,13 @@ const SoundSystem = {
         this.ensureArtwork([added]);
         const key = 'pl-' + added.id;
         editor.filter = 'all';
+        // Em Hoje, a música nova toca e abre o player (o Voltar leva à capa dela).
+        if (!editor.onChoose && navigator.onLine) {
+            this.choose({ kind: 'playlist', id: added.id });
+            this.openDetail({ kind: 'playlist', id: added.id }, key);
+            this.setStatus(t(existing ? 'sound.already_added' : 'sound.added'));
+            return;
+        }
         this.setView('library', { returnKey: key });
         const played = this.choose({ kind: 'playlist', id: added.id });
         if (played || editor.onChoose) this.setStatus(t(existing ? 'sound.already_added' : 'sound.added'));
@@ -752,11 +795,6 @@ const SoundSystem = {
             if (this.editor) this.setStatus(t('sound.save_error'));
             return false;
         }
-    },
-
-    setPlayerHidden(hidden) {
-        this.savePreference({ ...this.preference, playerHidden: hidden });
-        this.render();
     },
 
     savePreference(preference) {
@@ -815,7 +853,6 @@ const SoundSystem = {
         const player = this.active = { choice, focusId, paused: !!playlist, ready: !playlist, pauseReason: null };
         if (playlist) {
             player.startPending = true;
-            this.external.href = SoundCore.mediaUrl(playlist);
             const media = { source: playlist.source, type: playlist.idType, id: playlist.externalId };
             if (reuse) this.frame.contentWindow.postMessage({ oraRelay: 2, cmd: 'load', media }, this.RELAY);
             else this.loadRelay(player, media);
@@ -830,7 +867,6 @@ const SoundSystem = {
             this.resume();
         }
         this.render();
-        if (playlist) this.frame.scrollIntoView({ block: 'nearest' });
     },
 
     startLayers(player) {
@@ -850,8 +886,13 @@ const SoundSystem = {
     togglePlayback() {
         if (!this.active) return;
         if (this.active.paused || this.active.pauseReason) {
-            if (this.active.choice.kind === 'playlist') this.frame.scrollIntoView({ block: 'nearest' });
+            const blocked = this.active.blocked;
             this.resume();
+            // O navegador já barrou o início: abre o player para um toque no play dele.
+            if (blocked && !this.editor) {
+                this.open(document.getElementById('sound-open'));
+                if (this.editor && this.active) this.openDetail(this.active.choice);
+            }
         } else this.pause('manual');
     },
 
@@ -873,7 +914,7 @@ const SoundSystem = {
     release(player) {
         clearTimeout(player.loadTimeout);
         clearTimeout(player.helloTimeout);
-        clearTimeout(player.revealTimeout);
+        clearTimeout(player.blockedTimeout);
     },
 
     // Abre o relay v2 (APIs oficiais do YouTube e do Spotify). Se a página não
@@ -911,7 +952,7 @@ const SoundSystem = {
         player.pauseReason = null;
         if (player.choice.kind === 'playlist') {
             player.startPending = true;
-            this.startVisiblePlayer();
+            this.startPlayer();
         } else {
             player.paused = false;
             SoundEngine.setVolume(this.preference.volume);
@@ -950,24 +991,21 @@ const SoundSystem = {
         }
     },
 
-    // Com o player à vista, tocar segue o clique de quem escolheu. Com o player
-    // oculto, o pedido vai direto; se o navegador não deixar tocar em alguns
-    // segundos, o player aparece para um toque no play dele.
-    startVisiblePlayer() {
+    // O pedido de tocar vai direto ao relay, visível ou não (o iframe tem
+    // allow="autoplay"). Se o navegador não deixar tocar em alguns segundos, o
+    // player fica marcado como barrado: o aviso aparece no player e o ▶ do mini
+    // abre o popup nele.
+    startPlayer() {
         const player = this.active;
         if (!player?.ready || !player.startPending) return;
-        const concealed = this.preference.playerHidden && !player.revealed;
-        if (!concealed && !this.frameVisible) return;
         player.startPending = false;
         this.sendPlayer('play');
-        clearTimeout(player.revealTimeout);
-        if (!concealed) return;
-        player.revealTimeout = setTimeout(() => {
+        clearTimeout(player.blockedTimeout);
+        player.blockedTimeout = setTimeout(() => {
             if (this.active !== player || !player.paused || player.pauseReason) return;
-            player.revealed = true;
-            player.startPending = true;
+            player.blocked = true;
             this.render();
-        }, this.REVEAL_TIMEOUT);
+        }, this.BLOCKED_TIMEOUT);
     },
 
     sendPlayer(command, volume) {
@@ -999,21 +1037,29 @@ const SoundSystem = {
             player.failed = false;
             player.canNext = v2 && data.canNext === true;
             this.applyVolume();
-            this.startVisiblePlayer();
+            this.startPlayer();
         } else if (type === 'state' && typeof data.paused === 'boolean') {
             player.paused = data.paused;
             if (!data.paused && player.pauseReason === 'focus') this.sendPlayer('pause');
             else if (!data.paused) {
-                clearTimeout(player.revealTimeout);
+                clearTimeout(player.blockedTimeout);
                 player.pauseReason = null;
                 player.startPending = false;
-                player.revealed = false;
+                player.blocked = false;
             }
         } else if (type === 'error') {
             clearTimeout(player.loadTimeout);
             player.failed = true;
         } else return;
         this.render();
+    },
+
+    // Ícone do mini controle quando não há capa: o do ambiente ou do serviço.
+    miniIcon(player, playlist) {
+        if (!player) return 'ph-music-notes';
+        if (playlist) return this.playlistIcon(playlist);
+        const scene = SoundCore.sceneOf(player.choice);
+        return (scene && this.ICONS[scene]) || this.ICONS.custom;
     },
 
     render() {
@@ -1030,32 +1076,25 @@ const SoundSystem = {
         this.mini.classList.toggle('surface-glass', !!player);
         this.mini.classList.toggle('is-active', !!player);
         this.mini.classList.toggle('is-playing', !!player && !player.paused);
-        this.controls.hidden = !player;
+        // Sem nome à vista: a capa ou o ícone do ambiente identificam; o nome
+        // fica no rótulo do botão (lido pelo leitor de tela e na dica).
+        this.chipIcon.className = 'ph sound-chip-icon ' + this.miniIcon(player, playlist);
+        const chip = document.getElementById('sound-open');
+        if (player) chip.title = name;
+        else chip.removeAttribute('title');
+        this.toggle.hidden = !player;
         this.toggle.disabled = !!playlist && !player.ready;
         const paused = player?.paused;
         this.toggle.setAttribute('aria-label', t(paused ? 'sound.play' : 'sound.pause'));
         this.toggle.title = t(paused ? 'sound.play' : 'sound.pause');
-        this.toggle.firstElementChild.className = paused ? 'ph-fill ph-play' : 'ph ph-pause';
+        this.toggle.firstElementChild.className = paused ? 'ph-fill ph-play' : 'ph-fill ph-pause';
         this.volume.parentElement.hidden = !player || playlist?.source === 'spotify';
         this.volume.value = this.preference.volume;
-        // O player só some da vista: o iframe continua carregado e tocando.
-        const hidden = !!playlist && this.preference.playerHidden && !player.revealed;
         this.nextButton.hidden = !player?.canNext;
-        this.playerToggle.hidden = !playlist;
-        this.playerToggle.setAttribute('aria-expanded', String(!!playlist && !hidden));
-        const playerLabel = t(hidden ? 'sound.player_show' : 'sound.player_hide');
-        this.playerToggle.setAttribute('aria-label', playerLabel);
-        this.playerToggle.title = playerLabel;
-        this.remote.hidden = !playlist;
-        this.remote.classList.toggle('is-concealed', hidden);
-        this.remote.inert = hidden;
-        this.frame.hidden = !playlist || !navigator.onLine;
-        if (playlist) this.frame.title = t('sound.provider_player', { provider: this.provider(playlist) });
-        const status = document.getElementById('sound-player-status');
-        status.textContent = playlist && !navigator.onLine ? t('sound.offline')
-            : player?.failed ? t('sound.provider_error')
-            : playlist?.source === 'spotify' ? t('sound.spotify_hint') : '';
-        status.hidden = !status.textContent;
+        // Spotify sem "próxima" não tem o que mostrar ao lado do ⏸.
+        this.controls.hidden = this.volume.parentElement.hidden && this.nextButton.hidden;
+        this.renderStage();
+        this.park();
         if (this.editor?.view === 'library') this.renderEditor();
         window.LeaveGuard?.refresh();
     }

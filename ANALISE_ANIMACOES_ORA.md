@@ -201,7 +201,7 @@ Feita no harness com `chrome.*` simulado, contando animações e superfícies de
 | Achado | Custo | Correção |
 |---|---|---|
 | Barra de progresso do foco com `transition: 1s linear` reiniciada a cada tique | Animação sempre ativa: quadros a 60 fps durante os 25 min, para mover ~0,2 px/s (na V0 era `width`: layout a cada quadro) | Transição removida; a barra avança a cada segundo sem animar |
-| Equalizador do mini controle em laço infinito, dentro de um chip de vidro | Quadros contínuos enquanto a música toca e redesenho do desfoque do chip | No mini controle pulsa 3 ciclos e para numa pose fixa; no popup (aberto por pouco tempo) continua |
+| Equalizador do mini controle em laço infinito, dentro de um chip de vidro | Quadros contínuos enquanto a música toca e redesenho do desfoque do chip | Removido do mini controle (07/11): ele mostra só a capa ou o ícone e tocar/pausar, e o botão já diz o estado (ANALISE_SOM_POPUP_UNICO_ORA.md §4). No popup (sólido, aberto por pouco tempo) continua em laço |
 | Painel de Tarefas animando `width` | Layout de Hoje e reavaliação das container queries do canto a cada quadro por 280 ms | Largura muda uma vez; centro desliza por FLIP e painel entra/sai com transform/opacity (`TaskSystem.animatePanel`) |
 | Véu do foco e topbar trocando cor | Repintura de camada de tela cheia por quadro | Véu por opacidade (`.overlay::after`); topbar só faz transição de cor (área pequena) |
 
