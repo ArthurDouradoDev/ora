@@ -463,3 +463,19 @@ html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"],
     .today-corner .sound-remote { width: 100%; justify-items: stretch; }
     .today-corner .sound-remote iframe { height: 11rem; }
 }
+
+/* Tempos litúrgicos (fase 8): uma linha sob a data, cor sempre com texto */
+.season-line {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    max-width: 36rem; margin-top: 0.125rem;
+    color: var(--text-2); font-size: 0.875rem; text-align: center;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+    overflow-wrap: anywhere;
+}
+.season-line[hidden] { display: none; }
+.season-dot {
+    flex: none; width: 0.5rem; height: 0.5rem; border-radius: 50%;
+    background: var(--dot, var(--gold));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+html[data-today="preparacao"] .arrival .season-line { display: none; }

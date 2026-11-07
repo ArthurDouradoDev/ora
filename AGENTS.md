@@ -41,6 +41,9 @@ There is no build process. This is pure vanilla JS/HTML/CSS — no npm, no bundl
 `TodayCore.resolveTodayState({ tasks, pomodoro, now, reminders, preparing, error })` is the single source for the Hoje state (`repouso-vazio`, `repouso`, `preparacao`, `ativa`, `pausada`, `concluida`, `noite`, `falha`). The SW owns the timer: `pomodoro:startFocus` (activity, minutes, task, session intention, protection), `pomodoro:pause` / `pomodoro:start` (resume), `pomodoro:interrupt` (focused minutes count), `pomodoro:startBreak`, `pomodoro:home`, `pomodoro:tick` (a tab whose countdown hit zero asks the SW to close the phase without waiting for the alarm). When a focus phase ends the SW writes `ora_pomodoro_state.completed`, which Hoje shows as the single end-of-session transition (E12). "Bloquear distrações" turns the blocker on for the session when it is off and restores it at the end (`ora_pomodoro_state.protection`).
 Dev-only 1-minute focus: with the extension loaded unpacked, set `chrome.storage.local.set({ ora_debug_short_focus: true })` and reload; the preparation offers "1 min".
 
+### Liturgical seasons (phase 8)
+`LiturgicalCalendar` (`scripts/shared/liturgical-calendar.js`, pure) computes Easter, Advent, seasons, feasts and `nextEvent`; `SeasonsCore.resolveSeason(date, registry, region)` applies the registry `data/seasons.json` (one Hoje line: feast > season > countdown; disabled themes never show). `scripts/modules/seasons.js` fills `#today-season` (line under the date) and `#rezar-season` (symbol, refilled by `RezarSystem.renderHome`). New themes (Natal, Quaresma…) are registry entries + strings + a component in `SeasonsSystem.components`. Dev-only simulated date: `chrome.storage.local.set({ ora_debug_date: '2026-12-13' })` (applies live, only unpacked; affects only the seasonal theme).
+
 ### Module Pattern
 Every feature in `scripts/modules/` is a singleton object:
 ```js
@@ -74,6 +77,7 @@ Modules communicate with the Service Worker via `chrome.runtime.sendMessage()`. 
 | `scripts/modules/frutos.js` | Frutos: week/month, synthesis (`FrutosCore.summarize`), "Sem registro" days, "Dias com Ora", reflection, usage details |
 | `scripts/modules/screentime.js` | Screen time block of Frutos: opens with the question, neutral per-domain list (`ScreentimeCore`) |
 | `scripts/modules/rituals.js` | Morning and night rituals (`#ritual` dialog), opened only from the Hoje invite; rules in `RitualsCore` |
+| `scripts/modules/seasons.js` | Liturgical theme of the day: Hoje line (countdown "Faltam N dias…") and Advent wreath in Rezar; rules in `SeasonsCore` |
 | `scripts/modules/practices.js` | `PracticeLog.record(type)` → `ora_practice_log` |
 | `scripts/utils.js` | Shared utilities: i18n, storage helpers, UI helpers |
 

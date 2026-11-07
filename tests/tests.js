@@ -1290,6 +1290,74 @@
     assertEq('exame atual não é confundido com atualização da 1.1.5',
         OnboardingCore.mode({ ora_onboarding_done: true, ora_schema_version: 2, 'ora_exam_done_Fri Nov 06 2026': true }), null);
 
+    // ========================================================
+    group('LiturgicalCalendar — datas');
+    // ========================================================
+
+    const LC = LiturgicalCalendar;
+    const iso = d => d ? LC.isoDate(d) : null;
+    const D = (y, m, d) => new Date(y, m - 1, d);
+    assertEq('Páscoa 2026–2030', [2026, 2027, 2028, 2029, 2030].map(y => iso(LC.easter(y))),
+        ['2026-04-05', '2027-03-28', '2028-04-16', '2029-04-01', '2030-04-21']);
+    assertEq('início do Advento 2026–2030', [2026, 2027, 2028, 2029, 2030].map(y => iso(LC.adventStart(y))),
+        ['2026-11-29', '2027-11-28', '2028-12-03', '2029-12-02', '2030-12-01']);
+    assertEq('Cinzas 2027 em 10/02', iso(LC.ashWednesday(2027)), '2027-02-10');
+    assertEq('Pentecostes 2027 em 16/05', iso(LC.pentecost(2027)), '2027-05-16');
+    assert('Gaudete em 13/12/2026', LC.isGaudete(D(2026, 12, 13)));
+    assert('12/12/2026 não é Gaudete', !LC.isGaudete(D(2026, 12, 12)));
+    assertEq('semanas do Advento 2026', [D(2026, 11, 29), D(2026, 12, 5), D(2026, 12, 6), D(2026, 12, 13), D(2026, 12, 20), D(2026, 12, 24)].map(d => LC.adventWeek(d)), [1, 1, 2, 3, 4, 4]);
+    assertEq('28/11/2026 ainda não é Advento', LC.seasonFor(D(2026, 11, 28)), 'comum');
+    assertEq('24/12 ainda é Advento', LC.seasonFor(D(2026, 12, 24)), 'advento');
+    assertEq('25/12 é Natal', LC.seasonFor(D(2026, 12, 25)), 'natal');
+    assertEq('Batismo do Senhor em 10/01/2027 (Brasil)', iso(LC.christmasSeasonEnd(2026, 'br')), '2027-01-10');
+    assertEq('10/01/2027 ainda é Natal; 11/01 é comum', [LC.seasonFor(D(2027, 1, 10)), LC.seasonFor(D(2027, 1, 11))], ['natal', 'comum']);
+    assertEq('Epifania transferida para 07/01 → Batismo na segunda (2029)', [iso(LC.epiphany(2029, 'br')), iso(LC.baptismOfTheLord(2029, 'br'))], ['2029-01-07', '2029-01-08']);
+    assertEq('Epifania universal em 06/01', iso(LC.epiphany(2027, 'universal')), '2027-01-06');
+    assertEq('tempos de 2027: Cinzas, Tríduo, Páscoa, comum', [D(2027, 2, 10), D(2027, 3, 25), D(2027, 3, 28), D(2027, 5, 16), D(2027, 5, 17)].map(d => LC.seasonFor(d)), ['quaresma', 'triduo', 'pascoa', 'pascoa', 'comum']);
+    assertEq('Quaresma de São Miguel 15/08–29/09', [D(2027, 8, 14), D(2027, 8, 15), D(2027, 9, 29), D(2027, 9, 30)].map(d => LC.michaelLent(d)), [false, true, true, false]);
+    assertEq('festas principais', [LC.principalFeast(D(2026, 12, 25)), LC.principalFeast(D(2027, 3, 28)), LC.principalFeast(D(2027, 5, 16)), LC.principalFeast(D(2027, 5, 17))], ['natal', 'pascoa', 'pentecostes', null]);
+    assertEq('Imaculada num domingo vai para segunda (2024)', iso(LC.immaculateConception(2024)), '2024-12-09');
+    assertEq('daysUntil atravessa horário de verão em dias inteiros', LC.daysUntil(new Date(2018, 10, 3, 23, 30), new Date(2018, 10, 5, 0, 10)), 2);
+    assertEq('próximo evento a partir de 22/11/2026', (({ id, daysUntil }) => ({ id, daysUntil }))(LC.nextEvent(D(2026, 11, 22))), { id: 'advento', daysUntil: 7 });
+    assertEq('data simulada inválida é ignorada', [iso(LC.parseIsoDate('2026-12-13')), LC.parseIsoDate('2026-02-30'), LC.parseIsoDate('ontem')], ['2026-12-13', null, null]);
+
+    // ========================================================
+    group('SeasonsCore — tema do dia');
+    // ========================================================
+
+    const registry = [
+        { id: 'advento', match: { season: 'advento' }, priority: 10, accent: 'roxo',
+          today: { key: 'season.advent.week{n}', hint: 'season.advent.hint{n}' },
+          rezar: { component: 'advent-wreath', key: 'season.advent.week{n}', prayer: 'advento-vela' },
+          countdown: [{ event: 'advento', daysBefore: 7 }, { event: 'natal', daysBefore: 7 }], enabled: true },
+        { id: 'imaculada', match: { event: 'imaculada' }, priority: 20, accent: 'branco',
+          today: { key: 'season.immaculate.today' }, countdown: [{ event: 'imaculada', daysBefore: 2 }], enabled: true },
+        { id: 'natal', match: { season: 'natal' }, priority: 10, today: { key: 'season.christmas.today' }, rezar: { component: 'christmas' }, enabled: false },
+        { id: 'quaresma', match: { season: 'quaresma' }, priority: 10, today: { key: 'season.lent.today' }, countdown: [{ event: 'cinzas', daysBefore: 7 }], enabled: false }
+    ];
+    const resolve = d => SeasonsCore.resolveSeason(d, registry, 'br');
+    assertEq('21/11/2026 → nada', resolve(D(2026, 11, 21)), null);
+    assertEq('22/11 → faltam 7 dias para o Advento', resolve(D(2026, 11, 22)).today.countdown, { key: 'season.countdown.advento', params: { n: 7 } });
+    assertEq('28/11 → amanhã começa o Advento', resolve(D(2026, 11, 28)).today.countdown.key, 'season.countdown.advento_1');
+    assert('contador sem tema ativo não mostra símbolo em Rezar', resolve(D(2026, 11, 28)).rezar === null);
+    const first = resolve(D(2026, 11, 29));
+    assertEq('29/11 → 1ª semana, sem contador', [first.theme, first.today.key, first.today.hint, first.today.countdown], ['advento', 'season.advent.week1', 'season.advent.hint1', null]);
+    assertEq('29/11 → coroa com 1 vela e cor roxa', [first.rezar.component, first.rezar.week, first.accent], ['advent-wreath', 1, 'roxo']);
+    assertEq('06/12 → sufixo "faltam 2 dias para a Imaculada"', resolve(D(2026, 12, 6)).today.countdown, { key: 'season.countdown.imaculada', params: { n: 2 } });
+    const immaculate = resolve(D(2026, 12, 8));
+    assertEq('08/12 → a Imaculada vence o Advento em Hoje', immaculate.today.key, 'season.immaculate.today');
+    assertEq('08/12 → a coroa continua em Rezar', [immaculate.rezar.component, immaculate.rezar.week], ['advent-wreath', 2]);
+    const gaudete = resolve(D(2026, 12, 13));
+    assertEq('13/12 → 3ª semana, Gaudete', [gaudete.today.key, gaudete.rezar.week, gaudete.rezar.gaudete], ['season.advent.week3', 3, true]);
+    const late = resolve(D(2026, 12, 21));
+    assertEq('21/12 → linha do Advento com faltam 4 dias para o Natal', [late.today.key, late.today.hint, late.today.countdown], ['season.advent.week4', null, { key: 'season.countdown.natal', params: { n: 4 } }]);
+    assertEq('24/12 → amanhã é Natal', resolve(D(2026, 12, 24)).today.countdown.key, 'season.countdown.natal_1');
+    assertEq('25/12 → Natal desabilitado: pontos vazios', resolve(D(2026, 12, 25)), null);
+    assertEq('Quaresma desabilitada não gera contador (03/02/2027)', resolve(D(2027, 2, 3)), null);
+    assertEq('registro vazio → null', SeasonsCore.resolveSeason(D(2026, 12, 13), [], 'br'), null);
+    const allOff = registry.map(t => ({ ...t, enabled: false }));
+    assertEq('tema desabilitado nunca ativa', SeasonsCore.resolveSeason(D(2026, 12, 13), allOff, 'br'), null);
+
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;
 

@@ -36,6 +36,8 @@ const FILES = [
     'scripts/shared/frutos-core.js',
     'scripts/shared/rituals-core.js',
     'scripts/shared/screentime-core.js',
+    'scripts/shared/liturgical-calendar.js',
+    'scripts/shared/seasons-core.js',
     'scripts/modules/sync.js',
     'tests/tests.js'
 ];

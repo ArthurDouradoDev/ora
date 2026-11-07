@@ -37,7 +37,7 @@ const PrayerSystem = {
             <form id="library-search" role="search"><label class="sr-only" for="prayer-search-input">${u.text('search')}</label>
             <div class="library-search"><i class="ph ph-magnifying-glass" aria-hidden="true"></i><input class="input" id="prayer-search-input" type="search" autocomplete="off" placeholder="${u.text('search')}" aria-describedby="search-scope" value="${u.e(this.state.query)}"></div></form>
             <div class="results-head"><p id="prayer-result-count" role="status" aria-live="polite"></p>${u.button('prayer-filter-toggle', 'filters', 'btn-aux btn-sm', 'aria-expanded="false" aria-controls="prayer-filters"')}</div>
-            <div id="prayer-filters" class="prayer-filters"><label class="field"><span>${u.text('categories.all')}</span><select class="input" id="prayer-category">${['all','basic','marian','day','thanks','saints'].map(c => `<option value="${c}" ${this.state.category === c ? 'selected' : ''}>${u.text('categories.' + c)}</option>`).join('')}</select></label>
+            <div id="prayer-filters" class="prayer-filters"><label class="field"><span>${u.text('categories.all')}</span><select class="input" id="prayer-category">${['all','basic','marian','day','thanks','saints','season'].map(c => `<option value="${c}" ${this.state.category === c ? 'selected' : ''}>${u.text('categories.' + c)}</option>`).join('')}</select></label>
             <label class="toggle"><input id="prayer-only-favorites" type="checkbox" ${this.state.favoritesOnly ? 'checked' : ''}><span class="track"></span><span>${u.text('favorites')}</span></label></div>
             <p class="meta" id="search-scope"></p><ul class="prayer-results" id="prayer-results"></ul></div>`);
         u.back();

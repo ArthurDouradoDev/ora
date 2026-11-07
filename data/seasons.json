@@ -1,0 +1,60 @@
+[
+  {
+    "id": "advento",
+    "match": { "season": "advento" },
+    "priority": 10,
+    "accent": "roxo",
+    "today": { "type": "line", "key": "season.advent.week{n}", "hint": "season.advent.hint{n}" },
+    "rezar": { "type": "symbol", "component": "advent-wreath", "key": "season.advent.week{n}", "hint": "season.advent.rezar{n}", "prayer": "advento-vela" },
+    "countdown": [
+      { "event": "advento", "daysBefore": 7 },
+      { "event": "natal", "daysBefore": 7 }
+    ],
+    "enabled": true
+  },
+  {
+    "id": "imaculada",
+    "match": { "event": "imaculada" },
+    "priority": 20,
+    "accent": "branco",
+    "today": { "type": "line", "key": "season.immaculate.today", "hint": "season.immaculate.hint" },
+    "countdown": [{ "event": "imaculada", "daysBefore": 2 }],
+    "enabled": true
+  },
+  {
+    "id": "natal",
+    "match": { "season": "natal" },
+    "priority": 10,
+    "accent": "branco",
+    "today": { "type": "line", "key": "season.christmas.today" },
+    "rezar": { "type": "symbol", "component": "christmas" },
+    "enabled": false
+  },
+  {
+    "id": "quaresma",
+    "match": { "season": "quaresma" },
+    "priority": 10,
+    "accent": "roxo",
+    "today": { "type": "line", "key": "season.lent.today" },
+    "countdown": [{ "event": "cinzas", "daysBefore": 7 }],
+    "enabled": false
+  },
+  {
+    "id": "pascoa",
+    "match": { "season": "pascoa" },
+    "priority": 10,
+    "accent": "branco",
+    "today": { "type": "line", "key": "season.easter.today" },
+    "countdown": [{ "event": "pascoa", "daysBefore": 7 }],
+    "enabled": false
+  },
+  {
+    "id": "quaresma-sao-miguel",
+    "match": { "devotion": "michaelLent" },
+    "priority": 5,
+    "accent": "vermelho",
+    "today": { "type": "line", "key": "season.michael.today" },
+    "countdown": [{ "event": "quaresma-sao-miguel", "daysBefore": 3 }],
+    "enabled": false
+  }
+]

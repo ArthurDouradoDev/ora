@@ -10,7 +10,7 @@ const toastContainer = document.getElementById('toast-container');
 
 async function loadAppData() {
     try {
-        const [backgrounds, playlists, prayers, quotes, greetings, rosary, exam, saints, bibleBooks] = await Promise.all([
+        const [backgrounds, playlists, prayers, quotes, greetings, rosary, exam, saints, bibleBooks, seasons] = await Promise.all([
             loadJSON('data/backgrounds.json'),
             loadJSON('data/playlists.json'),
             loadJSON('data/prayers.json'),
@@ -19,7 +19,8 @@ async function loadAppData() {
             loadJSON('data/rosary.json'),
             loadJSON('data/exam.json'),
             loadJSON('data/saints.json'),
-            loadJSON('data/bible-books.json')
+            loadJSON('data/bible-books.json'),
+            loadJSON('data/seasons.json').catch(() => [])
         ]);
 
         return {
@@ -31,7 +32,8 @@ async function loadAppData() {
             rosary: rosary,
             exam: exam,
             saints: saints,
-            bibleBooks: bibleBooks
+            bibleBooks: bibleBooks,
+            seasons: seasons || []
         };
     } catch (e) {
         console.error('Failed to load data modules:', e);
@@ -223,6 +225,11 @@ async function initApp() {
     }
     if (window.TodaySystem) {
         await window.TodaySystem.init({ quotes: data.quotes, greetings: data.greetings });
+    }
+    // Tempos litúrgicos: linha em Hoje e símbolo em Rezar (Rezar chama fillRezar ao montar)
+    if (window.SeasonsSystem) {
+        try { await window.SeasonsSystem.init(data.seasons); }
+        catch (e) { console.error('[Ora] Seasons failed:', e); }
     }
 
     // ============================================================

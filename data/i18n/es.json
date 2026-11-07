@@ -627,7 +627,8 @@
       "marian": "Marianas",
       "day": "A lo largo del día",
       "thanks": "Acción de gracias y entrega",
-      "saints": "Santos y ángeles"
+      "saints": "Santos y ángeles",
+      "season": "Tiempo litúrgico"
     },
     "exam_restart_title": "¿Empezar otro examen?",
     "exam_restart_body": "El borrador actual se sustituirá por un nuevo examen.",
@@ -955,5 +956,54 @@
     "update_pray": "Rezar reúne la biblioteca, el rosario y la liturgia.",
     "update_fruits": "Frutos reúne tu actividad y tus reflexiones.",
     "update_protection": "Protección organiza tus sitios en perfiles."
+  },
+  "season": {
+    "advent": {
+      "label": "Tiempo de Adviento",
+      "pray": "Oración al encender la vela",
+      "candles": "{n} de 4 velas encendidas",
+      "week1": "1.ª semana de Adviento",
+      "week2": "2.ª semana de Adviento",
+      "week3": "3.ª semana de Adviento",
+      "week4": "4.ª semana de Adviento",
+      "hint1": "enciende la primera vela",
+      "hint2": "enciende la segunda vela",
+      "hint3": "Gaudete: enciende la vela rosa",
+      "hint4": "enciende la cuarta vela",
+      "rezar1": "Velad, porque el Señor viene. Enciende la primera vela de la corona.",
+      "rezar2": "Preparad el camino del Señor. Enciende la segunda vela.",
+      "rezar3": "Domingo Gaudete: alegraos, el Señor está cerca. Enciende la vela rosa.",
+      "rezar4": "El Señor está cerca. Enciende la cuarta vela."
+    },
+    "immaculate": {
+      "today": "Inmaculada Concepción de la Virgen María",
+      "hint": "solemnidad"
+    },
+    "countdown": {
+      "advento": "Faltan {n} días para el Adviento",
+      "advento_1": "Mañana comienza el Adviento",
+      "natal": "Faltan {n} días para la Navidad",
+      "natal_1": "Mañana es Navidad",
+      "imaculada": "Faltan {n} días para la Inmaculada Concepción",
+      "imaculada_1": "Mañana es la Inmaculada Concepción",
+      "cinzas": "Faltan {n} días para la Cuaresma",
+      "cinzas_1": "Mañana es Miércoles de Ceniza",
+      "pascoa": "Faltan {n} días para la Pascua",
+      "pascoa_1": "Mañana es Pascua",
+      "quaresma-sao-miguel": "Faltan {n} días para la Cuaresma de San Miguel",
+      "quaresma-sao-miguel_1": "Mañana comienza la Cuaresma de San Miguel"
+    },
+    "christmas": {
+      "today": "Tiempo de Navidad"
+    },
+    "lent": {
+      "today": "Tiempo de Cuaresma"
+    },
+    "easter": {
+      "today": "Tiempo Pascual"
+    },
+    "michael": {
+      "today": "Cuaresma de San Miguel"
+    }
   }
 }

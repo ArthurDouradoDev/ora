@@ -264,5 +264,23 @@
       "en": "Saint Benedict",
       "es": "San Benito"
     }
+  },
+  {
+    "id": "advento-vela",
+    "title": "Oração ao acender a vela do Advento",
+    "icon": "ph-fire",
+    "text": {
+      "pt": "Senhor Jesus, luz que vem ao mundo,\nao acendermos esta vela da coroa\nrenovamos a esperança na tua vinda.\n\nDesperta em nós a vigilância e a alegria,\npara que, semana após semana,\npreparemos o coração\ne te recebamos com fé quando chegares.\n\nMaria, Mãe da espera,\nensina-nos a acolher o teu Filho.\n\nVem, Senhor Jesus! Amém.",
+      "en": "Lord Jesus, light coming into the world,\nas we light this candle of the wreath\nwe renew our hope in your coming.\n\nAwaken in us watchfulness and joy,\nso that, week by week,\nwe may prepare our hearts\nand welcome you with faith when you come.\n\nMary, Mother of waiting,\nteach us to welcome your Son.\n\nCome, Lord Jesus! Amen.",
+      "es": "Señor Jesús, luz que viene al mundo,\nal encender esta vela de la corona\nrenovamos la esperanza en tu venida.\n\nDespierta en nosotros la vigilancia y la alegría,\npara que, semana tras semana,\npreparemos el corazón\ny te recibamos con fe cuando llegues.\n\nMaría, Madre de la espera,\nenséñanos a acoger a tu Hijo.\n\n¡Ven, Señor Jesús! Amén.",
+      "la": ""
+    },
+    "category": "season",
+    "essential": false,
+    "titles": {
+      "pt": "Oração ao acender a vela do Advento",
+      "en": "Prayer for lighting the Advent candle",
+      "es": "Oración al encender la vela de Adviento"
+    }
   }
 ]

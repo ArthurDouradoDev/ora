@@ -627,7 +627,8 @@
       "marian": "Marian prayers",
       "day": "Through the day",
       "thanks": "Thanksgiving and offering",
-      "saints": "Saints and angels"
+      "saints": "Saints and angels",
+      "season": "Liturgical season"
     },
     "exam_restart_title": "Start another examination?",
     "exam_restart_body": "The current draft will be replaced by a new examination.",
@@ -955,5 +956,54 @@
     "update_pray": "Pray brings the prayer library, rosary and liturgy together.",
     "update_fruits": "Fruits brings your activity and reflections together.",
     "update_protection": "Protection groups your websites into profiles."
+  },
+  "season": {
+    "advent": {
+      "label": "Season of Advent",
+      "pray": "Prayer for lighting the candle",
+      "candles": "{n} of 4 candles lit",
+      "week1": "1st week of Advent",
+      "week2": "2nd week of Advent",
+      "week3": "3rd week of Advent",
+      "week4": "4th week of Advent",
+      "hint1": "light the first candle",
+      "hint2": "light the second candle",
+      "hint3": "Gaudete: light the rose candle",
+      "hint4": "light the fourth candle",
+      "rezar1": "Stay awake, for the Lord is coming. Light the first candle of the wreath.",
+      "rezar2": "Prepare the way of the Lord. Light the second candle.",
+      "rezar3": "Gaudete Sunday: rejoice, the Lord is near. Light the rose candle.",
+      "rezar4": "The Lord is near. Light the fourth candle."
+    },
+    "immaculate": {
+      "today": "Immaculate Conception of the Blessed Virgin Mary",
+      "hint": "solemnity"
+    },
+    "countdown": {
+      "advento": "Advent begins in {n} days",
+      "advento_1": "Advent begins tomorrow",
+      "natal": "{n} days until Christmas",
+      "natal_1": "Tomorrow is Christmas",
+      "imaculada": "{n} days until the Immaculate Conception",
+      "imaculada_1": "Tomorrow is the Immaculate Conception",
+      "cinzas": "{n} days until Lent",
+      "cinzas_1": "Tomorrow is Ash Wednesday",
+      "pascoa": "{n} days until Easter",
+      "pascoa_1": "Tomorrow is Easter",
+      "quaresma-sao-miguel": "{n} days until Saint Michael's Lent",
+      "quaresma-sao-miguel_1": "Saint Michael's Lent begins tomorrow"
+    },
+    "christmas": {
+      "today": "Christmas season"
+    },
+    "lent": {
+      "today": "Season of Lent"
+    },
+    "easter": {
+      "today": "Easter season"
+    },
+    "michael": {
+      "today": "Saint Michael's Lent"
+    }
   }
 }

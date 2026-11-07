@@ -634,7 +634,9 @@ O tema do Advento e a migração **não** entram no corte.
 
 ## Fase 8 — Tempos litúrgicos: Advento
 
-**Em resumo:** um sistema que sabe em que tempo litúrgico estamos e aplica elementos temáticos nos lugares certos. Começa pelo **Advento**: uma linha sobre a coroa na tela inicial e a coroa com as velas da semana em Rezar. Fica pronto para receber Natal, Quaresma, Páscoa, Quaresma de São Miguel e as grandes festas sem mexer nas telas.
+**Implementada em 06/11/2026.** Evidências e instruções de verificação em `tests/FASE_8.md`.
+
+**Em resumo:** um sistema que sabe em que tempo litúrgico estamos e aplica elementos temáticos nos lugares certos. Começa pelo **Advento**: uma linha sobre a coroa na tela inicial e a coroa com as velas da semana em Rezar. Fica pronto para receber Natal, Quaresma, Páscoa, Quaresma de São Miguel e as grandes festas sem mexer nas telas. Inclui um **contador de preparação** ("Faltam 5 dias para o Advento") nos dias que antecedem um tempo ou uma festa — a V1 vai ao ar antes de 29/11, então é o primeiro contato de muitos usuários com o tema (decisão de 06/11).
 
 ### Escopo
 
@@ -646,19 +648,28 @@ O tema do Advento e a migração **não** entram no corte.
   - `adventWeek(date)` (1–4) e `isGaudete(date)`;
   - `christmasSeasonEnd(year, region)` (Batismo do Senhor; Brasil com Epifania no domingo);
   - `michaelLent(date)` (15/08–29/09);
-  - `principalFeast(date)` (Natal, Páscoa, Pentecostes).
+  - `ashWednesday(year)` (Páscoa − 46) e `pentecost(year)` (Páscoa + 49), para os limites da Quaresma e do Tempo Pascal;
+  - `principalFeast(date)` (Natal, Páscoa, Pentecostes);
+  - `events(year, region)`: lista de **eventos datados** (início de tempos e festas fixas e móveis: Advento, Imaculada 08/12, Natal, Cinzas, Domingo de Ramos, Páscoa, Pentecostes, São Miguel 29/09…), cada um `{ id, date, kind: 'season'|'feast' }`;
+  - `daysUntil(from, to)`: diferença em **dias de calendário locais** (não em horas), para não errar na virada do horário de verão;
+  - `nextEvent(date, ids?)` → `{ id, date, daysUntil }`.
 - `data/seasons.json` (novo): registro dos temas.
 
   ```json
-  { "id": "advento", "season": "advento", "accent": "--lit-roxo",
+  { "id": "advento", "season": "advento", "accent": "--lit-roxo", "priority": 10,
     "today": { "type": "line", "key": "season.advent.week{n}" },
     "rezar": { "type": "symbol", "component": "advent-wreath" },
+    "countdown": { "event": "advento", "daysBefore": 7 },
     "enabled": true }
   ```
 
-  Natal e Tempo do Natal ficam registrados com `"enabled": false` até a fase 10.
-- `scripts/modules/seasons.js` (novo): no `init`, resolve o tema do dia e preenche os **pontos de encaixe** que Hoje (linha sob a data) e Rezar (símbolo) expõem.
+  - `priority`: Hoje tem **uma** linha só. Quando dois temas valem no mesmo dia (Imaculada dentro do Advento, Quaresma de São Miguel dentro do Tempo Comum), vence a maior prioridade; regra geral: **festa no próprio dia > tempo > contador**.
+  - `countdown`: mostra a linha de preparação nos `daysBefore` dias anteriores ao evento. Janelas iniciais: Advento 7 dias; Natal nos últimos dias do Advento (a linha do Advento ganha "· faltam N dias para o Natal"); Imaculada 2 dias. Quaresma (7 dias antes das Cinzas) e Páscoa (Semana Santa) ficam registradas desabilitadas.
+  - Natal e Tempo do Natal ficam registrados com `"enabled": false` até a fase 10. Um evento de tema desabilitado não gera contador próprio, exceto quando outro tema ativo o referencia (o Natal dentro da linha do Advento).
+- `scripts/shared/seasons-core.js` (novo, puro): `resolveSeason(date, registry, region)` → `{ theme, today: { key, params }, rezar, accent } | null`, aplicando prioridade e contador.
+- `scripts/modules/seasons.js` (novo): no `init`, resolve o tema do dia e preenche os **pontos de encaixe** que Hoje (linha sob a data) e Rezar (símbolo) expõem. Reavalia na virada do dia com a aba aberta.
   - Sem tema ativo: os pontos ficam vazios, sem espaço reservado.
+- **Contador em Hoje:** "Faltam 5 dias para o Advento", "Amanhã começa o Advento". Tom de preparação, sem número grande nem cor de urgência. No dia do evento, o contador some e entra o tema.
 - **Coroa do Advento** (`assets/seasons/advent-wreath.svg` + CSS):
   - 4 velas (3 roxas, 1 rosa na 3ª semana), acesas conforme a semana;
   - com movimento reduzido, a chama fica estática.
@@ -674,12 +685,19 @@ O tema do Advento e a migração **não** entram no corte.
   - Gaudete em 13/12/2026;
   - 24/12 ainda é Advento e 25/12 é Natal;
   - Batismo do Senhor em 10/01/2027;
-  - Quaresma de São Miguel em 15/08–29/09.
-- `SeasonsCore`: tema desabilitado nunca ativa; sem tema → pontos de encaixe vazios.
+  - Quaresma de São Miguel em 15/08–29/09;
+  - Cinzas 2027 em 10/02;
+  - `daysUntil` atravessando a virada do horário de verão dá dias inteiros.
+- `SeasonsCore`:
+  - tema desabilitado nunca ativa; sem tema → pontos de encaixe vazios;
+  - 22/11/2026 → "faltam 7 dias para o Advento"; 28/11 → "amanhã"; 21/11 → nada;
+  - 29/11 → tema do Advento, sem contador;
+  - 08/12 → a Imaculada vence o Advento na linha de Hoje, a coroa continua em Rezar;
+  - 21/12 → linha do Advento com "faltam 4 dias para o Natal".
 
 ### Como validar
 
-- Com `ora_debug_date`, percorrer: 28/11 (sem tema) · 29/11 (1ª vela) · 13/12 (3 velas, rosa acesa, menção ao Gaudete) · 20/12 (4 velas) · 25/12 (sem tema do Advento; Natal ainda desabilitado).
+- Com `ora_debug_date`, percorrer: 22/11 (contador "faltam 7 dias") · 28/11 ("amanhã começa o Advento") · 29/11 (1ª vela) · 13/12 (3 velas, rosa acesa, menção ao Gaudete) · 20/12 (4 velas) · 25/12 (sem tema do Advento; Natal ainda desabilitado).
 - Conferir a coroa no Escuro e no Papel, com movimento reduzido e com texto a 200%.
 - Conferir em pt, en e es.
 - Instalar o pacote (fase 9) e confirmar que a data simulada é ignorada.

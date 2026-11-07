@@ -215,3 +215,36 @@ html[data-prayer-mode="reading"] .topbar, html[data-prayer-mode="praying"] .topb
     .reading-options .seg button { padding: .375rem .5rem; min-height: 2.25rem; font-size: .75rem; }
     .reading-options output { font-size: .75rem; padding: .125rem; }
 }
+
+/* Tempos litúrgicos (fase 8): símbolo do tempo no alto de Rezar */
+.pray-season { display:flex; align-items:center; gap:2rem; margin:-.5rem 0 1.8rem; padding:1.1rem 1.5rem; border:1px solid var(--line); border-left:3px solid var(--season-accent, var(--gold)); border-radius:var(--r-sm); background:var(--surface-1); }
+.pray-season[hidden] { display:none; }
+.pray-season .season-symbol { flex:none; width:11rem; }
+.pray-season .season-body { display:grid; gap:.35rem; min-width:0; }
+.pray-season h2 { font-family:var(--f-read); font-size:1.5rem; font-weight:400; }
+.pray-season .label { color:var(--season-accent, var(--gold)); }
+.pray-season .btn { justify-self:start; display:inline-flex; align-items:center; gap:.5rem; margin-top:.4rem; }
+.advent-wreath { display:block; width:100%; height:auto; overflow:visible; }
+.advent-wreath .ring { fill:#1f2a1d; }
+.advent-wreath .leaf { fill:#3d5a36; }
+.advent-wreath .leaf.alt { fill:#557a4a; }
+.advent-wreath .candle rect { fill:var(--lit-roxo); opacity:.55; }
+.advent-wreath .candle.rose rect { fill:var(--lit-rosa); }
+.advent-wreath .candle.lit rect { opacity:1; }
+.advent-wreath .wick { stroke:#2b251d; stroke-width:1.6; stroke-linecap:round; }
+.advent-wreath .flame { fill:#f4c86a; }
+.advent-wreath .glow { fill:rgba(244, 200, 106, .16); }
+.advent-wreath .flame-wrap { animation:advent-flicker 2.8s ease-in-out infinite alternate; }
+.advent-wreath .candle:nth-child(odd) .flame-wrap { animation-delay:-1.3s; }
+@keyframes advent-flicker {
+    0% { transform:scale(1, 1) rotate(0deg); }
+    40% { transform:scale(.96, 1.04) rotate(-2deg); }
+    70% { transform:scale(1.03, .97) rotate(1.5deg); }
+    100% { transform:scale(.98, 1.02) rotate(-1deg); }
+}
+@media (prefers-reduced-motion: reduce) { .advent-wreath .flame-wrap { animation:none; } }
+html[data-motion="reduce"] .advent-wreath .flame-wrap { animation:none; }
+@media (max-width: 700px) {
+    .pray-season { flex-direction:column; align-items:flex-start; gap:1rem; padding:1rem; }
+    .pray-season .season-symbol { width:9rem; }
+}
