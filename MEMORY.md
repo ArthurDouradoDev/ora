@@ -83,6 +83,7 @@ Decisões que continuam valendo:
 - Mudar o nome da atividade na preparação desliga a sessão da tarefa (foco livre com o novo nome).
 - Convite "Encerrar o dia" a partir das 21h (antes o exame noturno aparecia às 18h). Sugestão de terço após o pomodoro saiu das Configurações.
 - Configurações do foco (durações, som, avançar sozinho, tela acesa) foram para o modal de Configurações até a fase 7.
+- **Oração ao começar o foco (07/11/2026, pedido do usuário; protótipo `08-oracao-foco`):** opcional, nunca pedágio. Linha "Oração ao começar" na preparação (padrão **Nenhuma**); popover com Inspirai, Senhor (nova em `prayers.json`), Vinde Espírito Santo e Oração para o Estudo (versões curtas no campo `short`), São José pelo trabalho (longa, rola) e "Mais orações" da biblioteca no idioma das orações. Frequência: **só na primeira sessão do dia** (padrão) ou em toda sessão. A oração aparece sobre a paisagem entre "Começar" e o cronômetro, com a oferta da sessão no fim; o tempo só conta depois do "Amém". "Pular" também conta como a oração do dia. Não entra em Frutos (para não virar contagem). A escolha só é gravada ao começar, como som e proteção.
 
 ## Frutos e rituais (implementados na fase 5, 04/11/2026)
 

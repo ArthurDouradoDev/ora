@@ -167,6 +167,30 @@
       "pt": "Vinde Espírito Santo",
       "en": "Come, Holy Spirit",
       "es": "Ven, Espíritu Santo"
+    },
+    "short": {
+      "pt": "Vinde, Espírito Santo,\nenchei os corações dos vossos fiéis\ne acendei neles o fogo do Vosso amor.\n\nEnviai o Vosso Espírito e tudo será criado,\ne renovareis a face da terra.",
+      "la": "Veni, Sancte Spiritus,\nreple tuorum corda fidelium,\net tui amoris in eis ignem accende.\n\nEmitte Spiritum tuum et creabuntur;\net renovabis faciem terrae.",
+      "en": "Come, Holy Spirit,\nfill the hearts of your faithful\nand kindle in them the fire of your love.\n\nSend forth your Spirit and they shall be created,\nand you shall renew the face of the earth.",
+      "es": "Ven, Espíritu Santo,\nllena los corazones de tus fieles\ny enciende en ellos el fuego de tu amor.\n\nEnvía tu Espíritu y serán creados,\ny renovarás la faz de la tierra."
+    }
+  },
+  {
+    "id": "inspirai-senhor",
+    "title": "Inspirai, Senhor",
+    "icon": "ph-hand-heart",
+    "text": {
+      "pt": "Inspirai, Senhor, as nossas ações\ne ajudai-nos a realizá-las,\npara que em vós comece\ne para vós termine\ntudo aquilo que fizermos.\nPor Cristo, nosso Senhor. Amém.",
+      "la": "Actiones nostras, quaesumus, Domine,\naspirando praeveni et adiuvando prosequere,\nut cuncta nostra oratio et operatio\na te semper incipiat\net per te coepta finiatur.\nPer Christum Dominum nostrum. Amen.",
+      "en": "Direct, we beg you, O Lord, our actions\nby your holy inspirations,\nand carry them on by your gracious assistance,\nthat every prayer and work of ours\nmay always begin with you\nand through you be happily ended.\nThrough Christ our Lord. Amen.",
+      "es": "Inspira, Señor, nuestras acciones\ny ayúdanos a realizarlas,\npara que todo lo que hagamos\ncomience en ti\ny por ti llegue a su fin.\nPor Cristo nuestro Señor. Amén."
+    },
+    "category": "day",
+    "essential": false,
+    "titles": {
+      "pt": "Inspirai, Senhor",
+      "en": "Direct, O Lord, Our Actions",
+      "es": "Inspira, Señor"
     }
   },
   {
@@ -199,6 +223,12 @@
       "pt": "Oração para o Estudo",
       "en": "Prayer before Study",
       "es": "Oración para el Estudio"
+    },
+    "short": {
+      "pt": "Dai-me agudeza para entender, capacidade para reter,\nmétodo e facilidade para aprender,\nsutileza para interpretar e graça abundante para falar.\n\nInspirai o começo, dirigi o meio e coroai o fim.\nVós que sois verdadeiro Deus e verdadeiro Homem,\ne que viveis e reinais pelos séculos dos séculos. Amém.",
+      "la": "Da mihi intelligendi acumen, retinendi capacitatem,\naddiscendi modum et facilitatem,\ninterpretandi subtilitatem, loquendi gratiam copiosam.\n\nIngressum instruas, progressum dirigas, egressum compleas.\nTu qui es verus Deus et verus homo,\nqui vivis et regnas in saecula saeculorum. Amen.",
+      "en": "Grant me keenness of mind to understand,\ncapacity to retain,\nmethod and ease in learning,\nsubtlety in interpretation\nand abundant grace in speaking.\n\nInstruct the beginning, direct the progress, and perfect the end.\nYou who are true God and true Man,\nwho live and reign for ever and ever. Amen.",
+      "es": "Dame agudeza para entender, capacidad para retener,\nmétodo y facilidad para aprender,\nsutileza para interpretar y gracia abundante para hablar.\n\nInstruye el comienzo, dirige el progreso, perfecciona el fin.\nTú que eres verdadero Dios y verdadero Hombre,\nque vives y reinas por los siglos de los siglos. Amén."
     }
   },
   {

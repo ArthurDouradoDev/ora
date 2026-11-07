@@ -144,6 +144,25 @@
                         <input class="input" id="today-prep-intent" maxlength="120" autocomplete="off" placeholder="Ex.: pela minha equipe" data-i18n-placeholder="today.prep_offer_placeholder">
                         <small id="today-prep-intent-hint"></small>
                     </label>
+                    <div class="field prep-prayer" id="today-prayer-field">
+                        <span id="today-prayer-label" data-i18n="today.prayer_label">Oração ao começar</span>
+                        <button type="button" class="prayer-pick" id="today-prayer-pick" aria-haspopup="dialog" aria-expanded="false" aria-controls="today-prayer-pop" aria-describedby="today-prayer-label">
+                            <span class="ico" aria-hidden="true"><i class="ph-fill ph-hands-praying"></i></span>
+                            <span class="txt"><b id="today-prayer-name"></b><small id="today-prayer-hint"></small></span>
+                            <i class="ph ph-caret-down caret" aria-hidden="true"></i>
+                        </button>
+                        <div class="prayer-pop" id="today-prayer-pop" role="dialog" aria-labelledby="today-prayer-label" hidden>
+                            <div class="prayer-opts" id="today-prayer-opts" role="radiogroup" aria-labelledby="today-prayer-label"></div>
+                            <button type="button" class="link-btn prayer-more" id="today-prayer-more" data-i18n="today.prayer_more">Mais orações</button>
+                            <div class="prayer-freq">
+                                <span class="meta" id="today-prayer-freq-label" data-i18n="today.prayer_freq">Rezar</span>
+                                <div class="seg" id="today-prayer-freq" role="group" aria-labelledby="today-prayer-freq-label">
+                                    <button type="button" data-freq="first" data-i18n="today.prayer_freq_first">Na primeira sessão do dia</button>
+                                    <button type="button" data-freq="every" data-i18n="today.prayer_freq_every">Em toda sessão</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="two">
                         <div class="field">
                             <span id="today-sound-label" data-i18n="today.prep_sound">Som</span>
@@ -162,6 +181,20 @@
                         <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.cancel">Cancelar</button>
                         <span class="spacer"></span><span class="meta prep-esc"><kbd>Esc</kbd> <span data-i18n="today.esc_closes">fecha</span></span>
                     </div>
+                </section>
+
+                <!-- Oração ao começar: entre "Começar" e o cronômetro (opcional) -->
+                <section class="focus-prayer" id="today-prayer" role="dialog" aria-modal="true" aria-labelledby="today-prayer-title" data-dismiss-on-scrim="false" hidden>
+                    <p class="label" data-i18n="today.prayer_before">Antes de começar</p>
+                    <h2 class="focus-prayer-title" id="today-prayer-title"></h2>
+                    <div class="focus-prayer-text" id="today-prayer-text"></div>
+                    <p class="focus-prayer-offer" id="today-prayer-offer" hidden></p>
+                    <span class="focus-prayer-orn" aria-hidden="true"></span>
+                    <div class="focus-prayer-actions">
+                        <button type="button" class="btn btn-primary btn-lg" id="today-prayer-amen"></button>
+                        <button type="button" class="btn btn-quiet" id="today-prayer-skip" data-i18n="today.prayer_skip">Pular</button>
+                    </div>
+                    <p class="meta" id="today-prayer-meta"></p>
                 </section>
 
                 <!-- Sessão ativa / pausada -->
@@ -949,6 +982,7 @@
     <script src="scripts/shared/screentime-core.js" defer></script>
     <script src="scripts/shared/liturgical-calendar.js" defer></script>
     <script src="scripts/shared/seasons-core.js" defer></script>
+    <script src="scripts/shared/focus-prayer-core.js" defer></script>
     <script src="scripts/ui/motion.js" defer></script>
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>

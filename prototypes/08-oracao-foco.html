@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="pt-BR" data-state="preparacao">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ora · Oração ao começar o foco</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="shared/ora.css">
+<style>
+  /* Proposta: oração opcional antes da sessão de foco.
+     1) Linha "Oração" na preparação, no mesmo formato do Som (escolha compacta + popover).
+     2) Momento de oração entre "Começar" e o cronômetro: o card sai, o texto fica sobre a foto.
+     3) Frequência: só na primeira sessão do dia (padrão) ou em toda sessão. */
+
+  body { min-height: 100vh; overflow: hidden; }
+  .stage { position: fixed; inset: 0; display: grid; place-items: center; padding: 1rem; }
+  .stage::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(50% 55% at 50% 50%, rgba(8, 6, 4, .62), transparent 82%);
+  }
+  .photo { transition: filter 700ms var(--ease), transform 900ms var(--ease); }
+  html[data-state="oracao"] .photo { filter: brightness(0.42) saturate(0.8); transform: scale(1.03); }
+  html[data-state="preparacao"] .photo { filter: brightness(0.55) saturate(0.85); transform: scale(1.03); }
+  html[data-state="ativa"] .photo { transform: scale(1.06); }
+
+  .view { position: relative; z-index: 1; width: 100%; display: none; justify-items: center; }
+  html[data-state="preparacao"] .view-prep,
+  html[data-state="oracao"] .view-prayer,
+  html[data-state="ativa"] .view-active { display: grid; }
+
+  /* ---------- Preparação (igual à extensão, com a linha nova) ---------- */
+  .prep {
+    width: min(34rem, 100%); border-radius: var(--r-xl); padding: 1.5rem;
+    display: grid; gap: 1.125rem; box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+    position: relative;
+  }
+  .prep-title {
+    width: 100%; font: inherit; font-size: 1.5rem; font-weight: 600; color: var(--text);
+    background: none; border: 0; border-bottom: 1px solid var(--line-strong); padding: .25rem 0 .5rem;
+  }
+  .prep-title:focus { outline: none; border-bottom-color: var(--gold); }
+  .prep .two { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem; align-items: start; }
+  .prep .actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+
+  /* Linha "Oração": um botão-escolha, como o do Som */
+  .pick {
+    display: flex; align-items: center; gap: .625rem; width: 100%;
+    min-height: 2.75rem; padding: .5rem .75rem .5rem .625rem;
+    border-radius: var(--r-md); border: 1px solid var(--line-strong);
+    background: rgba(0, 0, 0, .25); color: var(--text); text-align: left; cursor: pointer;
+    transition: border-color var(--dur), background var(--dur);
+  }
+  .pick:hover { border-color: rgba(255, 244, 225, .34); }
+  .pick[aria-expanded="true"] { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+  .pick .ico {
+    width: 1.875rem; height: 1.875rem; border-radius: 50%; display: grid; place-items: center;
+    background: var(--gold-soft); color: var(--gold); flex: none; font-size: 1rem;
+  }
+  .pick.none .ico { background: rgba(255, 255, 255, .06); color: var(--text-3); }
+  .pick .txt { display: grid; min-width: 0; flex: 1; }
+  .pick .txt b { font-weight: 600; font-size: .9375rem; }
+  .pick .txt i { font-style: normal; color: var(--text-3); font-size: .8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pick .caret { color: var(--text-3); transition: transform var(--dur) var(--ease); }
+  .pick[aria-expanded="true"] .caret { transform: rotate(180deg); }
+
+  /* Popover de escolha */
+  .pop {
+    position: absolute; left: 1.5rem; right: 1.5rem; z-index: 10;
+    border-radius: var(--r-lg); padding: .5rem; display: grid; gap: .125rem;
+    background: var(--surface-2); border: 1px solid var(--line-strong);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
+    max-height: min(30rem, 70vh); overflow: auto;
+  }
+  .pop[hidden] { display: none; }
+  .opt {
+    display: grid; grid-template-columns: 1fr auto; gap: .125rem .75rem; align-items: center;
+    width: 100%; padding: .5rem .75rem; border-radius: var(--r-md);
+    border: 0; background: none; color: var(--text); text-align: left; cursor: pointer;
+  }
+  .opt:hover, .opt:focus-visible { background: rgba(255, 255, 255, .05); outline: none; }
+  .opt:focus-visible { box-shadow: inset 0 0 0 2px var(--gold); }
+  .opt b { font-weight: 600; font-size: .9375rem; display: flex; gap: .5rem; align-items: baseline; }
+  .opt .len { font-weight: 500; font-size: .75rem; color: var(--text-3); }
+  .opt .first {
+    grid-column: 1; font-family: var(--f-read); font-style: italic; font-size: .875rem; color: var(--text-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .opt .check { grid-row: 1 / span 2; grid-column: 2; color: var(--gold); font-size: 1.125rem; visibility: hidden; }
+  .opt[aria-checked="true"] { background: var(--gold-soft); }
+  .opt[aria-checked="true"] .check { visibility: visible; }
+  .opt.none-opt .first { font-family: var(--f-ui); font-style: normal; }
+  .pop .sep { height: 1px; background: var(--line); margin: .375rem .5rem; }
+  .pop .freq { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; padding: .375rem .75rem .5rem; }
+  .pop .freq .seg { justify-self: start; }
+  .pop .lib { justify-self: start; margin: 0 .75rem .375rem; font-size: .875rem; }
+  .link-btn { border: 0; background: none; padding: 0; color: var(--text-2); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+  /* ---------- Momento de oração ---------- */
+  .prayer {
+    width: min(36rem, 100%); text-align: center; display: grid; gap: 1.5rem; justify-items: center;
+    max-height: calc(100vh - 2rem);
+  }
+  .prayer .label { color: var(--gold); }
+  .prayer .ttl { font-family: var(--f-brand); font-weight: 400; letter-spacing: .06em; font-size: 1.25rem; color: var(--text-2); margin-top: -.75rem; }
+  .prayer .body {
+    font-family: var(--f-read); font-size: 1.375rem; line-height: 1.62; color: var(--text);
+    text-wrap: pretty; white-space: pre-line; overflow: auto; padding-inline: .25rem;
+    text-shadow: 0 1px 18px rgba(0, 0, 0, .55);
+  }
+  .prayer.long .body { font-size: 1.125rem; line-height: 1.6; max-height: 46vh; text-align: left;
+    mask-image: linear-gradient(180deg, transparent 0, #000 1.25rem, #000 calc(100% - 2rem), transparent 100%);
+    padding-block: 1rem; }
+  .prayer .offer { font-family: var(--f-read); font-style: italic; color: var(--gold); font-size: 1.0625rem; }
+  .prayer .offer[hidden] { display: none; }
+  .prayer .orn { width: 2.5rem; height: 1px; background: var(--line-strong); }
+  .prayer .acts { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; }
+  .prayer .meta { margin-top: -.75rem; }
+
+  /* Entrada: o texto aparece em camadas (no-op com movimento reduzido via ora.css) */
+  html[data-state="oracao"] .prayer > * { animation: rise 600ms var(--ease) both; }
+  html[data-state="oracao"] .prayer > :nth-child(2) { animation-delay: 80ms; }
+  html[data-state="oracao"] .prayer > :nth-child(3) { animation-delay: 220ms; }
+  html[data-state="oracao"] .prayer > :nth-child(4) { animation-delay: 420ms; }
+  html[data-state="oracao"] .prayer > :nth-child(n+5) { animation-delay: 620ms; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Sessão ativa (simplificada) ---------- */
+  .active { text-align: center; display: grid; gap: .75rem; justify-items: center; }
+  .active .timer { font-family: var(--f-read); font-weight: 300; font-size: clamp(4.5rem, 14vw, 8rem); line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 30px rgba(0,0,0,.5); }
+  .active .offer-line { font-family: var(--f-read); font-style: italic; color: var(--text-2); }
+
+  /* ---------- Barra do protótipo ---------- */
+  .pbar {
+    position: fixed; top: .75rem; left: 50%; transform: translateX(-50%); z-index: 50;
+    display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; justify-content: center;
+    padding: .375rem .5rem; border-radius: 999px; font-size: .8125rem; max-width: calc(100% - 1.5rem);
+  }
+  .pbar .seg button { min-height: 1.875rem; padding: .25rem .75rem; font-size: .8125rem; }
+  .pbar label { display: inline-flex; gap: .375rem; align-items: center; color: var(--text-2); padding-right: .5rem; cursor: pointer; }
+  .note {
+    position: fixed; bottom: .75rem; left: 50%; transform: translateX(-50%); z-index: 50;
+    max-width: min(44rem, calc(100% - 1.5rem)); padding: .625rem 1rem; border-radius: var(--r-md);
+    font-size: .8125rem; color: var(--text-2); text-align: center;
+  }
+
+  @media (max-width: 40rem) {
+    .prep .two { grid-template-columns: 1fr; }
+    .prep-esc { display: none; }
+    .prayer .body { font-size: 1.1875rem; }
+    .note { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="photo" aria-hidden="true"></div>
+
+<!-- Barra do protótipo: não faz parte da proposta -->
+<div class="pbar surface-glass" role="toolbar" aria-label="Protótipo">
+  <div class="seg" role="group" aria-label="Tela">
+    <button data-go="preparacao" aria-pressed="true">Preparar</button>
+    <button data-go="oracao" aria-pressed="false">Oração</button>
+    <button data-go="ativa" aria-pressed="false">Sessão</button>
+  </div>
+  <label><input type="checkbox" id="prayedToday"> já rezou hoje</label>
+</div>
+
+<main class="stage">
+  <!-- 1. Preparação -->
+  <section class="view view-prep">
+    <div class="prep surface-solid" role="dialog" aria-labelledby="prepLabel">
+      <div>
+        <p class="label" id="prepLabel">Preparar foco</p>
+        <input class="prep-title" id="prepTitle" value="Estudar para a prova de cálculo" aria-label="Atividade">
+      </div>
+      <div class="field">
+        <span>Duração</span>
+        <div class="seg" id="durSeg" role="group" aria-label="Duração">
+          <button aria-pressed="false" data-min="15">15 min</button>
+          <button aria-pressed="true" data-min="25">25 min</button>
+          <button aria-pressed="false" data-min="50">50 min</button>
+          <button aria-pressed="false" data-min="90">90 min</button>
+        </div>
+      </div>
+      <label class="field">
+        <span>Oferecer esta sessão por <span class="muted">· opcional</span></span>
+        <input class="input" id="offer" value="pela minha família" placeholder="Ex.: pela minha equipe" autocomplete="off">
+      </label>
+
+      <!-- NOVO: oração ao começar -->
+      <div class="field" id="prayerField">
+        <span id="prayerLabel">Oração ao começar</span>
+        <button type="button" class="pick" id="pick" aria-haspopup="true" aria-expanded="false" aria-controls="pop" aria-labelledby="prayerLabel pickName">
+          <span class="ico"><i class="ph-fill ph-hands-praying" aria-hidden="true"></i></span>
+          <span class="txt"><b id="pickName"></b><i id="pickHint"></i></span>
+          <i class="ph ph-caret-down caret" aria-hidden="true"></i>
+        </button>
+        <div class="pop" id="pop" hidden>
+          <div role="radiogroup" aria-label="Oração ao começar" id="opts"></div>
+          <div class="sep"></div>
+          <div class="freq">
+            <span class="meta">Rezar</span>
+            <div class="seg" id="freqSeg" role="group" aria-label="Frequência">
+              <button aria-pressed="true" data-f="first">Na primeira sessão do dia</button>
+              <button aria-pressed="false" data-f="every">Em toda sessão</button>
+            </div>
+          </div>
+          <button type="button" class="link-btn lib" id="lib">Outra da biblioteca…</button>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <span>Som</span>
+          <div class="seg" role="group" aria-label="Som">
+            <button aria-pressed="true">Silêncio</button>
+            <button aria-pressed="false">Gregoriano</button>
+            <button aria-pressed="false">Chuva</button>
+          </div>
+        </div>
+        <div class="field">
+          <span>Proteção</span>
+          <label class="switch"><input type="checkbox" checked><span class="track"></span><span>Bloquear distrações</span></label>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary btn-lg" id="startBtn"><i class="ph-fill ph-play" aria-hidden="true"></i><span id="startLabel"></span></button>
+        <button class="btn btn-quiet">Cancelar</button>
+        <span class="spacer"></span><span class="meta prep-esc"><kbd>Esc</kbd> fecha</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Momento de oração -->
+  <section class="view view-prayer" aria-live="polite">
+    <div class="prayer" id="prayer" role="dialog" aria-labelledby="prayerTtl">
+      <p class="label">Antes de começar</p>
+      <p class="ttl" id="prayerTtl"></p>
+      <p class="body" id="prayerBody"></p>
+      <p class="offer" id="prayerOffer"></p>
+      <div class="orn" aria-hidden="true"></div>
+      <div class="acts">
+        <button class="btn btn-primary btn-lg" id="amen"><span id="amenLabel"></span></button>
+        <button class="btn btn-quiet" id="skip">Pular</button>
+      </div>
+      <p class="meta" id="prayerMeta"></p>
+    </div>
+  </section>
+
+  <!-- 3. Sessão -->
+  <section class="view view-active">
+    <div class="active">
+      <p class="label" id="actTitle"></p>
+      <p class="timer" id="timer">25:00</p>
+      <p class="offer-line" id="actOffer"></p>
+      <div class="row" style="--gap:.5rem">
+        <button class="btn btn-aux btn-sm" data-go="preparacao"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>Voltar à preparação</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<p class="note surface-light" id="note"></p>
+
+<script>
+  const PRAYERS = [
+    { id: 'none', name: 'Nenhuma', first: 'Começar direto, sem oração' },
+    { id: 'inspirai', name: 'Inspirai, Senhor', len: 'curta', first: '…para que em vós comece e para vós termine',
+      body: 'Inspirai, Senhor, as nossas ações\ne ajudai-nos a realizá-las,\npara que em vós comece\ne para vós termine\ntudo aquilo que fizermos.\nPor Cristo, nosso Senhor. Amém.' },
+    { id: 'espirito', name: 'Vinde, Espírito Santo', len: 'curta', first: 'enchei os corações dos vossos fiéis…',
+      body: 'Vinde, Espírito Santo,\nenchei os corações dos vossos fiéis\ne acendei neles o fogo do vosso amor.\n\nEnviai o vosso Espírito e tudo será criado,\ne renovareis a face da terra.' },
+    { id: 'estudo', name: 'Para o estudo', len: 'curta · S. Tomás', first: 'Inspirai o começo, dirigi o meio e coroai o fim',
+      body: 'Dai-me agudeza para entender,\ncapacidade para reter,\nmétodo e facilidade para aprender,\nsutileza para interpretar\ne graça abundante para falar.\n\nInspirai o começo, dirigi o meio e coroai o fim.\nPor Cristo, nosso Senhor. Amém.' },
+    { id: 'jose', name: 'São José, pelo trabalho', len: 'longa · 1 min', long: true,
+      body: 'Glorioso São José, modelo de todos os que se dedicam ao trabalho,\nobtende-me a graça de trabalhar com espírito de penitência,\npara expiação de meus numerosos pecados;\nde trabalhar com consciência, pondo o culto do dever acima de minhas inclinações;\nde trabalhar com recolhimento e alegria,\nolhando como uma honra empregar e desenvolver pelo trabalho\nos dons recebidos de Deus.\n\nTrabalhar com ordem, paz, moderação e paciência,\nsem nunca recuar perante o cansaço e as dificuldades;\ntrabalhar sobretudo com pureza de intenção e com desapego de mim mesmo,\ntendo sempre diante dos olhos a morte e a conta que deverei dar do tempo perdido,\ndos talentos inutilizados, do bem omitido\ne da vã complacência nos sucessos, tão funesta à obra de Deus.\n\nTudo por Jesus, tudo por Maria, tudo à vossa imitação, ó Patriarca São José!\nTal será a minha divisa na vida e na morte. Amém.' },
+  ];
+  PRAYERS.forEach(p => { if (p.body && !p.first) p.first = p.body.split('\n')[0]; });
+
+  const $ = s => document.querySelector(s);
+  const ui = { prayer: 'inspirai', freq: 'first', min: 25, timer: null };
+
+  function willPray() {
+    if (ui.prayer === 'none') return false;
+    return ui.freq === 'every' || !$('#prayedToday').checked;
+  }
+  const current = () => PRAYERS.find(p => p.id === ui.prayer);
+
+  function renderOpts() {
+    $('#opts').innerHTML = PRAYERS.map(p => `
+      <button type="button" class="opt${p.id === 'none' ? ' none-opt' : ''}" role="radio" aria-checked="${p.id === ui.prayer}" data-id="${p.id}" tabindex="${p.id === ui.prayer ? 0 : -1}">
+        <b>${p.name}${p.len ? `<span class="len">${p.len}</span>` : ''}</b>
+        <span class="first">${p.first}</span>
+        <i class="ph ph-check check" aria-hidden="true"></i>
+      </button>`).join('');
+  }
+
+  function renderPrep() {
+    const p = current();
+    const pick = $('#pick');
+    pick.classList.toggle('none', p.id === 'none');
+    $('#pickName').textContent = p.name;
+    let hint;
+    if (p.id === 'none') hint = 'Começa direto no cronômetro';
+    else if (ui.freq === 'every') hint = 'Antes de cada sessão';
+    else hint = $('#prayedToday').checked ? 'Já rezada hoje · esta sessão começa direto' : 'Só na primeira sessão do dia';
+    $('#pickHint').textContent = hint;
+    $('#startLabel').textContent = willPray() ? 'Começar' : `Começar ${ui.min} min`;
+    document.querySelectorAll('#freqSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === ui.freq));
+    renderOpts();
+  }
+
+  function renderPrayer() {
+    const p = current().id === 'none' ? PRAYERS[1] : current();
+    $('#prayerTtl').textContent = p.name;
+    $('#prayerBody').textContent = p.body;
+    $('#prayer').classList.toggle('long', !!p.long);
+    const offer = $('#offer').value.trim();
+    $('#prayerOffer').hidden = !offer;
+    $('#prayerOffer').textContent = offer ? `Ofereço esta sessão ${offer}.` : '';
+    $('#amenLabel').textContent = `Amém · começar ${ui.min} min`;
+    $('#prayerMeta').textContent = `${$('#prepTitle').value.trim() || 'Foco livre'} · o tempo só conta depois do Amém`;
+  }
+
+  function startTimer() {
+    clearInterval(ui.timer);
+    let s = ui.min * 60;
+    const draw = () => { $('#timer').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+    draw();
+    ui.timer = setInterval(() => { s = Math.max(0, s - 1); draw(); }, 1000);
+    $('#actTitle').textContent = $('#prepTitle').value.trim() || 'Foco livre';
+    const offer = $('#offer').value.trim();
+    $('#actOffer').textContent = offer ? `Oferecida ${offer}` : '';
+  }
+
+  const NOTES = {
+    preparacao: 'Uma linha nova, no formato do Som: mostra a escolha e quando ela vale. Abra para trocar a oração ou a frequência. Marque "já rezou hoje" para ver a segunda sessão do dia.',
+    oracao: 'O card sai e a oração fica sobre a foto. A intenção da sessão entra no fim. O cronômetro só começa no Amém; "Pular" começa sem rezar.',
+    ativa: 'Sessão normal. A oferta continua visível, discreta, sob o tempo.',
+  };
+
+  function go(state) {
+    closePop();
+    document.documentElement.dataset.state = state;
+    document.querySelectorAll('.pbar [data-go]').forEach(b => b.setAttribute('aria-pressed', b.dataset.go === state));
+    $('#note').textContent = NOTES[state];
+    if (state === 'oracao') { renderPrayer(); setTimeout(() => $('#amen').focus(), 60); }
+    if (state === 'ativa') startTimer(); else clearInterval(ui.timer);
+    if (state === 'preparacao') renderPrep();
+  }
+
+  function openPop() {
+    $('#pop').hidden = false;
+    $('#pick').setAttribute('aria-expanded', 'true');
+    // Abre para cima se não couber embaixo
+    const pop = $('#pop'), pick = $('#pick'), prep = $('.prep');
+    const r = pick.getBoundingClientRect();
+    const top = pick.offsetTop + pick.offsetHeight + 6 + $('#prayerField').offsetTop;
+    pop.style.top = pop.style.bottom = '';
+    if (r.bottom + pop.offsetHeight + 12 > innerHeight) pop.style.bottom = `${prep.offsetHeight - $('#prayerField').offsetTop - pick.offsetTop + 6}px`;
+    else pop.style.top = `${top}px`;
+    pop.querySelector('[aria-checked="true"]')?.focus();
+  }
+  function closePop(focus) {
+    if ($('#pop').hidden) return;
+    $('#pop').hidden = true;
+    $('#pick').setAttribute('aria-expanded', 'false');
+    if (focus) $('#pick').focus();
+  }
+
+  $('#pick').addEventListener('click', e => { e.stopPropagation(); $('#pop').hidden ? openPop() : closePop(true); });
+  $('#pop').addEventListener('click', e => {
+    e.stopPropagation();
+    const opt = e.target.closest('.opt');
+    if (opt) { ui.prayer = opt.dataset.id; renderPrep(); closePop(true); return; }
+    const f = e.target.closest('[data-f]');
+    if (f) { ui.freq = f.dataset.f; renderPrep(); $('#pop').querySelector(`[data-f="${ui.freq}"]`).focus(); }
+  });
+  $('#pop').addEventListener('keydown', e => {
+    const opts = [...document.querySelectorAll('.opt')];
+    const i = opts.indexOf(document.activeElement);
+    if (i < 0) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      opts[(i + (e.key === 'ArrowDown' ? 1 : opts.length - 1)) % opts.length].focus();
+    }
+  });
+  $('#lib').addEventListener('click', () => { closePop(true); $('#note').textContent = 'Abriria a lista de Rezar em modo de escolha; a oração escolhida passa a aparecer aqui.'; });
+  document.addEventListener('click', () => closePop());
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!$('#pop').hidden) closePop(true);
+    else if (document.documentElement.dataset.state === 'oracao') go('preparacao');
+  });
+
+  $('#durSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    ui.min = +b.dataset.min;
+    document.querySelectorAll('#durSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    renderPrep();
+  });
+  $('#startBtn').addEventListener('click', () => go(willPray() ? 'oracao' : 'ativa'));
+  $('#amen').addEventListener('click', () => { $('#prayedToday').checked = true; go('ativa'); });
+  $('#skip').addEventListener('click', () => go('ativa'));
+  $('#prayedToday').addEventListener('change', renderPrep);
+  document.querySelectorAll('.pbar [data-go], .active [data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+
+  go('preparacao');
+</script>
+</body>
+</html>

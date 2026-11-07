@@ -178,6 +178,104 @@ html[data-today="preparacao"] .arrival :is(.greeting, .day) { display: none; }
 .toggle input:disabled + .track { opacity: 0.5; }
 .toggle:has(input:disabled) { cursor: not-allowed; }
 
+/* ---------- Oração ao começar (prototypes/08-oracao-foco.html) ---------- */
+/* Escolha: botão de uma linha com dica, popover com as orações */
+.prep-prayer { position: relative; }
+.prayer-pick {
+    display: flex; align-items: center; gap: 0.625rem; width: 100%;
+    min-height: 2.75rem; padding: 0.5rem 0.75rem 0.5rem 0.625rem;
+    border-radius: var(--r-md); border: 1px solid var(--line-strong);
+    background: rgba(0, 0, 0, 0.25); color: var(--text);
+    font: inherit; text-align: left; cursor: pointer;
+    transition: border-color var(--dur), box-shadow var(--dur);
+}
+.prayer-pick:hover { border-color: rgba(255, 244, 225, 0.34); }
+.prayer-pick[aria-expanded="true"] { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+.prayer-pick .ico {
+    width: 1.875rem; height: 1.875rem; flex: none; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--gold-soft); color: var(--gold); font-size: 1rem;
+}
+.prayer-pick.is-none .ico { background: rgba(255, 255, 255, 0.06); color: var(--text-3); }
+.prayer-pick .txt { display: grid; min-width: 0; flex: 1; }
+.prayer-pick .txt b { font-weight: 600; font-size: 0.9375rem; }
+.prayer-pick .txt small { color: var(--text-3); font-size: 0.8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prayer-pick .caret { color: var(--text-3); transition: transform var(--dur) var(--ease); }
+.prayer-pick[aria-expanded="true"] .caret { transform: rotate(180deg); }
+
+.prayer-pop {
+    position: absolute; left: 0; right: 0; top: calc(100% + 0.375rem); z-index: 5;
+    display: flex; flex-direction: column; gap: 0.125rem; padding: 0.5rem;
+    border-radius: var(--r-lg);
+    background: var(--surface-2); border: 1px solid var(--line-strong);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    max-height: min(28rem, 64vh); overflow: hidden;
+}
+.prayer-pop[hidden] { display: none; }
+.prayer-pop.is-up { top: auto; bottom: calc(var(--pick-h, 3rem) + 0.375rem); }
+.prayer-opts { display: grid; gap: 0.125rem; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.prayer-pop > :not(.prayer-opts) { flex: none; }
+.prayer-opt {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.125rem 0.75rem; align-items: center;
+    width: 100%; padding: 0.5rem 0.75rem; border: 0; border-radius: var(--r-md);
+    background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.prayer-opt:hover { background: rgba(255, 255, 255, 0.05); }
+.prayer-opt:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--gold); }
+.prayer-opt[aria-checked="true"] { background: var(--gold-soft); }
+.prayer-opt b { font-weight: 600; font-size: 0.9375rem; }
+.prayer-opt .len { font-weight: 500; font-size: 0.75rem; color: var(--text-3); }
+.prayer-opt .first {
+    grid-column: 1;
+    font-family: var(--f-read); font-style: italic; font-size: 0.875rem; color: var(--text-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.prayer-opt.is-plain .first { font-family: var(--f-ui); font-style: normal; }
+.prayer-opt .check { grid-row: 1 / span 2; grid-column: 2; color: var(--gold); font-size: 1.125rem; visibility: hidden; }
+.prayer-opt[aria-checked="true"] .check { visibility: visible; }
+.prayer-sep { height: 1px; background: var(--line); margin: 0.375rem 0.75rem; }
+.prayer-more { align-self: flex-start; margin: 0.25rem 0.75rem 0.375rem; font-size: 0.875rem; }
+.prayer-more[hidden] { display: none; }
+.prayer-freq {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem;
+    margin-top: 0.25rem; padding: 0.625rem 0.75rem 0.375rem;
+    border-top: 1px solid var(--line);
+}
+
+/* Momento de oração: o cartão sai e o texto fica sobre a paisagem.
+   Sem vidro aqui (pode animar opacidade sem tirar desfoque de nada). */
+/* Na oração a paisagem escurece por igual na tela toda (inclusive atrás da topbar):
+   o véu fica no .overlay fixo; o .today::before só reforça o centro, sem borda visível */
+html.is-praying .overlay::after { background: rgba(8, 6, 4, 0.5); }
+html.is-praying .today::before { background: radial-gradient(50% 55% at 50% 48%, rgba(8, 6, 4, 0.35), transparent 100%); }
+.focus-prayer {
+    width: min(36rem, 100%);
+    display: grid; gap: 1.25rem; justify-items: center;
+    text-align: center;
+}
+.focus-prayer .label { color: var(--gold); }
+.focus-prayer-title {
+    margin-top: -0.5rem;
+    font-family: var(--f-brand); font-weight: 400; letter-spacing: 0.06em;
+    font-size: 1.25rem; color: var(--text-2);
+}
+.focus-prayer-text {
+    font-family: var(--f-read); font-size: 1.375rem; line-height: 1.62;
+    white-space: pre-line; text-wrap: pretty; overflow-wrap: anywhere;
+    color: var(--text); text-shadow: 0 1px 18px rgba(0, 0, 0, 0.6);
+}
+.focus-prayer.is-long .focus-prayer-text {
+    max-height: 46vh; overflow: auto; overscroll-behavior: contain;
+    font-size: 1.125rem; line-height: 1.6; text-align: left;
+    padding: 1rem 0.25rem;
+    mask-image: linear-gradient(180deg, transparent 0, #000 1.25rem, #000 calc(100% - 2rem), transparent 100%);
+}
+.focus-prayer-text:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; border-radius: var(--r-sm); }
+.focus-prayer-offer { font-family: var(--f-read); font-style: italic; color: var(--gold); font-size: 1.0625rem; overflow-wrap: anywhere; }
+.focus-prayer-orn { width: 2.5rem; height: 1px; background: var(--line-strong); }
+.focus-prayer-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+.focus-prayer .meta { margin-top: -0.5rem; }
+
 /* ---------- Sessão ativa: atividade antes do cronômetro ---------- */
 .session { display: grid; gap: 0.75rem; justify-items: center; width: min(36rem, 100%); }
 .session-state { display: inline-flex; gap: 0.5rem; align-items: center; }
@@ -381,6 +479,7 @@ html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"],
     .prep .two { grid-template-columns: 1fr; }
     .prep-esc { display: none; }
     .today-foot { padding-inline: 1rem; justify-content: center; }
+    .focus-prayer-text { font-size: 1.1875rem; }
 }
 
 /* Compact arrival and shortcuts; retain the single primary emphasis. */
@@ -403,6 +502,9 @@ html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"],
 .task-edit > .row:last-of-type .btn { padding-inline: .375rem; white-space: normal; }
 @media (max-height: 51rem) {
     .today-center { gap: .875rem; }
+    /* A preparação ganhou a linha da oração: fica mais compacta em janelas baixas */
+    .prep { gap: .875rem; padding: 1.25rem; }
+    .focus-prayer { gap: 1rem; }
     .next { padding-block: .75rem; }
     .arrival .clock { font-size: clamp(3rem, 11vh, 6rem); }
 }

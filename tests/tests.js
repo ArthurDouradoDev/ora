@@ -1366,6 +1366,37 @@
     const allOff = registry.map(t => ({ ...t, enabled: false }));
     assertEq('tema desabilitado nunca ativa', SeasonsCore.resolveSeason(D(2026, 12, 13), allOff, 'br'), null);
 
+    group('FocusPrayerCore — oração ao começar o foco');
+    const FP = FocusPrayerCore;
+    const fpPrayers = [
+        { id: 'vinde-espirito-santo', title: 'Vinde Espírito Santo', text: { pt: 'Vinde, Espírito Santo,\nenchei os corações\n\nOremos: longo', la: 'Veni' }, short: { pt: 'Vinde, Espírito Santo,\nenchei os corações', en: 'Come, Holy Spirit,\nfill the hearts' } },
+        { id: 'inspirai-senhor', title: 'Inspirai, Senhor', text: { pt: 'Inspirai, Senhor, as nossas ações\ne ajudai-nos' } },
+        { id: 'trabalho-sao-jose', title: 'São José', text: { pt: 'Glorioso São José\n' + 'x'.repeat(600) } },
+        { id: 'pai-nosso', title: 'Pai Nosso', text: { pt: 'Pai nosso, que estais nos céus,\nsantificado seja', en: 'Our Father' } },
+        { id: 'suplica', title: 'Súplica', text: { pt: 'y'.repeat(5000) } }
+    ];
+    const fpNow = new Date(2026, 10, 7, 9, 0).getTime();
+    assertEq('preferência inválida → nenhuma, primeira do dia', FP.normalize(null), { id: 'none', freq: 'first' });
+    assertEq('preferência preservada', FP.normalize({ id: 'pai-nosso', freq: 'every' }), { id: 'pai-nosso', freq: 'every' });
+    assertEq('dayKey local', FP.dayKey(fpNow), '2026-11-07');
+    assertEq('usa a versão curta', FP.text(fpPrayers[0], 'pt'), 'Vinde, Espírito Santo,\nenchei os corações');
+    assertEq('sem curta usa o texto completo', FP.text(fpPrayers[1], 'pt'), 'Inspirai, Senhor, as nossas ações\ne ajudai-nos');
+    assertEq('sem texto no idioma → vazio', FP.text(fpPrayers[1], 'en'), '');
+    assertEq('prévia pula a linha que repete o título', FP.preview('Vinde, Espírito Santo,\nenchei os corações', 'Vinde Espírito Santo'), 'enchei os corações');
+    assertEq('prévia usa a primeira linha diferente', FP.preview('Pai nosso, que estais nos céus,\nsantificado', 'Pai Nosso'), 'Pai nosso, que estais nos céus');
+    const fpOpts = FP.options(fpPrayers, 'pt', 'none');
+    assertEq('sugeridas na ordem fixa, só as existentes', fpOpts.map(o => o.id), ['inspirai-senhor', 'vinde-espirito-santo', 'trabalho-sao-jose']);
+    assertEq('longa marcada', fpOpts.map(o => o.long), [false, false, true]);
+    assertEq('escolhida da biblioteca entra depois das sugeridas', FP.options(fpPrayers, 'pt', 'pai-nosso').map(o => o.id).slice(-1), ['pai-nosso']);
+    assertEq('em inglês só as que têm texto', FP.options(fpPrayers, 'en', 'none').map(o => o.id), ['vinde-espirito-santo']);
+    assertEq('biblioteca exclui listadas e longas demais', FP.library(fpPrayers, 'pt', fpOpts.map(o => o.id)).map(o => o.id), ['pai-nosso']);
+    assertEq('nenhuma → não reza', FP.due({ id: 'none' }, null, fpNow, fpPrayers, 'pt'), null);
+    assertEq('primeira do dia, ainda não rezada', FP.due({ id: 'inspirai-senhor', freq: 'first' }, '2026-11-06', fpNow, fpPrayers, 'pt')?.id, 'inspirai-senhor');
+    assertEq('primeira do dia, já rezada hoje', FP.due({ id: 'inspirai-senhor', freq: 'first' }, '2026-11-07', fpNow, fpPrayers, 'pt'), null);
+    assertEq('toda sessão, já rezada hoje', FP.due({ id: 'inspirai-senhor', freq: 'every' }, '2026-11-07', fpNow, fpPrayers, 'pt')?.id, 'inspirai-senhor');
+    assertEq('oração sem texto no idioma → começa direto', FP.due({ id: 'inspirai-senhor', freq: 'every' }, null, fpNow, fpPrayers, 'en'), null);
+    assertEq('oração removida → começa direto', FP.due({ id: 'sumiu', freq: 'every' }, null, fpNow, fpPrayers, 'pt'), null);
+
     const passCount = results.filter(r => r.pass).length;
     const failCount = results.length - passCount;
 

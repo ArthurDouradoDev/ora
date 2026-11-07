@@ -21,12 +21,17 @@ const TodaySystem = {
     gospel: null,
     dayIntention: '',
     protectPref: true,
+    prayerPref: { id: 'none', freq: 'first' }, // FocusPrayerCore.normalize
+    prayerDay: null,     // dia em que a oração do foco já foi rezada (ou pulada)
 
     view: null,          // último resultado de TodayCore
     preparing: false,
-    prepDraft: null,     // { taskId, title, minutes, intention, sound, protect }
+    prepDraft: null,     // { taskId, title, minutes, intention, sound, protect, prayer, prayerFreq }
     prepOpener: null,
     prepStarting: false,
+    praying: null,       // { prayer, params, sound }: momento de oração antes do cronômetro
+    prayerStarting: false,
+    prayerMore: false,   // "Mais orações" aberto no popover
     breakMin: null,      // pausa longa editada na tela de concluída
     error: null,         // { title, detail, retry }
     lastClock: '',
@@ -42,10 +47,13 @@ const TodaySystem = {
         this.invite = window.ReminderSystem ? ReminderSystem.current : null;
         this.protection = window.ProtectionSystem ? ProtectionSystem.status() : null;
 
-        const stored = await chrome.storage.local.get([this.INTENTION_KEY, this.GOSPEL_KEY, this.PROTECT_PREF_KEY]);
+        const FP = FocusPrayerCore;
+        const stored = await chrome.storage.local.get([this.INTENTION_KEY, this.GOSPEL_KEY, this.PROTECT_PREF_KEY, FP.PREF_KEY, FP.DAY_KEY]);
         this.dayIntention = SessionsCore.dayIntention(stored[this.INTENTION_KEY], new Date());
         this.gospel = stored[this.GOSPEL_KEY] || null;
         this.protectPref = stored[this.PROTECT_PREF_KEY] !== false;
+        this.prayerPref = FP.normalize(stored[FP.PREF_KEY]);
+        this.prayerDay = stored[FP.DAY_KEY] || null;
 
         await this.setGreeting();
         await this.setQuote();
@@ -105,6 +113,20 @@ const TodaySystem = {
             prepRules: $('today-prep-rules'),
             prepStart: $('today-prep-start'),
             prepStartLabel: $('today-prep-start-label'),
+            prayerPick: $('today-prayer-pick'),
+            prayerName: $('today-prayer-name'),
+            prayerHint: $('today-prayer-hint'),
+            prayerPop: $('today-prayer-pop'),
+            prayerOpts: $('today-prayer-opts'),
+            prayerMoreBtn: $('today-prayer-more'),
+            prayerFreq: $('today-prayer-freq'),
+            prayer: $('today-prayer'),
+            prayerTitle: $('today-prayer-title'),
+            prayerText: $('today-prayer-text'),
+            prayerOffer: $('today-prayer-offer'),
+            prayerAmen: $('today-prayer-amen'),
+            prayerSkip: $('today-prayer-skip'),
+            prayerMeta: $('today-prayer-meta'),
             session: $('today-session'),
             sessionDot: $('today-session-dot'),
             sessionState: $('today-session-state'),
@@ -232,6 +254,47 @@ const TodaySystem = {
             if (window.ProtectionSystem) ProtectionSystem.openManager();
         });
         el.prepStart.addEventListener('click', () => this.startFromPrep());
+
+        // Oração ao começar: escolha (popover) e momento antes do cronômetro
+        el.prayerPick.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (DialogSystem.isOpen(el.prayerPop)) DialogSystem.close(el.prayerPop);
+            else this.openPrayerPop();
+        });
+        el.prayerOpts.addEventListener('click', (e) => {
+            const opt = e.target.closest('[data-prayer]');
+            if (opt) this.choosePrayer(opt.dataset.prayer);
+        });
+        el.prayerOpts.addEventListener('keydown', (e) => {
+            if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+            const opts = [...el.prayerOpts.querySelectorAll('[role="radio"]')];
+            const i = opts.indexOf(document.activeElement);
+            if (i < 0) return;
+            e.preventDefault();
+            const next = e.key === 'Home' ? 0 : e.key === 'End' ? opts.length - 1
+                : (i + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : opts.length - 1)) % opts.length;
+            opts.forEach((o, n) => { o.tabIndex = n === next ? 0 : -1; });
+            opts[next].focus();
+        });
+        el.prayerMoreBtn.addEventListener('click', () => {
+            this.prayerMore = true;
+            this.renderPrayerOpts();
+            // Leva o foco à primeira oração nova
+            const first = el.prayerOpts.querySelector('[data-more]');
+            if (first) first.focus();
+        });
+        el.prayerFreq.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-freq]');
+            if (!btn || !this.prepDraft) return;
+            this.prepDraft.prayerFreq = btn.dataset.freq;
+            this.renderPrepPrayer();
+        });
+        // Clique fora do popover o fecha (dentro da preparação o resto está inerte)
+        document.addEventListener('click', (e) => {
+            if (DialogSystem.isOpen(el.prayerPop) && !el.prayerPop.contains(e.target)) DialogSystem.close(el.prayerPop);
+        });
+        el.prayerAmen.addEventListener('click', () => this.finishPrayer());
+        el.prayerSkip.addEventListener('click', () => this.finishPrayer());
         // Clique fora da preparação a fecha (o fundo está inerte)
         // (o mesmo clique que abriu a preparação ainda está subindo: é ignorado)
         document.addEventListener('click', (e) => {
@@ -329,6 +392,11 @@ const TodaySystem = {
                 this.renderIntention();
             }
             if (changes[this.PROTECT_PREF_KEY]) this.protectPref = changes[this.PROTECT_PREF_KEY].newValue !== false;
+            if (changes[FocusPrayerCore.PREF_KEY]) this.prayerPref = FocusPrayerCore.normalize(changes[FocusPrayerCore.PREF_KEY].newValue);
+            if (changes[FocusPrayerCore.DAY_KEY]) {
+                this.prayerDay = changes[FocusPrayerCore.DAY_KEY].newValue || null;
+                if (this.preparing) this.renderPrepPrayer();
+            }
             if (changes[this.GOSPEL_KEY]) {
                 this.gospel = changes[this.GOSPEL_KEY].newValue || null;
                 if (window.RezarSystem) RezarSystem.cache = this.gospel;
@@ -348,7 +416,8 @@ const TodaySystem = {
             reminders: this.invite,
             // Entre "Começar" e a resposta do SW a preparação segue como estado
             // (sem cartão), para não piscar o repouso no meio da transição
-            preparing: this.preparing || this.isLaunching(),
+            // (e também durante a oração antes do cronômetro)
+            preparing: this.preparing || !!this.praying || this.isLaunching(),
             error: this.error
         });
     },
@@ -368,9 +437,12 @@ const TodaySystem = {
 
         // Outra aba começou uma sessão enquanto a preparação estava aberta
         if (this.preparing && v.session) this.closePrep({ keepDraft: false, refocus: false });
+        if (this.praying && v.session) this.cancelPrayer();
+        document.documentElement.classList.toggle('is-praying', !!this.praying);
 
         const rest = ['repouso', 'repouso-vazio', 'noite', 'falha'].includes(v.state);
-        el.arrival.hidden = !(rest || v.state === 'preparacao');
+        // Durante a oração só ela fica no centro (sem relógio)
+        el.arrival.hidden = !(rest || (v.state === 'preparacao' && !this.praying));
         el.intent.hidden = !rest;
         el.next.hidden = !(rest && v.next);
         el.empty.hidden = !(rest && !v.next);
@@ -770,7 +842,9 @@ const TodaySystem = {
                 minutes: durations.includes(minutes) ? minutes : (durations.includes(estimate) ? estimate : FocusSystem.settings.focus),
                 intention: '',
                 sound: SoundSystem.getChoice(),
-                protect: this.protectPref
+                protect: this.protectPref,
+                prayer: this.prayerPref.id,
+                prayerFreq: this.prayerPref.freq
             };
         }
 
@@ -783,6 +857,8 @@ const TodaySystem = {
         this.renderPrepDuration();
         this.renderPrepSound();
         this.renderPrepProtection();
+        this.prayerMore = false;
+        this.renderPrepPrayer();
         window.LeaveGuard?.watchEditor('preparation', this.prepDraft,
             () => LeaveGuard.snapshot(el.prep) + JSON.stringify(this.prepDraft),
             () => !!this.prepDraft);
@@ -848,7 +924,233 @@ const TodaySystem = {
             const pressed = this.elements.prepDur.querySelector('[aria-pressed="true"]');
             if (pressed) pressed.focus();
         }
-        this.elements.prepStartLabel.textContent = t('today.prep_start', { n: draft.minutes });
+        this.renderPrepStart();
+    },
+
+    // Com oração, "Começar" leva a ela; os minutos aparecem no "Amém"
+    renderPrepStart: function() {
+        const draft = this.prepDraft;
+        if (!draft) return;
+        this.elements.prepStartLabel.textContent = this.duePrayer()
+            ? t('today.prep_start_pray')
+            : t('today.prep_start', { n: draft.minutes });
+    },
+
+    // --- Oração ao começar (FocusPrayerCore) ---
+
+    prayerLang: function() {
+        return window.SettingsSystem ? SettingsSystem.getPrayerLang() : (window._i18nLocale || 'pt');
+    },
+
+    prayerList: function() {
+        return window.PrayerSystem ? PrayerSystem.prayers : [];
+    },
+
+    prayerTitle: function(p) {
+        return window.PrayUI ? PrayUI.title(p) : (p.title || p.id);
+    },
+
+    // A oração que esta preparação vai rezar, ou null
+    duePrayer: function() {
+        const draft = this.prepDraft;
+        if (!draft) return null;
+        return FocusPrayerCore.due({ id: draft.prayer, freq: draft.prayerFreq }, this.prayerDay, Date.now(),
+            this.prayerList(), this.prayerLang(), p => this.prayerTitle(p));
+    },
+
+    // A oração escolhida (mesmo que já rezada hoje), ou null se "Nenhuma" ou sem texto no idioma
+    chosenPrayer: function() {
+        const draft = this.prepDraft;
+        if (!draft || draft.prayer === FocusPrayerCore.NONE) return null;
+        return FocusPrayerCore.due({ id: draft.prayer, freq: 'every' }, null, Date.now(),
+            this.prayerList(), this.prayerLang(), p => this.prayerTitle(p));
+    },
+
+    renderPrepPrayer: function() {
+        const draft = this.prepDraft;
+        if (!draft) return;
+        const el = this.elements;
+        const chosen = this.chosenPrayer();
+        el.prayerPick.classList.toggle('is-none', !chosen);
+        el.prayerName.textContent = chosen ? chosen.title : t('today.prayer_none');
+        let hint = 'today.prayer_hint_none';
+        if (chosen) {
+            if (draft.prayerFreq === 'every') hint = 'today.prayer_hint_every';
+            else hint = this.duePrayer() ? 'today.prayer_hint_first' : 'today.prayer_hint_done';
+        }
+        el.prayerHint.textContent = t(hint);
+        el.prayerFreq.querySelectorAll('[data-freq]').forEach(btn => {
+            btn.setAttribute('aria-pressed', String(btn.dataset.freq === draft.prayerFreq));
+        });
+        if (DialogSystem.isOpen(el.prayerPop)) this.renderPrayerOpts();
+        this.renderPrepStart();
+    },
+
+    renderPrayerOpts: function() {
+        const draft = this.prepDraft;
+        if (!draft) return;
+        const el = this.elements;
+        const FP = FocusPrayerCore;
+        const lang = this.prayerLang();
+        const title = p => this.prayerTitle(p);
+        const main = FP.options(this.prayerList(), lang, draft.prayer, title);
+        const more = this.prayerMore ? FP.library(this.prayerList(), lang, main.map(o => o.id), title) : [];
+        const selected = [FP.NONE, ...main.map(o => o.id), ...more.map(o => o.id)].includes(draft.prayer) ? draft.prayer : FP.NONE;
+
+        const make = (id, name, preview, { long = false, isMore = false, plain = false } = {}) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'prayer-opt' + (plain ? ' is-plain' : '');
+            btn.setAttribute('role', 'radio');
+            btn.setAttribute('aria-checked', String(id === selected));
+            btn.tabIndex = id === selected ? 0 : -1;
+            btn.dataset.prayer = id;
+            if (isMore) btn.dataset.more = '';
+            const b = document.createElement('b');
+            b.textContent = name;
+            if (long) {
+                const len = document.createElement('span');
+                len.className = 'len';
+                len.textContent = t('today.prayer_long');
+                b.append(' ', len);
+            }
+            const first = document.createElement('span');
+            first.className = 'first';
+            first.textContent = preview;
+            if (!plain) first.lang = lang;
+            const check = document.createElement('i');
+            check.className = 'ph ph-check check';
+            check.setAttribute('aria-hidden', 'true');
+            btn.append(b, first, check);
+            return btn;
+        };
+
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(make(FP.NONE, t('today.prayer_none'), t('today.prayer_none_preview'), { plain: true }));
+        main.forEach(o => fragment.appendChild(make(o.id, o.title, o.preview, { long: o.long })));
+        if (more.length) {
+            const sep = document.createElement('span');
+            sep.className = 'prayer-sep';
+            sep.setAttribute('aria-hidden', 'true');
+            fragment.appendChild(sep);
+            more.forEach(o => fragment.appendChild(make(o.id, o.title, o.preview, { long: o.long, isMore: true })));
+        }
+        el.prayerOpts.replaceChildren(fragment);
+        el.prayerMoreBtn.hidden = this.prayerMore;
+    },
+
+    openPrayerPop: function() {
+        const el = this.elements;
+        this.renderPrayerOpts();
+        el.prayerPop.classList.remove('is-up');
+        el.prayerPick.setAttribute('aria-expanded', 'true');
+        DialogSystem.open(el.prayerPop, {
+            opener: el.prayerPick,
+            onClose: () => el.prayerPick.setAttribute('aria-expanded', 'false')
+        });
+        // Abre para o lado com mais espaço (acima, sem passar por baixo do cabeçalho)
+        // e limita a altura ao espaço livre; a lista rola por dentro
+        el.prayerPop.style.maxHeight = '';
+        const pick = el.prayerPick.getBoundingClientRect();
+        const topbar = document.querySelector('.topbar');
+        const ceiling = topbar ? topbar.getBoundingClientRect().bottom : 0;
+        const below = window.innerHeight - pick.bottom - 12;
+        const above = pick.top - ceiling - 12;
+        const natural = el.prayerPop.getBoundingClientRect().height;
+        const up = natural > below && above > below;
+        el.prayerPop.classList.toggle('is-up', up);
+        el.prayerPop.style.setProperty('--pick-h', `${pick.height}px`);
+        const room = Math.floor(up ? above : below);
+        if (natural > room) el.prayerPop.style.maxHeight = `${Math.max(160, room)}px`;
+        window.Motion?.play(el.prayerPop, [
+            { opacity: 0, transform: 'translateY(-4px)' },
+            { opacity: 1, transform: 'none' }
+        ], { duration: 160 });
+        const checked = el.prayerOpts.querySelector('[aria-checked="true"]');
+        if (checked) checked.focus({ preventScroll: true });
+        if (checked) checked.scrollIntoView({ block: 'nearest' });
+    },
+
+    choosePrayer: function(id) {
+        if (!this.prepDraft) return;
+        this.prepDraft.prayer = id;
+        DialogSystem.close(this.elements.prayerPop);
+        this.renderPrepPrayer();
+    },
+
+    // Entre a preparação e o cronômetro: a oração sobre a paisagem
+    openPrayer: function(prayer, params, sound) {
+        const el = this.elements;
+        this.praying = { prayer, params, sound };
+        this.prepStarting = true;
+        DialogSystem.close(el.prep);
+        this.prepStarting = false;
+
+        el.prayerTitle.textContent = prayer.title;
+        el.prayerText.textContent = prayer.text;
+        el.prayerText.lang = this.prayerLang();
+        el.prayer.classList.toggle('is-long', prayer.long);
+        // Texto longo rola: precisa ser alcançável pelo teclado
+        if (prayer.long) el.prayerText.tabIndex = 0;
+        else el.prayerText.removeAttribute('tabindex');
+        el.prayerOffer.hidden = !params.intention;
+        el.prayerOffer.textContent = params.intention ? this.offeredText(params.intention, 'today.prayer_offer') : '';
+        el.prayerAmen.textContent = t('today.prayer_amen', { n: params.minutes });
+        el.prayerMeta.textContent = t('today.prayer_meta', { title: params.title });
+
+        this.render();
+        DialogSystem.open(el.prayer, { onClose: () => this.onPrayerClosed() });
+        el.prayerText.scrollTop = 0;
+        el.prayerAmen.focus({ preventScroll: true });
+
+        const M = window.Motion;
+        if (M) {
+            // Sem vidro aqui: opacidade não tira desfoque de ninguém
+            [...el.prayer.children].forEach((node, i) => {
+                if (node.hidden) return;
+                M.play(node, [
+                    { opacity: 0, transform: 'translateY(8px)' },
+                    { opacity: 1, transform: 'none' }
+                ], { duration: 520, delay: [0, 60, 180, 360, 360, 520, 560][i] || 0, fill: 'backwards', channel: 'state' });
+            });
+        }
+    },
+
+    // "Amém" ou "Pular": os dois contam como a oração do dia (com "primeira sessão")
+    finishPrayer: async function() {
+        const p = this.praying;
+        if (!p || this.prayerStarting) return;
+        const day = FocusPrayerCore.dayKey(Date.now());
+        this.prayerDay = day;
+        AsyncStorage.set(FocusPrayerCore.DAY_KEY, day);
+        this.startLaunch();
+        this.prayerStarting = true;
+        DialogSystem.close(this.elements.prayer);
+        this.prayerStarting = false;
+        this.praying = null;
+        await this.beginFocus(p.params, p.sound);
+    },
+
+    // Esc: volta à preparação com o mesmo rascunho
+    onPrayerClosed: function() {
+        if (this.prayerStarting) return;
+        this.praying = null;
+        const draft = this.prepDraft;
+        if (draft && !(this.view && this.view.session)) {
+            this.openPrep({ taskId: draft.taskId, title: draft.title });
+        } else {
+            this.render();
+        }
+    },
+
+    // Outra aba começou uma sessão durante a oração
+    cancelPrayer: function() {
+        if (!this.praying) return;
+        this.prayerStarting = true;
+        DialogSystem.close(this.elements.prayer);
+        this.prayerStarting = false;
+        this.praying = null;
+        this.prepDraft = null;
     },
 
     renderPrepSound: function() {
@@ -893,6 +1195,17 @@ const TodaySystem = {
         if (!this.elements.prepProtect.disabled) {
             this.protectPref = draft.protect;
             AsyncStorage.set(this.PROTECT_PREF_KEY, draft.protect);
+        }
+        // A escolha da oração vale para as próximas preparações (como som e proteção)
+        const prayerPref = FocusPrayerCore.normalize({ id: draft.prayer, freq: draft.prayerFreq });
+        if (prayerPref.id !== this.prayerPref.id || prayerPref.freq !== this.prayerPref.freq) {
+            this.prayerPref = prayerPref;
+            AsyncStorage.set(FocusPrayerCore.PREF_KEY, prayerPref);
+        }
+        const prayer = this.duePrayer();
+        if (prayer) {
+            this.openPrayer(prayer, params, draft.sound);
+            return;
         }
 
         this.startLaunch();

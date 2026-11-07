@@ -38,6 +38,7 @@ const FILES = [
     'scripts/shared/screentime-core.js',
     'scripts/shared/liturgical-calendar.js',
     'scripts/shared/seasons-core.js',
+    'scripts/shared/focus-prayer-core.js',
     'scripts/modules/sync.js',
     'tests/tests.js'
 ];
