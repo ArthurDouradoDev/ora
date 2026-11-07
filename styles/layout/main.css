@@ -9,25 +9,50 @@ body {
     width: 100vw;
     overflow: hidden;
     
-    /* BACKGROUND CONFIGURATION */
-    background-color: #2b2b2b; /* Fallback color */
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    
+    background-color: #2b2b2b; /* Cor de reserva sob a fotografia */
+
     /* Layout: cabeçalho fixo + um destino visível */
     display: flex;
     flex-direction: column;
-    
-    /* Transition */
-    transition: background-image 0.5s ease-in-out;
 }
 
-/* Dark overlay to ensure text readability */
-.overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.45);
+/* Fotografia do dia em camadas próprias, animadas só com transform/opacity:
+   - .backdrop: recua e reaparece nas trocas de destino (RouterSystem);
+   - .backdrop-photo: a imagem (BackgroundSystem.apply); aproxima-se durante
+     o foco pela escala --photo-scale (today.css). Separadas para as duas
+     animações se comporem sem uma interromper a outra. */
+.backdrop {
+    position: fixed;
+    inset: 0;
     z-index: 0;
     pointer-events: none;
+    overflow: hidden;
+}
+.backdrop-photo {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    transform: scale(var(--photo-scale, 1));
+}
+/* Só depois da primeira pintura de Hoje: abrir uma aba no meio do foco
+   mostra a foto já aproximada, sem animar */
+html.today-motion .backdrop-photo { transition: transform 1.2s var(--ease); }
+
+/* Véu escuro para legibilidade. O véu mais forte do foco é uma segunda
+   camada que só muda de opacidade (today.css), não uma troca de cor. */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+}
+.overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.273); /* 0.45 + este véu ≈ 0.6 */
+    opacity: 0;
+    transition: opacity 600ms var(--ease);
 }

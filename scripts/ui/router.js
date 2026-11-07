@@ -32,6 +32,9 @@ const RouterSystem = {
         this.elements.views = Array.from(document.querySelectorAll('.view[data-view]'));
         this.elements.links = Array.from(document.querySelectorAll('[data-route]'));
         this.elements.protectionChip = document.getElementById('protection-chip');
+        this.elements.nav = document.querySelector('.topbar .nav');
+        this.elements.indicator = document.querySelector('.topbar .nav-indicator');
+        this.elements.backdrop = document.getElementById('backdrop');
     },
 
     bindEvents: function() {
@@ -47,6 +50,15 @@ const RouterSystem = {
             const route = RouteCore.sanitizeRoute(e.state && e.state.oraRoute);
             this.render(route, { focus: true });
         });
+
+        // A largura dos itens muda com a janela, o idioma e o carregamento das fontes
+        let resizeFrame = 0;
+        window.addEventListener('resize', () => {
+            cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(() => this.moveIndicator({ instant: true }));
+        });
+        window.addEventListener('ora:locale-changed', () => this.moveIndicator({ instant: true }));
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.moveIndicator({ instant: true }));
     },
 
     // Aceita uma rota { view, path } ou um texto "rezar/biblioteca".
@@ -61,6 +73,7 @@ const RouterSystem = {
     },
 
     render: function(route, { focus }) {
+        const previous = this.state.route;
         this.state.route = route;
         document.documentElement.dataset.view = route.view;
 
@@ -77,6 +90,9 @@ const RouterSystem = {
             else link.removeAttribute('aria-current');
         });
 
+        this.moveIndicator({ instant: !previous });
+        this.animateChange(previous, route, active);
+
         if (this.elements.protectionChip) {
             const isProtecao = route.view === 'protecao';
             this.elements.protectionChip.classList.toggle('current', isProtecao);
@@ -92,6 +108,68 @@ const RouterSystem = {
         }
 
         window.dispatchEvent(new CustomEvent('ora:route', { detail: route }));
+    },
+
+    // Sublinhado dourado único que desliza até o destino atual
+    moveIndicator: function({ instant = false } = {}) {
+        const { nav, indicator } = this.elements;
+        if (!nav || !indicator || !this.state.route) return;
+        const link = nav.querySelector('[aria-current="page"]');
+        if (!link || !link.offsetWidth) {
+            indicator.classList.remove('is-on');
+            return;
+        }
+        // Mesmo recuo do antigo ::after: 0.875rem de cada lado do item
+        const inset = parseFloat(getComputedStyle(link).paddingLeft) || 14;
+        const width = Math.max(0, link.offsetWidth - inset * 2);
+        if (instant) indicator.classList.remove('is-ready');
+        indicator.style.setProperty('--ind-x', (link.offsetLeft + inset) + 'px');
+        indicator.style.setProperty('--ind-w', String(width));
+        indicator.classList.add('is-on');
+        if (instant) {
+            void indicator.offsetWidth; // aplica a posição sem animar antes de religar a transição
+            indicator.classList.add('is-ready');
+        }
+    },
+
+    // Troca de destino com continuidade (ANALISE_ANIMACOES_ORA.md, P1):
+    // - destinos de superfície sólida (Rezar, Frutos…) sobem e aparecem por
+    //   cima da fotografia, que recua e escurece um pouco;
+    // - voltar a Hoje: a fotografia se reaproxima e o centro desce de leve.
+    //   Hoje não anima opacidade: opacity < 1 tiraria o desfoque do vidro.
+    animateChange: function(previous, route, active) {
+        if (!window.Motion || !previous || !active) return;
+        const dir = RouteCore.direction(previous, route);
+        if (!dir) return;
+        const backdrop = this.elements.backdrop;
+        const toHoje = route.view === 'hoje';
+        const fromHoje = previous.view === 'hoje';
+
+        if (toHoje) {
+            const center = active.querySelector('.today-center') || active;
+            Motion.play(center, [
+                { transform: 'translateY(-10px)' },
+                { transform: 'none' }
+            ], { duration: 380, channel: 'route' });
+            if (!fromHoje) {
+                Motion.play(backdrop, [
+                    { opacity: 0.45, transform: 'scale(1.035)' },
+                    { opacity: 1, transform: 'none' }
+                ], { duration: 520, channel: 'route' });
+            }
+            return;
+        }
+
+        Motion.play(active, [
+            { opacity: 0, transform: `translateY(${dir > 0 ? 18 : -12}px)` },
+            { opacity: 1, transform: 'none' }
+        ], { duration: 340, channel: 'route' });
+        if (fromHoje) {
+            Motion.play(backdrop, [
+                { opacity: 1, transform: 'none' },
+                { opacity: 0.55, transform: 'scale(1.035)' }
+            ], { duration: 340, channel: 'route' });
+        }
     },
 
     current: function() {

@@ -43,7 +43,8 @@
         <img src="assets/icon.png" alt="Ora" class="loading-logo">
     </div>
 
-    <div class="overlay"></div>
+    <!-- Fotografia do dia em camada própria: pode escalar/aparecer no compositor sem repintar a página -->
+    <div class="backdrop" id="backdrop" aria-hidden="true"><div class="backdrop-photo" id="backdrop-photo"></div><div class="overlay"></div></div>
 
     <header class="topbar">
         <span class="brand">ORA</span>
@@ -51,6 +52,7 @@
             <a href="#hoje" data-route="hoje"><i class="ph ph-sun-horizon" aria-hidden="true"></i><span data-i18n="nav.today">Hoje</span></a>
             <a href="#rezar" data-route="rezar"><i class="ph ph-hands-praying" aria-hidden="true"></i><span data-i18n="nav.pray">Rezar</span></a>
             <a href="#frutos" data-route="frutos"><i class="ph ph-plant" aria-hidden="true"></i><span data-i18n="nav.fruits">Frutos</span></a>
+            <span class="nav-indicator" aria-hidden="true"></span>
         </nav>
         <div class="right">
             <button type="button" class="chip surface-glass" id="tasks-chip" aria-controls="tasks-panel" aria-expanded="false">
@@ -945,6 +947,7 @@
     <script src="scripts/shared/screentime-core.js" defer></script>
     <script src="scripts/shared/liturgical-calendar.js" defer></script>
     <script src="scripts/shared/seasons-core.js" defer></script>
+    <script src="scripts/ui/motion.js" defer></script>
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>
     <script src="scripts/ui/leave-guard.js" defer></script>

@@ -57,10 +57,19 @@
 }
 .nav a:hover, .nav button:hover { color: var(--text); }
 .nav [aria-current="page"] { color: var(--text); font-weight: 600; }
-.nav [aria-current="page"]::after {
-    content: ''; position: absolute; left: 0.875rem; right: 0.875rem; bottom: 0.15rem;
-    height: 2px; border-radius: 2px; background: var(--gold);
+/* Indicador único (RouterSystem.moveIndicator): desliza entre os destinos.
+   Base de 1px escalada até a largura do texto: só transform, no compositor. */
+.nav { position: relative; }
+.nav-indicator {
+    position: absolute; left: 0; bottom: calc(0.25rem + 0.15rem);
+    width: 1px; height: 2px; border-radius: 2px; background: var(--gold);
+    transform-origin: left center;
+    transform: translateX(var(--ind-x, 0px)) scaleX(var(--ind-w, 0));
+    opacity: 0;
+    pointer-events: none;
 }
+.nav-indicator.is-on { opacity: 1; }
+.nav-indicator.is-ready { transition: transform 360ms var(--ease), opacity 200ms var(--ease); }
 
 /* ---------- Botões: ação principal · auxiliar · discreta · perigo ---------- */
 .btn {

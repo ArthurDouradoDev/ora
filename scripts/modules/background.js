@@ -31,6 +31,13 @@ const BackgroundSystem = {
         return imageUrl;
     },
 
+    // A foto fica em #backdrop-photo (não no body): #backdrop recua/aparece
+    // nas trocas de destino e a foto se aproxima no foco, só com transform.
+    apply(imageUrl) {
+        const layer = document.getElementById('backdrop-photo') || document.body;
+        layer.style.backgroundImage = `url('${imageUrl}')`;
+    },
+
     async setBackground() {
         try {
             if (!this.data || this.data.length === 0) {
@@ -49,7 +56,7 @@ const BackgroundSystem = {
             const session = await chrome.storage.session.get('ora_bg_loaded');
             if (session.ora_bg_loaded) {
                 // Image is in browser cache — apply directly, no preload needed
-                document.body.style.backgroundImage = `url('${imageUrl}')`;
+                this.apply(imageUrl);
                 window.dispatchEvent(new Event('ora:background-ready'));
                 console.log('[Ora] Background set from cache:', imageUrl);
                 return;
@@ -58,7 +65,7 @@ const BackgroundSystem = {
             // First load — preload image before applying
             const img = new Image();
             img.onload = () => {
-                document.body.style.backgroundImage = `url('${imageUrl}')`;
+                this.apply(imageUrl);
                 chrome.storage.session.set({ ora_bg_loaded: true });
                 window.dispatchEvent(new Event('ora:background-ready'));
                 console.log('[Ora] Background set to:', imageUrl);

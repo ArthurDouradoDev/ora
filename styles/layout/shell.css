@@ -11,6 +11,7 @@
     position: relative;
     z-index: 10;
     flex: none;
+    transition: background-color 320ms var(--ease), box-shadow 320ms var(--ease);
 }
 /* Rezar shares one continuous reading surface with its header. */
 html[data-view="rezar"] .topbar {

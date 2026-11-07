@@ -273,6 +273,14 @@
     assert('rotas diferentes', !RouteCore.sameRoute({ view: 'rezar', path: [] }, { view: 'rezar', path: ['terco'] }));
     assertEq('estado antigo inválido vira Hoje', RouteCore.sanitizeRoute({ foo: 1 }), { view: 'hoje', path: [] });
     assertEq('estado de outra versão com destino válido', RouteCore.sanitizeRoute({ view: 'frutos', path: 'x' }), { view: 'frutos', path: [] });
+    const r = h => RouteCore.parseRoute(h);
+    assertEq('sentido: Hoje → Rezar avança', RouteCore.direction(r('#hoje'), r('#rezar')), 1);
+    assertEq('sentido: Frutos → Hoje volta', RouteCore.direction(r('#frutos'), r('#hoje')), -1);
+    assertEq('sentido: subtela mais funda avança', RouteCore.direction(r('#rezar'), r('#rezar/biblioteca')), 1);
+    assertEq('sentido: leitor → biblioteca volta', RouteCore.direction(r('#rezar/leitor/x'), r('#rezar/biblioteca')), -1);
+    assertEq('sentido: mesma profundidade avança', RouteCore.direction(r('#rezar/terco'), r('#rezar/biblioteca')), 1);
+    assertEq('sentido: mesma rota não anima', RouteCore.direction(r('#rezar'), r('#rezar')), 0);
+    assertEq('sentido: sem rota anterior não anima', RouteCore.direction(null, r('#rezar')), 0);
 
     // ========================================================
     group('PomodoroCore — configurações e fim de sessão');

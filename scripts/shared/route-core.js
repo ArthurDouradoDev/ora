@@ -46,12 +46,26 @@
         return parseRoute(serializeRoute(route), views);
     }
 
+    // Sentido da troca, para a animação: 1 = avança (destino à direita na
+    // ordem dos destinos, ou subtela mais funda), -1 = volta, 0 = nenhuma.
+    function direction(from, to, views) {
+        if (!from || !to || sameRoute(from, to)) return 0;
+        const known = normalizeViews(views);
+        const a = known.indexOf(from.view);
+        const b = known.indexOf(to.view);
+        if (a !== b) return b > a ? 1 : -1;
+        const depthA = Array.isArray(from.path) ? from.path.length : 0;
+        const depthB = Array.isArray(to.path) ? to.path.length : 0;
+        return depthB < depthA ? -1 : 1;
+    }
+
     global.RouteCore = {
         VIEWS,
         DEFAULT_VIEW,
         parseRoute,
         serializeRoute,
         sameRoute,
-        sanitizeRoute
+        sanitizeRoute,
+        direction
     };
 })(typeof self !== 'undefined' ? self : this);

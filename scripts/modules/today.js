@@ -346,7 +346,9 @@ const TodaySystem = {
             pomodoro: this.pomodoro,
             now: Date.now(),
             reminders: this.invite,
-            preparing: this.preparing,
+            // Entre "Começar" e a resposta do SW a preparação segue como estado
+            // (sem cartão), para não piscar o repouso no meio da transição
+            preparing: this.preparing || this.isLaunching(),
             error: this.error
         });
     },
@@ -354,7 +356,12 @@ const TodaySystem = {
     render: function() {
         const el = this.elements;
         const prev = this.view ? this.view.state : null;
-        const v = this.resolve();
+        let v = this.resolve();
+        let launch = null;
+        if (this.launch && (v.session || v.error || !this.isLaunching())) {
+            launch = this.endLaunch();
+            v = this.resolve();
+        }
         this.view = v;
         document.documentElement.dataset.today = v.state;
         if (window.ReminderSystem) ReminderSystem.setSessionActive(!!v.session);
@@ -382,6 +389,125 @@ const TodaySystem = {
         else this.breakMin = null;
         this.renderTitle(v);
         this.moveFocus(prev, v.state);
+        this.animateState(prev, v.state, launch);
+        if (!this._motionReady) {
+            this._motionReady = true;
+            requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('today-motion')));
+        }
+    },
+
+    // --- Movimento entre estados (ANALISE_ANIMACOES_ORA.md, P2) ---
+    // Só opacity/transform (Motion). Blocos de vidro sobre a foto (próximo
+    // passo, convite, chips) só se deslocam: opacidade < 1 tiraria o desfoque.
+
+    LAUNCH_HOLD_MS: 2000,
+
+    isLaunching: function() {
+        return !!this.launch && performance.now() - this.launch.at < this.LAUNCH_HOLD_MS;
+    },
+
+    // Guarda onde estava o título da preparação para ele "voar" até a sessão
+    startLaunch: function() {
+        const input = this.elements.prepTitle;
+        const rect = input.getBoundingClientRect();
+        const cs = getComputedStyle(input);
+        this.launch = {
+            at: performance.now(),
+            from: input.value.trim() && rect.width ? {
+                left: rect.left + (parseFloat(cs.paddingLeft) || 0),
+                centerY: rect.top + rect.height / 2,
+                fontSize: parseFloat(cs.fontSize) || 24
+            } : null
+        };
+        document.documentElement.classList.add('is-launching');
+        clearTimeout(this._launchTimer);
+        this._launchTimer = setTimeout(() => { if (this.launch) this.render(); }, this.LAUNCH_HOLD_MS + 50);
+    },
+
+    endLaunch: function() {
+        const launch = this.launch;
+        this.launch = null;
+        clearTimeout(this._launchTimer);
+        document.documentElement.classList.remove('is-launching');
+        return launch;
+    },
+
+    animateState: function(prev, state, launch) {
+        const M = window.Motion;
+        if (!M || !prev || prev === state) return;
+        if (window.RouterSystem && RouterSystem.current() && RouterSystem.current().view !== 'hoje') return;
+        const el = this.elements;
+        const rise = (node, delay = 0, { fade = true, y = 10, duration = 380 } = {}) => {
+            if (!node || node.hidden) return;
+            const from = fade ? { opacity: 0, transform: `translateY(${y}px)` } : { transform: `translateY(${y}px)` };
+            const to = fade ? { opacity: 1, transform: 'none' } : { transform: 'none' };
+            M.play(node, [from, to], { duration, delay, fill: 'backwards', channel: 'state' });
+        };
+        const rest = ['repouso', 'repouso-vazio', 'noite', 'falha'];
+
+        if (state === 'preparacao') {
+            M.play(el.prep, [
+                { opacity: 0, transform: 'translateY(12px) scale(0.98)' },
+                { opacity: 1, transform: 'none' }
+            ], { duration: 280, channel: 'state' });
+            return;
+        }
+
+        if (rest.includes(state)) {
+            rise(el.arrival, 0);
+            rise(el.intent, 50);
+            rise(el.next, 90, { fade: false, y: 8 });
+            rise(el.empty, 90, { fade: false, y: 8 });
+            rise(el.invite, 130, { fade: false, y: 8 });
+            return;
+        }
+
+        // Entrar na sessão (foco ou pausa). Pausar/retomar não coreografa.
+        if (state === 'ativa' && prev !== 'pausada') {
+            if (!this.flyTitle(launch && launch.from)) rise(el.sessionTitle, 60, { y: 14, duration: 460 });
+            rise(el.session.querySelector('.session-state'), 160, { y: 6 });
+            M.play(el.timer, [
+                { opacity: 0, transform: 'scale(0.96)' },
+                { opacity: 1, transform: 'none' }
+            ], { duration: 560, delay: 160, fill: 'backwards', channel: 'state' });
+            rise(el.progress.parentElement, 260, { y: 6 });
+            rise(el.sessionMeta, 290, { y: 6 });
+            rise(el.sessionIntent, 320, { y: 6 });
+            rise(el.session.querySelector('.controls'), 340, { y: 8 });
+            rise(el.session.querySelector('.aux-row'), 380, { fade: false, y: 8 });
+            return;
+        }
+
+        if (state === 'concluida') {
+            rise(el.done.querySelector('.label'), 0, { y: 6 });
+            rise(el.doneTitle, 60, { y: 12, duration: 460 });
+            rise(el.doneMeta, 140, { y: 6 });
+            rise(el.doneCheckRow, 200, { fade: false, y: 8 });
+            rise(el.breakEdit, 220, { y: 6 });
+            rise(el.done.querySelector('.row'), 260, { y: 8 });
+            rise(el.after, 300, { y: 6 });
+        }
+    },
+
+    // FLIP: o título digitado na preparação desliza e cresce até o título da
+    // sessão. Mede o texto (não a caixa, que é centralizada e mais larga).
+    flyTitle: function(from) {
+        const title = this.elements.sessionTitle;
+        if (!from || !title.textContent || title.offsetParent === null) return false;
+        const range = document.createRange();
+        range.selectNodeContents(title);
+        const text = range.getBoundingClientRect();
+        const box = title.getBoundingClientRect();
+        if (!text.width || !box.width) return false;
+        const scale = from.fontSize / (parseFloat(getComputedStyle(title).fontSize) || from.fontSize);
+        const dx = from.left - text.left;
+        const dy = from.centerY - (text.top + (text.height * scale) / 2);
+        const origin = `${text.left - box.left}px ${text.top - box.top}px`;
+        const animation = window.Motion.play(title, [
+            { transformOrigin: origin, transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 0.7 },
+            { transformOrigin: origin, transform: 'none', opacity: 1 }
+        ], { duration: 640, channel: 'state' });
+        return !!animation;
     },
 
     // Leva o foco ao lugar certo quando o bloco em foco some
@@ -755,6 +881,7 @@ const TodaySystem = {
             AsyncStorage.set(this.PROTECT_PREF_KEY, draft.protect);
         }
 
+        this.startLaunch();
         this.prepStarting = true;
         DialogSystem.close(this.elements.prep);
         this.prepStarting = false;
@@ -769,6 +896,7 @@ const TodaySystem = {
             if (state?.session) SoundSystem.play(sound, state.session.id, { preservePause: true });
         } catch (e) {
             console.error('[Today] Could not start focus:', e);
+            if (this.launch) this.endLaunch();
             this.setError({ title: t('today.error_start'), detail: t('today.error_engine_detail'), retry: () => this.beginFocus(params, sound) });
         }
     },
@@ -805,7 +933,7 @@ const TodaySystem = {
         const title = focus ? (s.title || t('today.free_focus')) : t('today.break_title');
         if (el.sessionTitle.textContent !== title) el.sessionTitle.textContent = title;
         this.setDigits(el.timer, this.formatTimer(s.remainingSec));
-        el.progress.style.width = (s.progress * 100).toFixed(2) + '%';
+        el.progress.style.transform = `scaleX(${Math.min(1, Math.max(0, Number(s.progress) || 0)).toFixed(4)})`;
         el.sessionMeta.textContent = paused ? t('today.left_paused') : t('today.left_until', { time: this.hhmm(s.endsAt) });
 
         el.sessionIntent.hidden = !(focus && s.intention);

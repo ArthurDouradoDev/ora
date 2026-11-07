@@ -28,8 +28,12 @@
     transition: opacity 400ms var(--ease);
 }
 html:is([data-today="ativa"], [data-today="pausada"], [data-today="concluida"], [data-today="preparacao"]) .today::before { opacity: 1; }
-html[data-view="hoje"]:is([data-today="ativa"], [data-today="pausada"], [data-today="concluida"], [data-today="preparacao"]) .overlay { background: rgba(0, 0, 0, 0.6); }
-.overlay { transition: background 600ms var(--ease); }
+html[data-view="hoje"]:is([data-today="ativa"], [data-today="pausada"], [data-today="concluida"], [data-today="preparacao"]) .overlay::after { opacity: 1; }
+/* A paisagem se aproxima um pouco ao preparar e mais no foco (uma vez; fica parada) */
+html[data-view="hoje"]:is([data-today="preparacao"], [data-today="concluida"]) { --photo-scale: 1.03; }
+html[data-view="hoje"]:is([data-today="ativa"], [data-today="pausada"]) { --photo-scale: 1.06; }
+/* Entre "Começar" e a resposta do service worker, a tela fica só com a paisagem */
+html.is-launching .today-center > * { visibility: hidden; }
 
 /* O cabeçalho recua durante a sessão e volta ao passar o mouse ou com o foco */
 html[data-view="hoje"]:is([data-today="ativa"], [data-today="pausada"]) .topbar { opacity: 0.6; transition: opacity var(--dur); }
@@ -178,10 +182,10 @@ html[data-today="preparacao"] .arrival :is(.greeting, .day) { display: none; }
 .session { display: grid; gap: 0.75rem; justify-items: center; width: min(36rem, 100%); }
 .session-state { display: inline-flex; gap: 0.5rem; align-items: center; }
 .session-title { font-size: clamp(1.75rem, 5vh, 2.5rem); font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
-.timer { font-size: clamp(4rem, 17vh, 8.5rem); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35); }
+.timer { font-size: clamp(4rem, 17vh, 8.5rem); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35); transition: color 400ms var(--ease); }
 html[data-today="pausada"] .timer { color: var(--text-2); }
 .progress { width: min(22rem, 80%); height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
-.progress span { display: block; height: 100%; width: 0; background: var(--gold); transition: width 1s linear; }
+.progress span { display: block; height: 100%; width: 100%; background: var(--gold); transform: scaleX(0); transform-origin: left center; transition: transform 1s linear; }
 .session-intent { font-family: var(--f-read); font-style: italic; color: var(--text-2); font-size: 1.0625rem; overflow-wrap: anywhere; }
 .pause-note { color: var(--text-2); font-size: 0.875rem; max-width: 30rem; }
 .session .controls { display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; justify-content: center; }
@@ -224,6 +228,7 @@ html[data-today="pausada"] .timer { color: var(--text-2); }
     position: relative;
     display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem;
     padding: 0 1.5rem 1.25rem;
+    transition: opacity 400ms var(--ease), visibility 400ms;
 }
 .gospel {
     display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem;
@@ -237,7 +242,7 @@ html[data-today="pausada"] .timer { color: var(--text-2); }
 .quote { margin: 0; text-align: right; max-width: 24rem; color: rgba(255, 255, 255, 0.95); text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); }
 .quote blockquote { margin: 0 0 5px; font-style: italic; font-size: 1rem; line-height: 1.5; }
 .quote figcaption { font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; }
-html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"], [data-today="concluida"]) .today-foot { visibility: hidden; }
+html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"], [data-today="concluida"]) .today-foot { visibility: hidden; opacity: 0; }
 
 /* ---------- Tarefas: painel lateral integrado ---------- */
 .tasks-panel {
