@@ -1,6 +1,6 @@
 # Análise de animações — Ora (06/11/2026)
 
-> **Estado (07/11/2026):** base + P1 + P2 implementadas (camada `#backdrop` com `#backdrop-photo`, `scripts/ui/motion.js`, ajustes de P6 exceto o painel de Tarefas, troca de destinos, indicador deslizante e coreografia do foco em `TodaySystem.animateState`). P2 foi feito com FLIP manual (WAAPI), não View Transitions; entre "Começar" e a resposta do SW, Hoje fica no estado "lançando" (`html.is-launching`, até 2 s) para não piscar o repouso. Demais itens seguem como proposta.
+> **Estado (07/11/2026): tudo implementado.** Base, P1 (destinos + indicador), P2 (foco), P3 (brilho e marca da conclusão), P4 (diálogos, popovers e toasts com entrada e saída só em CSS), P5 (chegada da primeira aba), P6 (incluindo o painel de Tarefas por FLIP) e P7 (subtelas de Rezar, terço, barras do Frutos, conclusão de tarefa, botões). Ficou de fora, de propósito, o título da oração "voando" da biblioteca ao leitor: competiria com a entrada da subtela que já existe. Auditoria de desempenho na §9.
 >
 > **Correção importante à §3:** um elemento capturado por uma View Transition vira *raiz do fundo*: o vidro (`backdrop-filter`) dentro dele perde o desfoque durante a transição. Como Hoje e a topbar são de vidro sobre a foto, a troca de destinos foi feita com a **Web Animations API** (`Motion.play`, só `opacity`/`transform`), não com View Transitions. Hoje entra só com `transform` (opacidade < 1 também tiraria o desfoque). Para o morph do título no foco (P2), avaliar o mesmo efeito antes de adotar a API.
 >
@@ -193,3 +193,18 @@ html[data-motion="reduce"]::view-transition-new(*) { animation: none !important;
 5. **P3** conclusão, **P5** chegada, **P7** microinterações.
 
 Cada etapa é independente e reversível; se algo pesar, basta remover o `view-transition-name` ou a regra CSS correspondente.
+
+## 9. Auditoria de desempenho (07/11/2026)
+
+Feita no harness com `chrome.*` simulado, contando animações e superfícies de vidro por estado (sem gravação de quadros: o painel do navegador estava oculto).
+
+| Achado | Custo | Correção |
+|---|---|---|
+| Barra de progresso do foco com `transition: 1s linear` reiniciada a cada tique | Animação sempre ativa: quadros a 60 fps durante os 25 min, para mover ~0,2 px/s (na V0 era `width`: layout a cada quadro) | Transição removida; a barra avança a cada segundo sem animar |
+| Equalizador do mini controle em laço infinito, dentro de um chip de vidro | Quadros contínuos enquanto a música toca e redesenho do desfoque do chip | No mini controle pulsa 3 ciclos e para numa pose fixa; no popup (aberto por pouco tempo) continua |
+| Painel de Tarefas animando `width` | Layout de Hoje e reavaliação das container queries do canto a cada quadro por 280 ms | Largura muda uma vez; centro desliza por FLIP e painel entra/sai com transform/opacity (`TaskSystem.animatePanel`) |
+| Véu do foco e topbar trocando cor | Repintura de camada de tela cheia por quadro | Véu por opacidade (`.overlay::after`); topbar só faz transição de cor (área pequena) |
+
+Resultado medido: durante o foco, depois da entrada, **nenhuma animação fica rodando** (0 animações após 3 tiques). Em Hoje há 7–9 superfícies de vidro, todas paradas; em Rezar, 4 (só a topbar). Nenhuma animação infinita ativa em repouso, foco ou Rezar (a chama do Advento só existe no tempo do Advento, numa área pequena e sobre superfície sólida).
+
+Ainda vale medir na extensão real, com o DevTools (Performance, CPU 4× mais lenta): troca Hoje → Rezar, entrada no foco e abertura do popup da música. Ponto a observar: o player do YouTube/Spotify oculto (`.sound-remote.is-concealed`, opacidade 0) continua carregado; se for vídeo, o navegador pode seguir decodificando quadros. Medir antes de mudar.

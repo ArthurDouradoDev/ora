@@ -75,6 +75,18 @@ async function initApp() {
                 document.body.classList.remove('app-loading');
                 document.body.classList.add('app-ready');
 
+                // Chegada (P5): só na primeira aba da sessão do navegador, a
+                // paisagem assenta e o centro de Hoje sobe de leve. As demais
+                // abas abrem sem animação para não atrasar o clique.
+                if (window.Motion && document.documentElement.dataset.view === 'hoje') {
+                    Motion.play(document.getElementById('backdrop'), [
+                        { transform: 'scale(1.05)' }, { transform: 'none' }
+                    ], { duration: 1400, channel: 'route' });
+                    Motion.play(document.getElementById('today-center'), [
+                        { transform: 'translateY(14px)' }, { transform: 'none' }
+                    ], { duration: 700, delay: 100, fill: 'backwards', channel: 'route' });
+                }
+
                 // Remove from DOM after transition
                 loadingScreen.addEventListener('transitionend', () => {
                     loadingScreen.remove();

@@ -118,13 +118,54 @@ const TaskSystem = {
         else this.show();
     },
 
+    // Abre/fecha sem animar a largura da coluna (cada quadro refaria o layout
+    // de Hoje e as container queries do canto). A largura muda uma vez; o
+    // centro desliza do lugar antigo (FLIP) e o painel entra/sai com
+    // transform + opacity (ele é sólido, sem vidro). Em janela estreita o
+    // painel já é uma folha com transform no CSS.
+    animatePanel: function(open, apply) {
+        const M = window.Motion;
+        const panel = this.elements.panel;
+        const center = document.getElementById('today-center');
+        const wide = !(window.matchMedia && matchMedia('(max-width: 68rem)').matches);
+        if (!M || M.reduced() || !wide || !center || document.documentElement.dataset.view !== 'hoje') {
+            apply();
+            return;
+        }
+        const flipCenter = () => {
+            const before = center.getBoundingClientRect();
+            apply();
+            const after = center.getBoundingClientRect();
+            const dx = (before.left + before.width / 2) - (after.left + after.width / 2);
+            if (Math.abs(dx) > 1) M.play(center, [{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: 300, channel: 'tasks' });
+        };
+        if (open) {
+            flipCenter();
+            M.play(panel, [
+                { opacity: 0, transform: 'translateX(32px)' },
+                { opacity: 1, transform: 'none' }
+            ], { duration: 300, channel: 'tasks' });
+            return;
+        }
+        const out = M.play(panel, [
+            { opacity: 1, transform: 'none' },
+            { opacity: 0, transform: 'translateX(32px)' }
+        ], { duration: 180, easing: 'ease-in', fill: 'forwards', channel: 'tasks' });
+        if (!out) { flipCenter(); return; }
+        // Reaberto no meio da saída: a nova animação cancela esta e nada se aplica
+        out.finished.then(() => {
+            if (!this.open) flipCenter();
+            out.cancel();
+        }, () => {});
+    },
+
     show: function({ focus = true } = {}) {
         // O painel mora em Hoje: chamado de outro destino, volta para Hoje
         if (window.RouterSystem && RouterSystem.current() && RouterSystem.current().view !== 'hoje') {
             RouterSystem.navigate('hoje');
         }
         this.open = true;
-        this.elements.view.setAttribute('data-tasks-open', '');
+        this.animatePanel(true, () => this.elements.view.setAttribute('data-tasks-open', ''));
         this.elements.panel.inert = false;
         this.elements.chip.setAttribute('aria-expanded', 'true');
         if (focus) setTimeout(() => this.elements.addInput.focus({ preventScroll: true }), 60);
@@ -137,12 +178,28 @@ const TaskSystem = {
         this.open = false;
         this.editingId = null;
         this.confirmDeleteId = null;
-        this.elements.view.removeAttribute('data-tasks-open');
+        this.animatePanel(false, () => this.elements.view.removeAttribute('data-tasks-open'));
         this.elements.panel.inert = true;
         this.elements.chip.setAttribute('aria-expanded', 'false');
         if (returnFocus && hadFocus) this.elements.chip.focus({ preventScroll: true });
         this.render();
         window.dispatchEvent(new CustomEvent('ora:tasks-panel', { detail: { open: false } }));
+    },
+
+    // Tarefa concluída: o check responde e a linha chega às concluídas (P7)
+    celebrateDone: function(id) {
+        const M = window.Motion;
+        const row = M && [...this.elements.panel.querySelectorAll('[data-id]')].find(li => li.dataset.id === id);
+        if (!row || row.offsetParent === null) return;
+        M.play(row.querySelector('.check'), [
+            { transform: 'scale(0.8)' },
+            { transform: 'scale(1.15)', offset: 0.5 },
+            { transform: 'none' }
+        ], { duration: 320, channel: 'done' });
+        M.play(row, [
+            { opacity: 0.4, transform: 'translateY(-6px)' },
+            { opacity: 1, transform: 'none' }
+        ], { duration: 300, channel: 'done' });
     },
 
     // --- Dados ---
@@ -370,7 +427,11 @@ const TaskSystem = {
         const target = e.target;
         if (target.matches('.check')) {
             const id = target.closest('[data-id]').dataset.id;
-            this.setDone(id, target.checked).then(() => this.focusRow(id, '.check'));
+            const done = target.checked;
+            this.setDone(id, done).then(() => {
+                this.focusRow(id, '.check');
+                if (done) this.celebrateDone(id);
+            });
         } else if (target.matches('[name="repeat"]')) {
             const days = target.closest('.task-edit').querySelector('.days');
             days.hidden = !target.checked;

@@ -479,6 +479,20 @@ const TodaySystem = {
         }
 
         if (state === 'concluida') {
+            // Gesto único de recompensa (P3), só quando a sessão acabou agora
+            if (prev === 'ativa' || prev === 'pausada') {
+                M.play(document.getElementById('today-done-glow'), [
+                    { opacity: 0, transform: 'scale(0.8)' },
+                    { opacity: 1, transform: 'scale(1)', offset: 0.35 },
+                    { opacity: 0, transform: 'scale(1.1)' }
+                ], { duration: 1400, easing: 'ease-out', channel: 'state' });
+                const mark = document.getElementById('today-done-mark');
+                if (mark) {
+                    const [ring, tick] = mark.children;
+                    M.play(ring, [{ strokeDasharray: '1', strokeDashoffset: '1' }, { strokeDasharray: '1', strokeDashoffset: '0' }], { duration: 520, fill: 'backwards', channel: 'state' });
+                    M.play(tick, [{ strokeDasharray: '1', strokeDashoffset: '1' }, { strokeDasharray: '1', strokeDashoffset: '0' }], { duration: 360, delay: 380, fill: 'backwards', channel: 'state' });
+                }
+            }
             rise(el.done.querySelector('.label'), 0, { y: 6 });
             rise(el.doneTitle, 60, { y: 12, duration: 460 });
             rise(el.doneMeta, 140, { y: 6 });

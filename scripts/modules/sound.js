@@ -355,6 +355,14 @@ const SoundSystem = {
         this.setStatus('');
         this.renderEditor();
         this.position();
+        // Entrar num detalhe desliza da direita; voltar à biblioteca, da esquerda
+        if (previous && previous !== view && window.Motion) {
+            const x = view === 'library' ? -12 : 12;
+            Motion.play(this.views[view], [
+                { opacity: 0, transform: `translateX(${x}px)` },
+                { opacity: 1, transform: 'none' }
+            ], { duration: 220, channel: 'view' });
+        }
         if (!focus) return;
         if (view === 'library') {
             const key = returnKey || editor.returnKey;
@@ -402,6 +410,8 @@ const SoundSystem = {
         const left = Math.min(Math.max(rect.left + rect.width / 2 - width / 2, margin), window.innerWidth - width - margin);
         panel.style.left = left + 'px';
         panel.style.top = (down ? rect.bottom + gap : rect.top - gap - Math.min(height, room)) + 'px';
+        // O popup cresce a partir do botão que o abriu (ui.css: entrada do diálogo)
+        panel.style.setProperty('--sound-origin', `${Math.round(rect.left + rect.width / 2 - left)}px ${down ? '0' : '100%'}`);
     },
 
     setStatus(text) {

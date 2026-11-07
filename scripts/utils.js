@@ -236,7 +236,11 @@ function showToast(message, type = 'success') {
     text.textContent = message;
     toast.append(indicator, text);
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    // Sai com fade (ui.css .toast.is-leaving); remove mesmo sem transição
+    setTimeout(() => {
+        toast.classList.add('is-leaving');
+        setTimeout(() => toast.remove(), 240);
+    }, 3000);
 }
 
 // Expose globally (explicitly, though const/function in root scope usually does this in non-module scripts)

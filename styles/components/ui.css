@@ -83,9 +83,11 @@
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
-    transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur);
+    transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur), transform 120ms var(--ease);
 }
 .btn i { font-size: 1.15em; }
+/* Resposta tátil ao clicar: só transform */
+.btn:active:not(:disabled), .chip:active:not(.chip-static), .btn-icon:active:not(:disabled) { transform: scale(0.97); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--gold); color: var(--on-gold); }
 .btn-primary:hover:not(:disabled) { background: var(--gold-hover); }
@@ -115,6 +117,7 @@
     cursor: pointer;
 }
 .chip:hover { border-color: var(--line-strong); }
+.chip { transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), transform 120ms var(--ease); }
 .count {
     min-width: 1.4rem; height: 1.4rem; padding: 0 0.35rem; border-radius: 999px;
     background: rgba(255, 255, 255, 0.12);
@@ -279,7 +282,10 @@
 .toast {
     display: flex; align-items: center; gap: .55rem; padding: .65rem .85rem;
     background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+    transition: opacity 220ms var(--ease), transform 220ms var(--ease);
 }
+@starting-style { .toast { opacity: 0; transform: translateY(8px); } }
+.toast.is-leaving { opacity: 0; transform: translateY(4px); }
 .toast-success i { color: var(--ok); }
 .toast-error i { color: var(--err); }
 
@@ -289,6 +295,30 @@
     display: grid; place-items: center;
     padding: 1.5rem;
     background: rgba(0, 0, 0, 0.55);
+}
+
+/* Entrada e saída de diálogos e popovers, só com CSS (Chrome 117+).
+   [hidden] continua com display: none !important; a transição discreta de
+   display vence o !important e segura o elemento visível até o fim do fade.
+   Só opacity/transform. Painéis são sólidos (sem vidro), então o fade não
+   tira desfoque de nada. */
+.scrim, .popover {
+    transition: opacity 180ms var(--ease), display 180ms allow-discrete;
+}
+.scrim > [role="dialog"], .scrim > [role="alertdialog"] {
+    transition: transform 220ms var(--ease), opacity 220ms var(--ease);
+}
+.popover {
+    transition: opacity 180ms var(--ease), transform 180ms var(--ease), display 180ms allow-discrete;
+    transform-origin: top right;
+}
+.scrim[hidden], .popover[hidden] { opacity: 0; pointer-events: none; }
+.popover[hidden] { transform: translateY(-4px) scale(0.98); }
+.scrim[hidden] > [role="dialog"], .scrim[hidden] > [role="alertdialog"] { transform: translateY(8px) scale(0.98); opacity: 0; }
+@starting-style {
+    .scrim:not([hidden]), .popover:not([hidden]) { opacity: 0; }
+    .popover:not([hidden]) { transform: translateY(-4px) scale(0.98); }
+    .scrim:not([hidden]) > [role="dialog"], .scrim:not([hidden]) > [role="alertdialog"] { transform: translateY(8px) scale(0.98); opacity: 0; }
 }
 .dialog {
     width: min(25rem, 100%);

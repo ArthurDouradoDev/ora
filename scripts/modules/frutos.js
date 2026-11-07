@@ -367,6 +367,17 @@ const FrutosSystem = {
             ol.appendChild(li);
         }
         this.elements.chart.replaceChildren(ol);
+        this.growBars(ol);
+    },
+
+    // As barras da semana crescem da base uma vez por aba (P7), quando o
+    // Frutos está à vista; atualizações seguintes não animam. Só transform.
+    growBars: function(ol) {
+        if (this._barsGrown || !window.Motion || RouterSystem.current().view !== 'frutos') return;
+        this._barsGrown = true;
+        ol.querySelectorAll('.barbox span').forEach((bar, i) => {
+            Motion.play(bar, [{ transform: 'scaleY(0)' }, { transform: 'none' }], { duration: 520, delay: 120 + i * 30, fill: 'backwards' });
+        });
     },
 
     renderMonth: function() {

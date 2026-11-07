@@ -13,7 +13,7 @@ Memória do projeto para sessões futuras. Consolida o que foi discutido e decid
 | `ANALISE_INTERFACE_ORA.md` | Direção visual: hierarquia, tipografia, superfícies, mobile (28/10) |
 | `REVISAO_UX_UI_REZAR_BIBLIOTECA.md` | Revisão de Rezar, Biblioteca, leitor, terço, Respiro (30/10) |
 | `RELATORIO_MELHORIAS_ORA.md` | Relatório consolidado: correções M01–M13, prioridades P1/P2/P3 (29/10) |
-| `ANALISE_ANIMACOES_ORA.md` | Animações e fluidez: camada de fundo, foco à la Momentum, regras de desempenho. Base, troca de destinos e coreografia do foco implementadas (07/11); diálogos, brilho da conclusão, chegada e painel de Tarefas seguem como proposta |
+| `ANALISE_ANIMACOES_ORA.md` | Animações e fluidez: camada de fundo, foco à la Momentum, regras de desempenho. Tudo implementado em 07/11 (destinos, foco, conclusão, diálogos/popovers/toasts, chegada, painel de Tarefas, terço, Frutos, popup da música) + auditoria de desempenho (§9) |
 | `IDEAS.md` / `IDEAS.pdf` | Ideias, concorrência (seção 6) e estratégia mobile Android + iOS (seção 5) |
 | `prototypes/` | Protótipos HTML de validação de design (não fazem parte da extensão) |
 

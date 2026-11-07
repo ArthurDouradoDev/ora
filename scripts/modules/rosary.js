@@ -139,13 +139,32 @@ const RosarySystem = {
         const allowed = RosaryCore.indices(this.structure,this.state.chapletType);
         const last = this.state.bead === allowed[allowed.length - 1];
         const next = delta > 0 && last ? { ...this.state, completed:true } : RosaryCore.move(this.state,delta,this.structure);
+        const fromDecade = this.structure[this.state.bead]?.decade;
         if (await this.persist(next)) {
             // Frutos: terço (ou terço da misericórdia) rezado até o fim
             if (next.completed && window.PracticeLog) PracticeLog.record(next.chapletType === 'misericordia' ? 'chaplet' : 'rosary');
             this.renderPrayer();
+            this.animateStep(delta, fromDecade);
             document.getElementById(delta > 0 ? 'rosary-next' : 'rosary-previous')?.focus({ preventScroll:true });
         }
     },
-    async goTo(bead) { if (bead >= 0 && await this.persist({ ...this.state, bead, completed:false })) { this.renderPrayer(); document.getElementById('rosary-next')?.focus({ preventScroll:true }); } }
+    async goTo(bead) {
+        const from = this.state.bead, fromDecade = this.structure[from]?.decade;
+        if (bead >= 0 && await this.persist({ ...this.state, bead, completed:false })) { this.renderPrayer(); this.animateStep(bead >= from ? 1 : -1, fromDecade); document.getElementById('rosary-next')?.focus({ preventScroll:true }); }
+    },
+    // A tela é remontada a cada conta, então a continuidade vem de animações
+    // curtas (só transform/opacity): o texto desliza no sentido do passo, a
+    // conta atual cresce e, ao mudar de mistério, o título aparece.
+    animateStep(delta, fromDecade) {
+        const M = window.Motion, root = PrayUI.root;
+        if (!M || !root) return;
+        const x = delta < 0 ? -16 : 16;
+        M.play(root.querySelector('.rosary-prayer'), [{ opacity: 0, transform: `translateX(${x}px)` }, { opacity: 1, transform: 'none' }], { duration: 260 });
+        M.play(root.querySelector('.rosary-bead-control[aria-current] span'), [{ transform: 'scale(1)' }, { transform: 'scale(1.5)' }], { duration: 220 });
+        if (this.structure[this.state.bead]?.decade !== fromDecade) {
+            M.play(root.querySelector('.mystery-heading') || root.querySelector('h1'), [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 320 });
+            M.play(root.querySelector('.mystery-art'), [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+        }
+    }
 };
 window.RosarySystem = RosarySystem;

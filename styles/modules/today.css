@@ -185,7 +185,10 @@ html[data-today="preparacao"] .arrival :is(.greeting, .day) { display: none; }
 .timer { font-size: clamp(4rem, 17vh, 8.5rem); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35); transition: color 400ms var(--ease); }
 html[data-today="pausada"] .timer { color: var(--text-2); }
 .progress { width: min(22rem, 80%); height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
-.progress span { display: block; height: 100%; width: 100%; background: var(--gold); transform: scaleX(0); transform-origin: left center; transition: transform 1s linear; }
+.progress span { display: block; height: 100%; width: 100%; background: var(--gold); transform: scaleX(0); transform-origin: left center; }
+/* Sem transição: a barra anda ~0,2 px por segundo; uma transição de 1 s
+   reiniciada a cada tique deixaria uma animação sempre ativa (quadros a
+   60 fps durante toda a sessão) para um movimento imperceptível. */
 .session-intent { font-family: var(--f-read); font-style: italic; color: var(--text-2); font-size: 1.0625rem; overflow-wrap: anywhere; }
 .pause-note { color: var(--text-2); font-size: 0.875rem; max-width: 30rem; }
 .session .controls { display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; justify-content: center; }
@@ -194,7 +197,19 @@ html[data-today="pausada"] .timer { color: var(--text-2); }
 .chip-static:hover { border-color: var(--line); }
 
 /* ---------- Sessão concluída ---------- */
-.done { display: grid; gap: 0.875rem; justify-items: center; width: min(34rem, 100%); }
+.done { display: grid; gap: 0.875rem; justify-items: center; width: min(34rem, 100%); position: relative; isolation: isolate; }
+/* Gesto da conclusão (P3): brilho dourado que aparece uma vez atrás do título
+   e marca desenhada. Parados, o brilho fica invisível e a marca completa. */
+.done-glow {
+    position: absolute; left: 50%; top: 45%; z-index: -1;
+    width: 30rem; height: 30rem; margin: -15rem 0 0 -15rem;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(216, 176, 97, 0.24), rgba(216, 176, 97, 0.06) 60%, transparent);
+    opacity: 0;
+    pointer-events: none;
+}
+.done-mark { width: 2.75rem; height: 2.75rem; fill: none; stroke: var(--gold); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.done-mark circle { stroke-opacity: 0.45; }
 .done h1 { font-size: 2rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
 .done .row { flex-wrap: wrap; justify-content: center; }
 .check-row {
@@ -215,6 +230,7 @@ html[data-today="pausada"] .timer { color: var(--text-2); }
     font-size: 1.125rem; cursor: pointer;
 }
 .btn-icon:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
+.btn-icon { transition: color var(--dur), background var(--dur), transform 120ms var(--ease); }
 .btn-icon:disabled { opacity: 0.35; cursor: not-allowed; }
 .btn-icon.sm { width: 2rem; height: 2rem; font-size: 1rem; }
 
@@ -251,7 +267,8 @@ html:is([data-today="ativa"], [data-today="pausada"], [data-today="preparacao"],
     overflow: hidden;
     border-radius: var(--r-xl) 0 0 0;
     border-right: 0; border-bottom: 0;
-    transition: width 280ms var(--ease);
+    /* Largura muda de uma vez (um único layout); o movimento é feito com
+       transform em TaskSystem.animatePanel (FLIP do centro + painel). */
 }
 .view-hoje[data-tasks-open] .tasks-panel { width: 24rem; }
 .tasks-inner { width: 24rem; height: 100%; display: flex; flex-direction: column; }
