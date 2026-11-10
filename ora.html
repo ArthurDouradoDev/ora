@@ -236,7 +236,10 @@
                         <button type="button" class="btn btn-aux" id="today-more" data-i18n="today.more_session">Mais uma sessão</button>
                         <button type="button" class="btn btn-quiet" id="today-home" data-i18n="today.back_home">Voltar ao início</button>
                     </div>
-                    <p class="meta" id="today-after" hidden></p>
+                    <div class="done-next" id="today-after" hidden>
+                        <p class="label" data-i18n="today.after_label">Próxima tarefa de hoje</p>
+                        <p id="today-after-title"></p>
+                    </div>
                 </section>
 
                 <!-- Canto: atalhos e som (no eixo em telas estreitas) -->
@@ -986,6 +989,7 @@
     <script src="scripts/ui/router.js" defer></script>
     <script src="scripts/ui/dialog.js" defer></script>
     <script src="scripts/ui/leave-guard.js" defer></script>
+    <script src="scripts/shared/site-favicon.js" defer></script>
     <script src="scripts/modules/links.js" defer></script>
     <script src="scripts/ui/prayer-ui.js" defer></script>
     <script src="scripts/modules/prayers.js" defer></script>

@@ -119,7 +119,7 @@
     // Tarefas que a pessoa vê (sem os modelos de rotina), Hoje antes de Depois.
     function visibleTasks(tasks) {
         return (tasks || [])
-            .filter(t => !isTemplate(t))
+            .filter(t => t && !isTemplate(t) && !t.skipped)
             .sort((a, b) => (LISTS.indexOf(a.list) - LISTS.indexOf(b.list)) || byOrder(a, b));
     }
 
@@ -127,9 +127,13 @@
         return visibleTasks(tasks).filter(t => t.list === list);
     }
 
+    function openToday(tasks) {
+        return listTasks(tasks, 'hoje').filter(t => !isDone(t));
+    }
+
     // Próximo passo: a primeira tarefa aberta de Hoje, na ordem escolhida (E03).
     function nextStep(tasks) {
-        return listTasks(tasks, 'hoje').find(t => !isDone(t)) || null;
+        return openToday(tasks)[0] || null;
     }
 
     function nextOrder(tasks, list, atTop) {
@@ -399,6 +403,7 @@
         isDueOn,
         visibleTasks,
         listTasks,
+        openToday,
         nextStep,
         createTask,
         completeTask,

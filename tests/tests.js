@@ -620,6 +620,12 @@
     const done = TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: afterFocus, now: T_AFTERNOON + MIN });
     assertEq('foco terminou → concluída', done.state, 'concluida');
     assertEq('concluída sugere a próxima tarefa', done.completed.after.id, 'b');
+    const skippedToday = [
+        ...todayTasks,
+        { id: 'skipped', title: 'Rotina pulada', list: 'hoje', order: 0, fromRecurrence: 'routine', date: '2026-11-04', skipped: true }
+    ];
+    const doneWithSkipped = TodayCore.resolveTodayState({ tasks: skippedToday, pomodoro: afterFocus, now: T_AFTERNOON + MIN });
+    assertEq('rotina pulada fica fora da contagem e da sugestão', [doneWithSkipped.openToday, doneWithSkipped.completed.after.id], [2, 'b']);
     assertEq('concluída sem convite', done.invite, null);
     assertEq('mais uma sessão abre a preparação', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: afterFocus, now: T_AFTERNOON, preparing: true }).state, 'preparacao');
     assertEq('concluída de ontem não reaparece', TodayCore.resolveTodayState({ tasks: todayTasks, pomodoro: afterFocus, now: T_AFTERNOON + 13 * 60 * MIN }).state, 'noite');

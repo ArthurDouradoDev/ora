@@ -310,6 +310,16 @@ html[data-today="pausada"] .timer { color: var(--text-2); }
 .done-mark circle { stroke-opacity: 0.45; }
 .done h1 { font-size: 2rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
 .done .row { flex-wrap: wrap; justify-content: center; }
+.done-next {
+    display: grid;
+    gap: 0.375rem;
+    width: min(22rem, 100%);
+    margin-block-start: 0.5rem;
+    padding-block-start: 0.875rem;
+    border-top: 1px solid var(--line);
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
 .check-row {
     display: inline-flex; gap: 0.625rem; align-items: center;
     padding: 0.5rem 0.875rem; border-radius: var(--r-md);

@@ -483,6 +483,9 @@ html[data-view="protecao"] .topbar {
     color: #fff;
 }
 
+.protecao-site-badge .fav.has-icon { background: var(--surface-1); }
+.protecao-site-badge .fav img { width: 1rem; height: 1rem; object-fit: contain; }
+
 .protecao-block-card h2 {
     font-size: 1.625rem;
     font-weight: 600;

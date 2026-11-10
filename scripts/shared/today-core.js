@@ -42,18 +42,6 @@
         return task ? task.title : null;
     }
 
-    function openTasks(tasks, list) {
-        return (tasks || []).filter(t => t && !t.recurrence && !t.completedAt && (!list || t.list === list));
-    }
-
-    // Próxima tarefa aberta de Hoje na ordem escolhida (mesma regra de TasksCore.nextStep).
-    function nextOpen(tasks, exceptId) {
-        const today = openTasks(tasks, 'hoje')
-            .filter(t => t.id !== exceptId)
-            .sort((a, b) => (a.order - b.order) || (a.createdAt - b.createdAt));
-        return today[0] || null;
-    }
-
     function sessionView(pomodoro, session, tasks, nowMs) {
         const remaining = remainingSeconds(pomodoro, nowMs);
         const total = Math.max(1, Number(pomodoro.totalDuration) || remaining || 1);
@@ -92,6 +80,7 @@
     function resolveTodayState(input) {
         const i = input || {};
         const tasks = Array.isArray(i.tasks) ? i.tasks : [];
+        const openToday = global.TasksCore.openToday(tasks);
         const nowMs = toMs(i.now);
         const date = new Date(nowMs);
         const pomodoro = i.pomodoro && typeof i.pomodoro === 'object' ? i.pomodoro : null;
@@ -103,7 +92,7 @@
             state: 'repouso',
             night,
             next: null,
-            openToday: openTasks(tasks, 'hoje').length,
+            openToday: openToday.length,
             session: null,
             completed: null,
             invite: null,
@@ -126,7 +115,7 @@
             const done = pomodoro.completed;
             if (isBreak(pomodoro.phase) && done && nowMs - (done.endedAt || 0) < COMPLETED_TTL_MS) {
                 const task = done.taskId ? tasks.find(t => t && t.id === done.taskId) : null;
-                const after = nextOpen(tasks, done.taskId);
+                const after = openToday.find(t => t.id !== done.taskId);
                 result.completed = {
                     title: done.title || (task && task.title) || null,
                     taskId: task ? task.id : null,
@@ -144,7 +133,7 @@
         }
 
         // Repouso
-        const next = nextOpen(tasks, null);
+        const next = openToday[0];
         if (next) {
             result.next = { id: next.id, title: next.title, estimateMin: next.estimateMin || null, first: true };
         }

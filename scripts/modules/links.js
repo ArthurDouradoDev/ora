@@ -90,17 +90,6 @@ const LinksSystem = {
         }
     },
 
-    favicon: function(url) {
-        try {
-            const icon = new URL(chrome.runtime.getURL('/_favicon/'));
-            icon.searchParams.set('pageUrl', url);
-            icon.searchParams.set('size', '32');
-            return icon.href;
-        } catch (e) {
-            return null;
-        }
-    },
-
     initials: function(name) {
         const words = name.trim().split(/\s+/).filter(w => w.length > 2 || /^[A-Z]/.test(w));
         const letters = (words.length > 1 ? words.slice(0, 2).map(w => w[0]) : [name.trim()[0] || '?']).join('');
@@ -113,7 +102,7 @@ const LinksSystem = {
         fav.className = 'fav';
         fav.setAttribute('aria-hidden', 'true');
         fav.textContent = this.initials(link.name);
-        const src = this.favicon(link.url);
+        const src = SiteFavicon.cacheUrl(link.url);
         if (src) {
             const img = new Image();
             img.alt = '';

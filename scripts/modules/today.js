@@ -156,6 +156,7 @@ const TodaySystem = {
             more: $('today-more'),
             home: $('today-home'),
             after: $('today-after'),
+            afterTitle: $('today-after-title'),
             alert: $('today-alert'),
             alertTitle: $('today-alert-title'),
             alertDetail: $('today-alert-detail'),
@@ -1331,7 +1332,7 @@ const TodaySystem = {
         el.breakLabel.textContent = t(long ? 'today.long_break_start' : 'today.break_start', { n: breakMin });
 
         el.after.hidden = !c.after;
-        if (c.after) el.after.textContent = t('today.after', { title: c.after.title });
+        el.afterTitle.textContent = c.after?.title || '';
     },
 
     // --- Evangelho ---

@@ -307,7 +307,7 @@
     "respiro": "Take a Breather",
     "more_session": "One more session",
     "back_home": "Back to start",
-    "after": "Next: {title}",
+    "after_label": "Next task today",
     "gospel_ref": "Gospel · {ref}",
     "gospel_stale": "Gospel of {date} · {ref}",
     "gospel_none": "Gospel of the day",

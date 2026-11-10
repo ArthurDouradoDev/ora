@@ -307,7 +307,7 @@
     "respiro": "Hacer un Respiro",
     "more_session": "Una sesión más",
     "back_home": "Volver al inicio",
-    "after": "Después: {title}",
+    "after_label": "Próxima tarea de hoy",
     "gospel_ref": "Evangelio · {ref}",
     "gospel_stale": "Evangelio del {date} · {ref}",
     "gospel_none": "Evangelio del día",

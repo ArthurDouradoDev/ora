@@ -9,7 +9,8 @@
     const $ = (id) => document.getElementById(id);
     const params = new URLSearchParams(location.search);
     const rawDomain = (params.get('domain') || location.hash.slice(1) || '').trim();
-    const domain = BlockerCore.extractDomain(rawDomain) || rawDomain.replace(/^www\./i, '').toLowerCase();
+    const hostname = BlockerCore.extractDomain(rawDomain);
+    const domain = hostname || rawDomain.replace(/^www\./i, '').toLowerCase();
 
     // Load storage state and locale messages
     let storage = {};
@@ -113,6 +114,10 @@
     };
 
     const match = BlockerCore.findBlockingProfile(profiles, displayDomain, evalCtx, now);
+    if (hostname && window.top === window) {
+        showFavicon(hostname, match?.evaluation.blocked);
+    }
+
     const profile = (match && match.profile)
         || profiles.find(p => p.sites.some(s => BlockerCore.matchesSiteOrAlias(displayDomain, s)))
         || profiles[0]
@@ -198,6 +203,90 @@
         tempBox.hidden = true;
     }
 
+    async function loadFavicon(src) {
+        if (!src) return null;
+        const image = new Image();
+        image.alt = '';
+        image.src = src;
+        try {
+            await image.decode();
+            return image;
+        } catch {
+            return null;
+        }
+    }
+
+    async function fetchFavicon(origin) {
+        try {
+            const response = await fetch(origin + '/favicon.ico', {
+                credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error',
+                signal: AbortSignal.timeout(2500)
+            });
+            const type = response.headers.get('content-type')?.split(';')[0];
+            if (!response.ok || !response.body || !type?.startsWith('image/')) return null;
+
+            const chunks = [];
+            let size = 0;
+            for await (const chunk of response.body) {
+                size += chunk.byteLength;
+                if (size > 256 * 1024) return null;
+                chunks.push(chunk);
+            }
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(new Blob(chunks, { type }));
+            });
+            return loadFavicon(dataUrl);
+        } catch {
+            return null;
+        }
+    }
+
+    function faviconPixels(image) {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 32;
+        canvas.getContext('2d').drawImage(image, 0, 0, 32, 32);
+        return canvas.toDataURL();
+    }
+
+    async function showFavicon(hostname, isBlocked) {
+        const origins = [`https://${hostname}`];
+        if (!/^[\d.]+$/.test(hostname)) origins.push(`https://www.${hostname}`);
+        const target = new URL(await resolveTargetUrl(hostname));
+        const pages = new Set([target.href, ...origins.map(origin => origin + '/')]);
+
+        // Chromium returns a generic image on a miss and can cache Ora's own
+        // favicon for the original URL after redirecting to this page.
+        let icon;
+        try {
+            const fallbackPages = [
+                'https://ora-favicon-placeholder.invalid/',
+                chrome.runtime.getURL('ora.html'),
+                location.href
+            ];
+            const images = await Promise.all([
+                ...fallbackPages,
+                ...pages
+            ].map(url => loadFavicon(SiteFavicon.cacheUrl(url))));
+            const fallbackPixels = images.slice(0, fallbackPages.length).filter(Boolean).map(faviconPixels);
+            icon = images.slice(fallbackPages.length).find(image => image && !fallbackPixels.includes(faviconPixels(image)));
+        } catch {
+            // Some browser privacy settings restrict canvas reads.
+        }
+
+        if (!icon && isBlocked && navigator.onLine) {
+            for (const origin of origins) {
+                icon = await fetchFavicon(origin);
+                if (icon) break;
+            }
+        }
+        if (!icon) return;
+        $('blkFav').replaceChildren(icon);
+        $('blkFav').classList.add('has-icon');
+    }
+
     async function resolveTargetUrl(targetDomain) {
         let finalUrl = `https://${targetDomain}`;
         try {
@@ -212,7 +301,8 @@
                 const urlObj = new URL(originalUrl);
                 const originalHostname = urlObj.hostname.replace(/^www\./, '');
                 const allAllowedDomains = [targetDomain, ...(BlockerCore.DOMAIN_ALIASES[targetDomain] || [])];
-                if (allAllowedDomains.some(d => originalHostname === d || originalHostname.endsWith('.' + d))) {
+                if (['http:', 'https:'].includes(urlObj.protocol) &&
+                    allAllowedDomains.some(d => originalHostname === d || originalHostname.endsWith('.' + d))) {
                     finalUrl = originalUrl;
                 }
             }

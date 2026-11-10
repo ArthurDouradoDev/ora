@@ -175,6 +175,8 @@ self.addEventListener('fetch', (event) => {
     if (!requestUrl.protocol.startsWith('http')) {
         return; 
     }
+    // The blocked page bounds and validates these downloads itself.
+    if (requestUrl.pathname === '/favicon.ico') return;
 
     // Strategy: Stale-While-Revalidate for external static assets (Fonts, Icons, etc.)
     event.respondWith(
