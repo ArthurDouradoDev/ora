@@ -226,16 +226,10 @@ const SESSIONS_KEY = 'ora_sessions';
 const ACTIVE_TASK_KEY = 'ora_active_task_id';
 const TASKS_KEY = 'ora_tasks';
 
-async function recordSession(record) {
+async function recordSession(record, changes) {
     if (!record || !(record.focusedMin >= 1)) return;
-    try {
-        const data = await chrome.storage.local.get([SESSIONS_KEY]);
-        const sessions = SessionsCore.appendSession(data[SESSIONS_KEY] || [], record);
-        await chrome.storage.local.set({ [SESSIONS_KEY]: sessions });
-        console.log(`[SW Sessions] Recorded ${record.status} session: ${record.focusedMin} min`);
-    } catch (e) {
-        console.error('[SW Sessions] Failed to record session:', e);
-    }
+    const data = await chrome.storage.local.get([SESSIONS_KEY]);
+    changes[SESSIONS_KEY] = SessionsCore.appendSession(changes[SESSIONS_KEY] || data[SESSIONS_KEY] || [], record);
 }
 
 // Seconds of the current focus phase already elapsed (paused time excluded)
@@ -298,14 +292,14 @@ function pauseSession(state, now) {
 // Ends the current focus session: 'completed' when the phase ran out,
 // 'interrupted' when the person stopped early (counts the minutes focused).
 // Must run before the timer fields are reset.
-async function endSession(state, kind, now) {
+async function endSession(state, kind, now, changes) {
     const session = state.session || legacySession(state, now);
     state.session = null;
     if (!session) return null;
     const record = kind === 'completed'
         ? SessionsCore.finishSession(session, now)
         : SessionsCore.interruptSession(session, now);
-    await recordSession(record);
+    await recordSession(record, changes);
     return record;
 }
 
@@ -314,48 +308,36 @@ async function endSession(state, kind, now) {
 // session when it is off, and puts it back as it was when the session ends
 // (a contemplative pause that was running keeps its re-enable time). When
 // the blocker was already on, the session only records that it is protected.
-async function claimProtection(state, wanted) {
+async function claimProtection(state, wanted, changes) {
     state.protection = null;
     if (!wanted) return;
-    try {
-        const data = await chrome.storage.local.get(['blocker_config']);
-        const cfg = data.blocker_config;
-        const profiles = BlockerCore.profilesFromConfig(cfg);
-        const sites = BlockerCore.flattenSites(profiles);
-        if (!cfg || !sites.length) return;
-        if (cfg.enabled) {
-            state.protection = { active: true, owned: false };
-            return;
-        }
-        const restoreReenableAt = cfg.reenableAt || null;
-        const next = Object.assign({}, cfg, { enabled: true, reenableAt: null });
-        await chrome.storage.local.set({ blocker_config: next });
-        await chrome.alarms.clear(BLOCKER_REENABLE_ALARM);
-        state.protection = { active: true, owned: true, restoreReenableAt };
-        console.log('[SW Focus] Protection turned on for the session');
-    } catch (e) {
-        console.error('[SW Focus] Could not turn protection on:', e);
+    const data = await chrome.storage.local.get(['blocker_config']);
+    const cfg = changes.blocker_config || data.blocker_config;
+    const profiles = BlockerCore.profilesFromConfig(cfg);
+    const sites = BlockerCore.flattenSites(profiles);
+    if (!cfg || !sites.length) return;
+    if (cfg.enabled) {
+        state.protection = { active: true, owned: false };
+        return;
     }
+    const restoreReenableAt = cfg.reenableAt || null;
+    const next = Object.assign({}, cfg, { enabled: true, reenableAt: null });
+    changes.blocker_config = next;
+    state.protection = { active: true, owned: true, restoreReenableAt };
 }
 
-async function releaseProtection(state) {
+async function releaseProtection(state, changes) {
     const protection = state.protection;
     state.protection = null;
     if (!protection || !protection.owned) return;
-    try {
-        const data = await chrome.storage.local.get(['blocker_config']);
-        const cfg = data.blocker_config;
-        if (!cfg || !cfg.enabled) return;
-        const reenableAt = protection.restoreReenableAt;
-        // A pause that already expired during the session: the blocker stays on
-        if (reenableAt && reenableAt <= Date.now()) return;
-        const next = Object.assign({}, cfg, { enabled: false, reenableAt: reenableAt || null });
-        await chrome.storage.local.set({ blocker_config: next });
-        if (reenableAt) await chrome.alarms.create(BLOCKER_REENABLE_ALARM, { when: reenableAt });
-        console.log('[SW Focus] Protection restored after the session');
-    } catch (e) {
-        console.error('[SW Focus] Could not restore protection:', e);
-    }
+    const data = await chrome.storage.local.get(['blocker_config']);
+    const cfg = changes.blocker_config || data.blocker_config;
+    if (!cfg || !cfg.enabled) return;
+    const reenableAt = protection.restoreReenableAt;
+    // A pause that already expired during the session: the blocker stays on
+    if (reenableAt && reenableAt <= Date.now()) return;
+    const next = Object.assign({}, cfg, { enabled: false, reenableAt: reenableAt || null });
+    changes.blocker_config = next;
 }
 
 function normalizeState(stored) {
@@ -381,17 +363,17 @@ async function loadState() {
             const now = Date.now();
             const before = Object.assign({}, state);
             if (PomodoroCore.applyDayRollover(state, currentKey, now)) {
+                const changes = {};
                 // Timer fields were reset (unless a session is genuinely running
                 // across midnight) — drop the stale wakeup alarm too.
                 if (!state.isRunning) {
-                    chrome.alarms.clear(POMODORO_ALARM);
                     // Yesterday's session is closed with what was really focused
                     if (before.session) {
                         const ranOut = before.isRunning && before.expectedEndTime && before.expectedEndTime <= now;
-                        await endSession(before, ranOut ? 'completed' : 'interrupted', ranOut ? before.expectedEndTime : now);
+                        await endSession(before, ranOut ? 'completed' : 'interrupted', ranOut ? before.expectedEndTime : now, changes);
                     }
                     state.session = null;
-                    await releaseProtection(state);
+                    await releaseProtection(state, changes);
                 }
 
                 // Try to load today's total from legacy key
@@ -400,7 +382,9 @@ async function loadState() {
                     state.totalFocusSeconds = parseInt(legacyTotal[currentKey]) || 0;
                 }
                 // Persist the rollover immediately so open tabs detect the change
-                chrome.storage.local.set({ [POMODORO_STATE_KEY]: state });
+                await saveState(state, changes);
+                if (!state.isRunning) await clearAlarm();
+                await syncBlockerRules(state);
 
                 // Purge focus-total keys from previous days (already turned
                 // into ora_sessions by ensureMigrated above)
@@ -434,17 +418,26 @@ async function loadState() {
         return defaultState;
     } catch (e) {
         console.error('[SW Pomodoro] Error loading state:', e);
+        throw e;
     }
-    return getDefaultState();
 }
 
-async function saveState(state) {
-    try {
-        await chrome.storage.local.set({ [POMODORO_STATE_KEY]: state });
-        // Also save today's focus total under its own key for backward compatibility
-        await chrome.storage.local.set({ [state.todayKey]: state.totalFocusSeconds.toString() });
-    } catch (e) {
-        console.error('[SW Pomodoro] Error saving state:', e);
+// Timer, session history and session-owned protection commit together. A rejected
+// write must reach the message handler, without leaving protection or alarms
+// attached to a session that was never saved.
+async function saveState(state, changes = {}) {
+    await chrome.storage.local.set({
+        ...changes,
+        [POMODORO_STATE_KEY]: state,
+        [state.todayKey]: state.totalFocusSeconds.toString()
+    });
+    if (changes.blocker_config) {
+        const cfg = changes.blocker_config;
+        if (!cfg.enabled && cfg.reenableAt) {
+            await chrome.alarms.create(BLOCKER_REENABLE_ALARM, { when: cfg.reenableAt });
+        } else {
+            await chrome.alarms.clear(BLOCKER_REENABLE_ALARM);
+        }
     }
 }
 
@@ -549,6 +542,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     const handler = async () => {
         let state = await loadState();
+        const changes = {};
 
         switch (message.type) {
             case 'pomodoro:start': {
@@ -556,7 +550,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 await beginOrResumeSession(state, message, Date.now());
                 state.isRunning = true;
                 state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
-                await saveState(state);
+                await saveState(state, changes);
                 await syncBlockerRules(state);
                 await startAlarm(state);
                 return state;
@@ -567,8 +561,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             case 'pomodoro:startFocus': {
                 const now = Date.now();
                 if (state.session) {
-                    await endSession(state, 'interrupted', now);
-                    await releaseProtection(state);
+                    await endSession(state, 'interrupted', now, changes);
+                    await releaseProtection(state, changes);
                 }
                 PomodoroCore.prepareFocus(state, message.minutes);
                 state.session = SessionsCore.startSession({
@@ -579,10 +573,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     plannedMin: Math.round(state.totalDuration / 60),
                     now
                 });
-                await claimProtection(state, message.protect === true);
+                await claimProtection(state, message.protect === true, changes);
                 state.isRunning = true;
                 state.expectedEndTime = now + (state.timeRemaining * 1000);
-                await saveState(state);
+                await saveState(state, changes);
                 await syncBlockerRules(state);
                 await startAlarm(state);
                 return state;
@@ -594,7 +588,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 if (message.minutes) PomodoroCore.prepareBreak(state, message.minutes);
                 state.isRunning = true;
                 state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
-                await saveState(state);
+                await saveState(state, changes);
                 await startAlarm(state);
                 return state;
             }
@@ -607,12 +601,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         const remaining = Math.max(0, Math.ceil((state.expectedEndTime - now) / 1000));
                         state.totalFocusSeconds += Math.max(0, state.timeRemaining - remaining);
                     }
-                    await endSession(state, 'interrupted', now);
+                    await endSession(state, 'interrupted', now, changes);
                 }
-                await releaseProtection(state);
+                await releaseProtection(state, changes);
                 PomodoroCore.resetToIdle(state);
+                await saveState(state, changes);
                 await clearAlarm();
-                await saveState(state);
                 await syncBlockerRules(state);
                 return state;
             }
@@ -620,10 +614,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // "Voltar ao início" (after a session) or "Encerrar pausa"
             case 'pomodoro:home': {
                 if (state.phase === 'focus' && state.session) return state; // use interrupt
-                await releaseProtection(state);
+                await releaseProtection(state, changes);
                 PomodoroCore.resetToIdle(state);
+                await saveState(state, changes);
                 await clearAlarm();
-                await saveState(state);
                 await syncBlockerRules(state);
                 return state;
             }
@@ -641,14 +635,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 state.timeRemaining = remaining;
                 state.expectedEndTime = null;
+                await saveState(state, changes);
                 await clearAlarm();
-                await saveState(state);
                 return state;
             }
 
             case 'pomodoro:reset': {
                 // Restarting the phase ends the session early (minutes count)
-                if (state.phase === 'focus') await endSession(state, 'interrupted', Date.now());
+                if (state.phase === 'focus') await endSession(state, 'interrupted', Date.now(), changes);
+                await releaseProtection(state, changes);
                 const wasRunning = state.isRunning;
                 if (wasRunning && state.phase === 'focus') {
                     // Save accumulated focus time before reset
@@ -660,14 +655,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 state.expectedEndTime = null;
                 state.timeRemaining = getPhaseDuration(state.phase, state.settings);
                 state.totalDuration = state.timeRemaining;
+                await saveState(state, changes);
                 await clearAlarm();
-                await saveState(state);
                 await syncBlockerRules(state);
                 return state;
             }
 
             case 'pomodoro:skip': {
-                if (state.phase === 'focus') await endSession(state, 'interrupted', Date.now());
+                if (state.phase === 'focus') await endSession(state, 'interrupted', Date.now(), changes);
+                await releaseProtection(state, changes);
                 const wasRunning = state.isRunning;
                 if (wasRunning && state.phase === 'focus') {
                     const remaining = Math.max(0, Math.ceil((state.expectedEndTime - Date.now()) / 1000));
@@ -676,9 +672,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 state.isRunning = false;
                 state.expectedEndTime = null;
-                await clearAlarm();
                 state = advancePhase(state);
-                await saveState(state);
+                await saveState(state, changes);
+                await clearAlarm();
                 await syncBlockerRules(state);
                 return state;
             }
@@ -686,21 +682,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             case 'pomodoro:updateSettings': {
                 const { settings } = message;
                 if (settings) {
+                    const previousDuration = getPhaseDuration(state.phase, state.settings);
                     state.settings = PomodoroCore.sanitizeSettings(Object.assign({}, state.settings, settings));
-                    // If not running, update current phase duration
-                    if (!state.isRunning) {
-                        // A paused focus session restarts with the new duration
-                        if (state.phase === 'focus' && state.session) await endSession(state, 'interrupted', Date.now());
+                    // Preferences apply to future phases. Only a phase that has
+                    // not started follows a changed default duration; a paused
+                    // session (including legacy timers) keeps its exact progress.
+                    if (!state.isRunning && !state.session && state.timeRemaining === state.totalDuration &&
+                        previousDuration !== getPhaseDuration(state.phase, state.settings)) {
                         state.timeRemaining = getPhaseDuration(state.phase, state.settings);
                         state.totalDuration = state.timeRemaining;
                     }
-                    await saveState(state);
+                    await saveState(state, changes);
                 }
                 return state;
             }
 
             case 'pomodoro:tick': {
-                await advancePomodoroIfDue();
+                await runPomodoroTick();
                 state = await loadState();
                 if (state.isRunning && state.expectedEndTime) {
                     state.timeRemaining = Math.max(0, Math.ceil((state.expectedEndTime - Date.now()) / 1000));
@@ -720,7 +718,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 // The active task changed during a focus session
                 if (state.session) {
                     state.session = Object.assign({}, state.session, { taskId: message.taskId || null });
-                    await saveState(state);
+                    await saveState(state, changes);
                 }
                 return state;
             }
@@ -735,8 +733,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 state.isRunning = false;
                 state.expectedEndTime = null;
+                await saveState(state, changes);
                 await clearAlarm();
-                await saveState(state);
                 return state;
             }
 
@@ -745,7 +743,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
     };
 
-    handler().then(state => sendResponse({ state })).catch(err => {
+    enqueuePomodoro(handler).then(state => sendResponse({ state })).catch(err => {
         console.error('[SW Pomodoro] Handler error:', err);
         sendResponse({ error: err.message });
     });
@@ -756,8 +754,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // --- Alarm Handler ---
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name !== POMODORO_ALARM) return;
-    await advancePomodoroIfDue();
+    await advancePomodoroIfDue().catch(async err => {
+        console.error('[SW Pomodoro] Tick failed:', err);
+        // A one-shot alarm has already been consumed. Retry a failed commit
+        // even when there is no Ora page open to request another tick.
+        await chrome.alarms.create(POMODORO_ALARM, { delayInMinutes: 0.5 });
+    });
 });
+
+// Commands from different tabs and alarm ticks share one writer. In particular,
+// a failed command cannot let another command commit an outdated session record.
+let pomodoroQueue = Promise.resolve();
+function enqueuePomodoro(run) {
+    const pending = pomodoroQueue.then(run);
+    pomodoroQueue = pending.catch(() => {});
+    return pending;
+}
 
 // Closes the running phase when its time is up. Called by the alarm and by
 // an open tab whose countdown reached zero ('pomodoro:tick'): the alarm may
@@ -765,13 +777,14 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 let pomodoroTickPromise = null;
 function advancePomodoroIfDue() {
     if (!pomodoroTickPromise) {
-        pomodoroTickPromise = runPomodoroTick().finally(() => { pomodoroTickPromise = null; });
+        pomodoroTickPromise = enqueuePomodoro(runPomodoroTick).finally(() => { pomodoroTickPromise = null; });
     }
     return pomodoroTickPromise;
 }
 
 async function runPomodoroTick() {
     let state = await loadState();
+    const changes = {};
     if (!state.isRunning || !state.expectedEndTime) return;
 
     const now = Date.now();
@@ -784,10 +797,10 @@ async function runPomodoroTick() {
         if (state.phase === 'focus') {
             state.totalFocusSeconds += state.timeRemaining; // full phase elapsed
             const session = state.session;
-            const record = await endSession(state, 'completed', state.expectedEndTime);
+            const record = await endSession(state, 'completed', state.expectedEndTime, changes);
             // Shown by Hoje until the person chooses how to continue (E12)
             state.completed = PomodoroCore.completedSummary(session, record);
-            await releaseProtection(state);
+            await releaseProtection(state, changes);
         } else {
             state.completed = null;
         }
@@ -800,14 +813,14 @@ async function runPomodoroTick() {
             await beginOrResumeSession(state, null, Date.now());
             state.isRunning = true;
             state.expectedEndTime = Date.now() + (state.timeRemaining * 1000);
-            await saveState(state);
+            await saveState(state, changes);
             await syncBlockerRules(state);
             await startAlarm(state);
         } else {
             // Pause and wait for manual start
             state.isRunning = false;
             state.expectedEndTime = null;
-            await saveState(state);
+            await saveState(state, changes);
             await syncBlockerRules(state);
             await clearAlarm();
         }
@@ -827,7 +840,7 @@ async function runPomodoroTick() {
         } else {
             state.timeRemaining = remainingSec;
         }
-        await saveState(state);
+        await saveState(state, changes);
         await startAlarm(state);
     }
 }
@@ -1048,7 +1061,7 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
             focusActive,
             screentime: store[SCREENTIME_KEY] || {}
         }, new Date());
-        if (!hit) return;
+        if (!hit || !hit.evaluation.blocked) return;
 
         // Check if this tab has an active allow session (user clicked "Continue")
         const sessionData = await chrome.storage.session.get('blocker_sessions');
@@ -1066,9 +1079,9 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
 
         // Redirect to blocked page
         const blockedUrl = chrome.runtime.getURL('blocked.html')
-            + '?domain=' + encodeURIComponent(hit.site)
+            + '?domain=' + encodeURIComponent(hostname)
             + '&profile=' + encodeURIComponent(hit.profile.id)
-            + '&reason=' + encodeURIComponent(hit.reason || 'focus')
+            + '&reason=' + encodeURIComponent(hit.evaluation.reason)
             + '&url=' + encodeURIComponent(details.url);
         chrome.tabs.update(details.tabId, { url: blockedUrl });
         console.log(`[Blocker Fallback] Redirected tab ${details.tabId} from ${hostname} to blocked page`);
@@ -1175,13 +1188,13 @@ async function stAddSeconds(domain, seconds) {
             for (const p of profiles) {
                 if (!p || p.enabled === false || !p.rules || !(p.rules.dailyLimitMin > 0)) continue;
                 const matches = (p.sites || []).some(s => BlockerCore.matchesSiteOrAlias(domain, s));
-                if (matches && BlockerCore.profileMinutesUsedToday(p, store, now) >= p.rules.dailyLimitMin) {
+                if (matches && BlockerCore.usedMinutesForProfile(p, { screentime: store }, now) >= p.rules.dailyLimitMin) {
                     await syncBlockerRules();
                     break;
                 }
             }
         }
-    } catch (e) { /* ignore */ }
+    } catch (e) { console.error('[SW ScreenTime] Failed to update daily-limit rules:', e); }
 }
 
 // Liquida a sessão ativa (credita o tempo decorrido) e inicia uma nova.
