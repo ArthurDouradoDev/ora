@@ -66,7 +66,7 @@
 #prayer-filter-toggle { display:none; }
 .prayer-filters { display:flex; align-items:center; flex-wrap:wrap; gap:1rem 2rem; margin-bottom:.75rem; }
 .prayer-filters .field { flex:1; min-width:10rem; }
-.prayer-filters .toggle { flex:none; }
+.prayer-filters .toggle { flex:none; align-self:flex-end; min-height:2.75rem; }
 #search-scope { font-size:.75rem; margin:.75rem 0 1rem; }
 .prayer-results { list-style:none; padding:0; margin:0; }
 .prayer-row { display:flex; align-items:center; border-bottom:1px solid var(--line); min-width:0; }
@@ -102,7 +102,7 @@ html[data-prayer-mode="reading"] .topbar, html[data-prayer-mode="praying"] .topb
 .reading-inner .text-link { font-family:var(--f-ui); font-size:.875rem; }
 .reading-status { margin:0; padding:0 1rem; font-size:.75rem; flex:none; }
 .reading-status:empty { display:none; }
-.prayer-reader[data-appearance="papel"] { --bg:var(--paper); --text:var(--paper-ink); --text-2:var(--paper-ink-2); --text-3:var(--paper-ink-2); --surface-1:#eee5d6; --surface-2:#e7ddcc; --line:#2b251d24; --line-strong:#2b251d55; --gold:#805f24; }
+.prayer-reader[data-appearance="papel"] { --bg:var(--paper); --text:var(--paper-ink); --text-2:var(--paper-ink-2); --text-3:var(--paper-ink-2); --surface-1:#eee5d6; --surface-2:#e7ddcc; --surface-3:#e1d3bf; --line:#2b251d24; --line-strong:#2b251d55; --gold:#805f24; }
 .prayer-reader[data-appearance="papel"] .gospel-art { max-width:14rem; }
 .prayer-reader[data-appearance="papel"] .btn-primary { background:#805f24; color:#fff9ee; }
 .lectio-access { display:flex; flex-wrap:wrap; padding:0 .5rem; border-bottom:1px solid var(--line); }
@@ -195,11 +195,17 @@ html[data-prayer-mode="reading"] .topbar, html[data-prayer-mode="praying"] .topb
 
 /* One reading toolbar, with content language alongside reading controls. */
 .reading-context { min-width: 0; overflow-wrap: anywhere; }
-.reading-options { margin-left: auto; min-width: 0; }
+.reading-options {
+    --reader-control-height: 3rem;
+    --reader-control-padding: 0.1875rem;
+    margin-left: auto;
+    min-width: 0;
+}
 .reading-options .reader-language { padding: 0; margin: 0; }
-.reader-language .input { min-height: 2.75rem; max-width: 11rem; border-radius: 999px; padding: .5rem .875rem; background: rgba(0,0,0,.3); border-color: var(--line); font-size: .875rem; }
-.prayer-reader[data-appearance="papel"] .reader-language .input { background: var(--surface-2); }
-.reader-language option { background: var(--bg); color: var(--text); }
+.reader-language .input { min-height: var(--reader-control-height); max-width: 11rem; border-radius: 999px; padding: .5rem .875rem; background: rgba(0,0,0,.3); border-color: var(--line); font-size: .875rem; }
+.reading-options .seg { min-height: var(--reader-control-height); padding: var(--reader-control-padding); align-items: center; }
+.reading-options .seg button { min-height: calc(var(--reader-control-height) - 2 * var(--reader-control-padding) - 2px); }
+.prayer-reader[data-appearance="papel"] .reader-language .input { background: var(--surface-2); color-scheme: light; }
 @media (max-width: 48rem) {
     .reading-bar { gap: .5rem; padding: .5rem .75rem; }
     .reading-context { flex: 1; }
@@ -208,11 +214,10 @@ html[data-prayer-mode="reading"] .topbar, html[data-prayer-mode="praying"] .topb
 }
 @media (max-width: 25rem) {
     .reading-options { justify-content: center; }
-    .reading-options { gap: .25rem; }
+    .reading-options { --reader-control-height: 2.625rem; --reader-control-padding: .125rem; gap: .25rem; }
     .reading-options .reader-language { flex: 0 1 7rem; min-width: 0; }
-    .reading-options .reader-language .input { width: 100%; min-width: 0; padding: .375rem .5rem; font-size: .75rem; min-height: 2.5rem; }
-    .reading-options .seg { padding: .125rem; }
-    .reading-options .seg button { padding: .375rem .5rem; min-height: 2.25rem; font-size: .75rem; }
+    .reading-options .reader-language .input { width: 100%; min-width: 0; padding: .375rem .5rem; font-size: .75rem; }
+    .reading-options .seg button { padding: .375rem .5rem; font-size: .75rem; }
     .reading-options output { font-size: .75rem; padding: .125rem; }
 }
 

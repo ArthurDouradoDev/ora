@@ -29,6 +29,7 @@ const DialogSystem = {
             const top = this.top();
             if (!top) return;
             if (e.key === 'Escape') {
+                if (CSS.supports('selector(select:open)') && top.root.querySelector('select:open')) return;
                 e.preventDefault();
                 e.stopPropagation();
                 this.close(top.root);

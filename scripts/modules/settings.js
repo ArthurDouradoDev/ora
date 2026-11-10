@@ -223,16 +223,31 @@ const SettingsSystem = {
     },
 
     renderRoute(route) {
-        if (route?.view !== 'configuracoes') return;
+        const previous = this.activePanel;
+        if (route?.view !== 'configuracoes') {
+            previous?._oraMotion?.['settings-section']?.cancel();
+            this.activePanel = null;
+            return;
+        }
         const section = this.sections.some(([name]) => name === route.path[0]) ? route.path[0] : 'aparencia';
+        const active = this.root.querySelector(`[data-settings-panel="${section}"]`);
         for (const link of this.root.querySelectorAll('[data-settings-section]')) {
             if (link.dataset.settingsSection === section) link.setAttribute('aria-current', 'page');
             else link.removeAttribute('aria-current');
         }
         for (const panel of this.root.querySelectorAll('[data-settings-panel]')) {
-            panel.hidden = panel.dataset.settingsPanel !== section;
+            panel.hidden = panel !== active;
         }
-        if (route.path.length) document.getElementById('settings-' + section + '-title').focus({ preventScroll: true });
+        this.activePanel = active;
+        const switched = previous && previous !== active;
+        if (switched) {
+            previous._oraMotion?.['settings-section']?.cancel();
+            window.Motion?.play(active, [
+                { opacity: 0, transform: 'translateY(6px)' },
+                { opacity: 1, transform: 'none' }
+            ], { duration: 200, channel: 'settings-section' });
+        }
+        if (route.path.length || switched) active.firstElementChild.focus({ preventScroll: true });
         this.renderOffline();
     },
 

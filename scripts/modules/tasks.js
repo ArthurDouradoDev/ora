@@ -119,14 +119,14 @@ const TaskSystem = {
     },
 
     // Abre/fecha sem animar a largura da coluna (cada quadro refaria o layout
-    // de Hoje e as container queries do canto). A largura muda uma vez; o
+    // de Hoje). A largura muda uma vez; o
     // centro desliza do lugar antigo (FLIP) e o painel entra/sai com
     // transform + opacity (ele é sólido, sem vidro). Em janela estreita o
     // painel já é uma folha com transform no CSS.
     animatePanel: function(open, apply) {
         const M = window.Motion;
         const panel = this.elements.panel;
-        const center = document.getElementById('today-center');
+        const center = document.getElementById('today-main');
         const wide = !(window.matchMedia && matchMedia('(max-width: 68rem)').matches);
         if (!M || M.reduced() || !wide || !center || document.documentElement.dataset.view !== 'hoje') {
             apply();
@@ -134,10 +134,17 @@ const TaskSystem = {
         }
         const flipCenter = () => {
             const before = center.getBoundingClientRect();
+            center._oraMotion?.tasks?.cancel();
             apply();
             const after = center.getBoundingClientRect();
             const dx = (before.left + before.width / 2) - (after.left + after.width / 2);
-            if (Math.abs(dx) > 1) M.play(center, [{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: 300, channel: 'tasks' });
+            const dy = before.top - after.top;
+            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                M.play(center, [
+                    { transform: `translate(${dx}px, ${dy}px)` },
+                    { transform: 'none' }
+                ], { duration: 300, easing: 'ease-in-out', fill: 'backwards', channel: 'tasks' });
+            }
         };
         if (open) {
             flipCenter();
@@ -548,7 +555,7 @@ const TaskSystem = {
 
         const check = document.createElement('input');
         check.type = 'checkbox';
-        check.className = 'check';
+        check.className = 'check task-check';
         check.checked = done;
         check.setAttribute('aria-label', t(done ? 'tasks.reopen_label' : 'tasks.complete_label', { title: task.title }));
 

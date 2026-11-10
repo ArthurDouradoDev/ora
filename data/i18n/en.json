@@ -233,7 +233,6 @@
     "prep_offer_placeholder": "E.g. for my team",
     "prep_offer_hint": "Only for this session.",
     "prep_offer_hint_day": "Only for this session. The intention for the day (“{text}”) stays the same.",
-    "prep_sound": "Sound",
     "prep_protection": "Protection",
     "prep_block": "Block distractions",
     "prep_rules": "see rules",
@@ -845,7 +844,6 @@
     "pause": "Pause sound",
     "stop": "Stop sound",
     "next": "Next track",
-    "choose": "Use for focus",
     "volume": "Volume",
     "pause_with_focus": "Pause sound when focus pauses",
     "link_label": "YouTube or Spotify link",
@@ -885,7 +883,6 @@
     "scene_lauds": "Lauds",
     "mixer_hint": "Turn on up to three sounds and adjust each one. They work offline.",
     "remove_short": "Remove",
-    "select": "Choose",
     "link_placeholder": "Paste a YouTube or Spotify link",
     "add_hint": "YouTube videos and playlists; Spotify playlists, albums and tracks. They need internet."
   },

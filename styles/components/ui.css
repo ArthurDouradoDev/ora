@@ -160,6 +160,55 @@
 .input::placeholder, .textarea::placeholder { color: var(--text-3); }
 .input:focus, .textarea:focus, .select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
 
+select.input { color-scheme: dark; }
+@supports (appearance: base-select) and selector(::picker(select)) {
+    select.input, select.input::picker(select) { appearance: base-select; }
+    select.input { align-items: center; gap: 0.625rem; }
+    select.input::picker-icon { flex: none; color: var(--text-2); margin-inline-end: 0.125rem; }
+    select.input::picker(select) {
+        padding: 0.25rem;
+        margin-block: 0.25rem;
+        max-block-size: min(20rem, 60dvh);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--r-md);
+        background: var(--surface-1);
+        color: var(--text);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        overflow: auto;
+    }
+    select.input option {
+        padding: 0.5rem 0.625rem;
+        min-block-size: 2.25rem;
+        border-radius: var(--r-sm);
+    }
+    select.input option:checked { background: var(--surface-2); }
+    select.input option:not(:disabled):is(:hover, :focus-visible) { background: var(--surface-3); }
+    select.input option::checkmark { color: var(--gold); }
+}
+
+.task-check {
+    appearance: none;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    margin: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    position: relative;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+.task-check::before { content: ''; position: absolute; inset: 0.375rem; border: 1.5px solid var(--text-3); border-radius: 50%; }
+.task-check:hover::before { border-color: var(--text); }
+.task-check:checked::before { background: var(--text-3); }
+.task-check:checked::after { content: '✓'; position: relative; font-size: 0.8125rem; color: var(--bg); }
+@media (forced-colors: active) {
+    .task-check { appearance: auto; }
+    .task-check::before, .task-check::after { display: none; }
+}
+
 /* Campo "linha" sobre fotografia (intenção do dia) */
 .line-input {
     background: none; border: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.35);

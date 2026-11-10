@@ -3,8 +3,7 @@
 // ============================================================
 // O popup troca de vista sem fechar: biblioteca em grade → ajustar ambiente
 // (camadas e volumes), detalhes da playlist ou adicionar música.
-// Em Hoje, escolher na biblioteca toca na hora. Na preparação do foco
-// (options.onChoose), a escolha é um rascunho confirmado em "Usar no foco".
+// Escolher um som na biblioteca inicia a reprodução.
 // Os sons do Ora tocam pelo SoundEngine (Web Audio); YouTube e Spotify pelo relay.
 // O player do relay (#sound-frame) mora na vista da playlist e nunca muda de
 // lugar: mover um iframe recarrega a página dele. Com o popup fechado e uma
@@ -56,8 +55,6 @@ const SoundSystem = {
         this.layers = $('sound-layers');
         this.input = $('playlist-input');
         this.status = $('sound-status');
-        this.footer = $('sound-footer');
-        this.action = $('sound-apply');
         this.pauseSetting = $('sound-pause-with-focus');
         this.mini = $('sound-mini');
         this.toggle = $('sound-toggle');
@@ -146,7 +143,6 @@ const SoundSystem = {
             const item = this.playlist({ id: this.editor.target });
             if (item) this.removePlaylist(item, event.currentTarget);
         });
-        this.action.addEventListener('click', () => this.applyEditor());
 
         window.addEventListener('ora:pomodoro', event => this.onFocus(event.detail));
         window.addEventListener('ora:locale-changed', () => {
@@ -271,10 +267,6 @@ const SoundSystem = {
         return playlist.source === 'spotify' ? 'Spotify' : 'YouTube';
     },
 
-    getChoice() {
-        return this.active?.choice || this.preference.choice;
-    },
-
     // Itens da grade: { key, kind, title, icon, tone, choice?, playlist? }
     items() {
         const draft = this.editor.draft;
@@ -310,10 +302,10 @@ const SoundSystem = {
 
     // --- Popup ---
 
-    open(opener, options = {}) {
+    open(opener) {
         if (this.editor) return;
-        const draft = SoundCore.choice(options.choice ?? this.getChoice(), this.playlists);
-        this.editor = { draft, onChoose: options.onChoose, opener, view: 'library', filter: 'all', target: null };
+        const draft = SoundCore.choice(this.active?.choice || this.preference.choice, this.playlists);
+        this.editor = { draft, opener, view: 'library', filter: 'all', target: null };
         this.pauseSetting.checked = this.preference.pauseWithFocus;
         this.input.value = '';
         this.setView('library', { focus: false });
@@ -424,15 +416,12 @@ const SoundSystem = {
         if (!editor) return;
         const focusKey = document.activeElement?.dataset.soundFocus;
         const view = editor.view;
-        const prep = !!editor.onChoose;
         const titles = { library: t('sound.title'), mixer: this.name(editor.draft), add: t('sound.add_music') };
         const target = this.playlist({ id: editor.target });
         this.title.textContent = view === 'playlist' ? (target ? this.playlistName(target) : t('sound.title')) : titles[view];
         this.back.hidden = view === 'library';
         this.addOpen.hidden = view !== 'library';
         this.reset.hidden = view !== 'mixer' || !SoundCore.sceneOf(editor.draft);
-        this.footer.hidden = !prep;
-        this.action.textContent = t('sound.choose');
 
         if (view === 'library') this.renderLibrary();
         else if (view === 'mixer') this.renderMixer();
@@ -556,7 +545,7 @@ const SoundSystem = {
             more.append(icon);
             more.addEventListener('click', () => {
                 if (item.kind === 'ambient' && !this.matches(item, editor.draft)) this.choose(item.choice);
-                else if (item.kind === 'ambient' && !editor.onChoose && !this.active) this.choose(editor.draft);
+                else if (item.kind === 'ambient' && !this.active) this.choose(editor.draft);
                 this.openDetail(item.kind === 'ambient' ? editor.draft : item.choice, item.key + '-more');
             });
             li.append(more);
@@ -584,18 +573,15 @@ const SoundSystem = {
         return li;
     },
 
-    // Clique num item da biblioteca. Em Hoje, um ambiente toca (ou pausa o que
-    // já toca) e a grade continua; uma playlist toca e abre o player. Na
-    // preparação só marca o rascunho.
+    // Um ambiente toca ou pausa sem sair da grade; uma playlist abre o player.
     pick(item) {
-        const editor = this.editor;
-        const live = !editor.onChoose && this.active && this.matches(item, this.active.choice);
+        const live = this.active && this.matches(item, this.active.choice);
         if (live && item.kind === 'playlist') {
             this.openDetail(item.choice, item.key);
         } else if (live) {
             this.togglePlayback();
             this.renderEditor();
-        } else if (this.choose(item.choice) && !editor.onChoose && item.kind === 'playlist') {
+        } else if (this.choose(item.choice) && item.kind === 'playlist') {
             this.openDetail(item.choice, item.key);
         }
     },
@@ -603,15 +589,13 @@ const SoundSystem = {
     choose(value) {
         const editor = this.editor;
         const choice = SoundCore.choice(value, this.playlists);
-        if (!editor.onChoose && choice.kind === 'playlist' && !navigator.onLine) {
+        if (choice.kind === 'playlist' && !navigator.onLine) {
             this.setStatus(t('sound.offline'));
             return false;
         }
         editor.draft = choice;
-        if (!editor.onChoose) {
-            this.savePreference({ ...this.preference, choice });
-            this.play(choice, this.focus?.id ?? null);
-        }
+        this.savePreference({ ...this.preference, choice });
+        this.play(choice, this.focus?.id ?? null);
         this.setStatus('');
         this.renderEditor();
         this.position();
@@ -646,7 +630,7 @@ const SoundSystem = {
             range.setAttribute('aria-label', t('sound.layer_volume', { name: t('sound.' + id) }));
             range.addEventListener('input', () => this.setLayerVolume(id, range.valueAsNumber));
             range.addEventListener('change', () => {
-                if (!this.editor.onChoose) this.savePreference({ ...this.preference, choice: this.editor.draft });
+                this.savePreference({ ...this.preference, choice: this.editor.draft });
             });
             row.append(toggle, range);
             return row;
@@ -669,7 +653,6 @@ const SoundSystem = {
         const layer = this.editor.draft.layers?.find(item => item.id === id);
         if (!layer) return;
         layer.volume = volume;
-        if (this.editor.onChoose) return;
         const live = this.active?.choice.kind === 'ambient' && this.active.choice.layers.find(item => item.id === id);
         if (live) {
             live.volume = volume;
@@ -718,8 +701,7 @@ const SoundSystem = {
         hint.hidden = !hint.textContent;
         const use = document.getElementById('sound-playlist-use');
         const chosen = editor.draft.kind === 'playlist' && editor.draft.id === item.id;
-        use.hidden = chosen && (!!editor.onChoose || !!this.active);
-        use.textContent = t(editor.onChoose ? 'sound.select' : 'sound.play');
+        use.hidden = chosen && !!this.active;
         document.getElementById('sound-playlist-external').href = SoundCore.mediaUrl(item);
         const remove = document.getElementById('sound-playlist-remove');
         remove.disabled = false;
@@ -753,15 +735,14 @@ const SoundSystem = {
         const key = 'pl-' + added.id;
         editor.filter = 'all';
         // Em Hoje, a música nova toca e abre o player (o Voltar leva à capa dela).
-        if (!editor.onChoose && navigator.onLine) {
+        if (navigator.onLine) {
             this.choose({ kind: 'playlist', id: added.id });
             this.openDetail({ kind: 'playlist', id: added.id }, key);
             this.setStatus(t(existing ? 'sound.already_added' : 'sound.added'));
             return;
         }
         this.setView('library', { returnKey: key });
-        const played = this.choose({ kind: 'playlist', id: added.id });
-        if (played || editor.onChoose) this.setStatus(t(existing ? 'sound.already_added' : 'sound.added'));
+        this.setStatus(t('sound.offline'));
         [...this.grid.querySelectorAll('[data-sound-focus]')].find(el => el.dataset.soundFocus === key)?.focus({ preventScroll: true });
     },
 
@@ -805,18 +786,9 @@ const SoundSystem = {
         });
     },
 
-    // Preparação do foco: confirma o rascunho.
-    applyEditor() {
-        const { draft, onChoose } = this.editor;
-        if (!onChoose) return;
-        this.savePreference({ ...this.preference, choice: draft });
-        onChoose(draft);
-        DialogSystem.close(this.root);
-    },
-
     // --- Reprodução ---
 
-    play(choice, focusId = null, { preservePause = false } = {}) {
+    play(choice, focusId = null) {
         choice = SoundCore.choice(choice, this.playlists);
         if (choice.kind === 'silence') {
             this.stop();
@@ -826,8 +798,7 @@ const SoundSystem = {
         if (active && active.choice.kind === choice.kind && this.sameMedia(active.choice, choice)) {
             active.choice = choice;
             this.applyVolume();
-            // Iniciar foco mantém a posição e o estado do som que já estava na aba.
-            if (!preservePause && active.paused) this.resume();
+            if (active.paused) this.resume();
             this.render();
             return;
         }
@@ -841,7 +812,7 @@ const SoundSystem = {
             active.choice = choice;
             active.focusId = focusId;
             this.startLayers(active);
-            if (!preservePause && active.paused) this.resume();
+            if (active.paused) this.resume();
             this.updateMediaSession();
             this.render();
             return;

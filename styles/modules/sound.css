@@ -46,7 +46,6 @@
 .sound-view[hidden] { display: none; }
 .sound-dialog input { accent-color: var(--gold); }
 #sound-status:empty { display: none; }
-.sound-footer { margin-top: 0; }
 
 /* Filtros e "tocando agora" */
 .sound-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }

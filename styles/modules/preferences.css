@@ -1,6 +1,7 @@
 /* Configurações e apresentação inicial usam as superfícies e controles da V1. */
 .view-settings {
     overflow: auto;
+    scrollbar-gutter: stable;
     background: var(--bg);
     color: var(--text);
 }

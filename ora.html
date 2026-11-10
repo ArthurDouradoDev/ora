@@ -76,171 +76,165 @@
     <main class="view view-hoje" id="view-hoje" data-view="hoje">
         <div class="today" id="today">
             <div class="today-center" id="today-center">
-                <!-- Chegada -->
-                <section class="arrival" id="today-arrival">
-                    <h1 class="sr-only" data-route-focus data-i18n="nav.today">Hoje</h1>
-                    <time class="clock" id="today-clock" aria-hidden="true"></time>
-                    <p class="greeting" id="today-greeting"></p>
-                    <p class="day"><span id="today-date"></span><span id="today-celebration-sep" aria-hidden="true" hidden>·</span><span class="lit" id="today-celebration" hidden></span></p>
-                    <p class="season-line" id="today-season" hidden></p>
-                </section>
+                <div class="today-main" id="today-main">
+                    <!-- Chegada -->
+                    <section class="arrival" id="today-arrival">
+                        <h1 class="sr-only" data-route-focus data-i18n="nav.today">Hoje</h1>
+                        <time class="clock" id="today-clock" aria-hidden="true"></time>
+                        <p class="greeting" id="today-greeting"></p>
+                        <p class="day"><span id="today-date"></span><span id="today-celebration-sep" aria-hidden="true" hidden>·</span><span class="lit" id="today-celebration" hidden></span></p>
+                        <p class="season-line" id="today-season" hidden></p>
+                    </section>
 
-                <!-- Intenção do dia (a da sessão fica na preparação) -->
-                <div class="intent" id="today-intent">
-                    <div id="today-intent-edit">
-                        <label for="today-intent-input" class="sr-only" data-i18n="today.intent_label">Intenção do dia (opcional)</label>
-                        <input class="line-input" id="today-intent-input" maxlength="120" autocomplete="off" placeholder="Oferecer o dia por…" data-i18n-placeholder="today.intent_placeholder">
+                    <!-- Intenção do dia (a da sessão fica na preparação) -->
+                    <div class="intent" id="today-intent">
+                        <div id="today-intent-edit">
+                            <label for="today-intent-input" class="sr-only" data-i18n="today.intent_label">Intenção do dia (opcional)</label>
+                            <input class="line-input" id="today-intent-input" maxlength="120" autocomplete="off" placeholder="Oferecer o dia por…" data-i18n-placeholder="today.intent_placeholder">
+                        </div>
+                        <p class="intent-set" id="today-intent-set" hidden>
+                            <span id="today-intent-text"></span>
+                            <button type="button" class="btn btn-quiet" id="today-intent-change" data-i18n="today.intent_change">alterar</button>
+                        </p>
                     </div>
-                    <p class="intent-set" id="today-intent-set" hidden>
-                        <span id="today-intent-text"></span>
-                        <button type="button" class="btn btn-quiet" id="today-intent-change" data-i18n="today.intent_change">alterar</button>
-                    </p>
-                </div>
 
-                <!-- Próximo passo (com tarefas) -->
-                <section class="next surface-light" id="today-next" aria-labelledby="today-next-title" hidden>
-                    <p class="label" data-i18n="today.next_label">Próximo passo</p>
-                    <h2 class="next-title" id="today-next-title"></h2>
-                    <p class="meta" id="today-next-meta"></p>
-                    <div class="row">
-                        <button type="button" class="btn btn-primary btn-lg" id="today-start"><i class="ph-fill ph-play" aria-hidden="true"></i><span data-i18n="today.start_focus">Começar foco</span></button>
-                        <button type="button" class="btn btn-quiet" id="today-choose" aria-controls="tasks-panel" data-i18n="today.choose_other">Escolher outra</button>
-                    </div>
-                </section>
+                    <!-- Próximo passo (com tarefas) -->
+                    <section class="next surface-light" id="today-next" aria-labelledby="today-next-title" hidden>
+                        <p class="label" data-i18n="today.next_label">Próximo passo</p>
+                        <h2 class="next-title" id="today-next-title"></h2>
+                        <p class="meta" id="today-next-meta"></p>
+                        <div class="row">
+                            <button type="button" class="btn btn-primary btn-lg" id="today-start"><i class="ph-fill ph-play" aria-hidden="true"></i><span data-i18n="today.start_focus">Começar foco</span></button>
+                            <button type="button" class="btn btn-quiet" id="today-choose" aria-controls="tasks-panel" data-i18n="today.choose_other">Escolher outra</button>
+                        </div>
+                    </section>
 
-                <!-- Próximo passo (sem tarefas) -->
-                <section class="next surface-light" id="today-empty" aria-labelledby="today-empty-label" hidden>
-                    <p class="label" id="today-empty-label" data-i18n="today.next_label">Próximo passo</p>
-                    <form id="today-quick-form">
-                        <label for="today-quick-input" class="sr-only" data-i18n="today.quick_placeholder">O que você quer fazer agora?</label>
-                        <input class="input" id="today-quick-input" maxlength="80" autocomplete="off" placeholder="O que você quer fazer agora?" data-i18n-placeholder="today.quick_placeholder">
-                        <button class="btn btn-primary" type="submit" data-i18n="today.start_focus">Começar foco</button>
-                    </form>
-                    <p class="meta" data-i18n="today.just_stay">Ou apenas fique aqui um instante.</p>
-                </section>
+                    <!-- Próximo passo (sem tarefas) -->
+                    <section class="next surface-light" id="today-empty" aria-labelledby="today-empty-label" hidden>
+                        <p class="label" id="today-empty-label" data-i18n="today.next_label">Próximo passo</p>
+                        <form id="today-quick-form">
+                            <label for="today-quick-input" class="sr-only" data-i18n="today.quick_placeholder">O que você quer fazer agora?</label>
+                            <input class="input" id="today-quick-input" maxlength="80" autocomplete="off" placeholder="O que você quer fazer agora?" data-i18n-placeholder="today.quick_placeholder">
+                            <button class="btn btn-primary" type="submit" data-i18n="today.start_focus">Começar foco</button>
+                        </form>
+                        <p class="meta" data-i18n="today.just_stay">Ou apenas fique aqui um instante.</p>
+                    </section>
 
-                <!-- Espaço único de convite -->
-                <div class="invite surface-light" id="today-invite" hidden>
-                    <i class="ph ph-bell lead" id="today-invite-icon" aria-hidden="true"></i>
-                    <div class="txt"><b id="today-invite-title"></b><span class="meta" id="today-invite-meta"></span></div>
-                    <div class="invite-actions">
-                        <button type="button" class="btn btn-aux btn-sm" id="today-invite-go"></button>
-                        <button type="button" class="btn btn-quiet btn-sm" id="today-invite-later" data-i18n="today.not_now">Agora não</button>
-                    </div>
-                </div>
-
-                <!-- Preparação do foco -->
-                <section class="prep surface-solid" id="today-prep" role="dialog" aria-modal="true" aria-labelledby="today-prep-label" data-dismiss-on-scrim="false" hidden>
-                    <div>
-                        <p class="label" id="today-prep-label" data-i18n="today.prep_label">Preparar foco</p>
-                        <input class="prep-title" id="today-prep-title" maxlength="80" autocomplete="off" aria-label="Atividade" data-i18n-aria-label="today.prep_activity" placeholder="Em que você vai trabalhar?" data-i18n-placeholder="today.prep_activity_placeholder">
-                    </div>
-                    <div class="field">
-                        <span id="today-dur-label" data-i18n="today.prep_duration">Duração</span>
-                        <div class="seg" id="today-dur" role="group" aria-labelledby="today-dur-label"></div>
-                    </div>
-                    <label class="field">
-                        <span><span data-i18n="today.prep_offer">Oferecer esta sessão por</span> <span class="muted" data-i18n="today.optional">· opcional</span></span>
-                        <input class="input" id="today-prep-intent" maxlength="120" autocomplete="off" placeholder="Ex.: pela minha equipe" data-i18n-placeholder="today.prep_offer_placeholder">
-                        <small id="today-prep-intent-hint"></small>
-                    </label>
-                    <div class="field prep-prayer" id="today-prayer-field">
-                        <span id="today-prayer-label" data-i18n="today.prayer_label">Oração ao começar</span>
-                        <button type="button" class="prayer-pick" id="today-prayer-pick" aria-haspopup="dialog" aria-expanded="false" aria-controls="today-prayer-pop" aria-describedby="today-prayer-label">
-                            <span class="ico" aria-hidden="true"><i class="ph-fill ph-hands-praying"></i></span>
-                            <span class="txt"><b id="today-prayer-name"></b><small id="today-prayer-hint"></small></span>
-                            <i class="ph ph-caret-down caret" aria-hidden="true"></i>
-                        </button>
-                        <div class="prayer-pop" id="today-prayer-pop" role="dialog" aria-labelledby="today-prayer-label" hidden>
-                            <div class="prayer-opts" id="today-prayer-opts" role="radiogroup" aria-labelledby="today-prayer-label"></div>
-                            <button type="button" class="link-btn prayer-more" id="today-prayer-more" data-i18n="today.prayer_more">Mais orações</button>
-                            <div class="prayer-freq">
-                                <span class="meta" id="today-prayer-freq-label" data-i18n="today.prayer_freq">Rezar</span>
-                                <div class="seg" id="today-prayer-freq" role="group" aria-labelledby="today-prayer-freq-label">
-                                    <button type="button" data-freq="first" data-i18n="today.prayer_freq_first">Na primeira sessão do dia</button>
-                                    <button type="button" data-freq="every" data-i18n="today.prayer_freq_every">Em toda sessão</button>
-                                </div>
-                            </div>
+                    <!-- Espaço único de convite -->
+                    <div class="invite surface-light" id="today-invite" hidden>
+                        <i class="ph ph-bell lead" id="today-invite-icon" aria-hidden="true"></i>
+                        <div class="txt"><b id="today-invite-title"></b><span class="meta" id="today-invite-meta"></span></div>
+                        <div class="invite-actions">
+                            <button type="button" class="btn btn-aux btn-sm" id="today-invite-go"></button>
+                            <button type="button" class="btn btn-quiet btn-sm" id="today-invite-later" data-i18n="today.not_now">Agora não</button>
                         </div>
                     </div>
-                    <div class="two">
+
+                    <!-- Preparação do foco -->
+                    <section class="prep surface-solid" id="today-prep" role="dialog" aria-modal="true" aria-labelledby="today-prep-label" data-dismiss-on-scrim="false" hidden>
+                        <div>
+                            <p class="label" id="today-prep-label" data-i18n="today.prep_label">Preparar foco</p>
+                            <input class="prep-title" id="today-prep-title" maxlength="80" autocomplete="off" aria-label="Atividade" data-i18n-aria-label="today.prep_activity" placeholder="Em que você vai trabalhar?" data-i18n-placeholder="today.prep_activity_placeholder">
+                        </div>
                         <div class="field">
-                            <span id="today-sound-label" data-i18n="today.prep_sound">Som</span>
-                            <button type="button" class="chip sound-chip" id="today-sound-chip" aria-haspopup="dialog" aria-controls="sound-dialog" aria-describedby="today-sound-label">
-                                <i class="ph ph-music-notes" aria-hidden="true"></i><span id="today-sound-text"></span><i class="ph ph-caret-down" aria-hidden="true"></i>
+                            <span id="today-dur-label" data-i18n="today.prep_duration">Duração</span>
+                            <div class="seg" id="today-dur" role="group" aria-labelledby="today-dur-label"></div>
+                        </div>
+                        <label class="field">
+                            <span><span data-i18n="today.prep_offer">Oferecer esta sessão por</span> <span class="muted" data-i18n="today.optional">· opcional</span></span>
+                            <input class="input" id="today-prep-intent" maxlength="120" autocomplete="off" placeholder="Ex.: pela minha equipe" data-i18n-placeholder="today.prep_offer_placeholder">
+                            <small id="today-prep-intent-hint"></small>
+                        </label>
+                        <div class="field prep-prayer" id="today-prayer-field">
+                            <span id="today-prayer-label" data-i18n="today.prayer_label">Oração ao começar</span>
+                            <button type="button" class="prayer-pick" id="today-prayer-pick" aria-haspopup="dialog" aria-expanded="false" aria-controls="today-prayer-pop" aria-describedby="today-prayer-label">
+                                <span class="ico" aria-hidden="true"><i class="ph-fill ph-hands-praying"></i></span>
+                                <span class="txt"><b id="today-prayer-name"></b><small id="today-prayer-hint"></small></span>
+                                <i class="ph ph-caret-down caret" aria-hidden="true"></i>
                             </button>
+                            <div class="prayer-pop" id="today-prayer-pop" role="dialog" aria-labelledby="today-prayer-label" hidden>
+                                <div class="prayer-opts" id="today-prayer-opts" role="radiogroup" aria-labelledby="today-prayer-label"></div>
+                                <button type="button" class="link-btn prayer-more" id="today-prayer-more" data-i18n="today.prayer_more">Mais orações</button>
+                                <div class="prayer-freq">
+                                    <span class="meta" id="today-prayer-freq-label" data-i18n="today.prayer_freq">Rezar</span>
+                                    <div class="seg" id="today-prayer-freq" role="group" aria-labelledby="today-prayer-freq-label">
+                                        <button type="button" data-freq="first" data-i18n="today.prayer_freq_first">Na primeira sessão do dia</button>
+                                        <button type="button" data-freq="every" data-i18n="today.prayer_freq_every">Em toda sessão</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="field">
                             <span data-i18n="today.prep_protection">Proteção</span>
                             <label class="toggle"><input type="checkbox" id="today-prep-protect"><span class="track"></span><span data-i18n="today.prep_block">Bloquear distrações</span></label>
                             <small><span id="today-prep-protect-hint"></span> · <button type="button" class="link-btn" id="today-prep-rules" data-i18n="today.prep_rules">ver regras</button></small>
                         </div>
-                    </div>
-                    <div class="actions">
-                        <button type="button" class="btn btn-primary btn-lg" id="today-prep-start"><i class="ph-fill ph-play" aria-hidden="true"></i><span id="today-prep-start-label"></span></button>
-                        <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.cancel">Cancelar</button>
-                        <span class="spacer"></span><span class="meta prep-esc"><kbd>Esc</kbd> <span data-i18n="today.esc_closes">fecha</span></span>
-                    </div>
-                </section>
+                        <div class="actions">
+                            <button type="button" class="btn btn-primary btn-lg" id="today-prep-start"><i class="ph-fill ph-play" aria-hidden="true"></i><span id="today-prep-start-label"></span></button>
+                            <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.cancel">Cancelar</button>
+                            <span class="spacer"></span><span class="meta prep-esc"><kbd>Esc</kbd> <span data-i18n="today.esc_closes">fecha</span></span>
+                        </div>
+                    </section>
 
-                <!-- Oração ao começar: entre "Começar" e o cronômetro (opcional) -->
-                <section class="focus-prayer" id="today-prayer" role="dialog" aria-modal="true" aria-labelledby="today-prayer-title" data-dismiss-on-scrim="false" hidden>
-                    <p class="label" data-i18n="today.prayer_before">Antes de começar</p>
-                    <h2 class="focus-prayer-title" id="today-prayer-title"></h2>
-                    <div class="focus-prayer-text" id="today-prayer-text"></div>
-                    <p class="focus-prayer-offer" id="today-prayer-offer" hidden></p>
-                    <span class="focus-prayer-orn" aria-hidden="true"></span>
-                    <div class="focus-prayer-actions">
-                        <button type="button" class="btn btn-primary btn-lg" id="today-prayer-amen"></button>
-                        <button type="button" class="btn btn-quiet" id="today-prayer-skip" data-i18n="today.prayer_skip">Pular</button>
-                    </div>
-                    <p class="meta" id="today-prayer-meta"></p>
-                </section>
+                    <!-- Oração ao começar: entre "Começar" e o cronômetro (opcional) -->
+                    <section class="focus-prayer" id="today-prayer" role="dialog" aria-modal="true" aria-labelledby="today-prayer-title" data-dismiss-on-scrim="false" hidden>
+                        <p class="label" data-i18n="today.prayer_before">Antes de começar</p>
+                        <h2 class="focus-prayer-title" id="today-prayer-title"></h2>
+                        <div class="focus-prayer-text" id="today-prayer-text"></div>
+                        <p class="focus-prayer-offer" id="today-prayer-offer" hidden></p>
+                        <span class="focus-prayer-orn" aria-hidden="true"></span>
+                        <div class="focus-prayer-actions">
+                            <button type="button" class="btn btn-primary btn-lg" id="today-prayer-amen"></button>
+                            <button type="button" class="btn btn-quiet" id="today-prayer-skip" data-i18n="today.prayer_skip">Pular</button>
+                        </div>
+                        <p class="meta" id="today-prayer-meta"></p>
+                    </section>
 
-                <!-- Sessão ativa / pausada -->
-                <section class="session" id="today-session" aria-labelledby="today-session-title" hidden>
-                    <p class="label session-state"><span class="dot" id="today-session-dot" aria-hidden="true"></span><span id="today-session-state"></span></p>
-                    <h1 class="session-title" id="today-session-title"></h1>
-                    <div class="timer clock" id="today-timer" role="timer" aria-label="Tempo restante" data-i18n-aria-label="today.time_left"></div>
-                    <div class="progress" aria-hidden="true"><span id="today-progress"></span></div>
-                    <p class="meta" id="today-session-meta"></p>
-                    <p class="session-intent" id="today-session-intent" hidden></p>
-                    <p class="pause-note" id="today-pause-note" hidden></p>
-                    <div class="controls">
-                        <button type="button" class="btn btn-aux btn-lg" id="today-pause"><i class="ph ph-pause" aria-hidden="true"></i><span data-i18n="today.pause">Pausar</span></button>
-                        <button type="button" class="btn btn-primary btn-lg" id="today-resume" hidden><i class="ph-fill ph-play" aria-hidden="true"></i><span data-i18n="today.resume">Retomar</span></button>
-                        <button type="button" class="btn btn-quiet" id="today-end"></button>
-                    </div>
-                    <div class="aux-row">
-                        <span class="chip surface-glass chip-static" id="today-session-protect" hidden><span class="dot" aria-hidden="true"></span><span id="today-session-protect-text"></span></span>
-                    </div>
-                </section>
+                    <!-- Sessão ativa / pausada -->
+                    <section class="session" id="today-session" aria-labelledby="today-session-title" hidden>
+                        <p class="label session-state"><span class="dot" id="today-session-dot" aria-hidden="true"></span><span id="today-session-state"></span></p>
+                        <h1 class="session-title" id="today-session-title"></h1>
+                        <div class="timer clock" id="today-timer" role="timer" aria-label="Tempo restante" data-i18n-aria-label="today.time_left"></div>
+                        <div class="progress" aria-hidden="true"><span id="today-progress"></span></div>
+                        <p class="meta" id="today-session-meta"></p>
+                        <p class="session-intent" id="today-session-intent" hidden></p>
+                        <p class="pause-note" id="today-pause-note" hidden></p>
+                        <div class="controls">
+                            <button type="button" class="btn btn-aux btn-lg" id="today-pause"><i class="ph ph-pause" aria-hidden="true"></i><span data-i18n="today.pause">Pausar</span></button>
+                            <button type="button" class="btn btn-primary btn-lg" id="today-resume" hidden><i class="ph-fill ph-play" aria-hidden="true"></i><span data-i18n="today.resume">Retomar</span></button>
+                            <button type="button" class="btn btn-quiet" id="today-end"></button>
+                        </div>
+                        <div class="aux-row">
+                            <span class="chip surface-glass chip-static" id="today-session-protect" hidden><span class="dot" aria-hidden="true"></span><span id="today-session-protect-text"></span></span>
+                        </div>
+                    </section>
 
-                <!-- Sessão concluída: uma única transição (E12) -->
-                <section class="done" id="today-done" aria-labelledby="today-done-title" hidden>
-                    <span class="done-glow" id="today-done-glow" aria-hidden="true"></span>
-                    <svg class="done-mark" id="today-done-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" pathLength="1"/><path d="M15 24.5l6 6 12-13" pathLength="1"/></svg>
-                    <p class="label" data-i18n="today.done_label">Sessão concluída</p>
-                    <h1 id="today-done-title"></h1>
-                    <p class="meta" id="today-done-meta"></p>
-                    <label class="check-row surface-glass" id="today-done-check-row"><input type="checkbox" id="today-done-check"><span data-i18n="today.done_mark">Marcar tarefa como concluída</span></label>
-                    <div class="break-edit" id="today-break-edit" hidden>
-                        <span id="today-break-edit-label" data-i18n="today.long_break">Pausa longa</span>
-                        <button type="button" class="btn-icon" id="today-break-less" aria-label="Menos 5 minutos" data-i18n-aria-label="today.break_less"><i class="ph ph-minus" aria-hidden="true"></i></button>
-                        <output class="tnum" id="today-break-min" aria-live="polite" aria-labelledby="today-break-edit-label"></output>
-                        <button type="button" class="btn-icon" id="today-break-more" aria-label="Mais 5 minutos" data-i18n-aria-label="today.break_more"><i class="ph ph-plus" aria-hidden="true"></i></button>
-                    </div>
-                    <div class="row">
-                        <button type="button" class="btn btn-primary" id="today-break"><i class="ph ph-coffee" aria-hidden="true"></i><span id="today-break-label"></span></button>
-                        <button type="button" class="btn btn-aux" id="today-respiro" hidden><i class="ph ph-wind" aria-hidden="true"></i><span data-i18n="today.respiro">Fazer um Respiro</span></button>
-                        <button type="button" class="btn btn-aux" id="today-more" data-i18n="today.more_session">Mais uma sessão</button>
-                        <button type="button" class="btn btn-quiet" id="today-home" data-i18n="today.back_home">Voltar ao início</button>
-                    </div>
-                    <div class="done-next" id="today-after" hidden>
-                        <p class="label" data-i18n="today.after_label">Próxima tarefa de hoje</p>
-                        <p id="today-after-title"></p>
-                    </div>
-                </section>
+                    <!-- Sessão concluída: uma única transição (E12) -->
+                    <section class="done" id="today-done" aria-labelledby="today-done-title" hidden>
+                        <span class="done-glow" id="today-done-glow" aria-hidden="true"></span>
+                        <svg class="done-mark" id="today-done-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" pathLength="1"/><path d="M15 24.5l6 6 12-13" pathLength="1"/></svg>
+                        <p class="label" data-i18n="today.done_label">Sessão concluída</p>
+                        <h1 id="today-done-title"></h1>
+                        <p class="meta" id="today-done-meta"></p>
+                        <label class="check-row surface-glass" id="today-done-check-row"><input type="checkbox" class="task-check" id="today-done-check"><span data-i18n="today.done_mark">Marcar tarefa como concluída</span></label>
+                        <div class="break-edit" id="today-break-edit" hidden>
+                            <span id="today-break-edit-label" data-i18n="today.long_break">Pausa longa</span>
+                            <button type="button" class="btn-icon" id="today-break-less" aria-label="Menos 5 minutos" data-i18n-aria-label="today.break_less"><i class="ph ph-minus" aria-hidden="true"></i></button>
+                            <output class="tnum" id="today-break-min" aria-live="polite" aria-labelledby="today-break-edit-label"></output>
+                            <button type="button" class="btn-icon" id="today-break-more" aria-label="Mais 5 minutos" data-i18n-aria-label="today.break_more"><i class="ph ph-plus" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="row">
+                            <button type="button" class="btn btn-primary" id="today-break"><i class="ph ph-coffee" aria-hidden="true"></i><span id="today-break-label"></span></button>
+                            <button type="button" class="btn btn-aux" id="today-respiro" hidden><i class="ph ph-wind" aria-hidden="true"></i><span data-i18n="today.respiro">Fazer um Respiro</span></button>
+                            <button type="button" class="btn btn-aux" id="today-more" data-i18n="today.more_session">Mais uma sessão</button>
+                            <button type="button" class="btn btn-quiet" id="today-home" data-i18n="today.back_home">Voltar ao início</button>
+                        </div>
+                        <div class="done-next" id="today-after" hidden>
+                            <p class="label" data-i18n="today.after_label">Próxima tarefa de hoje</p>
+                            <p id="today-after-title"></p>
+                        </div>
+                    </section>
+                </div>
 
                 <!-- Canto: atalhos e som (no eixo em telas estreitas) -->
                 <div class="today-corner" id="today-corner">
@@ -662,7 +656,7 @@
                 </div>
                 <p class="meta" id="sound-playlist-hint" hidden></p>
                 <div class="row sound-playlist-actions">
-                    <button type="button" class="btn btn-primary btn-sm" id="sound-playlist-use"></button>
+                    <button type="button" class="btn btn-primary btn-sm" id="sound-playlist-use" data-i18n="sound.play">Tocar</button>
                     <a class="btn btn-quiet btn-sm" id="sound-playlist-external" target="_blank" rel="noopener"><i class="ph ph-arrow-square-out" aria-hidden="true"></i><span data-i18n="sound.open_provider">Abrir no serviço</span></a>
                     <button type="button" class="btn btn-quiet btn-sm sound-danger" id="sound-playlist-remove"><i class="ph ph-trash" aria-hidden="true"></i><span data-i18n="sound.remove_short">Remover</span></button>
                 </div>
@@ -678,10 +672,6 @@
             </div>
 
             <p class="meta" id="sound-status" role="status"></p>
-            <div class="row sound-footer" id="sound-footer" hidden>
-                <button type="button" class="btn btn-quiet" data-dialog-close data-i18n="today.cancel">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="sound-apply"></button>
-            </div>
         </section>
     </div>
 

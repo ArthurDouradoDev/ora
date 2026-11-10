@@ -106,8 +106,6 @@ const TodaySystem = {
             prepDur: $('today-dur'),
             prepIntent: $('today-prep-intent'),
             prepIntentHint: $('today-prep-intent-hint'),
-            soundChip: $('today-sound-chip'),
-            soundText: $('today-sound-text'),
             prepProtect: $('today-prep-protect'),
             prepProtectHint: $('today-prep-protect-hint'),
             prepRules: $('today-prep-rules'),
@@ -239,15 +237,6 @@ const TodaySystem = {
                 this.startFromPrep();
             }
         });
-        el.soundChip.addEventListener('click', () => {
-            SoundSystem.open(el.soundChip, {
-                choice: this.prepDraft.sound,
-                onChoose: choice => {
-                    this.prepDraft.sound = choice;
-                    this.renderPrepSound();
-                }
-            });
-        });
         el.prepRules.addEventListener('click', (e) => {
             e.stopPropagation();
             // O painel do bloqueador (V0) fica fora do diálogo: a preparação fecha e guarda o rascunho
@@ -300,7 +289,7 @@ const TodaySystem = {
         // (o mesmo clique que abriu a preparação ainda está subindo: é ignorado)
         document.addEventListener('click', (e) => {
             if (!this.preparing || performance.now() - this._prepOpenedAt < 100) return;
-            if (DialogSystem.top()?.root === el.prep && !e.target.closest('#sound-dialog') && !el.prep.contains(e.target) && document.contains(e.target)) this.closePrep({ keepDraft: true });
+            if (DialogSystem.top()?.root === el.prep && !el.prep.contains(e.target) && document.contains(e.target)) this.closePrep({ keepDraft: true });
         });
 
         // Sessão
@@ -842,7 +831,6 @@ const TodaySystem = {
                 title: task ? task.title : (title || ''),
                 minutes: durations.includes(minutes) ? minutes : (durations.includes(estimate) ? estimate : FocusSystem.settings.focus),
                 intention: '',
-                sound: SoundSystem.getChoice(),
                 protect: this.protectPref,
                 prayer: this.prayerPref.id,
                 prayerFreq: this.prayerPref.freq
@@ -856,7 +844,6 @@ const TodaySystem = {
             ? t('today.prep_offer_hint_day', { text: this.dayIntention })
             : t('today.prep_offer_hint');
         this.renderPrepDuration();
-        this.renderPrepSound();
         this.renderPrepProtection();
         this.prayerMore = false;
         this.renderPrepPrayer();
@@ -1080,9 +1067,9 @@ const TodaySystem = {
     },
 
     // Entre a preparação e o cronômetro: a oração sobre a paisagem
-    openPrayer: function(prayer, params, sound) {
+    openPrayer: function(prayer, params) {
         const el = this.elements;
-        this.praying = { prayer, params, sound };
+        this.praying = { prayer, params };
         this.prepStarting = true;
         DialogSystem.close(el.prep);
         this.prepStarting = false;
@@ -1129,7 +1116,7 @@ const TodaySystem = {
         DialogSystem.close(this.elements.prayer);
         this.prayerStarting = false;
         this.praying = null;
-        await this.beginFocus(p.params, p.sound);
+        await this.beginFocus(p.params);
     },
 
     // Esc: volta à preparação com o mesmo rascunho
@@ -1152,10 +1139,6 @@ const TodaySystem = {
         this.prayerStarting = false;
         this.praying = null;
         this.prepDraft = null;
-    },
-
-    renderPrepSound: function() {
-        this.elements.soundText.textContent = SoundSystem.name(this.prepDraft.sound);
     },
 
     renderPrepProtection: function() {
@@ -1197,7 +1180,7 @@ const TodaySystem = {
             this.protectPref = draft.protect;
             AsyncStorage.set(this.PROTECT_PREF_KEY, draft.protect);
         }
-        // A escolha da oração vale para as próximas preparações (como som e proteção)
+        // A escolha da oração vale para as próximas preparações, como a proteção.
         const prayerPref = FocusPrayerCore.normalize({ id: draft.prayer, freq: draft.prayerFreq });
         if (prayerPref.id !== this.prayerPref.id || prayerPref.freq !== this.prayerPref.freq) {
             this.prayerPref = prayerPref;
@@ -1205,7 +1188,7 @@ const TodaySystem = {
         }
         const prayer = this.duePrayer();
         if (prayer) {
-            this.openPrayer(prayer, params, draft.sound);
+            this.openPrayer(prayer, params);
             return;
         }
 
@@ -1213,19 +1196,18 @@ const TodaySystem = {
         this.prepStarting = true;
         DialogSystem.close(this.elements.prep);
         this.prepStarting = false;
-        await this.beginFocus(params, draft.sound);
+        await this.beginFocus(params);
     },
 
-    beginFocus: async function(params, sound) {
+    beginFocus: async function(params) {
         try {
-            const state = await FocusSystem.startFocus(params);
+            await FocusSystem.startFocus(params);
             this.prepDraft = null;
             this.elements.quickInput.value = '';
-            if (state?.session) SoundSystem.play(sound, state.session.id, { preservePause: true });
         } catch (e) {
             console.error('[Today] Could not start focus:', e);
             if (this.launch) this.endLaunch();
-            this.setError({ title: t('today.error_start'), detail: t('today.error_engine_detail'), retry: () => this.beginFocus(params, sound) });
+            this.setError({ title: t('today.error_start'), detail: t('today.error_engine_detail'), retry: () => this.beginFocus(params) });
         }
     },
 

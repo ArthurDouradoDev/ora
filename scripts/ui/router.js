@@ -139,6 +139,10 @@ const RouterSystem = {
     //   Hoje não anima opacidade: opacity < 1 tiraria o desfoque do vidro.
     animateChange: function(previous, route, active) {
         if (!window.Motion || !previous || !active) return;
+        if (previous.view === 'configuracoes' && route.view === 'configuracoes') {
+            active._oraMotion?.route?.cancel();
+            return;
+        }
         const dir = RouteCore.direction(previous, route);
         if (!dir) return;
         const backdrop = this.elements.backdrop;

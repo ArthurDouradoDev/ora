@@ -233,7 +233,6 @@
     "prep_offer_placeholder": "Ex.: pela minha equipe",
     "prep_offer_hint": "Vale só para esta sessão.",
     "prep_offer_hint_day": "Vale só para esta sessão. A intenção do dia (“{text}”) continua a mesma.",
-    "prep_sound": "Som",
     "prep_protection": "Proteção",
     "prep_block": "Bloquear distrações",
     "prep_rules": "ver regras",
@@ -852,7 +851,6 @@
     "pause": "Pausar som",
     "stop": "Parar som",
     "next": "Próxima faixa",
-    "choose": "Usar no foco",
     "volume": "Volume",
     "pause_with_focus": "Pausar o som junto com o foco",
     "link_label": "Link do YouTube ou Spotify",
@@ -892,7 +890,6 @@
     "scene_lauds": "Laudes",
     "mixer_hint": "Ligue até três sons e ajuste cada um. Funcionam sem internet.",
     "remove_short": "Remover",
-    "select": "Escolher",
     "link_placeholder": "Cole um link do YouTube ou Spotify",
     "add_hint": "Vídeos e playlists do YouTube; playlists, álbuns e faixas do Spotify. Precisam de internet."
   },
