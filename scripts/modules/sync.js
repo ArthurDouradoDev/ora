@@ -240,9 +240,11 @@ const SyncSystem = {
 
         this._applying = true;
         try {
-            const local = (await chrome.storage.local.get([this.TASKS_KEY]))[this.TASKS_KEY];
-            const merged = this.mergeTasks(entry.data, local);
-            await chrome.storage.local.set({ [this.TASKS_KEY]: merged });
+            await TaskSystem.withWriteLock(async () => {
+                const local = (await chrome.storage.local.get([this.TASKS_KEY]))[this.TASKS_KEY];
+                const merged = this.mergeTasks(entry.data, local);
+                await chrome.storage.local.set({ [this.TASKS_KEY]: merged });
+            });
             this._meta.routine = entry.updatedAt;
             this._lastPushed.routine = JSON.stringify(this.sanitizeTasks(entry.data));
             await this.saveMeta();

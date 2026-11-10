@@ -380,65 +380,6 @@ html[data-today="pausada"] .timer { color: var(--text-2); }
 html:is([data-today="ativa"], [data-today="pausada"], [data-today="concluida"]) .today-foot { visibility: hidden; opacity: 0; }
 html[data-today="preparacao"] .today-foot { display: none; }
 
-/* ---------- Tarefas: painel lateral integrado ---------- */
-.tasks-panel {
-    grid-column: 2; grid-row: 1;
-    width: 0;
-    overflow: hidden;
-    border-radius: var(--r-xl) 0 0 0;
-    border-right: 0; border-bottom: 0;
-    /* Largura muda de uma vez (um único layout); o movimento é feito com
-       transform em TaskSystem.animatePanel (FLIP do centro + painel). */
-}
-.view-hoje[data-tasks-open] .tasks-panel { width: var(--tasks-panel-width); }
-.tasks-inner { width: var(--tasks-panel-width); height: 100%; display: flex; flex-direction: column; }
-.tasks-head { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 1rem 0.75rem 1.5rem; }
-.tasks-head h2 { font-size: 1.125rem; font-weight: 600; flex: 1; }
-.tasks-add { display: flex; gap: 0.5rem; padding: 0 1.5rem 1rem; flex-wrap: wrap; }
-.tasks-add .input { flex: 1 1 10rem; min-width: 0; }
-.tasks-alert { padding: 0 1.5rem 1rem; }
-.tasks-scroll { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding-bottom: 1rem; }
-.task-list { list-style: none; margin: 0; padding: 0 0.75rem; }
-.task { border-top: 1px solid var(--line); }
-.task:first-child { border-top: 0; }
-.task-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.75rem; }
-.task-main { display: grid; gap: 0.125rem; min-width: 0; }
-.task-next {
-    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--gold);
-}
-.task-title {
-    background: none; border: 0; padding: 0;
-    text-align: left; cursor: pointer;
-    font: inherit; font-weight: 500; font-size: 1rem;
-    color: var(--text);
-    overflow-wrap: anywhere;
-}
-.task-title:hover { text-decoration: underline; text-decoration-color: var(--text-3); text-underline-offset: 3px; }
-.task.is-done .task-title { color: var(--text-3); text-decoration: line-through; }
-.task-edit { padding: 0 0.75rem 1rem 3rem; display: grid; gap: 0.75rem; text-align: left; }
-.task-edit .row { flex-wrap: wrap; }
-.task-edit .seg button { padding-inline: 0.625rem; }
-.task-edit .days { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-.task-edit .days button {
-    width: 2.25rem; height: 2.25rem;
-    border-radius: 50%;
-    border: 1px solid var(--line-strong);
-    background: none; color: var(--text-2);
-    font: inherit; font-size: 0.8125rem; font-weight: 600;
-    cursor: pointer;
-}
-.task-edit .days button[aria-pressed="true"] { background: var(--surface-3); color: var(--text); border-color: var(--text-3); }
-.task-edit .danger-text { color: var(--err); }
-.tasks-empty { padding: 1rem 1.5rem 1.5rem; color: var(--text-2); display: grid; gap: 0.5rem; text-align: left; }
-.tasks-empty b { color: var(--text); }
-.tasks-many { padding: 0.25rem 1.5rem 0.75rem; text-align: left; }
-.tasks-later { border-top: 1px solid var(--line); margin-top: 0.5rem; padding-top: 1rem; }
-.tasks-later h3 { padding: 0 1.5rem 0.5rem; }
-.tasks-done { padding: 0.75rem 1.5rem 0; border-top: 1px solid var(--line); margin-top: 0.75rem; color: var(--text-2); }
-.tasks-done summary { cursor: pointer; font-weight: 500; min-height: 2.25rem; display: flex; align-items: center; }
-.tasks-done .task-list { padding: 0; }
-
 /* Diálogo de atalhos */
 .shortcut-manage { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
 .shortcut-manage li { display: flex; align-items: center; gap: 0.625rem; padding: 0.25rem 0; border-bottom: 1px solid var(--line); }
@@ -466,22 +407,6 @@ html[data-today="preparacao"] .today-foot { display: none; }
 
 /* ---------- Janelas estreitas: o painel vira folha lateral ---------- */
 @media (max-width: 68rem) {
-    .tasks-panel {
-        position: fixed; right: 0; top: 0; bottom: 0; z-index: 30;
-        width: var(--tasks-panel-width); max-width: 92%;
-        border-radius: var(--r-xl) 0 0 var(--r-xl);
-        transform: translateX(100%);
-        visibility: hidden;
-        transition: transform 280ms var(--ease), visibility 0s linear 280ms;
-    }
-    .view-hoje[data-tasks-open] .tasks-panel {
-        width: var(--tasks-panel-width);
-        transform: none;
-        visibility: visible;
-        transition: transform 280ms var(--ease);
-        box-shadow: -30px 0 60px rgba(0, 0, 0, 0.5);
-    }
-    .tasks-inner { width: 100%; }
     .quote { display: none; }
 }
 @media (max-width: 54rem) {
@@ -500,16 +425,6 @@ html[data-today="preparacao"] .today-foot { display: none; }
 .sc .fav { width: 1.25rem; height: 1.25rem; background: transparent; }
 .sc .fav img { width: 1rem; height: 1rem; }
 .shortcuts .row { gap: .375rem; }
-.task-edit { padding-left: .75rem; min-width: 0; }
-.task-edit .ed-estimate { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .375rem; padding: 0; border: 0; border-radius: 0; background: none; }
-.task-edit .ed-estimate button { min-width: 0; min-height: 2.5rem; padding: .375rem .25rem; border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
-.task-edit .ed-estimate button[aria-pressed="true"] { border-color: var(--gold); background: var(--gold-soft); }
-.task-custom-estimate { display: flex; align-items: center; gap: .75rem; margin-top: .375rem; font-size: .8125rem; color: var(--text-2); }
-.task-custom-estimate .input { width: 8rem; min-width: 0; margin-left: auto; }
-.task-edit > .row:last-of-type { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .25rem; }
-.task-edit > .row:last-of-type .spacer { display: none; }
-.task-edit > .row:last-of-type .meta { grid-column: 1 / -1; }
-.task-edit > .row:last-of-type .btn { padding-inline: .375rem; white-space: normal; }
 @media (max-height: 51rem) {
     .today-center { gap: .875rem; }
     .focus-prayer { gap: 1rem; }
@@ -517,18 +432,9 @@ html[data-today="preparacao"] .today-foot { display: none; }
     .arrival .clock { font-size: clamp(3rem, 11vh, 6rem); }
 }
 @media (max-width: 30rem) {
-    .tasks-head, .tasks-add { padding-inline: 1rem; }
-    .tasks-add .btn { flex: 1; }
-    .task-row { gap: .5rem; }
-    .task-row > .btn { padding-inline: .625rem; }
     .next-title { font-size: 1.25rem; }
 }
 @media (pointer: coarse) { .sc { min-height: 2.75rem; } }
-
-@media (max-width: 68rem) {
-    .view-hoje[data-tasks-open] { z-index: 20; }
-    .tasks-panel { background: var(--surface-1); }
-}
 
 /* ---------- Canto superior esquerdo: atalhos e som ----------
    A janela precisa comportar o canto com o painel aberto. Assim o canto

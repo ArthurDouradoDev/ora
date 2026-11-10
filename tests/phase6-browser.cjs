@@ -108,7 +108,7 @@ const profile = fs.mkdtempSync(path.join(temp, 'ora-phase6-qa-'));
         await page.bringToFront();
         console.log('PASS Web Audio layers, live mixer, layer limit, seamless loop, volume and tab change');
 
-        await click('#today-quick-form button[type="submit"]');
+        await click('#today-quick-focus');
         assert.equal(await page.locator('#today-prep').isVisible(), true);
         assert.equal(await page.locator('#today-prep [aria-controls="sound-dialog"]').count(), 0);
         await page.evaluate(() => { window.firstLayer = SoundEngine.layers.get('rain'); });
@@ -165,7 +165,7 @@ const profile = fs.mkdtempSync(path.join(temp, 'ora-phase6-qa-'));
         }), true);
         await page.keyboard.press('Escape');
         await page.setViewportSize({ width: 1280, height: 850 });
-        await click('#today-quick-form button[type="submit"]');
+        await click('#today-quick-focus');
         await click('#today-prep-start');
         await page.locator('#today-session').waitFor({ state: 'visible' });
         assert.equal(await page.evaluate(() => SoundSystem.active), null);

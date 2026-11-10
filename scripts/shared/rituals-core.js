@@ -135,13 +135,10 @@
         const c = choice || {};
         const TC = global.TasksCore;
         const minutes = Number(c.minutes) > 0 ? Math.round(Number(c.minutes)) : null;
-        const existing = c.taskId ? list.find(t => t && t.id === c.taskId && !t.completedAt && !t.recurrence) : null;
+        const existing = c.taskId && TC ? list.find(t => t && t.id === c.taskId && !t.completedAt && !t.recurrence && !t.skipped) : null;
         if (existing) {
-            const others = list.filter(t => t.list === 'hoje' && t.id !== existing.id);
-            const top = others.length ? Math.min(...others.map(t => Number(t.order) || 0)) - 1 : 0;
-            let next = list.map(t => (t.id === existing.id ? Object.assign({}, t, { list: 'hoje', order: top }) : t));
-            if (minutes && TC) next = TC.updateTask(next, existing.id, { estimateMin: minutes });
-            else if (minutes) next = next.map(t => (t.id === existing.id ? Object.assign({}, t, { estimateMin: minutes }) : t));
+            let next = TC.scheduleTask(list, existing.id, 'hoje', TC.isoDate(toDate(now)), { top: true });
+            if (minutes) next = TC.updateTask(next, existing.id, { estimateMin: minutes }, { occurrenceOnly: true });
             return { tasks: next, taskId: existing.id };
         }
         const title = typeof c.title === 'string' ? c.title.trim() : '';

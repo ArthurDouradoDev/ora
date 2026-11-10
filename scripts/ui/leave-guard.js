@@ -47,7 +47,7 @@ const LeaveGuard = {
     watchField(element) {
         if (!element || this.fields.has(element)) return;
         const id = element.id;
-        const transient = ['tasks-add-input', 'tasks-later-input', 'today-quick-input',
+        const transient = ['tasks-add-input', 'task-routine-input',
             'playlist-input', 'shortcut-name', 'shortcut-url', 'custom-profile-name', 'virtue-name'];
         let savedValue = null, currentSaved = null, trim = false;
         if (id === 'setting-longPause') {

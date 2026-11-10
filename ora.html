@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="styles/modules/sound.css">
     <link rel="stylesheet" href="styles/modules/preferences.css">
     <link rel="stylesheet" href="styles/modules/today.css">
+    <link rel="stylesheet" href="styles/modules/tasks.css">
     <link rel="stylesheet" href="styles/modules/frutos.css">
     <link rel="stylesheet" href="styles/components/loading.css">
     <link rel="icon" href="assets/icon.png">
@@ -112,11 +113,10 @@
                     <!-- Próximo passo (sem tarefas) -->
                     <section class="next surface-light" id="today-empty" aria-labelledby="today-empty-label" hidden>
                         <p class="label" id="today-empty-label" data-i18n="today.next_label">Próximo passo</p>
-                        <form id="today-quick-form">
-                            <label for="today-quick-input" class="sr-only" data-i18n="today.quick_placeholder">O que você quer fazer agora?</label>
-                            <input class="input" id="today-quick-input" maxlength="80" autocomplete="off" placeholder="O que você quer fazer agora?" data-i18n-placeholder="today.quick_placeholder">
-                            <button class="btn btn-primary" type="submit" data-i18n="today.start_focus">Começar foco</button>
-                        </form>
+                        <div class="row">
+                            <button type="button" class="btn btn-primary" id="today-task-empty" aria-controls="tasks-panel"></button>
+                            <button type="button" class="btn btn-quiet" id="today-quick-focus" data-i18n="today.start_focus">Começar foco</button>
+                        </div>
                         <p class="meta" data-i18n="today.just_stay">Ou apenas fique aqui um instante.</p>
                     </section>
 
@@ -291,52 +291,51 @@
         <aside class="tasks-panel surface-solid" id="tasks-panel" aria-labelledby="tasks-panel-title" inert>
             <div class="tasks-inner">
                 <header class="tasks-head">
-                    <h2 id="tasks-panel-title" data-i18n="tasks.panel_title">Tarefas de hoje</h2>
+                    <button type="button" class="btn-icon" id="tasks-back" data-i18n-aria-label="tasks.back" aria-label="Voltar" hidden><i class="ph ph-arrow-left" aria-hidden="true"></i></button>
+                    <h2 id="tasks-panel-title" tabindex="-1">Tarefas</h2>
+                    <button type="button" class="btn-icon" id="tasks-options" aria-haspopup="menu" aria-expanded="false" aria-controls="tasks-menu" data-i18n-aria-label="tasks.options" aria-label="Opções de tarefas"><i class="ph ph-dots-three" aria-hidden="true"></i></button>
                     <button type="button" class="btn-icon" id="tasks-close" aria-label="Fechar tarefas" data-i18n-aria-label="tasks.close"><i class="ph ph-x" aria-hidden="true"></i></button>
                 </header>
-                <form class="tasks-add" id="tasks-add-form">
-                    <label for="tasks-add-input" class="sr-only" data-i18n="tasks.add_label">Nova tarefa para hoje</label>
-                    <input class="input" id="tasks-add-input" maxlength="80" autocomplete="off" placeholder="Adicionar tarefa" data-i18n-placeholder="tasks.add_placeholder">
-                    <button class="btn btn-aux" type="submit" data-i18n="tasks.add">Adicionar</button>
-                </form>
-                <div class="tasks-alert" id="tasks-alert" hidden>
-                    <div class="banner err" role="alert">
-                        <i class="ph ph-warning-circle" aria-hidden="true"></i>
-                        <div>
-                            <strong id="tasks-alert-title"></strong><span data-i18n="tasks.save_failed_detail">O armazenamento do navegador recusou a gravação.</span>
-                            <div class="actions">
-                                <button type="button" class="btn btn-aux btn-sm" id="tasks-alert-retry" data-i18n="today.retry">Tentar de novo</button>
-                                <button type="button" class="btn btn-quiet btn-sm" id="tasks-alert-dismiss" data-i18n="today.close">Fechar</button>
+                <div class="tasks-scroll" id="tasks-scroll">
+                    <div class="tasks-alert" id="tasks-alert" hidden>
+                        <div class="banner err" role="alert">
+                            <i class="ph ph-warning-circle" aria-hidden="true"></i>
+                            <div>
+                                <strong id="tasks-alert-title"></strong><span data-i18n="tasks.save_failed_detail">O armazenamento do navegador recusou a gravação.</span>
+                                <div class="actions">
+                                    <button type="button" class="btn btn-aux btn-sm" id="tasks-alert-retry" data-i18n="today.retry">Tentar de novo</button>
+                                    <button type="button" class="btn btn-quiet btn-sm" id="tasks-alert-dismiss" data-i18n="today.close">Fechar</button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <div id="tasks-content"></div>
                 </div>
-                <div class="tasks-scroll">
-                    <ul class="task-list" id="tasks-today" aria-labelledby="tasks-panel-title"></ul>
-                    <div class="tasks-empty" id="tasks-today-empty" hidden>
-                        <b data-i18n="tasks.empty_title">Nada para hoje ainda.</b>
-                        <span data-i18n="tasks.empty_desc">Escreva uma coisa que importa. Ela vira o próximo passo.</span>
-                    </div>
-                    <p class="meta tasks-many" id="tasks-many" hidden></p>
-
-                    <section class="tasks-later" aria-labelledby="tasks-later-title">
-                        <h3 class="label" id="tasks-later-title" data-i18n="tasks.later_title">Depois</h3>
-                        <form class="tasks-add" id="tasks-later-form">
-                            <label for="tasks-later-input" class="sr-only" data-i18n="tasks.later_label">Anotar para depois</label>
-                            <input class="input" id="tasks-later-input" maxlength="80" autocomplete="off" placeholder="Anotar para depois" data-i18n-placeholder="tasks.later_placeholder">
-                            <button class="btn btn-quiet" type="submit" data-i18n="tasks.add">Adicionar</button>
-                        </form>
-                        <ul class="task-list" id="tasks-later" aria-labelledby="tasks-later-title"></ul>
-                    </section>
-
-                    <details class="tasks-done" id="tasks-done" hidden>
-                        <summary id="tasks-done-summary"></summary>
-                        <ul class="task-list" id="tasks-done-list"></ul>
-                    </details>
-                </div>
+                <footer class="tasks-capture" id="tasks-capture">
+                    <p class="meta" id="tasks-undo" hidden></p>
+                    <p class="meta" id="tasks-notice" hidden></p>
+                    <form class="tasks-add" id="tasks-add-form">
+                        <button class="btn-icon" type="submit" data-i18n-aria-label="tasks.add" aria-label="Adicionar"><i class="ph ph-plus" aria-hidden="true"></i></button>
+                        <label for="tasks-add-input" class="sr-only" data-i18n="tasks.add_label">Nova tarefa</label>
+                        <input id="tasks-add-input" maxlength="80" autocomplete="off" placeholder="Nova tarefa…" data-i18n-placeholder="tasks.add_placeholder">
+                        <button type="button" class="btn btn-aux btn-sm" id="tasks-destination" aria-haspopup="menu" aria-expanded="false" aria-controls="tasks-menu"></button>
+                    </form>
+                </footer>
             </div>
         </aside>
     </main>
+    <div class="task-menu surface-solid" id="tasks-menu" role="menu" hidden></div>
+    <p id="tasks-live" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+    <div class="scrim" id="tasks-end-dialog" hidden>
+        <div class="dialog surface-solid" role="alertdialog" aria-modal="true" aria-labelledby="tasks-end-title" aria-describedby="tasks-end-description">
+            <h2 id="tasks-end-title"></h2>
+            <p class="meta" id="tasks-end-description" data-i18n="tasks.end_explanation"></p>
+            <div class="row">
+                <button type="button" class="btn btn-quiet" data-dialog-close autofocus data-i18n="today.cancel"></button>
+                <button type="button" class="btn btn-aux" id="tasks-end-confirm" data-i18n="tasks.end_confirm"></button>
+            </div>
+        </div>
+    </div>
 
     <!-- Rezar: entrada e subtelas renderizadas pelos módulos da fase 3 -->
     <main class="view view-rezar" id="view-rezar" data-view="rezar" hidden></main>
@@ -995,6 +994,8 @@
     <script src="scripts/modules/exam.js" defer></script>
     <script src="scripts/modules/focus.js" defer></script>
     <script src="scripts/modules/tasks.js" defer></script>
+    <script src="scripts/modules/tasks-menu.js" defer></script>
+    <script src="scripts/modules/tasks-drag.js" defer></script>
     <script src="scripts/modules/protection.js" defer></script>
     <script src="scripts/modules/today.js" defer></script>
     <script src="scripts/modules/seasons.js" defer></script>

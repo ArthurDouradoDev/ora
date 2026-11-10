@@ -4,7 +4,7 @@
 // Pure functions only: no chrome.* calls, no DOM access.
 // Todas as funções que alteram devolvem um array novo (não mutam a entrada).
 //
-// Tarefa: { id, title, list: 'hoje'|'depois', order, estimateMin?,
+// Tarefa: { id, title, list: 'hoje'|'depois', plannedFor?, order, estimateMin?,
 //           recurrence?: { days: [0..6] }, createdAt, completedAt? }
 //
 // Tarefa com `recurrence` é um MODELO (a rotina): não aparece na lista.
@@ -26,6 +26,18 @@
     function isoDate(d) {
         const date = d instanceof Date ? d : new Date(d);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function dateFromKey(key) {
+        if (typeof key !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(key)) return null;
+        const date = new Date(key + 'T12:00:00');
+        return isoDate(date) === key ? date : null;
+    }
+
+    function addDays(key, days) {
+        const date = dateFromKey(key);
+        date.setDate(date.getDate() + days);
+        return isoDate(date);
     }
 
     function toMs(value) {
@@ -78,7 +90,9 @@
             if (raw.fromRecurrence !== undefined && raw.fromRecurrence !== null && typeof raw.date === 'string') {
                 task.fromRecurrence = String(raw.fromRecurrence);
                 task.date = raw.date;
+                if (raw.skipped && !completedAt) task.skipped = true;
             }
+            if (!task.fromRecurrence && task.list === 'depois' && dateFromKey(raw.plannedFor)) task.plannedFor = raw.plannedFor;
         }
 
         if (typeof raw.intention === 'string' && raw.intention.trim()) task.intention = raw.intention.trim();
@@ -151,6 +165,7 @@
             id: f.id,
             title: f.title,
             list,
+            plannedFor: f.plannedFor,
             order: nextOrder(tasks, list, !!f.atTop),
             estimateMin: f.estimateMin,
             recurrence: f.recurrence,
@@ -185,7 +200,10 @@
         const target = (tasks || []).find(t => t.id === id);
         if (!target || target.list === list) return (tasks || []).slice();
         const order = nextOrder(tasks.filter(t => t.id !== id), list, false);
-        return mapTask(tasks, id, t => Object.assign(t, { list, order }));
+        return mapTask(tasks, id, t => {
+            delete t.plannedFor;
+            return Object.assign(t, { list, order });
+        });
     }
 
     function moveToToday(tasks, id) {
@@ -194,6 +212,35 @@
 
     function moveToLater(tasks, id) {
         return moveToList(tasks, id, 'depois');
+    }
+
+    // 'hoje' e 'semdia' são destinos especiais. Só Hoje aceita posição manual.
+    function scheduleTask(tasks, id, destination, today, { top = false, beforeId } = {}) {
+        const task = tasks.find(t => t.id === id);
+        if (!task || isTemplate(task) || isDone(task) || task.skipped) return tasks;
+        if (dateFromKey(destination) && destination <= today) destination = 'hoje';
+        if (destination !== 'hoje' && (task.fromRecurrence || (destination !== 'semdia' && !dateFromKey(destination)))) return tasks;
+        const current = task.list === 'hoje' ? 'hoje' : task.plannedFor || 'semdia';
+        if (destination === current && !top && beforeId === undefined) return tasks;
+        if (destination !== 'hoje') {
+            const order = nextOrder(tasks, 'depois', false);
+            return mapTask(tasks, id, t => {
+                delete t.plannedFor;
+                if (destination !== 'semdia') t.plannedFor = destination;
+                return Object.assign(t, { list: 'depois', order });
+            });
+        }
+        const siblings = listTasks(tasks, 'hoje').filter(t => !isDone(t) && t.id !== id);
+        const before = siblings.findIndex(t => t.id === beforeId);
+        const position = top ? 0 : before === -1 ? siblings.length : before;
+        siblings.splice(position, 0, task);
+        const orders = new Map(siblings.map((t, i) => [t.id, i]));
+        return tasks.map(t => {
+            if (!orders.has(t.id)) return t;
+            const next = { ...t, order: orders.get(t.id), list: 'hoje' };
+            delete next.plannedFor;
+            return next;
+        });
     }
 
     // Troca de posição com a vizinha aberta da mesma lista (delta -1 sobe, +1 desce).
@@ -217,13 +264,13 @@
     }
 
     // Edita título/estimativa/intenção. Tarefa do dia e seu modelo andam juntos.
-    function updateTask(tasks, id, patch) {
+    function updateTask(tasks, id, patch, { occurrenceOnly = false } = {}) {
         const target = (tasks || []).find(t => t.id === id);
         if (!target) return (tasks || []).slice();
         const p = patch || {};
         const linked = new Set([id]);
         const templateId = isTemplate(target) ? target.id : target.fromRecurrence;
-        if (templateId) {
+        if (templateId && !occurrenceOnly) {
             tasks.forEach(t => {
                 if (t.id === templateId || (t.fromRecurrence === templateId && !isDone(t))) linked.add(t.id);
             });
@@ -254,6 +301,11 @@
         return (tasks || []).filter(t => t.id !== id);
     }
 
+    // Mantém uma marca invisível até amanhã para a rotina não reaparecer hoje.
+    function skipOccurrence(tasks, id) {
+        return mapTask(tasks, id, t => t.fromRecurrence && !isDone(t) ? { ...t, skipped: true } : t);
+    }
+
     // Encerra a rotina: o modelo sai e as tarefas já criadas viram tarefas comuns.
     function stopRecurrence(tasks, id) {
         const target = (tasks || []).find(t => t.id === id);
@@ -261,7 +313,7 @@
         const templateId = isTemplate(target) ? target.id : target.fromRecurrence;
         if (!templateId) return tasks.slice();
         return tasks
-            .filter(t => t.id !== templateId)
+            .filter(t => t.id !== templateId && !(t.fromRecurrence === templateId && t.skipped))
             .map(t => {
                 if (t.fromRecurrence !== templateId) return t;
                 const next = Object.assign({}, t);
@@ -274,12 +326,12 @@
     // Transforma uma tarefa comum em rotina nos dias escolhidos. A tarefa vira
     // a tarefa de hoje da rotina quando hoje está entre os dias; senão, fica
     // como tarefa comum (já está na lista) e a rotina começa no próximo dia da regra.
-    function makeRecurring(tasks, id, days, now) {
+    function makeRecurring(tasks, id, days, now, newTemplateId) {
         const target = (tasks || []).find(t => t.id === id);
         const clean = normalizeDays(days);
         if (!target || isTemplate(target) || target.fromRecurrence || !clean.length) return (tasks || []).slice();
         const at = now || Date.now();
-        const templateId = 'routine-' + at;
+        const templateId = newTemplateId || 'routine-' + at;
         const template = normalizeTask({
             id: templateId,
             title: target.title,
@@ -293,7 +345,8 @@
         const d = new Date(at);
         const list = tasks.concat([template]);
         if (!isDueOn(template, d)) return list;
-        return mapTask(list, id, t => Object.assign(t, { fromRecurrence: templateId, date: isoDate(d) }));
+        const moved = scheduleTask(list, id, 'hoje', isoDate(d));
+        return mapTask(moved, id, t => Object.assign(t, { fromRecurrence: templateId, date: isoDate(d) }));
     }
 
     // Dias da rotina a que a tarefa pertence (ou [] para tarefa comum).
@@ -316,13 +369,14 @@
         const list = (tasks || []).slice();
         for (const template of tasks || []) {
             if (!isDueOn(template, d)) continue;
-            const exists = list.some(t => t.fromRecurrence === template.id && t.date === iso);
+            const id = instanceId(template.id, iso);
+            const exists = list.some(t => t.id === id || (t.fromRecurrence === template.id && t.date === iso));
             if (exists) continue;
             const instance = {
-                id: instanceId(template.id, iso),
+                id,
                 title: template.title,
                 list: 'hoje',
-                order: template.order,
+                order: nextOrder(list, 'hoje', false),
                 createdAt: new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(),
                 fromRecurrence: template.id,
                 date: iso
@@ -374,12 +428,24 @@
     function rolloverDay(tasks, history, date) {
         const iso = isoDate(date instanceof Date ? date : new Date(date || Date.now()));
         const archivedResult = archiveCompleted(tasks, history, { beforeIso: iso });
-        const remaining = archivedResult.tasks.filter(t => !(t.fromRecurrence && !isDone(t) && t.date < iso));
+        let remaining = archivedResult.tasks.filter(t => !(t.fromRecurrence && !isDone(t) && t.date < iso));
         const dropped = archivedResult.tasks.length - remaining.length;
+        const arriving = remaining.filter(t => t.plannedFor && t.plannedFor <= iso && !isDone(t))
+            .sort((a, b) => a.plannedFor.localeCompare(b.plannedFor) || byOrder(a, b));
+        if (arriving.length) {
+            const firstOrder = nextOrder(remaining, 'hoje', false);
+            const orders = new Map(arriving.map((task, i) => [task.id, i + firstOrder]));
+            remaining = remaining.map(task => {
+                if (!orders.has(task.id)) return task;
+                const next = { ...task, list: 'hoje', order: orders.get(task.id) };
+                delete next.plannedFor;
+                return next;
+            });
+        }
         return {
             tasks: remaining,
             history: archivedResult.history,
-            changed: archivedResult.archived > 0 || dropped > 0
+            changed: archivedResult.archived > 0 || dropped > 0 || arriving.length > 0
         };
     }
 
@@ -396,6 +462,9 @@
         WEEKDAYS,
         HOME_MAX,
         isoDate,
+        dateFromKey,
+        addDays,
+        dayOf,
         normalizeTask,
         normalizeTasks,
         isTemplate,
@@ -410,9 +479,11 @@
         reopenTask,
         moveToToday,
         moveToLater,
+        scheduleTask,
         moveTask,
         updateTask,
         removeTask,
+        skipOccurrence,
         stopRecurrence,
         makeRecurring,
         recurrenceDays,

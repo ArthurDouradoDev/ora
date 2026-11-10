@@ -377,6 +377,30 @@
     const todayDone = TasksCore.completeTask(TasksCore.createTask([], { id: 'z', title: 'Hoje', now: TUE.getTime() }), 'z', TUE.getTime());
     assert('concluída hoje fica na lista até amanhã', TasksCore.rolloverDay(todayDone, [], TUE).tasks.length === 1);
 
+    const planning = TasksCore.normalizeTasks([
+        { id: 'keep', title: 'Prioridade atual', list: 'hoje', order: 1 },
+        { id: 'legacy', title: 'Depois sem data', list: 'depois', order: 0 },
+        { id: 'earlier', title: 'Primeira planejada', list: 'depois', plannedFor: '2026-11-03', order: 1 },
+        { id: 'later', title: 'Segunda planejada', list: 'depois', plannedFor: '2026-11-03', order: 2 },
+        { id: 'future', title: 'Futura', list: 'depois', plannedFor: '2026-11-04', order: 3 },
+        { id: 'invalid', title: 'Data inválida', list: 'depois', plannedFor: '2026-02-30', order: 4 }
+    ]);
+    const planned = TasksCore.rolloverDay(planning, [], TUE);
+    assertEq('tarefas planejadas chegam na ordem ao fim de Hoje', TasksCore.listTasks(planned.tasks, 'hoje').map(t => t.id), ['keep', 'earlier', 'later']);
+    assertEq('Depois legado e data inválida ficam sem dia', TasksCore.listTasks(planned.tasks, 'depois').filter(t => !t.plannedFor).map(t => t.id), ['legacy', 'invalid']);
+    const promoted = TasksCore.scheduleTask(planned.tasks, 'future', 'hoje', '2026-11-03', { top: true });
+    assertEq('promover futura limpa data e assume o próximo passo', [TasksCore.nextStep(promoted).id, TasksCore.nextStep(promoted).plannedFor ?? null], ['future', null]);
+    assert('repetir a virada não altera o plano', !TasksCore.rolloverDay(promoted, [], TUE).changed);
+    const skipped = TasksCore.skipOccurrence(onMon, 'r@2026-11-02');
+    assertEq('pular mantém a ocorrência invisível até o próximo dia', [
+        TasksCore.visibleTasks(TasksCore.materializeRecurring(skipped, MON)).length,
+        TasksCore.visibleTasks(TasksCore.materializeRecurring(TasksCore.rolloverDay(skipped, [], TUE).tasks, TUE)).length
+    ], [0, 1]);
+    const localEstimate = TasksCore.updateTask(tue, 'r@2026-11-03', { estimateMin: 37 }, { occurrenceOnly: true });
+    assertEq('duração de uma ocorrência não muda a duração padrão', [
+        localEstimate.find(t => t.id === 'r@2026-11-03').estimateMin, localEstimate.find(t => t.id === 'r').estimateMin ?? null
+    ], [37, null]);
+
     let edited = TasksCore.updateTask(tue, 'r@2026-11-03', { title: 'Leitura (30 min)' });
     assertEq('editar a tarefa do dia renomeia a rotina', edited.find(t => t.id === 'r').title, 'Leitura (30 min)');
     const single = TasksCore.stopRecurrence(tue, 'r@2026-11-03');

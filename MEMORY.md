@@ -15,6 +15,7 @@ Memória do projeto para sessões futuras. Consolida o que foi discutido e decid
 | `RELATORIO_MELHORIAS_ORA.md` | Relatório consolidado: correções M01–M13, prioridades P1/P2/P3 (29/10) |
 | `ANALISE_ANIMACOES_ORA.md` | Animações e fluidez: camada de fundo, foco à la Momentum, regras de desempenho. Tudo implementado em 07/11 (destinos, foco, conclusão, diálogos/popovers/toasts, chegada, painel de Tarefas, terço, Frutos, popup da música) + auditoria de desempenho (§9) |
 | `ANALISE_SOM_POPUP_UNICO_ORA.md` | Som num único popup à la Momentum (gravação de 07/11): player do YouTube/Spotify dentro do popup, mini só com capa + ⏸/▶ (sem equalizador). Mini e player no popup **implementados** em 07/11; grade de 4 colunas e mixer compacto (§5) ainda são proposta |
+| `ANALISE_TAREFAS_MOMENTUM_ORA.md` | Tarefas à la Momentum (gravações + notas 2.26/2.27, 09/11): captura em linha, menu "…" por tarefa, renomear no lugar, arrastar com teclado, dia planejado em Depois e painel separado por dia (6a); passos na tarefa e concluídas por dia para avaliar. Protótipo `prototypes/09-tarefas.html` compara **linha do tempo** (recomendada: A fazer + abas Concluídas/Rotinas) × **abas** por lista. **Proposta**, nada implementado na extensão |
 | `IDEAS.md` / `IDEAS.pdf` | Ideias, concorrência (seção 6) e estratégia mobile Android + iOS (seção 5) |
 | `prototypes/` | Protótipos HTML de validação de design (não fazem parte da extensão) |
 

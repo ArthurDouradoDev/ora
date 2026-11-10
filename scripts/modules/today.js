@@ -92,8 +92,8 @@ const TodaySystem = {
             start: $('today-start'),
             choose: $('today-choose'),
             empty: $('today-empty'),
-            quickForm: $('today-quick-form'),
-            quickInput: $('today-quick-input'),
+            emptyTask: $('today-task-empty'),
+            quickFocus: $('today-quick-focus'),
             shortcuts: $('shortcuts'),
             invite: $('today-invite'),
             inviteIcon: $('today-invite-icon'),
@@ -180,10 +180,10 @@ const TodaySystem = {
             const next = this.view && this.view.next;
             this.openPrep({ taskId: next ? next.id : null, title: next ? next.title : '', opener: el.start });
         });
-        el.choose.addEventListener('click', () => window.TaskSystem && TaskSystem.show());
-        el.quickForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.openPrep({ taskId: null, title: el.quickInput.value.trim(), opener: el.quickInput });
+        el.choose.addEventListener('click', () => TaskSystem.show({ browse: true }));
+        el.emptyTask.addEventListener('click', () => TaskSystem.show({ browse: TaskSystem.hasLater() }));
+        el.quickFocus.addEventListener('click', () => {
+            this.openPrep({ taskId: null, title: '', opener: el.quickFocus });
         });
 
         // Intenção do dia
@@ -215,7 +215,7 @@ const TodaySystem = {
             if (!window.ReminderSystem) return;
             await ReminderSystem.dismiss(this.invite);
             // O convite sumiu com o foco: segue para a ação principal de Hoje
-            if (el.invite.hidden) (!el.next.hidden ? el.start : el.quickInput).focus({ preventScroll: true });
+            if (el.invite.hidden) (!el.next.hidden ? el.start : el.emptyTask).focus({ preventScroll: true });
         });
 
         // Preparação
@@ -359,7 +359,7 @@ const TodaySystem = {
         });
         window.addEventListener('ora:focus-task', (e) => {
             const task = window.TaskSystem && TaskSystem.taskById(e.detail.taskId);
-            if (task) this.openPrep({ taskId: task.id, title: task.title, opener: document.activeElement });
+            if (task) this.openPrep({ taskId: task.id, title: task.title, opener: e.detail.opener || document.activeElement });
         });
         window.addEventListener('ora:phase-complete', () => this.render());
         window.addEventListener('ora:settings-changed', (e) => {
@@ -604,7 +604,7 @@ const TodaySystem = {
         else if (state === 'pausada') target = el.resume;
         else if (state === 'concluida') target = el.doneTitle;
         else if (state === 'repouso') target = el.start;
-        else if (state === 'repouso-vazio' || ((state === 'noite' || state === 'falha') && !this.view.next)) target = el.quickInput;
+        else if (state === 'repouso-vazio' || ((state === 'noite' || state === 'falha') && !this.view.next)) target = el.emptyTask;
         else if (state === 'noite' || state === 'falha') target = el.start;
         if (!target) return;
         if (target === el.doneTitle) target.setAttribute('tabindex', '-1');
@@ -793,6 +793,7 @@ const TodaySystem = {
     // --- Próximo passo e convite ---
 
     renderNext: function(v) {
+        this.elements.emptyTask.textContent = t(TaskSystem.hasLater() ? 'tasks.choose_task' : 'tasks.add_task');
         if (!v.next) return;
         this.elements.nextTitle.textContent = v.next.title;
         const origin = t('today.next_origin');
@@ -883,7 +884,7 @@ const TodaySystem = {
             requestAnimationFrame(() => {
                 if (opener && document.contains(opener) && opener.offsetParent !== null) opener.focus({ preventScroll: true });
                 else if (!this.elements.next.hidden) this.elements.start.focus({ preventScroll: true });
-                else if (!this.elements.empty.hidden) this.elements.quickInput.focus({ preventScroll: true });
+                else if (!this.elements.empty.hidden) this.elements.emptyTask.focus({ preventScroll: true });
             });
         }
     },
@@ -1203,7 +1204,6 @@ const TodaySystem = {
         try {
             await FocusSystem.startFocus(params);
             this.prepDraft = null;
-            this.elements.quickInput.value = '';
         } catch (e) {
             console.error('[Today] Could not start focus:', e);
             if (this.launch) this.endLaunch();
