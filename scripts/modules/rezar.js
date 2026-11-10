@@ -13,7 +13,7 @@ const RezarSystem = {
             catch (_) { /* same layout without artwork */ }
         }
         const initial = RouterSystem.current();
-        if ((this.artIndex.length || this.artIndex.entries?.length) && initial.view === 'rezar' && !initial.path.length) this.renderHome();
+        if ((this.artIndex.length || this.artIndex.entries?.length) && initial.view === 'rezar' && !initial.path.length) this.refreshHomeGospel();
         if (window.TodaySystem) { TodaySystem.renderGospel(); TodaySystem.renderDay(); }
         chrome.runtime.sendMessage({ type: 'liturgy:refresh' }).catch(() => {});
     },
@@ -36,7 +36,7 @@ const RezarSystem = {
             if (area === 'local' && changes.liturgy_gospel_cache) {
                 this.cache = changes.liturgy_gospel_cache.newValue;
                 const r = RouterSystem.current();
-                if (r.view === 'rezar' && !r.path.length) this.renderHome();
+                if (r.view === 'rezar' && !r.path.length) this.refreshHomeGospel();
             }
         });
         // Refresh across midnight without requiring a new tab.
@@ -81,17 +81,33 @@ const RezarSystem = {
         const art = this.artwork(gospel); if (!art) return '';
         return `<figure class="gospel-art"><img src="${PrayUI.e(art.url)}" alt="${PrayUI.e(l(art.alt || art.caption))}" loading="lazy"><figcaption>${PrayUI.link(art.source, PrayUI.e(l(art.caption)))}</figcaption></figure>`;
     },
+    homeGospel() {
+        const u = PrayUI, g = this.gospel(), locale = window._i18nLocale || 'pt';
+        const source = LiturgyCore.source(locale, LiturgyCore.dateKey());
+        return `<section class="pray-gospel" aria-labelledby="pray-gospel-title"><div class="section-head"><p class="label">${u.text('gospel')}</p><time class="meta">${u.e(new Intl.DateTimeFormat(locale, { day:'numeric', month:'long' }).format(new Date()))}</time></div><div class="gospel-story">${this.figure(g)}<div><h2 id="pray-gospel-title">${u.e(g?.ref || t('pray.no_reference'))}</h2><p class="meta">${u.e(g?.liturgia || '')}</p>${!g ? `<p class="meta">${u.text('unavailable')}</p>` : ''}<div class="row"><button class="btn btn-primary" data-pray-route="rezar/evangelho">${u.text('read')}</button><button class="btn btn-quiet" data-pray-route="rezar/lectio">${u.text('lectio')}</button></div>${u.link(source.external, u.text('liturgy'))}</div></div></section>`;
+    },
+    refreshHomeGospel() {
+        // Keep the search node itself: typed text, selection, focus and IME
+        // composition must survive background liturgy/artwork updates.
+        const section = this.root.querySelector('.pray-gospel');
+        if (!section) return;
+        const template = document.createElement('template');
+        template.innerHTML = this.homeGospel();
+        const next = template.content.firstElementChild;
+        next.querySelectorAll('[data-pray-route]').forEach(btn => btn.addEventListener('click', () => RouterSystem.navigate(btn.dataset.prayRoute)));
+        next.querySelectorAll('img').forEach(img => img.addEventListener('error', () => img.closest('figure').remove(), { once: true }));
+        section.replaceWith(next);
+    },
     renderHome() {
-        const u = PrayUI, g = this.gospel(), date = new Date(), locale = window._i18nLocale || 'pt';
+        const u = PrayUI, date = new Date();
         const favorites = PrayerSystem.prayers.filter(p => PrayerSystem.favorites.includes(p.id));
         const personal = favorites.length ? favorites : PrayerSystem.prayers.filter(p => p.essential);
         const saintList = SaintsCore.forDate(this.saints, date);
-        const source = LiturgyCore.source(locale, LiturgyCore.dateKey());
         const practice = (route, icon, title, hint) => `<button class="practice-link" data-pray-route="rezar/${route}"><i class="ph ${icon}" aria-hidden="true"></i><span><b>${u.text(title)}</b><small>${hint}</small></span><i class="ph ph-arrow-right" aria-hidden="true"></i></button>`;
         u.mount(`<div class="pray-wrap pray-home"><header class="pray-home-heading"><div><p class="label">${u.text('kicker')}</p><h1 tabindex="-1" data-route-focus>${u.text('title')}</h1><p class="meta">${u.text('intro')}</p></div><form id="pray-home-search" role="search"><label class="sr-only" for="pray-search">${u.text('search')}</label><input class="input" id="pray-search" type="search" placeholder="${u.text('search')}"><button class="btn btn-quiet" aria-label="${u.text('search')}"><i class="ph ph-magnifying-glass" aria-hidden="true"></i></button></form></header>
             <section id="rezar-season" class="pray-season" aria-labelledby="rezar-season-title" hidden></section>
             <section class="pray-personal" aria-labelledby="pray-personal-title"><div class="section-head"><h2 id="pray-personal-title">${u.text(favorites.length ? 'yours' : 'essentials')}</h2><button class="text-link" data-pray-route="rezar/biblioteca">${u.text('choose')}</button></div><div class="personal-prayers">${personal.map(p => `<button class="personal-prayer" data-prayer="${u.e(p.id)}"><i class="ph ${u.e(p.icon)}" aria-hidden="true"></i>${u.e(u.title(p))}<i class="ph ph-arrow-right" aria-hidden="true"></i></button>`).join('')}</div></section>
-            <section class="pray-gospel" aria-labelledby="pray-gospel-title"><div class="section-head"><p class="label">${u.text('gospel')}</p><time class="meta">${u.e(new Intl.DateTimeFormat(locale, { day:'numeric', month:'long' }).format(date))}</time></div><div class="gospel-story">${this.figure(g)}<div><h2 id="pray-gospel-title">${u.e(g?.ref || t('pray.no_reference'))}</h2><p class="meta">${u.e(g?.liturgia || '')}</p>${!g ? `<p class="meta">${u.text('unavailable')}</p>` : ''}<div class="row"><button class="btn btn-primary" data-pray-route="rezar/evangelho">${u.text('read')}</button><button class="btn btn-quiet" data-pray-route="rezar/lectio">${u.text('lectio')}</button></div>${u.link(source.external, u.text('liturgy'))}</div></div></section>
+            ${this.homeGospel()}
             <section class="pray-practices" aria-labelledby="pray-practices-title"><h2 id="pray-practices-title">${u.text('practices')}</h2><div class="practice-grid">${practice('terco','ph-circles-four','rosary',u.text(SettingsSystem.get('ora_rosary_weekday') ? RosaryCore.mysteryForDay(date) : 'mysteries'))}${practice('respiro','ph-wind','breath',u.text('breath_hint'))}${practice('exame','ph-heart','exam',u.text('exam_hint'))}${practice('biblia','ph-book-bookmark','bible',u.text('book') + ' · ' + u.text('chapter'))}</div></section>
             ${SettingsSystem.get('ora_show_saint') ? `<section class="pray-saints" aria-labelledby="pray-saints-title"><p class="label" id="pray-saints-title">${u.text('saints')}</p>${saintList.map(s => `<article>${s.image && /^https:\/\//.test(s.image) ? `<img class="pray-saint-portrait" src="${u.e(s.image)}" alt="${u.e(l(s.name))}" loading="lazy">` : ''}<h3>${u.e(l(s.name))}</h3><p class="meta">${u.e(l(s.identity))}</p>${s.quote ? `<blockquote>${u.e(l(s.quote.text))}</blockquote>${u.link(s.quote.source,u.text('source'))}` : ''}</article>`).join('')}${u.link(t('pray.saints_url'),u.text('saints_more'))}</section>` : ''}
             <footer class="pray-footer"><button class="text-link" data-pray-route="rezar/biblioteca">${u.text('explore')} →</button></footer></div>`);

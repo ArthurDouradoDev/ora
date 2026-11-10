@@ -532,12 +532,20 @@ const FrutosSystem = {
                 return;
             }
             this.reflections = next;
-            delete this.unsaved[key];
-            this.questionShift = 0;
-            this.renderQuestion();
+            // Only acknowledge the version actually written. The user may
+            // have kept typing (or changed periods) while storage was pending.
+            const unchanged = !(key in this.unsaved) || this.unsaved[key] === text;
+            if (unchanged) delete this.unsaved[key];
+            const samePeriod = FrutosCore.reflectionKey(this.period) === key;
+            if (samePeriod && unchanged) {
+                this.questionShift = 0;
+                this.renderQuestion();
+            }
             this.renderPast();
-            el.savedText.textContent = t(text.trim() ? 'frutos.saved' : 'frutos.removed');
-            el.saved.classList.add('show');
+            if (samePeriod && unchanged) {
+                el.savedText.textContent = t(text.trim() ? 'frutos.saved' : 'frutos.removed');
+                el.saved.classList.add('show');
+            }
             clearTimeout(this.savedTimer);
             this.savedTimer = setTimeout(() => el.saved.classList.remove('show'), 2500);
             window.LeaveGuard?.refresh();

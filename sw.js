@@ -1170,14 +1170,28 @@ async function stPruneAndGet() {
     return store;
 }
 
+// Every read/modify/write of ora_screentime shares this queue: new tabs must
+// not overwrite one another, nor overwrite a simultaneous domain-time update.
+let stWriteQueue = Promise.resolve();
+function stUpdateStore(update) {
+    const operation = stWriteQueue.catch(() => {}).then(async () => {
+        const store = await stPruneAndGet();
+        const today = stDateStr();
+        if (!store[today]) store[today] = { domains: {}, newTabs: 0 };
+        update(store[today]);
+        await chrome.storage.local.set({ [SCREENTIME_KEY]: store });
+        return store;
+    });
+    stWriteQueue = operation;
+    return operation;
+}
+
 async function stAddSeconds(domain, seconds) {
     if (!domain || seconds <= 0) return;
-    const store = await stPruneAndGet();
-    const today = stDateStr();
-    if (!store[today]) store[today] = { domains: {}, newTabs: 0 };
-    if (!store[today].domains) store[today].domains = {};
-    store[today].domains[domain] = (store[today].domains[domain] || 0) + seconds;
-    await chrome.storage.local.set({ [SCREENTIME_KEY]: store });
+    const store = await stUpdateStore(day => {
+        if (!day.domains) day.domains = {};
+        day.domains[domain] = (day.domains[domain] || 0) + seconds;
+    });
 
     // If an active profile has a daily limit covering this domain and just reached it, sync DNR rules
     try {
@@ -1327,11 +1341,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const handler = async () => {
         switch (message.type) {
             case 'screentime:newtab': {
-                const store = await stPruneAndGet();
-                const today = stDateStr();
-                if (!store[today]) store[today] = { domains: {}, newTabs: 0 };
-                store[today].newTabs = (store[today].newTabs || 0) + 1;
-                await chrome.storage.local.set({ [SCREENTIME_KEY]: store });
+                await stUpdateStore(day => { day.newTabs = (day.newTabs || 0) + 1; });
                 return { ok: true };
             }
 

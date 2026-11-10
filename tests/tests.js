@@ -246,6 +246,21 @@
     const mToday = mergedTasks.find(t => t.id === 'r@2026-06-10');
     assert('mergeTasks: conclusão local de hoje preservada', !!mToday.completedAt);
 
+    const skippedRoutineTasks = localTasks.concat([
+        { id: '3@2026-06-11', title: 'Ocorrência pulada órfã', list: 'hoje', fromRecurrence: '3', date: '2026-06-11', skipped: true },
+        { id: 'r@2026-06-11', title: 'Ocorrência pulada ativa', list: 'hoje', fromRecurrence: 'r', date: '2026-06-11', skipped: true },
+        { id: '3@2026-06-09', title: 'Ocorrência concluída órfã', list: 'hoje', fromRecurrence: '3', date: '2026-06-09', completedAt: 8 }
+    ]);
+    const normalizedMerge = TasksCore.normalizeTasks(SyncSystem.mergeTasks(remoteTasks, skippedRoutineTasks));
+    assert('B08: marca pulada órfã não ressuscita após merge e normalização',
+        !normalizedMerge.some(t => t.id === '3@2026-06-11'));
+    assert('B08: rotina mantida preserva sua ocorrência pulada',
+        normalizedMerge.some(t => t.id === 'r@2026-06-11' && t.skipped && t.fromRecurrence === 'r'));
+    assert('B08: conclusão de rotina removida permanece no histórico local',
+        normalizedMerge.some(t => t.id === '3@2026-06-09' && t.completedAt === 8 && !t.fromRecurrence));
+    assertEq('B08: reaplicar merge não altera o resultado',
+        TasksCore.normalizeTasks(SyncSystem.mergeTasks(remoteTasks, normalizedMerge)), normalizedMerge);
+
     const legacyRoutine = SyncSystem.convertLegacyRoutine([
         { id: '1', text: 'Rotina 1.2.0', recurring: true, totalCycles: 1, streak: 4 },
         { id: '2', text: 'Única', recurring: false }

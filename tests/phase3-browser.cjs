@@ -241,6 +241,9 @@ function check(name,condition) { assert.ok(condition,name); checks++; console.lo
         }
         await reopened.setViewportSize({width:400,height:300});
         await reopened.evaluate(() => RouterSystem.navigate('rezar/biblioteca'));
+        // Chromium can expose the old 800px layout immediately after a viewport
+        // resize. Measure after the resize/layout frames, as with screenshots above.
+        await reopened.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         check('page zoom equivalent 200% preserves width',await reopened.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 
         check('no uncaught browser errors',errors.length === 0);

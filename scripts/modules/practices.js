@@ -3,7 +3,7 @@
 // ============================================================
 // Terço concluído, oração aberta no leitor, Lectio, Respiro, exame e rituais
 // gravam um evento { type, at } em ora_practice_log (FrutosCore.appendPractice).
-// As gravações passam por uma fila: duas práticas seguidas nunca se sobrescrevem.
+// A fila ordena chamadas nesta página; o Web Lock coordena a gravação entre abas.
 // Dependências: AsyncStorage, FrutosCore.
 
 const PracticeLog = {
@@ -20,7 +20,7 @@ const PracticeLog = {
     // Devolve true quando a gravação foi confirmada
     record: function(type, extra) {
         const event = Object.assign({ type, at: Date.now() }, extra || {});
-        this.queue = this.queue.catch(() => false).then(async () => {
+        const write = async () => {
             const current = await AsyncStorage.get(this.KEY, []);
             const next = FrutosCore.appendPractice(Array.isArray(current) ? current : [], event);
             const last = next[next.length - 1];
@@ -28,7 +28,10 @@ const PracticeLog = {
             const ok = await AsyncStorage.set(this.KEY, next);
             if (!ok) console.warn('[Ora] Practice not recorded:', type);
             return ok;
-        });
+        };
+        this.queue = this.queue.catch(() => false).then(() =>
+            navigator.locks ? navigator.locks.request('ora-practices-write', write) : write()
+        );
         return this.queue;
     }
 };

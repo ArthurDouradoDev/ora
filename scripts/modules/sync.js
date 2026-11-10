@@ -136,10 +136,11 @@ const SyncSystem = {
             });
         }
 
-        // Today's open task of a deleted routine becomes an ordinary task
-        const orphaned = result.filter(t => t.fromRecurrence && !remoteIds.has(t.fromRecurrence));
-        return result.map(t => {
-            if (!orphaned.includes(t)) return t;
+        // A skipped occurrence is only a tombstone for a live routine. As in
+        // stopRecurrence(), drop it when the template is removed; keep actual tasks.
+        const isOrphan = t => t.fromRecurrence && !remoteIds.has(t.fromRecurrence);
+        return result.filter(t => !(isOrphan(t) && t.skipped)).map(t => {
+            if (!isOrphan(t)) return t;
             const copy = Object.assign({}, t);
             delete copy.fromRecurrence;
             delete copy.date;
