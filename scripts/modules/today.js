@@ -507,14 +507,6 @@ const TodaySystem = {
         };
         const rest = ['repouso', 'repouso-vazio', 'noite', 'falha'];
 
-        if (state === 'preparacao') {
-            M.play(el.prep, [
-                { opacity: 0, transform: 'translateY(12px) scale(0.98)' },
-                { opacity: 1, transform: 'none' }
-            ], { duration: 280, channel: 'state' });
-            return;
-        }
-
         if (rest.includes(state)) {
             rise(el.arrival, 0);
             rise(el.intent, 50);

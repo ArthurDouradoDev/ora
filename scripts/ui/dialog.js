@@ -65,8 +65,7 @@ const DialogSystem = {
         const root = this.resolve(target);
         if (!root || this.state.stack.some(entry => entry.root === root)) return;
 
-        const covered = this.state.stack.some(entry => entry.inerted.includes(root));
-        if (covered) root.inert = false;
+        root.inert = false;
 
         // Tudo que é irmão do diálogo (ou de seus ancestrais) fica inerte
         const inerted = [];
@@ -86,7 +85,6 @@ const DialogSystem = {
             root,
             opener: opener || document.activeElement,
             inerted,
-            covered,
             onClose
         });
 
@@ -104,9 +102,14 @@ const DialogSystem = {
 
         while (this.state.stack.length > index + 1) this.close(this.top().root);
         const [entry] = this.state.stack.splice(index, 1);
+        if (root.classList.contains('context-dialog') && root.offsetParent) {
+            root.style.setProperty('--exit-left', root.offsetLeft + 'px');
+            root.style.setProperty('--exit-top', root.offsetTop + 'px');
+            root.style.setProperty('--exit-width', root.offsetWidth + 'px');
+        }
         entry.root.hidden = true;
         entry.inerted.forEach(el => { el.inert = false; });
-        if (entry.covered) entry.root.inert = true;
+        entry.root.inert = true;
 
         if (entry.opener && document.contains(entry.opener) && typeof entry.opener.focus === 'function') {
             entry.opener.focus({ preventScroll: true });

@@ -141,7 +141,8 @@ function check(name,condition) { assert.ok(condition,name); checks++; console.lo
         await reopened.keyboard.press('Shift+Tab');
         check('confirmation traps Shift+Tab',await reopened.evaluate(() => document.getElementById('pray-confirm').contains(document.activeElement)));
         await reopened.keyboard.press('Escape');
-        check('Esc closes confirmation and returns focus',await reopened.locator('#pray-confirm').isHidden() && await reopened.evaluate(() => document.activeElement.id === 'rosary-start'));
+        await reopened.locator('#pray-confirm').waitFor({state:'hidden'});
+        check('Esc closes confirmation and returns focus',await reopened.evaluate(() => document.activeElement.id === 'rosary-start'));
         const savedBead = await reopened.evaluate(() => RosarySystem.state.bead);
         await reopened.evaluate(() => { window.realSave = AsyncStorage.set; AsyncStorage.set = async () => false; RouterSystem.navigate('rezar/terco/oracao'); });
         await reopened.locator('#rosary-next').click();

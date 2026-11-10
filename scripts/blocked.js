@@ -216,32 +216,94 @@
         }
     }
 
-    async function fetchFavicon(origin) {
+    function publicHttps(url, base) {
         try {
-            const response = await fetch(origin + '/favicon.ico', {
-                credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error',
-                signal: AbortSignal.timeout(2500)
+            const parsed = new URL(url, base);
+            const host = parsed.hostname.replace(/\.$/, '');
+            if (parsed.protocol === 'https:' && !parsed.username && !parsed.password && !parsed.port &&
+                host.includes('.') && !/^[\d.]+$/.test(host) && !host.includes(':') &&
+                !/\.(localhost|local|internal)$/i.test(host)) return parsed;
+        } catch {
+            // Links inválidos ou que não podem ser resolvidos a partir da página.
+        }
+        return null;
+    }
+
+    async function fetchIconResource(url, deadline, maxBytes, acceptType) {
+        try {
+            const response = await fetch(url, {
+                credentials: 'omit', referrerPolicy: 'no-referrer',
+                signal: AbortSignal.any([deadline, AbortSignal.timeout(2200)])
             });
-            const type = response.headers.get('content-type')?.split(';')[0];
-            if (!response.ok || !response.body || !type?.startsWith('image/')) return null;
+            const type = response.headers.get('content-type')?.split(';')[0].trim().toLowerCase() || '';
+            if (!response.ok || !response.body || !publicHttps(response.url) || !acceptType(type) ||
+                Number(response.headers.get('content-length')) > maxBytes) {
+                await response.body?.cancel();
+                return null;
+            }
 
             const chunks = [];
             let size = 0;
             for await (const chunk of response.body) {
                 size += chunk.byteLength;
-                if (size > 256 * 1024) return null;
+                if (size > maxBytes) return null;
                 chunks.push(chunk);
             }
+            return { chunks, type, url: response.url };
+        } catch {
+            return null;
+        }
+    }
+
+    async function fetchFavicon(url, deadline) {
+        const resource = await fetchIconResource(url, deadline, 256 * 1024, type =>
+            type.startsWith('image/') || ['', 'application/octet-stream', 'binary/octet-stream', 'application/ico'].includes(type));
+        if (!resource) return null;
+        const { chunks, type } = resource;
+        try {
             const dataUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result);
                 reader.onerror = () => reject(reader.error);
-                reader.readAsDataURL(new Blob(chunks, { type }));
+                // O navegador ainda precisa decodificar a imagem antes de ela aparecer.
+                reader.readAsDataURL(new Blob(chunks, { type: type.startsWith('image/') ? type : 'image/x-icon' }));
             });
             return loadFavicon(dataUrl);
         } catch {
             return null;
         }
+    }
+
+    async function findOnlineFavicon(origins) {
+        const deadline = AbortSignal.timeout(6500);
+        const pages = origins.filter(origin => publicHttps(origin));
+        const tried = new Set();
+        for (const origin of pages) {
+            const url = new URL('/favicon.ico', origin).href;
+            tried.add(url);
+            const icon = await fetchFavicon(url, deadline);
+            if (icon) return icon;
+        }
+        const parsedPages = new Set();
+        for (const origin of pages) {
+            // Consulta apenas a página inicial, sem enviar o caminho da navegação bloqueada.
+            const page = await fetchIconResource(origin, deadline, 1024 * 1024, type =>
+                type === 'text/html' || type === 'application/xhtml+xml');
+            if (!page || parsedPages.has(page.url)) continue;
+            parsedPages.add(page.url);
+
+            // O conteúdo do template fica inerte. Apenas os links dos ícones são usados.
+            const template = document.createElement('template');
+            template.innerHTML = await new Blob(page.chunks).text();
+            const links = template.content.querySelectorAll('link[rel~="icon" i][href], link[rel~="apple-touch-icon" i][href]');
+            const candidates = new Set(Array.from(links, link => publicHttps(link.getAttribute('href'), page.url)?.href));
+            for (const url of [...candidates].filter(url => url && !tried.has(url)).slice(0, 4)) {
+                tried.add(url);
+                const icon = await fetchFavicon(url, deadline);
+                if (icon) return icon;
+            }
+        }
+        return null;
     }
 
     function faviconPixels(image) {
@@ -252,9 +314,8 @@
     }
 
     async function showFavicon(hostname, isBlocked) {
-        const origins = [`https://${hostname}`];
-        if (!/^[\d.]+$/.test(hostname)) origins.push(`https://www.${hostname}`);
         const target = new URL(await resolveTargetUrl(hostname));
+        const origins = [...new Set([`https://${target.hostname}`, `https://${hostname}`, `https://www.${hostname}`])];
         const pages = new Set([target.href, ...origins.map(origin => origin + '/')]);
 
         // Chromium returns a generic image on a miss and can cache Ora's own
@@ -276,12 +337,7 @@
             // Some browser privacy settings restrict canvas reads.
         }
 
-        if (!icon && isBlocked && navigator.onLine) {
-            for (const origin of origins) {
-                icon = await fetchFavicon(origin);
-                if (icon) break;
-            }
-        }
+        if (!icon && isBlocked && navigator.onLine) icon = await findOnlineFavicon(origins);
         if (!icon) return;
         $('blkFav').replaceChildren(icon);
         $('blkFav').classList.add('has-icon');

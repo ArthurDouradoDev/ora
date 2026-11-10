@@ -40,13 +40,22 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         });
         check('idle tab has no confirmation', !await protectedNow());
         await page.evaluate(() => TaskSystem.show());
-        await page.locator('#tasks-add-input').fill('Tarefa de teste');
+        const capture = page.locator('#tasks-add-input');
+        const shortHeight = (await capture.boundingBox()).height;
+        const taskTitle = 'Preparar o relatório de acompanhamento e revisar os próximos passos da atividade'.slice(0, 80);
+        await capture.fill(taskTitle);
+        check('long task capture grows without horizontal scrolling', (await capture.boundingBox()).height > shortHeight &&
+            await capture.evaluate(input => input.scrollWidth === input.clientWidth));
+        check('task destination has no visible border while typing', await page.locator('#tasks-destination').evaluate(button =>
+            getComputedStyle(button).borderTopColor === 'rgba(0, 0, 0, 0)'));
         check('unsaved task capture is protected', await protectedNow());
-        await page.locator('#tasks-add-input').fill('');
+        await capture.fill('');
         check('reverting the capture removes confirmation', !await protectedNow());
-        await page.locator('#tasks-add-input').fill('Tarefa de teste');
-        await page.locator('#tasks-add-form button[type=submit]').click();
+        await capture.fill(taskTitle);
+        await capture.press('Enter');
         await page.waitForFunction(() => TaskSystem.tasks.length && !LeaveGuard.pendingWrites && !document.getElementById('tasks-add-input').value);
+        check('Enter saves the full title and restores one line', await page.evaluate(title => TaskSystem.tasks[0].title === title, taskTitle) &&
+            (await capture.boundingBox()).height === shortHeight);
         check('successfully added task is clean', !await protectedNow());
         await page.locator('.task-title').first().click();
         check('opening an unchanged editor is clean', !await protectedNow());
@@ -167,6 +176,11 @@ function check(name, value) { assert.ok(value, name); checks++; console.log('PAS
         }));
         await page.screenshot({path:path.join(profile,'tasks-360.png')});
         await page.locator('.task-edit input[name=title]').press('Escape');
+        await capture.fill(taskTitle);
+        check('long capture fits a narrow panel', await capture.evaluate(input =>
+            input.scrollWidth === input.clientWidth && input.scrollHeight === input.clientHeight));
+        await capture.press('Escape');
+        check('Escape clears the narrow capture', await capture.inputValue() === '');
         await page.evaluate(() => { TaskSystem.hide(); RouterSystem.navigate('rezar/leitor/pai-nosso'); });
         await page.locator('#reader-language').waitFor();
         check('language selector belongs to reading toolbar', await page.locator('.reading-options #reader-language').count() === 1);

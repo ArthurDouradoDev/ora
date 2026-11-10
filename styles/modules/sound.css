@@ -30,6 +30,10 @@
     clip-path: inset(50%);
 }
 .sound-dialog > .sound-view.is-parked { overflow: hidden; margin: 0; }
+.sound-dialog > .sound-view.is-leaving {
+    /* A vista anterior sai por cima sem alterar a altura da nova. */
+    position: absolute; z-index: 1; margin: 0; pointer-events: none;
+}
 .sound-dialog > .sound-view {
     flex: 0 1 auto; min-height: 0;
     overflow-y: auto; overscroll-behavior: contain;

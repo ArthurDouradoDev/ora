@@ -351,23 +351,32 @@ select.input { color-scheme: dark; }
    display vence o !important e segura o elemento visível até o fim do fade.
    Só opacity/transform. Painéis são sólidos (sem vidro), então o fade não
    tira desfoque de nada. */
-.scrim, .popover {
-    transition: opacity 180ms var(--ease), display 180ms allow-discrete;
+:is(.scrim, .protecao-preview-scrim, .ritual) {
+    transition: opacity 200ms var(--ease), display 200ms;
+    transition-behavior: allow-discrete;
 }
-.scrim > [role="dialog"], .scrim > [role="alertdialog"] {
-    transition: transform 220ms var(--ease), opacity 220ms var(--ease);
+:is(.scrim, .protecao-preview-scrim, .ritual) > :is([role="dialog"], [role="alertdialog"]) {
+    transition: transform 200ms var(--ease), opacity 200ms var(--ease);
 }
-.popover {
-    transition: opacity 180ms var(--ease), transform 180ms var(--ease), display 180ms allow-discrete;
-    transform-origin: top right;
+:is(.popover, .prayer-pop, .context-dialog) {
+    transition: opacity 200ms var(--ease), transform 200ms var(--ease), display 200ms;
+    transition-behavior: allow-discrete;
 }
-.scrim[hidden], .popover[hidden] { opacity: 0; pointer-events: none; }
-.popover[hidden] { transform: translateY(-4px) scale(0.98); }
-.scrim[hidden] > [role="dialog"], .scrim[hidden] > [role="alertdialog"] { transform: translateY(8px) scale(0.98); opacity: 0; }
+:is(.popover, .prayer-pop) { transform-origin: top right; }
+:is(.scrim, .protecao-preview-scrim, .ritual, .popover, .prayer-pop, .context-dialog)[hidden] {
+    opacity: 0; pointer-events: none;
+}
+:is(.popover, .prayer-pop)[hidden] { transform: translateY(-4px) scale(0.98); }
+.context-dialog[hidden], :is(.scrim, .protecao-preview-scrim, .ritual)[hidden] > :is([role="dialog"], [role="alertdialog"]) {
+    transform: translateY(8px) scale(0.98); opacity: 0;
+}
 @starting-style {
-    .scrim:not([hidden]), .popover:not([hidden]) { opacity: 0; }
-    .popover:not([hidden]) { transform: translateY(-4px) scale(0.98); }
-    .scrim:not([hidden]) > [role="dialog"], .scrim:not([hidden]) > [role="alertdialog"] { transform: translateY(8px) scale(0.98); opacity: 0; }
+    :is(.scrim, .protecao-preview-scrim, .ritual, .popover, .prayer-pop, .context-dialog):not([hidden]) { opacity: 0; }
+    :is(.popover, .prayer-pop):not([hidden]) { transform: translateY(-4px) scale(0.98); }
+    .context-dialog:not([hidden]),
+    :is(.scrim, .protecao-preview-scrim, .ritual):not([hidden]) > :is([role="dialog"], [role="alertdialog"]) {
+        transform: translateY(8px) scale(0.98); opacity: 0;
+    }
 }
 .dialog {
     width: min(25rem, 100%);

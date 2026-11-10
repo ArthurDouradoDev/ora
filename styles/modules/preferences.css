@@ -23,6 +23,10 @@ html[data-view="configuracoes"] .topbar { background: var(--bg); box-shadow: ins
 .preference-copy p:empty { display: none; }
 .preference-row .input { width: auto; max-width: 100%; color-scheme: dark; }
 .preference-row input[type="number"] { width: 5.25rem; }
+@media (hover: hover) {
+    #setting-longPause::-webkit-inner-spin-button { opacity: 0; }
+    .preference-row:not(:has(#setting-longPause-label:hover)) #setting-longPause:hover::-webkit-inner-spin-button { opacity: 1; }
+}
 .preference-row input[type="text"] { width: min(13rem, 100%); }
 .preference-toggle { min-height: 2.75rem; justify-content: end; }
 .preference-toggle .track { flex: none; }

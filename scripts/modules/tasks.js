@@ -35,6 +35,20 @@ const TaskSystem = {
         el.options.addEventListener('click', () => TaskMenu.toggle(el.options, 'panel'));
         el.destination.addEventListener('click', () => TaskMenu.toggle(el.destination, 'capture'));
         el.form.addEventListener('submit', event => { event.preventDefault(); this.captureTask(); });
+        el.input.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+            event.preventDefault();
+            el.form.requestSubmit();
+        });
+        el.input.addEventListener('input', () => {
+            const { value, selectionStart, selectionEnd } = el.input;
+            if (value.includes('\n')) {
+                el.input.value = value.replaceAll('\n', ' ');
+                el.input.setSelectionRange(selectionStart, selectionEnd);
+            }
+            this.fitCapture();
+        });
+        if (!CSS.supports('field-sizing: content')) window.addEventListener('resize', () => this.fitCapture());
         el.retry.addEventListener('click', () => this.pendingSave?.retry());
         el.dismiss.addEventListener('click', () => this.showSaveError(null));
         el.panel.addEventListener('keydown', event => this.onKey(event));
@@ -112,6 +126,7 @@ const TaskSystem = {
             this.elements.panel.inert = false;
             this.elements.chip.setAttribute('aria-expanded', 'true');
             this.render();
+            this.fitCapture();
             this.elements.scroll.scrollTop = this.mainScroll || 0;
             window.dispatchEvent(new CustomEvent('ora:tasks-panel', { detail: { open: true } }));
         }
@@ -143,32 +158,37 @@ const TaskSystem = {
 
     animatePanel(open, apply) {
         const center = document.getElementById('today-main');
-        if (Motion.reduced() || matchMedia('(max-width: 68rem)').matches || document.documentElement.dataset.view !== 'hoje') {
+        const panel = this.elements.panel;
+        if (Motion.reduced() || document.hidden || matchMedia('(max-width: 68rem)').matches ||
+            document.documentElement.dataset.view !== 'hoje') {
+            center._oraMotion?.tasks?.cancel();
+            panel._oraMotion?.tasks?.cancel();
+            panel.classList.remove('is-leaving');
             apply();
             return;
         }
-        const flip = () => {
-            const before = center.getBoundingClientRect();
-            center._oraMotion?.tasks?.cancel();
-            apply();
-            const after = center.getBoundingClientRect();
-            const dx = (before.left + before.width / 2) - (after.left + after.width / 2);
-            const dy = before.top - after.top;
-            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-                Motion.play(center, [
-                    { transform: `translate(${dx}px, ${dy}px)` },
-                    { transform: 'none' }
-                ], { duration: 300, easing: 'ease-in-out', fill: 'backwards', channel: 'tasks' });
-            }
-        };
-        const panel = this.elements.panel;
-        if (open) {
-            flip();
-            Motion.play(panel, [{ opacity: 0, transform: 'translateX(32px)' }, { opacity: 1, transform: 'none' }], { duration: 300, channel: 'tasks' });
-        } else {
-            const out = Motion.play(panel, [{ opacity: 1 }, { opacity: 0, transform: 'translateX(32px)' }], { duration: 180, fill: 'forwards', channel: 'tasks' });
-            if (!out) { flip(); return; }
-            out.finished.then(() => { if (!this.open) flip(); out.cancel(); }, () => {});
+
+        const before = center.getBoundingClientRect();
+        const current = getComputedStyle(panel);
+        const offscreen = { opacity: 0, transform: 'translateX(32px)' };
+        const start = panel.offsetWidth ? { opacity: current.opacity, transform: current.transform } : offscreen;
+        const timing = { duration: 280, easing: 'ease-in-out', channel: 'tasks' };
+        center._oraMotion?.tasks?.cancel();
+        // A coluna abre ou fecha uma vez. Na saída, o painel continua por cima
+        // de Hoje enquanto ambos se movem no mesmo intervalo.
+        panel.classList.toggle('is-leaving', !open);
+        apply();
+        const after = center.getBoundingClientRect();
+        const dx = (before.left + before.width / 2) - (after.left + after.width / 2);
+        const dy = before.top - after.top;
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+            Motion.play(center, [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], timing);
+        }
+        const animation = Motion.play(panel, [start, open ? { opacity: 1, transform: 'none' } : offscreen], timing);
+        if (!open) {
+            const finish = () => panel.classList.remove('is-leaving');
+            if (animation) animation.finished.then(finish, finish);
+            else finish();
         }
     },
 
@@ -177,6 +197,7 @@ const TaskSystem = {
         if (this.view === 'main') this.mainScroll = el.scroll.scrollTop;
         this.view = view;
         this.render();
+        if (view === 'main') this.fitCapture();
         el.scroll.scrollTop = view === 'main' ? this.mainScroll || 0 : 0;
         (view === 'main' ? el.options : el.title).focus({ preventScroll: true });
     },
@@ -269,11 +290,18 @@ const TaskSystem = {
         window.dispatchEvent(new CustomEvent('ora:tasks-error', { detail: pending }));
     },
 
+    fitCapture() {
+        if (CSS.supports('field-sizing: content')) return;
+        const input = this.elements.input;
+        input.style.height = 'auto';
+        if (input.clientWidth) input.style.height = input.scrollHeight + 'px';
+    },
+
     async captureTask(request) {
         if (this.capturing) return;
         const input = this.elements.input;
         const raw = request?.raw ?? input.value;
-        const title = raw.trim();
+        const title = raw.replaceAll('\n', ' ').trim();
         if (!title) { input.focus(); return; }
         const destination = request?.destination ?? this.destination;
         const id = request?.id ?? 'task-' + crypto.randomUUID();
@@ -285,7 +313,10 @@ const TaskSystem = {
         }, title, () => this.captureTask({ raw, destination, id }));
         this.capturing = false;
         if (!ok) return;
-        if (input.value === raw) input.value = '';
+        if (input.value === raw) {
+            input.value = '';
+            this.fitCapture();
+        }
         if (this.open && this.view === 'main' && (request || document.activeElement === document.body ||
             document.activeElement === this.elements.form.querySelector('[type="submit"]') ||
             document.activeElement === input)) input.focus({ preventScroll: true });
@@ -623,8 +654,11 @@ const TaskSystem = {
         if (event.key === 'Escape') {
             event.preventDefault();
             if (target === input) {
-                if (input.value) { input.value = ''; LeaveGuard.acceptField(input); }
-                else input.blur();
+                if (input.value) {
+                    input.value = '';
+                    this.fitCapture();
+                    LeaveGuard.acceptField(input);
+                } else input.blur();
             } else if (this.rename?.input === target) this.finishRename(false, true);
             else if (this.view !== 'main') this.openView('main');
             else this.hide();

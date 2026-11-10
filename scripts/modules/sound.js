@@ -150,7 +150,11 @@ const SoundSystem = {
             if (this.editor) this.renderEditor();
         });
         window.addEventListener('message', event => this.onPlayerMessage(event));
-        window.addEventListener('resize', () => { if (this.editor) this.position(); });
+        window.addEventListener('resize', () => {
+            if (!this.editor) return;
+            this.panel._oraMotion?.size?.cancel();
+            this.position();
+        });
         window.addEventListener('offline', () => { this.render(); if (this.editor) this.renderEditor(); });
         window.addEventListener('online', () => { this.render(); if (this.editor) this.renderEditor(); });
     },
@@ -313,7 +317,10 @@ const SoundSystem = {
         // Adormecido, o popup já está no DOM: só volta a responder.
         this.root.classList.remove('is-dormant');
         this.root.inert = false;
-        DialogSystem.open(this.root, { opener, onClose: () => { this.editor = null; this.renderStage(); this.park(); } });
+        DialogSystem.open(this.root, { opener, onClose: () => {
+            this.editor = null;
+            this.park();
+        } });
         this.position();
         // Só depois de visível: com o popup oculto, scrollTop não tem efeito.
         this.views.library.scrollTop = 0;
@@ -334,27 +341,39 @@ const SoundSystem = {
     setView(view, { focus = true, returnKey = null } = {}) {
         const editor = this.editor;
         const previous = editor.view;
+        this.finishViewExit();
+        const animate = previous !== view && DialogSystem.isOpen(this.root) && !Motion.reduced() && !document.hidden;
+        const from = animate ? { height: this.panel.offsetHeight, top: this.panel.offsetTop } : null;
+        this.panel._oraMotion?.size?.cancel();
+        const x = view === 'library' ? -12 : 12;
+        if (animate) this.leaveView(previous, x);
         editor.view = view;
         for (const [name, el] of Object.entries(this.views)) {
             const shown = name === view;
+            el.inert = !shown;
+            if (this.leavingView?.name === name) continue;
             // A vista da playlist guarda o player: estaciona em vez de sumir.
-            if (name === 'playlist') {
-                el.classList.toggle('is-parked', !shown);
-                el.inert = !shown;
-            } else el.hidden = !shown;
+            if (name === 'playlist') el.classList.toggle('is-parked', !shown);
+            else el.hidden = !shown;
         }
         // Cada vista começa do topo (filtros e cabeçalho à vista).
         this.views[view].scrollTop = 0;
         this.setStatus('');
         this.renderEditor();
         this.position();
-        // Entrar num detalhe desliza da direita; voltar à biblioteca, da esquerda
-        if (previous && previous !== view && window.Motion) {
-            const x = view === 'library' ? -12 : 12;
+        if (animate) {
             Motion.play(this.views[view], [
                 { opacity: 0, transform: `translateX(${x}px)` },
                 { opacity: 1, transform: 'none' }
             ], { duration: 220, channel: 'view' });
+            const to = { height: this.panel.offsetHeight, top: this.panel.offsetTop };
+            if (from.height !== to.height || from.top !== to.top) {
+                const anchored = this.root.classList.contains('is-anchored');
+                const maxHeight = Math.max(from.height, to.height) + 'px';
+                const size = rect => ({ height: rect.height + 'px', maxHeight, ...(anchored ? { top: rect.top + 'px' } : {}) });
+                const resize = Motion.play(this.panel, [size(from), size(to)], { duration: 220, easing: 'ease-in-out', channel: 'size' });
+                resize?.finished.then(() => this.position(), () => {});
+            }
         }
         if (!focus) return;
         if (view === 'library') {
@@ -366,6 +385,37 @@ const SoundSystem = {
         } else if (previous !== view) {
             this.back.focus({ preventScroll: true });
         }
+    },
+
+    leaveView(name, x) {
+        const el = this.views[name];
+        const { offsetTop, offsetLeft, offsetWidth, offsetHeight } = el;
+        const { opacity, transform } = getComputedStyle(el);
+        const animation = Motion.play(el, [
+            { opacity, transform },
+            { opacity: 0, transform: `translateX(${-x}px)` }
+        ], { duration: 160, channel: 'view', fill: 'forwards' });
+        if (!animation) return;
+        Object.assign(el.style, {
+            top: offsetTop + 'px', left: offsetLeft + 'px', width: offsetWidth + 'px', height: offsetHeight + 'px'
+        });
+        el.classList.add('is-leaving');
+        this.leavingView = { name, el, animation };
+        animation.finished.then(() => {
+            if (this.leavingView?.animation === animation) this.finishViewExit();
+        }, () => {});
+    },
+
+    finishViewExit() {
+        if (!this.leavingView) return;
+        const { name, el, animation } = this.leavingView;
+        this.leavingView = null;
+        if (name === 'playlist') el.classList.add('is-parked');
+        else el.hidden = true;
+        el.classList.remove('is-leaving');
+        Object.assign(el.style, { top: '', left: '', width: '', height: '' });
+        animation.cancel();
+        this.renderStage();
     },
 
     // Abre o ajuste do ambiente ou os detalhes da playlist escolhida.
@@ -384,6 +434,7 @@ const SoundSystem = {
     position() {
         const opener = this.editor?.opener;
         const panel = this.panel;
+        if (!this.editor || panel._oraMotion?.size?.playState === 'running') return;
         const anchored = !!opener?.isConnected && window.innerWidth >= 600;
         this.root.classList.toggle('is-anchored', anchored);
         if (!anchored) {
@@ -666,7 +717,10 @@ const SoundSystem = {
         const player = this.active;
         const playlist = this.playlist(player?.choice);
         const editor = this.editor;
-        const shown = !!playlist && editor?.view === 'playlist' && editor.target === playlist.id;
+        // Mantém o mesmo iframe visível durante a saída da vista ou do popup.
+        const leaving = this.leavingView?.name === 'playlist' || (!editor && this.root.classList.contains('is-dormant'));
+        const shown = !!playlist && (editor?.view === 'playlist' && editor.target === playlist.id ||
+            leaving && !this.stage.classList.contains('is-parked'));
         this.stage.classList.toggle('is-parked', !shown);
         if (this.stage.inert !== !shown) this.stage.inert = !shown;
         this.playlistCard.hidden = shown;

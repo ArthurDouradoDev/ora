@@ -131,7 +131,7 @@
                     </div>
 
                     <!-- Preparação do foco -->
-                    <section class="prep surface-solid" id="today-prep" role="dialog" aria-modal="true" aria-labelledby="today-prep-label" data-dismiss-on-scrim="false" hidden>
+                    <section class="prep context-dialog surface-solid" id="today-prep" role="dialog" aria-modal="true" aria-labelledby="today-prep-label" data-dismiss-on-scrim="false" hidden>
                         <div>
                             <p class="label" id="today-prep-label" data-i18n="today.prep_label">Preparar foco</p>
                             <input class="prep-title" id="today-prep-title" maxlength="80" autocomplete="off" aria-label="Atividade" data-i18n-aria-label="today.prep_activity" placeholder="Em que você vai trabalhar?" data-i18n-placeholder="today.prep_activity_placeholder">
@@ -177,7 +177,7 @@
                     </section>
 
                     <!-- Oração ao começar: entre "Começar" e o cronômetro (opcional) -->
-                    <section class="focus-prayer" id="today-prayer" role="dialog" aria-modal="true" aria-labelledby="today-prayer-title" data-dismiss-on-scrim="false" hidden>
+                    <section class="focus-prayer context-dialog" id="today-prayer" role="dialog" aria-modal="true" aria-labelledby="today-prayer-title" data-dismiss-on-scrim="false" hidden>
                         <p class="label" data-i18n="today.prayer_before">Antes de começar</p>
                         <h2 class="focus-prayer-title" id="today-prayer-title"></h2>
                         <div class="focus-prayer-text" id="today-prayer-text"></div>
@@ -317,8 +317,8 @@
                     <form class="tasks-add" id="tasks-add-form">
                         <button class="btn-icon" type="submit" data-i18n-aria-label="tasks.add" aria-label="Adicionar"><i class="ph ph-plus" aria-hidden="true"></i></button>
                         <label for="tasks-add-input" class="sr-only" data-i18n="tasks.add_label">Nova tarefa</label>
-                        <input id="tasks-add-input" maxlength="80" autocomplete="off" placeholder="Nova tarefa…" data-i18n-placeholder="tasks.add_placeholder">
-                        <button type="button" class="btn btn-aux btn-sm" id="tasks-destination" aria-haspopup="menu" aria-expanded="false" aria-controls="tasks-menu"></button>
+                        <textarea id="tasks-add-input" rows="1" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="Nova tarefa…" data-i18n-placeholder="tasks.add_placeholder"></textarea>
+                        <button type="button" class="btn btn-quiet btn-sm" id="tasks-destination" aria-haspopup="menu" aria-expanded="false" aria-controls="tasks-menu"></button>
                     </form>
                 </footer>
             </div>

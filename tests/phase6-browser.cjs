@@ -58,6 +58,54 @@ const profile = fs.mkdtempSync(path.join(temp, 'ora-phase6-qa-'));
         assert.equal(await page.evaluate(() => document.activeElement.id), 'sound-open');
         console.log('PASS legacy selection, anchored popup and Escape focus return');
 
+        await click('#today-quick-focus');
+        await page.waitForFunction(() => getComputedStyle(TodaySystem.elements.prep).opacity === '1');
+        assert.equal(await page.evaluate(() => {
+            const prep = TodaySystem.elements.prep;
+            const before = prep.getBoundingClientRect();
+            DialogSystem.close(prep);
+            const after = prep.getBoundingClientRect();
+            return prep.inert && prep.hidden && getComputedStyle(prep).display !== 'none' &&
+                Math.abs(before.top - after.top) <= 1 && Math.abs(before.left - after.left) <= 1;
+        }), true);
+        await page.locator('#today-prep').waitFor({ state: 'hidden' });
+        console.log('PASS focus preparation fades out in place before disappearing');
+
+        const relay = 'https://arthurdouradodev.github.io/ora-player-relay/v2/**';
+        await page.route(relay, route => route.fulfill({ contentType: 'text/html', body: `<!doctype html><script>
+            const id = new URLSearchParams(location.search).get('id');
+            const send = (event, values = {}) => parent.postMessage({ oraRelay: 2, event, id, ...values }, '*');
+            addEventListener('message', ({ data }) => { if (data?.cmd === 'play') send('state', { paused: false }); });
+            send('hello');
+            send('ready');
+        </script>` }));
+        await click('#sound-open');
+        await tile('pl-user-legacy').click();
+        await page.waitForFunction(() => SoundSystem.active?.ready && !SoundSystem.active.paused);
+        await page.waitForFunction(() => !SoundSystem.panel._oraMotion?.size);
+        assert.equal(await page.evaluate(() => {
+            const { stage, panel, frame } = SoundSystem;
+            window.testSoundFrame = frame.contentWindow;
+            const height = panel.offsetHeight;
+            SoundSystem.setView('library');
+            return SoundSystem.views.playlist.classList.contains('is-leaving') &&
+                !stage.classList.contains('is-parked') && Math.abs(panel.offsetHeight - height) <= 1 &&
+                !!panel._oraMotion?.size;
+        }), true);
+        await page.waitForFunction(() => SoundSystem.stage.classList.contains('is-parked'));
+        await click('#sound-now');
+        await page.waitForFunction(() => !SoundSystem.panel._oraMotion?.size);
+        assert.equal(await page.evaluate(() => {
+            const { root, stage, frame } = SoundSystem;
+            DialogSystem.close(root);
+            return root.inert && root.classList.contains('is-dormant') && !stage.classList.contains('is-parked') &&
+                frame.contentWindow === window.testSoundFrame && !SoundSystem.active.paused;
+        }), true);
+        await page.waitForFunction(() => getComputedStyle(SoundSystem.root).opacity === '0');
+        await page.evaluate(() => SoundSystem.stop());
+        await page.unroute(relay);
+        console.log('PASS playlist fades out with the popup and keeps the same playing frame');
+
         await click('#sound-open');
         await click('.sound-filter[data-sound-focus="filter-ambient"]');
         assert.equal(await tile('pl-user-legacy').count(), 0);

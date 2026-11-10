@@ -151,7 +151,7 @@ const SettingsSystem = {
         const reader = (part, label, values, hint) => this.addControl(groups.appearance, {
             id: 'settings-reader-' + part, label, hint, options: values, segmented: true, legacy: part === 'size',
             read: () => this.reader[part],
-            write: value => this.setReader({ [part]: value })
+            write: async value => { await this.setReader({ [part]: value }); }
         });
         reader('appearance', 'preferences.reader', [['escuro', 'pray.dark'], ['papel', 'pray.paper']], 'preferences.reader_hint');
         reader('size', 'preferences.reader_size', options(SettingsCore.READER_SIZES, 'preferences.size_'), 'preferences.reader_size_hint');

@@ -199,8 +199,8 @@ function check(name, condition) {
         await page.keyboard.press('Shift+Tab');
         check('add profile dialog traps Shift+Tab', await page.evaluate(() => document.getElementById('protection-add-dialog').contains(document.activeElement)));
         await page.keyboard.press('Escape');
-        check('Esc closes add profile dialog and returns focus',
-            await page.locator('#protection-add-dialog').isHidden() && await page.evaluate(() => document.activeElement.id === 'addProfileBtn'));
+        await page.locator('#protection-add-dialog').waitFor({ state: 'hidden' });
+        check('Esc closes add profile dialog and returns focus', await page.evaluate(() => document.activeElement.id === 'addProfileBtn'));
 
         check('preview section has 3 web states and no iOS button',
             await page.locator('#view-protecao [data-preview-block]').count() === 3 &&
@@ -397,6 +397,44 @@ function check(name, condition) {
             const text = await reopened.locator('#view-protecao').innerText();
             check(`${locale} #protecao contains no raw i18n keys`, !text.includes('protection.') && !text.includes('blocked.'));
         }
+
+        const iconDomains = ['icon-binary.example.com', 'icon-declared.example.com'];
+        await sw.evaluate(async sites => {
+            const hhmm = offset => new Date(Date.now() + offset * 60_000).toTimeString().slice(0, 5);
+            await chrome.storage.local.set({ blocker_config: { enabled: true, profiles: [{
+                id: 'icon-qa', name: 'Icon QA', enabled: true, sites,
+                rules: { schedule: { enabled: true, from: hhmm(-30), to: hhmm(30) } }
+            }] } });
+        }, iconDomains);
+        const icons = await context.newPage();
+        icons.on('pageerror', error => errors.push(error.message));
+        await icons.addInitScript(domains => {
+            const realFetch = window.fetch.bind(window);
+            const image = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1xoAAAAASUVORK5CYII='), c => c.charCodeAt(0));
+            window.iconRequests = [];
+            window.fetch = (resource, options) => {
+                const url = new URL(resource, location.href);
+                if (![...domains, 'www.' + domains[1], 'icon-cdn.example.com'].includes(url.hostname)) return realFetch(resource, options);
+                window.iconRequests.push(url.pathname);
+                const reply = (body, status, type, finalUrl = url.href) => {
+                    const response = new Response(body, { status, headers: { 'content-type': type } });
+                    Object.defineProperty(response, 'url', { value: finalUrl });
+                    return Promise.resolve(response);
+                };
+                if (url.hostname === domains[0]) return reply(image, 200, 'application/octet-stream');
+                if (url.hostname === 'icon-cdn.example.com') return reply(image, 200, 'image/png');
+                if (url.pathname === '/') return reply('<link rel="shortcut icon" href="brand.png">', 200, 'text/html', 'https://icon-cdn.example.com/assets/');
+                return reply('Not found', 404, 'text/html');
+            };
+        }, iconDomains);
+        for (const domain of iconDomains) {
+            const original = encodeURIComponent(`https://${domain}/private/path`);
+            await icons.goto(`chrome-extension://${id}/blocked.html?domain=${domain}&url=${original}`);
+            await icons.waitForFunction(() => document.querySelector('#blkFav img')?.naturalWidth === 1);
+            check(`${domain}: favicon is decoded without fetching the blocked path`, await icons.evaluate(() =>
+                window.iconRequests.length > 0 && !window.iconRequests.includes('/private/path')));
+        }
+        await icons.close();
 
         check('no uncaught browser errors', errors.length === 0);
         console.log(JSON.stringify({ checks, errors, artifacts }, null, 2));

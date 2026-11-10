@@ -160,6 +160,10 @@ html[data-today="preparacao"] .arrival :is(.greeting, .day) { display: none; }
 .invite .txt b { display: block; font-weight: 600; color: var(--text); }
 
 /* ---------- Preparação: painel contextual pequeno ---------- */
+.context-dialog[hidden] {
+    position: absolute; z-index: 1;
+    left: var(--exit-left); top: var(--exit-top); width: var(--exit-width);
+}
 .prep {
     width: min(34rem, 100%);
     text-align: left;
@@ -475,16 +479,18 @@ html[data-today="preparacao"] .today-foot { display: none; }
     .today-corner .sound-mini .btn-icon { min-width: 2.25rem; min-height: 2.25rem; }
     .today-corner .sound-volume input { width: 4.5rem; }
     @media (hover: hover) {
-        .today-corner .sound-mini.is-active .sound-controls { display: none; }
+        .today-corner .sound-mini.is-active .sound-controls {
+            display: none; opacity: 0; transform: translateX(-0.375rem); pointer-events: none;
+            transition: opacity 160ms var(--ease), transform 160ms var(--ease), display 160ms;
+            transition-behavior: allow-discrete;
+        }
         .today-corner .sound-mini.is-active:hover .sound-controls,
         .today-corner .sound-mini.is-active:has(:focus-visible) .sound-controls {
-            display: inline-flex;
-            animation: sound-controls-in 160ms var(--ease);
+            display: inline-flex; opacity: 1; transform: none; pointer-events: auto;
+            @starting-style { opacity: 0; transform: translateX(-0.375rem); }
         }
     }
 }
-
-@keyframes sound-controls-in { from { opacity: 0; transform: translateX(-0.375rem); } }
 
 /* Tempos litúrgicos (fase 8): uma linha sob a data, cor sempre com texto */
 .season-line {
