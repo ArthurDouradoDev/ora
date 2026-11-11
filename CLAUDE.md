@@ -29,6 +29,8 @@ There is no build process. This is pure vanilla JS/HTML/CSS — no npm, no bundl
 - Check console in the new tab with `Ctrl+Shift+J`
 - View SW logs: Extensions > Details > "Service Worker" link
 
+**Store package:** `node tools/package.js` writes `dist/ora-<version>.zip` with only the extension files (no prototypes, tests or docs) and checks that every file the manifest references is included. Bump `version` in `manifest.json` before each upload. The privacy policy lives in the `ora-website` repo (`privacy.html`); update it whenever permissions or network calls change.
+
 **Tests:** pure functions in `scripts/shared/` are covered by `tests/tests.js`. Run `node tests/run.js` from the project root (exits 1 on failure), or open `tests/tests.html` in a browser (serve it over http so `tests/fixtures/*.json` load; under `file://` the fixture tests are skipped). UI flows are still tested manually by exercising each module.
 
 ## Architecture

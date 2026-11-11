@@ -43,7 +43,7 @@ Não registrado como confirmado: "salto duplo" de Espaço no terço (não reprod
 
 ## 4. Armadilhas de ambiente e ferramentas
 
-- **`prototypes/` entra na extensão** com "Load unpacked". Excluir ao empacotar para a loja.
+- **`prototypes/` entra na extensão** com "Load unpacked". Para a loja, gerar o zip com `node tools/package.js` (inclui só os arquivos da extensão; saída em `dist/`).
 - **Toda imagem ou recurso externo da página passa pelo `fetch` do `sw.js`**, que obedece ao `connect-src` da CSP (não ao `img-src`). Um host novo de imagens precisa entrar no `connect-src` do `manifest.json`, senão falha com `ERR_FAILED` (E28).
 - Abrir protótipos via `file://` foi bloqueado no navegador do agente; usar `python -m http.server 5517 --directory prototypes`.
 - `21st review` (CLI) não está instalado; não contar com ele para verificar UI.

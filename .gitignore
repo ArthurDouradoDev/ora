@@ -11,3 +11,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Pacote da loja
+dist/
