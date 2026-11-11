@@ -17,6 +17,7 @@ const SettingsSystem = {
         const prayerReady = this.applyPrayerLocale(this.getPrayerLang(), false);
         this.reader = ReaderCore.preferences(snapshot[SettingsCore.READER_KEY] || {});
         this.cache = snapshot.liturgy_gospel_cache;
+        this.notificationsAllowed = await this.hasNotificationPermission();
         this.root = document.getElementById('view-configuracoes');
         this.build();
         this.applyMotion();
@@ -33,6 +34,12 @@ const SettingsSystem = {
         chrome.storage.onChanged.addListener((changes, area) => {
             if (area === 'local') this.receive(changes);
         });
+        const refreshPermission = async () => {
+            this.notificationsAllowed = await this.hasNotificationPermission();
+            this.updateControls();
+        };
+        chrome.permissions?.onAdded?.addListener(refreshPermission);
+        chrome.permissions?.onRemoved?.addListener(refreshPermission);
         await prayerReady;
         if (this.prayerCopy?.locale !== this.getPrayerLang()) await this.applyPrayerLocale(this.getPrayerLang(), false);
         if (this.state.ora_locale !== getLocale()) await this.applyLocale(this.state.ora_locale);
@@ -119,6 +126,24 @@ const SettingsSystem = {
     },
 
     isReminderEnabled(name) { return this.state['ora_reminder_' + name] !== false; },
+    // `notifications` is optional (it is not asked on install, so updating
+    // from 1.1.5 never disables the extension); the switch asks for it.
+    async hasNotificationPermission() {
+        try { return await chrome.permissions.contains({ permissions: ['notifications'] }); }
+        catch (e) { return false; }
+    },
+
+    async setNotificationPermission(allowed) {
+        if (allowed) {
+            // Called synchronously from the switch's change event (user gesture).
+            this.notificationsAllowed = await chrome.permissions.request({ permissions: ['notifications'] });
+            if (!this.notificationsAllowed) return { message: 'preferences.browser_notifications_denied' };
+        } else {
+            await chrome.permissions.remove({ permissions: ['notifications'] });
+            this.notificationsAllowed = false;
+        }
+    },
+
     getUserName() { return this.state.ora_user_name || ''; },
     getPrayerLang() { return this.state.ora_prayer_lang || 'pt'; },
     get(key) { return this.state[key]; },
@@ -171,6 +196,10 @@ const SettingsSystem = {
         this.addPreference(groups.focus, 'ora_focus_protect', 'preferences.focus_protection', { hint: 'preferences.focus_protection_hint' });
         this.addTimer(groups.focus, 'wakeLock', 'preferences.wake_lock', { hint: 'preferences.wake_lock_hint' });
 
+        this.addControl(groups.reminders, {
+            id: 'settings-browser-notifications', label: 'preferences.browser_notifications', hint: 'preferences.browser_notifications_hint',
+            read: () => this.notificationsAllowed === true, write: value => this.setNotificationPermission(value)
+        });
         this.addPreference(groups.reminders, 'ora_reminder_angelus', 'settings.reminder_angelus');
         this.addPreference(groups.reminders, 'ora_reminder_mercy', 'pray.mercy');
         this.addPreference(groups.reminders, 'ora_reminder_evening', 'preferences.close_day');
@@ -324,7 +353,7 @@ const SettingsSystem = {
             else control.value = read();
         });
         control.addEventListener('change', () => this.perform(control, status,
-            async () => { await write(control.type === 'checkbox' ? control.checked : control.value); }));
+            async () => (await write(control.type === 'checkbox' ? control.checked : control.value))?.message));
     },
 
     bindName(control, status, read, write) {

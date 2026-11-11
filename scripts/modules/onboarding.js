@@ -55,6 +55,20 @@ const OnboardingSystem = {
         for (const [i, name] of this.reminderNames.entries()) {
             add(this.controls.reminders, name, ['settings.reminder_angelus', 'pray.mercy', 'preferences.close_day'][i]);
         }
+        // Optional `notifications` permission (not asked on install, so the
+        // update from 1.1.5 never disables Ora): asked right on the switch,
+        // in the reminders step and in the update screen.
+        for (const container of [this.controls.reminders, document.getElementById('intro-update-options')]) {
+            if (!container) continue;
+            add(container, 'notifications', 'preferences.browser_notifications');
+            const input = container.querySelector('input[value="notifications"]');
+            input.closest('label').querySelector('small').dataset.i18n = 'preferences.browser_notifications_hint';
+            input.addEventListener('change', async () => {
+                const result = await SettingsSystem.setNotificationPermission(input.checked).catch(() => null);
+                for (const item of this.root.querySelectorAll('input[value="notifications"]')) item.checked = SettingsSystem.notificationsAllowed === true;
+                if (result?.message) this.controls.status.textContent = t(result.message);
+            });
+        }
         applyI18n();
     },
 
@@ -66,8 +80,9 @@ const OnboardingSystem = {
         this.controls.name.value = SettingsSystem.getUserName();
         this.controls.sites.value = '';
         for (const input of this.controls.profiles.querySelectorAll('input')) input.checked = false;
+        for (const input of this.root.querySelectorAll('input[value="notifications"]')) input.checked = SettingsSystem.notificationsAllowed === true;
         for (const input of this.controls.reminders.querySelectorAll('input')) {
-            input.checked = SettingsSystem.isReminderEnabled(input.value);
+            if (input.value !== 'notifications') input.checked = SettingsSystem.isReminderEnabled(input.value);
             input.dataset.initial = String(input.checked);
         }
         DialogSystem.open(this.root, { onClose: () => {
@@ -149,6 +164,7 @@ const OnboardingSystem = {
                 }
             }
             for (const input of this.controls.reminders.querySelectorAll('input')) {
+                if (input.value === 'notifications') continue;
                 if (String(input.checked) !== input.dataset.initial) changes['ora_reminder_' + input.value] = input.checked;
             }
         }

@@ -1301,6 +1301,8 @@ async function stMarkShown(moment) {
 
 async function stFireReflection(moment) {
     if (!(await stIsReflectEnabled())) return;
+    // `notifications` is optional: without it the reflection only shows on Hoje.
+    if (!(await hasNotificationPermission())) return;
     if (await stShownToday(moment)) return;
     await stMarkShown(moment);
 
@@ -1327,11 +1329,28 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 // ── Clique na notificação → abre Frutos já no bloco de tempo de tela ──
-chrome.notifications.onClicked.addListener((notificationId) => {
-    if (!notificationId.startsWith('ora_reflect_')) return;
-    const url = chrome.runtime.getURL('ora.html') + '#frutos/tela';
-    chrome.tabs.create({ url });
-    chrome.notifications.clear(notificationId);
+// `notifications` is an optional permission (asked in Configurações →
+// Lembretes), so `chrome.notifications` only exists once it is granted.
+async function hasNotificationPermission() {
+    try {
+        return !!chrome.notifications && await chrome.permissions.contains({ permissions: ['notifications'] });
+    } catch (e) { return false; }
+}
+
+let notificationClickBound = false;
+function bindNotificationClick() {
+    if (notificationClickBound || !chrome.notifications) return;
+    notificationClickBound = true;
+    chrome.notifications.onClicked.addListener((notificationId) => {
+        if (!notificationId.startsWith('ora_reflect_')) return;
+        const url = chrome.runtime.getURL('ora.html') + '#frutos/tela';
+        chrome.tabs.create({ url });
+        chrome.notifications.clear(notificationId);
+    });
+}
+bindNotificationClick();
+chrome.permissions.onAdded.addListener((permissions) => {
+    if (permissions.permissions?.includes('notifications')) bindNotificationClick();
 });
 
 // ── Mensagens da página (contagem de novas abas e medição em curso) ──

@@ -15,7 +15,8 @@
   "background": {
     "service_worker": "sw.js"
   },
-  "permissions": ["favicon", "storage", "declarativeNetRequest", "alarms", "tabs", "webNavigation", "notifications", "idle"],
+  "permissions": ["favicon", "storage", "declarativeNetRequest", "alarms", "tabs", "webNavigation", "idle"],
+  "optional_permissions": ["notifications"],
   "host_permissions": [
     "https://*/*",
     "http://*/*"
